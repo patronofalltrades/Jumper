@@ -47,6 +47,9 @@ Use these skills when you work on Jumper. They do not replace the house rules. I
 | ECC | [affaan-m/ECC](https://github.com/affaan-m/ECC) | Agent workflows, commands and reviews for Claude Code. |
 | shadcn/ui | [ui.shadcn.com](https://ui.shadcn.com/) | UI components (forms, dialogs, sheets, toasts) on Tailwind CSS. shadcn/ui adds packages that are not in the TRD (for example Radix UI). Ask me before you add the first component. |
 | task-observer | [rebelytics/one-skill-to-rule-them-all](https://github.com/rebelytics/one-skill-to-rule-them-all) | Watch each session. Log corrections and repeated work as suggestions to improve or add skills. |
+| frontend-design | `frontend-design@claude-plugins-official` | Make screens with high design quality. Use the design direction in the PRD (workbench look, Duolingo game feel) and the tokens from the prototype. |
+| Matt Pocock skills | [mattpocock/skills](https://github.com/mattpocock/skills) | Small engineering skills for TypeScript work, for example planning, tests and refactors. |
+| Superpowers | `superpowers@claude-plugins-official` | Brainstorm, plan, debug in steps, and write tests first (red, then green). |
 
 **Install (Claude Code):**
 
@@ -55,6 +58,9 @@ Use these skills when you work on Jumper. They do not replace the house rules. I
 /plugin install ponytail@ponytail
 npx ecc-universal setup
 npx skills add rebelytics/one-skill-to-rule-them-all --skill task-observer
+claude plugin install frontend-design@claude-plugins-official
+claude plugin install mattpocock-skills@claude-plugins-official
+claude plugin install superpowers@claude-plugins-official
 npx shadcn@latest init        # only after I approve the shadcn/ui dependencies
 ```
 

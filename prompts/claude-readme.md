@@ -15,6 +15,8 @@
    https://ui.shadcn.com/
    https://github.com/rebelytics/one-skill-to-rule-them-all"
 
+3. "Add the following as well: frontend-design@claude-plugins-official mattpocock/skills superpowers@claude-plugins-official"
+
 ## Decisions
 
 - shadcn/ui is listed as a skill, but its packages (for example Radix UI) are not in the TRD. Per the house rule, Claude asks Hanif before it adds the first component.
