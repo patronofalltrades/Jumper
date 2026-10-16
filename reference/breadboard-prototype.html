@@ -1,0 +1,772 @@
+<title>Jumper Breadboard Lab</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+/* Layout: full-bleed 3D workbench; lesson card floats top-left, tool dock floats bottom, feedback sheet slides up over the dock. */
+:root{
+  --bench:#E3E8EB;
+  --panel:#FFFFFF;
+  --panel-2:#F1F4F5;
+  --ink:#13202A;
+  --muted:#566874;
+  --line:#CCD6DB;
+  --pcb:#1F7A55;
+  --pcb-deep:#145A3E;
+  --on-pcb:#FFFFFF;
+  --probe:#E3A008;
+  --danger:#C9412F;
+  --danger-deep:#9A2F21;
+  --on-danger:#FFFFFF;
+  --shadow:0 10px 30px rgba(19,32,42,.12);
+  --display:"Bricolage Grotesque", ui-rounded, "Segoe UI", system-ui, sans-serif;
+  --mono:"IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bench:#0D1418; --panel:#162027; --panel-2:#1C2830; --ink:#E6EEF2; --muted:#8EA1AD; --line:#2A3943;
+    --pcb:#34AE79; --pcb-deep:#1F7A55; --on-pcb:#04140C; --probe:#F2B705; --danger:#E26A5B; --danger-deep:#A8473B; --on-danger:#1A0603;
+    --shadow:0 10px 30px rgba(0,0,0,.45); color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bench:#0D1418; --panel:#162027; --panel-2:#1C2830; --ink:#E6EEF2; --muted:#8EA1AD; --line:#2A3943;
+  --pcb:#34AE79; --pcb-deep:#1F7A55; --on-pcb:#04140C; --probe:#F2B705; --danger:#E26A5B; --danger-deep:#A8473B; --on-danger:#1A0603;
+  --shadow:0 10px 30px rgba(0,0,0,.45); color-scheme:dark;
+}
+html,body{height:100%}
+body{background:var(--bench);color:var(--ink);font-family:var(--display);font-size:14px;overflow:hidden}
+.app{height:100%;display:flex;flex-direction:column}
+
+/* Header */
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-block:10px;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));
+  background:var(--panel);border-bottom:1px solid var(--line);position:relative;z-index:3}
+.brand{display:flex;align-items:center;gap:10px;min-width:0}
+.brand svg{flex:none}
+.wordmark{font-weight:800;font-size:22px;letter-spacing:-.02em;line-height:1}
+.tag{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:3px 8px}
+.meta{display:flex;align-items:center;gap:14px}
+.board-chip{font-family:var(--mono);font-size:12px;color:var(--muted)}
+.xp{display:flex;align-items:baseline;gap:6px;font-variant-numeric:tabular-nums}
+.xp b{font-size:18px;font-weight:800}
+.xp span{font-family:var(--mono);font-size:11px;letter-spacing:.08em;color:var(--muted)}
+.hearts{display:flex;gap:3px}
+.hearts svg{width:20px;height:20px}
+.hearts .full{fill:var(--danger)}
+.hearts .empty{fill:none;stroke:var(--line);stroke-width:2}
+
+/* Stage */
+.stage{position:relative;flex:1;min-height:0}
+#scene{position:absolute;inset:0;touch-action:none}
+#scene canvas{display:block;width:100%;height:100%;cursor:crosshair}
+
+/* Lesson card */
+.lesson{position:absolute;top:16px;right:max(16px, env(safe-area-inset-right, 0px));width:min(340px, calc(100% - 32px));
+  background:var(--panel);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);z-index:2}
+.lesson summary{list-style:none;cursor:pointer;padding:14px 16px;display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.lesson summary::-webkit-details-marker{display:none}
+.lesson summary:focus-visible{outline:2px solid var(--probe);outline-offset:2px;border-radius:16px}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.lesson h1{font-size:22px;font-weight:800;letter-spacing:-.02em;margin:4px 0 0;text-wrap:balance;line-height:1.1}
+.chev{flex:none;margin-top:4px;transition:transform .2s}
+.lesson[open] .chev{transform:rotate(180deg)}
+.lesson-body{padding:0 16px 16px;display:grid;gap:12px}
+.lesson-body p{margin:0;line-height:1.5;color:var(--ink)}
+.lesson-body p.small{font-size:13px;color:var(--muted)}
+.mono{font-family:var(--mono);font-size:.92em}
+.steps{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.steps li{display:grid;grid-template-columns:22px 1fr;gap:8px;align-items:start;line-height:1.35}
+.steps .dot{width:20px;height:20px;border-radius:50%;border:2px solid var(--line);display:grid;place-items:center;margin-top:-1px}
+.steps .dot svg{width:12px;height:12px;opacity:0}
+.steps li.done .dot{background:var(--pcb);border-color:var(--pcb)}
+.steps li.done .dot svg{opacity:1;stroke:var(--on-pcb)}
+.steps li.done .txt{color:var(--muted)}
+.lesson-foot{display:flex;justify-content:space-between;align-items:center;gap:10px;padding-top:10px;border-top:1px dashed var(--line)}
+.linkbtn{background:none;border:none;padding:0;color:var(--pcb);font:600 13px var(--display);cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.linkbtn:focus-visible{outline:2px solid var(--probe);outline-offset:2px}
+.locked{font-size:12px;color:var(--muted)}
+.done-pill{display:none;font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;background:var(--pcb);color:var(--on-pcb);border-radius:999px;padding:3px 8px;margin-top:6px;width:max-content}
+.lesson.complete .done-pill{display:block}
+
+/* Dock */
+.dock-wrap{position:absolute;left:0;right:0;bottom:0;z-index:2;display:grid;justify-items:center;gap:8px;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));
+  padding-bottom:calc(16px + env(safe-area-inset-bottom, 0px));pointer-events:none}
+.status{pointer-events:none;font-size:13px;background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:6px 14px;box-shadow:var(--shadow);max-width:100%;text-align:center;text-wrap:balance}
+.status.warn{border-color:var(--probe);background:color-mix(in srgb, var(--probe) 16%, var(--panel))}
+.dock{pointer-events:auto;display:flex;flex-wrap:wrap;justify-content:center;gap:10px;background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:10px;box-shadow:var(--shadow);max-width:100%}
+.group{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.sep{width:1px;align-self:stretch;background:var(--line)}
+.btn{display:inline-flex;align-items:center;gap:7px;font:650 14px/1 var(--display);color:var(--ink);background:var(--panel);
+  border:2px solid var(--line);border-bottom-width:4px;border-radius:12px;padding:9px 12px;cursor:pointer;white-space:nowrap;transition:transform .06s}
+.btn svg{width:18px;height:18px;flex:none;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.btn:active{transform:translateY(2px);border-bottom-width:2px;margin-bottom:2px}
+.btn:focus-visible{outline:2px solid var(--probe);outline-offset:2px}
+.btn[aria-pressed="true"]{border-color:var(--probe);background:color-mix(in srgb, var(--probe) 15%, var(--panel))}
+.btn.primary{background:var(--pcb);border-color:var(--pcb-deep);color:var(--on-pcb);padding-inline:18px}
+.btn.danger-arm{border-color:var(--danger);color:var(--danger)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.swatches{display:flex;gap:4px;padding:0 2px}
+.sw{width:20px;height:20px;border-radius:50%;border:2px solid var(--panel);box-shadow:0 0 0 1px var(--line);cursor:pointer;padding:0}
+.sw[aria-pressed="true"]{box-shadow:0 0 0 2px var(--probe)}
+.sw:focus-visible{outline:2px solid var(--probe);outline-offset:2px}
+.seg{display:inline-flex;border:2px solid var(--line);border-radius:12px;overflow:hidden}
+.seg button{font:650 13px/1 var(--display);color:var(--muted);background:var(--panel);border:none;padding:10px 11px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--panel)}
+.seg button:focus-visible{outline:2px solid var(--probe);outline-offset:-2px}
+
+/* Tooltip */
+.tip{position:absolute;z-index:4;pointer-events:none;background:var(--ink);color:var(--panel);border-radius:10px;padding:8px 10px;max-width:250px;box-shadow:var(--shadow);font-size:12.5px;line-height:1.4}
+.tip .k{font-family:var(--mono);font-weight:600;font-size:12px;color:var(--probe)}
+
+/* Sheet */
+.sheet{position:absolute;left:0;right:0;bottom:0;z-index:5;background:var(--panel);border-top:4px solid var(--pcb);box-shadow:0 -10px 30px rgba(0,0,0,.18);
+  padding-block:18px calc(18px + env(safe-area-inset-bottom, 0px));
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));
+  animation:rise .22s ease-out}
+.sheet.bad{border-top-color:var(--danger)}
+@keyframes rise{from{transform:translateY(24px);opacity:.6}to{transform:none;opacity:1}}
+.sheet-inner{max-width:640px;margin:0 auto;display:grid;gap:12px}
+.sheet h2{margin:0;font-size:24px;font-weight:800;letter-spacing:-.02em;color:var(--pcb)}
+.sheet.bad h2{color:var(--danger)}
+.sheet p{margin:0;line-height:1.5;max-width:62ch}
+.sheet pre{margin:0;background:var(--panel-2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font:12.5px/1.55 var(--mono);overflow-x:auto}
+.sheet-actions{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end}
+.sheet.bad .btn.primary{background:var(--danger);border-color:var(--danger-deep);color:var(--on-danger)}
+.reward{font-family:var(--mono);font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+
+@media (max-width:640px){
+  .board-chip,.tag{display:none}
+  .lesson h1{font-size:19px}
+  .btn{padding:8px 10px;font-size:13px}
+  .btn .lbl-long{display:none}
+  .dock{gap:8px;padding:8px}
+  .sep{display:none}
+}
+@media (prefers-reduced-motion: reduce){ .sheet{animation:none} .chev{transition:none} }
+</style>
+
+<div class="app">
+  <header class="top">
+    <div class="brand">
+      <svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><path d="M5 24 C5 6, 25 6, 25 24" fill="none" stroke="var(--pcb)" stroke-width="3.2" stroke-linecap="round"/><rect x="2.5" y="22" width="5" height="6" rx="1" fill="var(--ink)"/><rect x="22.5" y="22" width="5" height="6" rx="1" fill="var(--ink)"/></svg>
+      <span class="wordmark">Jumper</span>
+      <span class="tag">Prototype</span>
+    </div>
+    <div class="meta">
+      <span class="board-chip">ESP32 DevKit V1 · 30-pin</span>
+      <div class="xp" aria-label="Experience points"><b id="xp">0</b><span>XP</span></div>
+      <div class="hearts" id="hearts" aria-label="Hearts left"></div>
+    </div>
+  </header>
+
+  <main class="stage">
+    <div id="scene" aria-label="3D breadboard. Click two holes to place a wire or part."></div>
+
+    <details class="lesson" id="lesson" open>
+      <summary>
+        <div>
+          <div class="eyebrow">Lesson 1 of 6 · Outputs</div>
+          <h1>Blink an LED</h1>
+          <div class="done-pill">Complete</div>
+        </div>
+        <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+      </summary>
+      <div class="lesson-body">
+        <p>Wire GPIO 23 to an LED through a 220&nbsp;Ω resistor, then run the LED's short leg back to GND.</p>
+        <p class="small">The ESP32 is wide. Its pins sit in rows <span class="mono">b</span> and <span class="mono">i</span>, and the board body covers <span class="mono">c</span> to <span class="mono">h</span>, so each pin gets one free hole: <span class="mono">a</span> on top, <span class="mono">j</span> below. Hover any hole to see everything it's connected to.</p>
+        <ul class="steps" id="steps"></ul>
+        <div class="lesson-foot">
+          <button class="linkbtn" id="showme" type="button">Show me how</button>
+          <span class="locked">Up next: button on GPIO 4</span>
+        </div>
+      </div>
+    </details>
+
+    <div class="tip" id="tip" hidden></div>
+
+    <div class="dock-wrap">
+      <div class="status" id="status">Wire: click a hole to start a jumper.</div>
+      <div class="dock" role="toolbar" aria-label="Breadboard tools">
+        <div class="group">
+          <button class="btn tool" data-tool="wire" aria-pressed="true" type="button"><svg viewBox="0 0 24 24"><path d="M4 19c0-9 16-9 16 0"/></svg>Wire</button>
+          <div class="swatches" id="swatches"></div>
+          <button class="btn tool" data-tool="res" aria-pressed="false" type="button"><svg viewBox="0 0 24 24"><path d="M2 12h4l2-4 3 8 3-8 3 8 2-4h3"/></svg>Resistor<span class="lbl-long">&nbsp;220 Ω</span></button>
+          <button class="btn tool" data-tool="led" aria-pressed="false" type="button"><svg viewBox="0 0 24 24"><path d="M3 12h5M16 12h5M8 6v12l8-6z M16 6v12"/></svg>LED</button>
+          <button class="btn tool" data-tool="erase" aria-pressed="false" type="button"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>Erase</button>
+        </div>
+        <span class="sep" aria-hidden="true"></span>
+        <div class="group">
+          <div class="seg" role="group" aria-label="Camera">
+            <button id="view3d" aria-pressed="true" type="button">3D</button>
+            <button id="viewTop" aria-pressed="false" type="button">Top</button>
+          </div>
+          <button class="btn" id="undo" type="button"><svg viewBox="0 0 24 24"><path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 010 12h-3"/></svg><span class="lbl-long">Undo</span></button>
+          <button class="btn" id="clear" type="button">Clear</button>
+          <button class="btn primary" id="check" type="button">Check</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="sheet" id="sheet" hidden role="dialog" aria-live="polite">
+      <div class="sheet-inner">
+        <div class="reward" id="sheetReward"></div>
+        <h2 id="sheetTitle"></h2>
+        <p id="sheetMsg"></p>
+        <pre id="sheetCode" hidden></pre>
+        <div class="sheet-actions" id="sheetActions"></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+(function(){
+"use strict";
+const $ = s => document.querySelector(s);
+const cssVar = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+
+/* ---------- Breadboard model: 830 points, 63 columns, 4 rails ---------- */
+const ROWS = {a:0,b:1,c:2,d:3,e:4,f:7,g:8,h:9,i:10,j:11};
+const RAILS = {TP:-3.3, TN:-2.3, BN:13.3, BP:14.3};
+const RAIL_NAME = {TP:"Top + rail", TN:"Top − rail", BN:"Bottom − rail", BP:"Bottom + rail"};
+const ZC = 5.5, XC = 32;
+const holes = [], holeById = new Map();
+function addHole(h){ h.idx = holes.length; holes.push(h); holeById.set(h.id, h); }
+for (let c = 1; c <= 63; c++) for (const r of "abcdefghij") {
+  addHole({id:r+c, kind:"main", row:r, col:c, x:c-XC, z:ROWS[r]-ZC, base:c+(ROWS[r]<=4?"T":"B"), covered:false, occ:null});
+}
+for (const [rn, rz] of Object.entries(RAILS)) for (let i = 0; i < 50; i++) {
+  const c = 3 + i + Math.floor(i/5);
+  addHole({id:rn+"-"+(i+1), kind:"rail", row:rn, col:c, x:c-XC, z:rz-ZC, base:rn, covered:false, occ:null});
+}
+
+/* ESP32 DevKit V1 (30-pin), antenna toward column 1, straddling rows b and i, columns 3–17 */
+const ESP_TOP = ["D23","D22","TX0","RX0","D21","D19","D18","D5","TX2","RX2","D4","D2","D15","GND","3V3"];
+const ESP_BOT = ["EN","VP","VN","D34","D35","D32","D33","D25","D26","D27","D14","D12","D13","GND","VIN"];
+const C0 = 3, C1 = 17;
+ESP_TOP.forEach((l,k)=>{ const h = holeById.get("b"+(C0+k)); h.occ = "esp"; h.pin = l; });
+ESP_BOT.forEach((l,k)=>{ const h = holeById.get("i"+(C0+k)); h.occ = "esp"; h.pin = l; });
+for (let c = C0; c <= C1; c++) for (const r of "cdefgh") holeById.get(r+c).covered = true;
+const PIN_FULL = {TX0:"TX0 · GPIO 1", RX0:"RX0 · GPIO 3", TX2:"TX2 · GPIO 17", RX2:"RX2 · GPIO 16", VP:"VP · GPIO 36", VN:"VN · GPIO 39", EN:"EN · reset", GND:"GND", "3V3":"3.3 V out", VIN:"VIN · 5 V in"};
+const pinFull = l => PIN_FULL[l] || (/^D(\d+)$/.test(l) ? "GPIO " + l.slice(1) : l);
+
+/* ---------- State ---------- */
+let parts = [], nextId = 1, tool = "wire", pending = null, xp = 0, hearts = 3, lessonDone = false, usedHint = false, blinking = false;
+const WIRE_COLORS = [["Red","#D63A2F"],["Black","#25292D"],["Blue","#2F6FD6"],["Yellow","#E2AE12"],["Green","#2E9D5B"]];
+let wireColor = WIRE_COLORS[0][1];
+
+/* ---------- Nets (union-find over strips; wires merge strips) ---------- */
+function makeUF(){ const p = new Map();
+  const f = x => { if (!p.has(x)) p.set(x,x); while (p.get(x) !== x) { p.set(x, p.get(p.get(x))); x = p.get(x); } return x; };
+  return { find:f, union:(a,b)=>{ a=f(a); b=f(b); if (a!==b) p.set(a,b); } }; }
+let uf = makeUF(), netInfo = new Map();
+const net = id => uf.find(holeById.get(id).base);
+function rebuildNets(){
+  uf = makeUF();
+  for (const p of parts) if (p.type === "wire") uf.union(holeById.get(p.a).base, holeById.get(p.b).base);
+  netInfo = new Map();
+  for (const h of holes) {
+    const n = net(h.id); if (!netInfo.has(n)) netInfo.set(n, {pins:[], legs:0});
+    const info = netInfo.get(n);
+    if (h.pin) info.pins.push(h.pin);
+    if (h.occ && h.occ !== "esp") info.legs++;
+  }
+}
+
+/* ---------- Lesson checker ---------- */
+function evaluate(){
+  const G = net("b3"), V3 = net("b17"), VIN = net("i17");
+  const GNDS = new Set([net("b16"), net("i16")]);
+  const isG = n => GNDS.has(n);
+  const leds = parts.filter(p=>p.type==="led"), res = parts.filter(p=>p.type==="res");
+  const rConn = (r,x,y) => { const a=net(r.a), b=net(r.b); return x!==y && ((a===x&&b===y)||(a===y&&b===x)); };
+  const rGnd = (r,x) => { const a=net(r.a), b=net(r.b); return (a===x&&isG(b)&&!isG(a))||(b===x&&isG(a)&&!isG(b)); };
+  let s3=false, s4=false, pass=false, noRes=false, reversed=false, ledShort=false, on3v3=false;
+  for (const L of leds) {
+    const A = net(L.a), K = net(L.b);
+    if (A === K) { ledShort = true; continue; }
+    if (A === G || res.some(r=>rConn(r,G,A))) s3 = true;
+    if (isG(K) || res.some(r=>rGnd(r,K))) s4 = true;
+    if ((A!==G && isG(K) && res.some(r=>rConn(r,G,A))) || (A===G && !isG(K) && res.some(r=>rGnd(r,K)))) pass = true;
+    if (A === G && isG(K)) noRes = true;
+    const kToGpio = K===G || res.some(r=>rConn(r,G,K));
+    const aToGnd = isG(A) || res.some(r=>rGnd(r,A));
+    if (kToGpio && aToGnd) reversed = true;
+    if (A === V3 || res.some(r=>rConn(r,V3,A))) on3v3 = true;
+  }
+  const resShort = res.length > 0 && res.every(r=>net(r.a)===net(r.b));
+  const shortG = isG(G) || G === V3;
+  const shortP = isG(V3) || isG(VIN);
+  return { steps:[leds.length>0, res.length>0, s3, s4], pass: pass && !shortG && !shortP,
+    shortG, shortP, ledShort, resShort, noRes, reversed, on3v3, nLed:leds.length, nRes:res.length };
+}
+function diagnose(e){
+  if (e.shortP) return "Short circuit: 3.3 V or VIN is wired straight to GND. On a real board that browns out the ESP32 or worse.";
+  if (e.shortG) return "GPIO 23 is wired straight to a power or GND net. Driving the pin would short it.";
+  if (!e.nLed) return "There's no LED yet. Pick the LED tool and click two holes, + (long leg) first.";
+  if (!e.nRes) return "Add the 220 Ω resistor. Without it the LED pulls more current than the pin should give.";
+  if (e.ledShort) return "Both LED legs are in the same connected strip, so current flows around the LED instead of through it. Put the legs in different columns.";
+  if (e.resShort) return "Both resistor legs are in the same connected strip, so current skips it. Spread the legs across two columns.";
+  if (e.reversed) return "The LED is backwards. The + (long) leg should face GPIO 23 and the − (short) leg should face GND.";
+  if (e.on3v3) return "This LED runs from the 3.3 V pin, so it would stay on forever. Move it to GPIO 23 so code can switch it.";
+  if (e.noRes) return "The LED goes straight from GPIO 23 to GND. Put the resistor in series, on either side of the LED.";
+  if (!e.steps[2]) return "GPIO 23 doesn't reach the LED's + leg yet. GPIO 23 is the first pin on the top edge, and its free hole is a3.";
+  if (!e.steps[3]) return "The LED's − leg isn't connected to GND. The ESP32's GND pins are in column 16: use hole a16 or j16, or bring GND to a rail.";
+  return "The parts are connected, but not as one loop. Aim for GPIO 23 → resistor → LED → GND.";
+}
+
+/* ---------- Three.js scene ---------- */
+const host = $("#scene");
+const renderer = new THREE.WebGLRenderer({antialias:true});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+host.appendChild(renderer.domElement);
+const scene = new THREE.Scene();
+const maxAniso = renderer.capabilities.getMaxAnisotropy();
+
+scene.add(new THREE.HemisphereLight(0xffffff, 0x8899a6, 0.75));
+const sun = new THREE.DirectionalLight(0xffffff, 0.75);
+sun.position.set(-18, 42, 26); sun.castShadow = true;
+sun.shadow.mapSize.set(2048, 2048);
+Object.assign(sun.shadow.camera, {left:-40, right:40, top:30, bottom:-30, near:1, far:120});
+sun.shadow.bias = -0.0008;
+scene.add(sun);
+
+/* Board */
+const BW = 66, BD = 19.4;
+function boardTexture(){
+  const S = 32, cv = document.createElement("canvas"); cv.width = BW*S; cv.height = Math.round(BD*S);
+  const g = cv.getContext("2d");
+  const X = x => (x + BW/2) * S, Z = z => (z + BD/2) * S;
+  g.fillStyle = "#EEF0F1"; g.fillRect(0,0,cv.width,cv.height);
+  g.fillStyle = "#D7DCDF"; g.fillRect(X(-BW/2), Z(-0.55), BW*S, 1.1*S);
+  g.fillStyle = "#C6CCD0"; g.fillRect(X(-BW/2), Z(-0.06), BW*S, 0.12*S);
+  const line = (z,c) => { g.fillStyle = c; g.fillRect(X(-29.5), Z(z)-1.5, 59*S, 3); };
+  line(RAILS.TP-ZC-0.6, "#D63A2F"); line(RAILS.TN-ZC+0.6, "#2F6FD6");
+  line(RAILS.BN-ZC-0.6, "#2F6FD6"); line(RAILS.BP-ZC+0.6, "#D63A2F");
+  g.font = "600 15px 'IBM Plex Mono', Menlo, monospace"; g.textAlign = "center"; g.textBaseline = "middle";
+  g.fillStyle = "#7B868D";
+  for (const [r, zr] of Object.entries(ROWS)) { g.fillText(r, X(-32.3), Z(zr-ZC)); g.fillText(r, X(32.3), Z(zr-ZC)); }
+  for (const c of [1,5,10,15,20,25,30,35,40,45,50,55,60]) { g.fillText(String(c), X(c-XC), Z(-6.45)); g.fillText(String(c), X(c-XC), Z(6.45)); }
+  g.font = "700 20px 'IBM Plex Mono', Menlo, monospace";
+  g.fillStyle = "#D63A2F"; g.fillText("+", X(-31.3), Z(RAILS.TP-ZC)); g.fillText("+", X(31.3), Z(RAILS.BP-ZC));
+  g.fillStyle = "#2F6FD6"; g.fillText("−", X(-31.3), Z(RAILS.TN-ZC)); g.fillText("−", X(31.3), Z(RAILS.BN-ZC));
+  const t = new THREE.CanvasTexture(cv); t.anisotropy = maxAniso; return t;
+}
+const plastic = new THREE.MeshStandardMaterial({color:0xE9ECEE, roughness:0.8});
+const board = new THREE.Mesh(new THREE.BoxGeometry(BW, 0.9, BD),
+  [plastic, plastic, new THREE.MeshStandardMaterial({map:boardTexture(), roughness:0.8}), plastic, plastic, plastic]);
+board.position.y = -0.45; board.receiveShadow = true; scene.add(board);
+
+/* Holes (instanced) */
+const holeMesh = new THREE.InstancedMesh(new THREE.BoxGeometry(0.4, 0.04, 0.4), new THREE.MeshLambertMaterial({color:0xffffff}), holes.length);
+const m4 = new THREE.Matrix4(), BASE = new THREE.Color(0x3B4146), HOT = new THREE.Color();
+holes.forEach(h => { m4.makeTranslation(h.x, 0.006, h.z); holeMesh.setMatrixAt(h.idx, m4); holeMesh.setColorAt(h.idx, BASE); });
+holeMesh.receiveShadow = true; scene.add(holeMesh);
+
+/* ESP32 DevKit */
+const esp = new THREE.Group(); scene.add(esp);
+const PCB_X0 = -31.4, PCB_X1 = -12.5, PCB_Z = 5.0, PCB_Y = 1.0, PCB_T = 0.16;
+function espTexture(){
+  const S = 64, W = PCB_X1-PCB_X0, D = PCB_Z*2, cv = document.createElement("canvas");
+  cv.width = Math.round(W*S); cv.height = Math.round(D*S);
+  const g = cv.getContext("2d"), X = x => (x-PCB_X0)*S, Z = z => (z+PCB_Z)*S;
+  g.fillStyle = "#1D2933"; g.fillRect(0,0,cv.width,cv.height);
+  g.fillStyle = "#0F171D"; g.fillRect(X(PCB_X0), Z(-3.6), 1.4*S, 7.2*S);
+  g.strokeStyle = "#C9A646"; g.lineWidth = 5; g.beginPath();
+  for (let k = 0; k <= 8; k++) { const zz = -3.0 + k*0.75; g.lineTo(X(PCB_X0+0.35 + (k%2)*0.7), Z(zz)); } g.stroke();
+  g.fillStyle = "#C9A646";
+  for (let c = C0; c <= C1; c++) for (const zz of [-4.5, 4.5]) { g.beginPath(); g.arc(X(c-XC), Z(zz), 0.28*S, 0, Math.PI*2); g.fill(); }
+  g.fillStyle = "#1D2933";
+  for (let c = C0; c <= C1; c++) for (const zz of [-4.5, 4.5]) { g.beginPath(); g.arc(X(c-XC), Z(zz), 0.12*S, 0, Math.PI*2); g.fill(); }
+  g.fillStyle = "#F2F4F5"; g.font = "600 21px 'IBM Plex Mono', Menlo, monospace"; g.textAlign = "center"; g.textBaseline = "middle";
+  ESP_TOP.forEach((l,k)=> g.fillText(l, X(C0+k-XC), Z(-3.65)));
+  ESP_BOT.forEach((l,k)=> g.fillText(l, X(C0+k-XC), Z(3.65)));
+  g.font = "700 26px 'IBM Plex Mono', Menlo, monospace"; g.fillText("ESP32 DEVKIT V1", X(-17.6), Z(-1.3));
+  g.font = "500 19px 'IBM Plex Mono', Menlo, monospace"; g.fillStyle = "#AFC0CC"; g.fillText("EN", X(-14.2), Z(-1.6)); g.fillText("BOOT", X(-14.2), Z(1.6));
+  const t = new THREE.CanvasTexture(cv); t.anisotropy = maxAniso; return t;
+}
+function shieldTexture(){
+  const cv = document.createElement("canvas"); cv.width = 512; cv.height = 448; const g = cv.getContext("2d");
+  const grd = g.createLinearGradient(0,0,512,448); grd.addColorStop(0,"#C9CFD4"); grd.addColorStop(1,"#A9B1B8");
+  g.fillStyle = grd; g.fillRect(0,0,512,448);
+  g.fillStyle = "#4D565D"; g.font = "700 46px 'IBM Plex Mono', Menlo, monospace"; g.textAlign = "center";
+  g.fillText("ESP-WROOM-32", 256, 200); g.font = "500 28px 'IBM Plex Mono', Menlo, monospace"; g.fillText("Wi-Fi · BT", 256, 254);
+  const t = new THREE.CanvasTexture(cv); t.anisotropy = maxAniso; return t;
+}
+(function buildEsp(){
+  const pcbSide = new THREE.MeshStandardMaterial({color:0x16212A, roughness:0.6});
+  const pcb = new THREE.Mesh(new THREE.BoxGeometry(PCB_X1-PCB_X0, PCB_T, PCB_Z*2),
+    [pcbSide,pcbSide,new THREE.MeshStandardMaterial({map:espTexture(), roughness:0.55}),pcbSide,pcbSide,pcbSide]);
+  pcb.position.set((PCB_X0+PCB_X1)/2, PCB_Y + PCB_T/2, 0); esp.add(pcb);
+  const headerMat = new THREE.MeshStandardMaterial({color:0x1A1C1E, roughness:0.7});
+  for (const zz of [-4.5, 4.5]) { const hd = new THREE.Mesh(new THREE.BoxGeometry(C1-C0+1, PCB_Y, 0.9), headerMat); hd.position.set((C0+C1)/2-XC, PCB_Y/2, zz); esp.add(hd); }
+  const shSide = new THREE.MeshStandardMaterial({color:0xB3BAC0, metalness:0.6, roughness:0.35});
+  const shield = new THREE.Mesh(new THREE.BoxGeometry(7.0, 0.32, 6.6),
+    [shSide,shSide,new THREE.MeshStandardMaterial({map:shieldTexture(), metalness:0.5, roughness:0.4}),shSide,shSide,shSide]);
+  shield.position.set(PCB_X0+1.4+3.5, PCB_Y+PCB_T+0.16, 0); esp.add(shield);
+  const usb = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.5, 2.4), new THREE.MeshStandardMaterial({color:0xC2C8CC, metalness:0.7, roughness:0.3}));
+  usb.position.set(PCB_X1+0.1, PCB_Y+PCB_T+0.25, 0); esp.add(usb);
+  for (const zz of [-2.3, 2.3]) {
+    const btn = new THREE.Mesh(new THREE.BoxGeometry(0.9,0.25,0.9), new THREE.MeshStandardMaterial({color:0xD5D9DC, roughness:0.5}));
+    btn.position.set(-14.2, PCB_Y+PCB_T+0.12, zz); esp.add(btn);
+    const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.22,0.22,0.15,16), new THREE.MeshStandardMaterial({color:0x2A2D30}));
+    cap.position.set(-14.2, PCB_Y+PCB_T+0.3, zz); esp.add(cap);
+  }
+  esp.traverse(o => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
+})();
+
+/* Parts */
+const partsGroup = new THREE.Group(); scene.add(partsGroup);
+const matCache = new Map();
+const mat = (hex, extra) => { const k = hex + JSON.stringify(extra||{}); if (!matCache.has(k)) matCache.set(k, new THREE.MeshStandardMaterial(Object.assign({color:hex, roughness:0.5, metalness:0.05}, extra))); return matCache.get(k); };
+const LEG = () => mat("#B9BFC5", {metalness:0.7, roughness:0.3});
+const V = (h, y) => new THREE.Vector3(h.x, y, h.z);
+function tube(points, r, material){ const c = new THREE.CatmullRomCurve3(points, false, "centripetal"); return new THREE.Mesh(new THREE.TubeGeometry(c, 32, r, 8, false), material); }
+function labelSprite(text, bg){
+  const cv = document.createElement("canvas"); cv.width = cv.height = 64; const g = cv.getContext("2d");
+  g.fillStyle = bg; g.beginPath(); g.arc(32,32,28,0,Math.PI*2); g.fill();
+  g.fillStyle = "#fff"; g.font = "700 40px 'IBM Plex Mono', Menlo, monospace"; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText(text, 32, 34);
+  const s = new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(cv)})); s.scale.set(0.6,0.6,1); return s;
+}
+function buildPart(p){
+  const A = holeById.get(p.a), B = holeById.get(p.b), grp = new THREE.Group(); grp.userData.pid = p.id;
+  const d = Math.hypot(A.x-B.x, A.z-B.z);
+  const dir = new THREE.Vector3(B.x-A.x, 0, B.z-A.z).normalize();
+  const mid = new THREE.Vector3((A.x+B.x)/2, 0, (A.z+B.z)/2);
+  if (p.type === "wire") {
+    const h = Math.min(0.9 + d*0.14, 3.6);
+    const curve = new THREE.CubicBezierCurve3(V(A,0.5), V(A,h+0.6), V(B,h+0.6), V(B,0.5));
+    grp.add(new THREE.Mesh(new THREE.TubeGeometry(curve, 56, 0.12, 10, false), mat(p.color)));
+    for (const H of [A,B]) {
+      const housing = new THREE.Mesh(new THREE.BoxGeometry(0.34,0.55,0.34), mat("#1B1E21", {roughness:0.7}));
+      housing.position.set(H.x, 0.3, H.z); grp.add(housing);
+    }
+  } else if (p.type === "res") {
+    const len = Math.min(2.0, d*0.55), y = 0.62;
+    const eA = mid.clone().addScaledVector(dir, -len/2).setY(y), eB = mid.clone().addScaledVector(dir, len/2).setY(y);
+    grp.add(tube([V(A,0.02), V(A,0.45), eA], 0.045, LEG()));
+    grp.add(tube([V(B,0.02), V(B,0.45), eB], 0.045, LEG()));
+    const q = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0,1,0), dir);
+    const body = new THREE.Mesh(new THREE.CylinderGeometry(0.27,0.27,len,16), mat("#D3BE93", {roughness:0.6}));
+    body.quaternion.copy(q); body.position.copy(mid).setY(y); grp.add(body);
+    [["#C8302A",-0.3],["#C8302A",-0.15],["#6B3A1E",0],["#C9A646",0.3]].forEach(([c,f])=>{
+      const band = new THREE.Mesh(new THREE.CylinderGeometry(0.285,0.285,0.11,16), mat(c, c==="#C9A646"?{metalness:0.6,roughness:0.3}:{}));
+      band.quaternion.copy(q); band.position.copy(mid).addScaledVector(dir, f*len).setY(y); grp.add(band);
+    });
+  } else if (p.type === "led") {
+    const baseY = 1.15;
+    const mA = mid.clone().addScaledVector(dir, -0.17).setY(baseY), mB = mid.clone().addScaledVector(dir, 0.17).setY(baseY);
+    const kink = V(A,0.75).lerp(mA, 0.45).add(new THREE.Vector3(0,0.05,0)).addScaledVector(dir, -0.12);
+    grp.add(tube([V(A,0.02), V(A,0.5), kink, mA], 0.045, LEG()));
+    grp.add(tube([V(B,0.02), V(B,0.6), mB], 0.045, LEG()));
+    const ledMat = new THREE.MeshStandardMaterial({color:0xE2392A, emissive:0xFF2A12, emissiveIntensity:0.05, roughness:0.25, transparent:true, opacity:0.88});
+    const rim = new THREE.Mesh(new THREE.CylinderGeometry(0.47,0.47,0.12,24), ledMat); rim.position.copy(mid).setY(baseY+0.06); grp.add(rim);
+    const body = new THREE.Mesh(new THREE.CylinderGeometry(0.4,0.4,0.62,24), ledMat); body.position.copy(mid).setY(baseY+0.43); grp.add(body);
+    const dome = new THREE.Mesh(new THREE.SphereGeometry(0.4,24,12,0,Math.PI*2,0,Math.PI/2), ledMat); dome.position.copy(mid).setY(baseY+0.74); grp.add(dome);
+    const glow = new THREE.PointLight(0xff3b22, 0, 6); glow.position.copy(mid).setY(baseY+0.8); grp.add(glow);
+    grp.userData.led = {mat:ledMat, glow};
+    const sp = labelSprite("+", "#C8302A"); sp.position.copy(V(A,0.95)).addScaledVector(dir, -0.45); grp.add(sp);
+    const sm = labelSprite("−", "#25292D"); sm.position.copy(V(B,0.95)).addScaledVector(dir, 0.45); grp.add(sm);
+  }
+  grp.traverse(o => { if (o.isMesh) o.castShadow = true; });
+  partsGroup.add(grp); p.obj = grp;
+}
+function disposePart(p){
+  if (!p.obj) return;
+  p.obj.traverse(o => { if (o.geometry) o.geometry.dispose(); if (o.isSprite) { o.material.map.dispose(); o.material.dispose(); } });
+  if (p.obj.userData.led) p.obj.userData.led.mat.dispose();
+  partsGroup.remove(p.obj); p.obj = null;
+}
+
+/* Pending marker + ghost line */
+const ring = new THREE.Mesh(new THREE.RingGeometry(0.32, 0.5, 28), new THREE.MeshBasicMaterial({color:0xF2B705, side:THREE.DoubleSide}));
+ring.rotation.x = -Math.PI/2; ring.visible = false; scene.add(ring);
+const ghostGeo = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3()]);
+const ghost = new THREE.Line(ghostGeo, new THREE.LineDashedMaterial({color:0xF2B705, dashSize:0.35, gapSize:0.22}));
+ghost.visible = false; scene.add(ghost);
+
+/* Cameras: 3D orbit and flat top-down (the planned fallback) */
+const persp = new THREE.PerspectiveCamera(35, 1, 0.5, 400);
+const ortho = new THREE.OrthographicCamera(-1,1,1,-1,0.5,400);
+ortho.up.set(0,0,-1);
+const TARGET = new THREE.Vector3(-9, 0, 0.5);
+const ctlP = new THREE.OrbitControls(persp, renderer.domElement);
+ctlP.target.copy(TARGET); ctlP.enableDamping = true; ctlP.maxPolarAngle = Math.PI*0.47; ctlP.minDistance = 8; ctlP.maxDistance = 140;
+const ctlO = new THREE.OrbitControls(ortho, renderer.domElement);
+ctlO.target.copy(TARGET); ctlO.enableRotate = false; ctlO.screenSpacePanning = true; ctlO.enabled = false; ctlO.minZoom = 0.5; ctlO.maxZoom = 6;
+let useTop = false;
+const cam = () => useTop ? ortho : persp;
+
+function fit(){
+  const w = host.clientWidth || 1, h = host.clientHeight || 1, aspect = w/h;
+  renderer.setSize(w, h, false);
+  persp.aspect = aspect;
+  const narrow = aspect < 0.9;
+  if (!fit.done) { TARGET.set(narrow ? -16 : -10, 0, 0.5); ctlP.target.copy(TARGET); ctlO.target.copy(TARGET); }
+  const want = narrow ? 26 : 54, vf = THREE.MathUtils.degToRad(persp.fov);
+  const hf = 2*Math.atan(Math.tan(vf/2)*aspect);
+  const dist = Math.max((want/2)/Math.tan(hf/2), 30);
+  if (!fit.done) { persp.position.copy(TARGET).add(new THREE.Vector3(0, 0.78, 0.62).normalize().multiplyScalar(dist)); }
+  persp.updateProjectionMatrix();
+  let halfW = narrow ? 15 : 28, halfH = halfW/aspect; if (halfH < 12) { halfH = 12; halfW = halfH*aspect; }
+  Object.assign(ortho, {left:-halfW, right:halfW, top:halfH, bottom:-halfH});
+  if (!fit.done) ortho.position.set(TARGET.x, 60, TARGET.z);
+  ortho.updateProjectionMatrix();
+  fit.done = true;
+}
+new ResizeObserver(fit).observe(host); fit();
+
+/* Theme sync */
+function applyTheme(){
+  scene.background = new THREE.Color(cssVar("--bench") || "#E3E8EB");
+  HOT.set(cssVar("--probe") || "#E3A008");
+  hiNet = undefined; refreshHighlight();
+}
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", applyTheme);
+new MutationObserver(applyTheme).observe(document.documentElement, {attributes:true, attributeFilter:["data-theme","class"]});
+
+/* ---------- Picking ---------- */
+const ray = new THREE.Raycaster(), ndc = new THREE.Vector2(), plane = new THREE.Plane(new THREE.Vector3(0,1,0), 0), tmp = new THREE.Vector3();
+function pick(ev){
+  const r = renderer.domElement.getBoundingClientRect();
+  ndc.set(((ev.clientX - r.left)/r.width)*2-1, -((ev.clientY - r.top)/r.height)*2+1);
+  ray.setFromCamera(ndc, cam());
+  const out = {hole:null, esp:null, part:null};
+  const pt = ray.ray.intersectPlane(plane, tmp);
+  const espHit = ray.intersectObject(esp, true)[0];
+  const partHit = ray.intersectObject(partsGroup, true)[0];
+  if (partHit) { let o = partHit.object; while (o && o.userData.pid === undefined) o = o.parent; if (o) out.part = o.userData.pid; }
+  if (espHit && (!pt || espHit.distance < ray.ray.origin.distanceTo(pt))) {
+    const c = Math.min(C1, Math.max(C0, Math.round(espHit.point.x + XC)));
+    out.esp = {col:c, top: espHit.point.z < 0};
+    return out;
+  }
+  if (pt) { let best = null, bd = 0.6; for (const h of holes) { const dd = Math.hypot(h.x-pt.x, h.z-pt.z); if (dd < bd) { bd = dd; best = h; } } out.hole = best; }
+  return out;
+}
+
+/* ---------- Highlight + tooltip ---------- */
+let hiNet = null, hoverHole = null;
+function refreshHighlight(){
+  const target = hoverHole ? net(hoverHole.id) : null;
+  if (target === hiNet) return; hiNet = target;
+  for (const h of holes) holeMesh.setColorAt(h.idx, target && net(h.id) === target ? HOT : BASE);
+  holeMesh.instanceColor.needsUpdate = true;
+}
+const tip = $("#tip");
+function showTip(ev, html){
+  const r = host.getBoundingClientRect();
+  tip.innerHTML = html; tip.hidden = false;
+  const tw = tip.offsetWidth, th = tip.offsetHeight;
+  let x = ev.clientX - r.left + 14, y = ev.clientY - r.top + 14;
+  if (x + tw > r.width - 8) x = ev.clientX - r.left - tw - 14;
+  if (y + th > r.height - 8) y = ev.clientY - r.top - th - 14;
+  tip.style.left = Math.max(8,x) + "px"; tip.style.top = Math.max(8,y) + "px";
+}
+function holeTip(h){
+  if (h.covered) return `<span class="k">${h.id}</span> is under the ESP32. You can't reach it, but it's still part of strip ${h.col}${ROWS[h.row]<=4?" a–e":" f–j"}.`;
+  const where = h.kind === "rail" ? RAIL_NAME[h.row] + ", runs the full length" : `Column ${h.col}, rows ${ROWS[h.row]<=4?"a–e":"f–j"}`;
+  const info = netInfo.get(net(h.id)) || {pins:[], legs:0};
+  let line = "";
+  if (h.occ === "esp") line = `Holds the ESP32's <b>${pinFull(h.pin)}</b> pin.`;
+  else if (info.pins.length) line = `Connected to ESP32 <b>${[...new Set(info.pins)].map(pinFull).join(", ")}</b>.`;
+  else line = info.legs ? `${info.legs} leg${info.legs>1?"s":""} or wire end${info.legs>1?"s":""} on this net.` : "Nothing connected here yet.";
+  if (h.occ && h.occ !== "esp") line += " This hole is taken.";
+  return `<span class="k">${h.id}</span> · ${where}<br>${line}`;
+}
+
+/* ---------- Status line ---------- */
+const statusEl = $("#status"); let statusTimer = 0;
+function idleStatus(){
+  if (tool === "erase") return "Erase: click a wire or part, or one of its holes.";
+  if (pending) return tool === "led" ? "Now the − (short) leg, 1 to 3 holes away. Esc cancels."
+    : tool === "res" ? "Now the second leg, 2 to 10 holes away. Esc cancels." : "Now click the other end. Esc cancels.";
+  return tool === "led" ? "LED: click where the + (long) leg goes." : tool === "res" ? "Resistor: click where the first leg goes." : "Wire: click a hole to start a jumper.";
+}
+function setStatus(msg, warn){
+  clearTimeout(statusTimer); statusEl.textContent = msg || idleStatus(); statusEl.classList.toggle("warn", !!warn);
+  if (warn) statusTimer = setTimeout(()=>setStatus(), 3200);
+}
+
+/* ---------- Actions ---------- */
+function addPart(p, silent){
+  p.id = p.id || ("p" + nextId); nextId = Math.max(nextId, parseInt(String(p.id).slice(1),10)+1 || nextId+1);
+  holeById.get(p.a).occ = p.id; holeById.get(p.b).occ = p.id;
+  parts.push(p); buildPart(p);
+  if (!silent) changed();
+}
+function removePart(id){
+  const k = parts.findIndex(p=>p.id===id); if (k < 0) return;
+  const p = parts[k]; holeById.get(p.a).occ = null; holeById.get(p.b).occ = null;
+  disposePart(p); parts.splice(k,1); changed();
+}
+function clearAll(){ for (const p of parts) { holeById.get(p.a).occ = null; holeById.get(p.b).occ = null; disposePart(p); } parts = []; changed(); }
+function changed(){
+  blinking = false; rebuildNets(); hiNet = undefined; refreshHighlight(); renderSteps(); save();
+}
+function cancelPending(){ pending = null; ring.visible = false; ghost.visible = false; setStatus(); }
+
+function clickHole(h){
+  if (tool === "erase") { if (h.occ && h.occ !== "esp") removePart(h.occ); else setStatus(`Nothing to erase in ${h.id}.`, true); return; }
+  if (h.covered) { setStatus(`${h.id} is under the ESP32. Use row a or row j next to its pins.`, true); return; }
+  if (h.occ === "esp") { setStatus(`${h.id} holds the ${pinFull(h.pin)} pin. Plug into a free hole in the same strip instead.`, true); return; }
+  if (h.occ) { setStatus(`${h.id} already has a leg in it. Each hole takes one.`, true); return; }
+  if (!pending) { pending = h; ring.position.set(h.x, 0.04, h.z); ring.visible = true; setStatus(); return; }
+  if (h === pending) { cancelPending(); return; }
+  const d = Math.hypot(h.x-pending.x, h.z-pending.z);
+  if (tool === "led" && d > 3.2) { setStatus("LED legs only spread about 3 holes. Pick a hole closer to the + leg.", true); return; }
+  if (tool === "res" && (d < 1.9 || d > 10.2)) { setStatus("Place resistor legs 2 to 10 holes apart.", true); return; }
+  addPart({type:tool, a:pending.id, b:h.id, color: tool==="wire" ? wireColor : undefined});
+  cancelPending();
+}
+
+/* Pointer handling: tap/click vs orbit drag */
+let downAt = null;
+renderer.domElement.addEventListener("pointerdown", ev => { downAt = {x:ev.clientX, y:ev.clientY, t:performance.now()}; });
+renderer.domElement.addEventListener("pointerup", ev => {
+  if (!downAt) return; const moved = Math.hypot(ev.clientX-downAt.x, ev.clientY-downAt.y), dt = performance.now()-downAt.t; downAt = null;
+  if (moved > 6 || dt > 600) return;
+  const hit = pick(ev);
+  if (tool === "erase" && hit.part) { removePart(hit.part); return; }
+  if (hit.esp) { const l = (hit.esp.top ? ESP_TOP : ESP_BOT)[hit.esp.col-C0]; setStatus(`That's the ${pinFull(l)} pin. Its free hole is ${hit.esp.top?"a":"j"}${hit.esp.col}.`, true); return; }
+  if (hit.hole) { hoverHole = hit.hole; refreshHighlight(); clickHole(hit.hole); }
+});
+renderer.domElement.addEventListener("pointermove", ev => {
+  if (ev.pointerType === "touch") return;
+  const hit = pick(ev);
+  if (hit.esp) {
+    const l = (hit.esp.top ? ESP_TOP : ESP_BOT)[hit.esp.col-C0];
+    hoverHole = holeById.get((hit.esp.top?"b":"i")+hit.esp.col); refreshHighlight();
+    showTip(ev, `<span class="k">ESP32 · ${pinFull(l)}</span><br>Plugs into ${hit.esp.top?"b":"i"}${hit.esp.col}. Free hole in this strip: <b>${hit.esp.top?"a":"j"}${hit.esp.col}</b>.`);
+  } else if (tool === "erase" && hit.part) {
+    hoverHole = null; refreshHighlight(); showTip(ev, "Click to remove");
+  } else if (hit.hole) {
+    hoverHole = hit.hole; refreshHighlight(); showTip(ev, holeTip(hit.hole));
+  } else { hoverHole = null; refreshHighlight(); tip.hidden = true; }
+  if (pending && hit.hole && hit.hole !== pending) {
+    ghostGeo.setFromPoints([new THREE.Vector3(pending.x,0.3,pending.z), new THREE.Vector3(hit.hole.x,0.3,hit.hole.z)]);
+    ghost.computeLineDistances(); ghost.visible = true;
+  } else ghost.visible = false;
+});
+renderer.domElement.addEventListener("pointerleave", () => { hoverHole = null; refreshHighlight(); tip.hidden = true; ghost.visible = false; });
+
+/* ---------- UI wiring ---------- */
+const swWrap = $("#swatches");
+WIRE_COLORS.forEach(([name, hex]) => {
+  const b = document.createElement("button"); b.className = "sw"; b.type = "button"; b.style.background = hex;
+  b.setAttribute("aria-label", name + " wire"); b.setAttribute("aria-pressed", String(hex === wireColor));
+  b.addEventListener("click", () => { wireColor = hex; swWrap.querySelectorAll(".sw").forEach(s=>s.setAttribute("aria-pressed", String(s===b))); setTool("wire"); });
+  swWrap.appendChild(b);
+});
+function setTool(t){ tool = t; document.querySelectorAll(".tool").forEach(b=>b.setAttribute("aria-pressed", String(b.dataset.tool===t))); cancelPending(); }
+document.querySelectorAll(".tool").forEach(b => b.addEventListener("click", () => setTool(b.dataset.tool)));
+$("#undo").addEventListener("click", () => { const p = parts[parts.length-1]; if (p) removePart(p.id); else setStatus("Nothing to undo.", true); });
+let armTimer = 0;
+$("#clear").addEventListener("click", e => {
+  const b = e.currentTarget;
+  if (b.classList.contains("danger-arm")) { clearTimeout(armTimer); b.classList.remove("danger-arm"); b.textContent = "Clear"; cancelPending(); clearAll(); return; }
+  if (!parts.length) { setStatus("The board is already empty.", true); return; }
+  b.classList.add("danger-arm"); b.textContent = "Clear all?";
+  armTimer = setTimeout(()=>{ b.classList.remove("danger-arm"); b.textContent = "Clear"; }, 2500);
+});
+function setView(top){
+  useTop = top; ctlP.enabled = !top; ctlO.enabled = top;
+  $("#view3d").setAttribute("aria-pressed", String(!top)); $("#viewTop").setAttribute("aria-pressed", String(top));
+}
+$("#view3d").addEventListener("click", () => setView(false));
+$("#viewTop").addEventListener("click", () => setView(true));
+window.addEventListener("keydown", e => {
+  if (e.target.closest && e.target.closest("input,textarea")) return;
+  if (e.key === "Escape") { if (!$("#sheet").hidden) closeSheet(); else cancelPending(); }
+  else if (e.key === "1") setTool("wire"); else if (e.key === "2") setTool("res"); else if (e.key === "3") setTool("led"); else if (e.key === "4") setTool("erase");
+  else if ((e.key === "z" || e.key === "Z") && (e.metaKey || e.ctrlKey)) { e.preventDefault(); $("#undo").click(); }
+});
+
+const STEP_TEXT = ["Place an LED (+ is the long leg)", "Place the 220 Ω resistor", "GPIO 23 reaches the LED's + leg", "The LED's − leg reaches GND"];
+function renderSteps(){
+  const s = evaluate().steps;
+  $("#steps").innerHTML = STEP_TEXT.map((t,i)=>`<li class="${s[i]?"done":""}"><span class="dot"><svg viewBox="0 0 24 24" fill="none" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg></span><span class="txt">${t}</span></li>`).join("");
+}
+function renderHud(){
+  $("#xp").textContent = xp;
+  $("#hearts").innerHTML = [0,1,2].map(i=>`<svg viewBox="0 0 24 24" aria-hidden="true"><path class="${i<hearts?"full":"empty"}" d="M12 21s-7.5-4.6-9.6-9.2C.9 8.3 3.1 4.5 6.9 4.5c2.1 0 3.6 1.2 5.1 3 1.5-1.8 3-3 5.1-3 3.8 0 6 3.8 4.5 7.3C19.5 16.4 12 21 12 21z"/></svg>`).join("");
+  $("#hearts").setAttribute("aria-label", hearts + " of 3 hearts left");
+  $("#lesson").classList.toggle("complete", lessonDone);
+}
+
+/* Sheet */
+const sheet = $("#sheet");
+function openSheet({good, reward, title, msg, code, actions}){
+  sheet.classList.toggle("bad", !good);
+  $("#sheetReward").textContent = reward || "";
+  $("#sheetTitle").textContent = title; $("#sheetMsg").textContent = msg;
+  const pre = $("#sheetCode"); pre.hidden = !code; pre.textContent = code || "";
+  const wrap = $("#sheetActions"); wrap.innerHTML = "";
+  actions.forEach(([label, fn, primary]) => { const b = document.createElement("button"); b.type = "button"; b.className = "btn" + (primary?" primary":""); b.textContent = label; b.addEventListener("click", fn); wrap.appendChild(b); });
+  sheet.hidden = false; wrap.lastChild && wrap.lastChild.focus();
+}
+function closeSheet(){ sheet.hidden = true; }
+$("#check").addEventListener("click", () => {
+  cancelPending();
+  const e = evaluate();
+  if (e.pass) {
+    const gain = lessonDone ? 0 : (usedHint ? 5 : 10);
+    xp += gain; lessonDone = true; blinking = true; renderHud(); save();
+    openSheet({good:true, reward: gain ? `+${gain} XP` : "Already earned", title:"It blinks.",
+      msg:"GPIO 23 → 220 Ω → LED → GND is one closed loop. On a real ESP32, this Arduino sketch would make the LED do what you see on the board:",
+      code:"void setup() {\n  pinMode(23, OUTPUT);\n}\n\nvoid loop() {\n  digitalWrite(23, HIGH);  // LED on\n  delay(500);\n  digitalWrite(23, LOW);   // LED off\n  delay(500);\n}",
+      actions:[["Wire it again", ()=>{ closeSheet(); clearAll(); }], ["Keep looking", closeSheet, true]]});
+  } else {
+    hearts = Math.max(0, hearts-1); renderHud(); save();
+    const out = hearts === 0;
+    openSheet({good:false, reward: out ? "Out of hearts" : `${hearts} heart${hearts===1?"":"s"} left`, title:"Not quite.", msg: diagnose(e),
+      actions: out ? [["Refill hearts", ()=>{ hearts = 3; renderHud(); save(); closeSheet(); }, true]] : [["Keep wiring", closeSheet, true]]});
+  }
+});
+$("#showme").addEventListener("click", () => {
+  usedHint = true; cancelPending(); closeSheet();
+  clearAll();
+  [{type:"wire", a:"a3", b:"a25", color:"#D63A2F"},
+   {type:"res", a:"c25", b:"c29"},
+   {type:"led", a:"d29", b:"d30"},
+   {type:"wire", a:"a30", b:"TN-24", color:"#25292D"},
+   {type:"wire", a:"a16", b:"TN-12", color:"#25292D"}].forEach(p => addPart(p, true));
+  changed();
+  setStatus("Hover each wire's holes to trace the loop, then press Check.", true);
+});
+
+/* ---------- Persistence (per-viewer convenience) ---------- */
+const KEY = "jumper-proto-v1";
+function snapshot(){ return {parts: parts.map(({id,type,a,b,color})=>({id,type,a,b,color})), xp, hearts, lessonDone, usedHint}; }
+function save(){ try { localStorage.setItem(KEY, JSON.stringify(snapshot())); } catch(_){} }
+function load(){ try { return JSON.parse(localStorage.getItem(KEY) || "null"); } catch(_){ return null; } }
+
+/* ---------- Render loop ---------- */
+function loop(t){
+  requestAnimationFrame(loop);
+  (useTop ? ctlO : ctlP).update();
+  const on = blinking && Math.floor(t/500) % 2 === 0;
+  partsGroup.children.forEach(g => { const L = g.userData.led; if (L) { L.mat.emissiveIntensity = on ? 2.4 : 0.05; L.glow.intensity = on ? 2.2 : 0; } });
+  ring.material.opacity = 1;
+  renderer.render(scene, cam());
+}
+
+function start(data){
+  const d = (data && data.parts) ? data : (load() || {});
+  (d.parts || []).forEach(p => { if (holeById.get(p.a) && holeById.get(p.b) && !holeById.get(p.a).occ && !holeById.get(p.b).occ) addPart(p, true); });
+  xp = d.xp || 0; hearts = d.hearts ?? 3; lessonDone = !!d.lessonDone; usedHint = !!d.usedHint;
+  if (window.innerWidth < 640) $("#lesson").open = false;
+  applyTheme(); changed(); renderHud(); setStatus(); requestAnimationFrame(loop);
+}
+window.claude?.hot?.snapshot?.(snapshot);
+window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {});
+window.__jumper = {evaluate, diagnose, addPart, clearAll, parts:()=>parts};
+})();
+</script>
