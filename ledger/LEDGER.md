@@ -24,6 +24,7 @@ This ledger is source material for Hanif's reflection. Hanif writes the reflecti
 | Oct 18 | "Yes" to adding shadcn/ui to the TRD; asked "Do we need to add a supabase key?" | shadcn/ui row added to the TRD stack table. Claude explained the Supabase keys. | [#8](https://github.com/patronofalltrades/Jumper/pull/8) |
 | Oct 18 | Pasted the Supabase connect steps (package, env vars, optional skill) | No package installed yet. Ledger hook now redacts keys. Claude asked which package and env names to use. | [#8](https://github.com/patronofalltrades/Jumper/pull/8) |
 | Oct 18 | Chose supabase-js + ssr, NEXT_PUBLIC_ variable names, and to add the Supabase Server skill | TRD and CLAUDE.md name the packages and variables; skill added to CLAUDE.md | [#8](https://github.com/patronofalltrades/Jumper/pull/8) |
+| Oct 18 | "Do not merge PRs, do not open branches, do not start issues. All of these have to be done by me." | Rule 1a in CLAUDE.md; guard now blocks branch, issue and PR creation | [#8](https://github.com/patronofalltrades/Jumper/pull/8) |
 
 ## Decisions by Hanif
 
@@ -38,6 +39,7 @@ This ledger is source material for Hanif's reflection. Hanif writes the reflecti
 - Agent guardrails as hooks, plus a ledger for the reflection (Oct 18).
 - shadcn/ui is a package in the stack, not a skill. Hanif approved it and its packages (Oct 18).
 - Supabase: `@supabase/supabase-js` + `@supabase/ssr` (not the dashboard's `@supabase/server`); variables `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, secret key only for seed and CI; add the Supabase Server skill anyway (Oct 18).
+- Hanif does every GitHub step: issues, branches, pull requests, merges. Claude only gives the steps and the text, then works on Hanif's branch (Oct 18).
 
 ## Corrections and agent issues
 
@@ -52,6 +54,7 @@ Record here when Hanif corrects Claude, or when Claude gets something wrong. Say
 - Oct 18: The Stop hook asked for a commit again after the shadcn/ui change. Cause: the ledger hook wrote to a tracked file after each commit and after each prompt, so the tree was dirty at the end of almost every turn. Fix: entries now wait in `.git/` and go into the same commit as Claude's next change.
 - Oct 18: The new ledger hook split commands at `&&` even inside quoted text. It logged a fake commit from a test command and could not read a multi-line commit message. Claude found both in the raw log. Fix: the hook now reads commands the way the shell does, with quotes; 6 test cases pass. The two bad entries were corrected.
 - Oct 18: Hanif pasted Supabase setup text with the project URL and the publishable key (the secret key was masked). The ledger hook saved the prompt word for word, so the keys would have gone into the repository with the next commit. Claude found it before the commit. Fix: the hook now removes Supabase keys, JWTs and project URLs from every entry.
+- Oct 18: Claude offered to open the feature 1 issue and branch itself. Hanif corrected it: "do not merge PRs, do not open branches, do not start issues. All of these have to be done by me." (Claude note: Claude had opened issue #7, branch `docs/claude-readme` and PR #8 itself on Oct 16, when Prompt 1 asked it to.)
 
 ## Hanif's observations
 

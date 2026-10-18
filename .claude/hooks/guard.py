@@ -55,6 +55,10 @@ def check_bash(cmd):
                 deny("pushing while on main is not allowed.")
         elif verb in ("commit", "merge", "rebase", "cherry-pick") and current_branch() in PROTECTED:
             deny(f"'git {verb}' on main is not allowed. Work on a feature branch.")
+        elif (verb in ("checkout", "switch") and any(a in ("-b", "-B", "-c", "-C") for a in args)) or (
+                verb == "branch" and [a for a in args if not a.startswith("-")]
+                and not any(a in ("-d", "-D", "--delete", "-a", "-r", "--list", "-l", "-v", "-vv") for a in args)):
+            deny("creating a branch is Hanif's step.")
     if re.search(r"\bgh\s+pr\s+(merge|review\b.*--approve)", cmd):
         deny("merging or approving a pull request is not allowed.")
 
@@ -63,6 +67,12 @@ def check_github(tool, inp):
     name = tool.removeprefix("mcp__github__")
     if name in ("merge_pull_request", "enable_pr_auto_merge"):
         deny("merging a pull request is not allowed.")
+    if name == "create_branch":
+        deny("creating a branch is Hanif's step.")
+    if name == "issue_write" and inp.get("method") == "create":
+        deny("opening an issue is Hanif's step.")
+    if name == "create_pull_request":
+        deny("opening a pull request is Hanif's step.")
     if name == "pull_request_review_write" and str(inp.get("event", "")).upper() == "APPROVE":
         deny("approving a pull request is not allowed.")
     if name in ("create_or_update_file", "push_files", "delete_file") and inp.get("branch") in PROTECTED:

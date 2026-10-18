@@ -31,6 +31,8 @@
 
 10. Answers: package "supabase-js + ssr", variable names "NEXT_PUBLIC_ names", Supabase Server skill "Yes, add it".
 
+11. "Remember, do not merge PRs, do not open branches, do not start issues. All of these have to be done by me. All you need to do is to prompt it back to me: what are the steps"
+
 ## Decisions
 
 - shadcn/ui is a UI component package, not a skill. It is in the CLAUDE.md stack. Hanif approved it and its packages (for example Radix UI) on October 18, 2026.

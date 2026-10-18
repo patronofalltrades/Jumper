@@ -52,6 +52,7 @@ Each project uses the same build mode. A new project adds data (levels, tasks, p
 ## Agent hooks (enforced in `.claude/settings.json`)
 
 1. **No push to `main`, no merge, no approval.** `.claude/hooks/guard.py` blocks `git push` to `main`, `git commit`, `merge` or `rebase` on `main`, PR merges and PR approvals. Only I merge and approve.
+1a. **I do the GitHub steps.** I open each issue, create each branch, open each pull request and merge it. Claude does not. Claude gives me the steps and the text to paste (issue title and body, branch name, PR title and body). Then Claude works on the branch that I made. The guard blocks branch, issue and PR creation.
 2. **Flag each PR comment.** Claude can comment on a pull request. After each comment, a hook tells Claude to flag it to me in the reply, with the link and a one-line summary.
 3. **If you are not sure, ask.** Do not act on a guess. Stop and ask me for more instructions. A hook repeats this rule at each prompt.
 4. **Keep the ledger.** A hook logs each of my prompts, each of your commits, and each GitHub comment. The entries wait in `.git/` (not tracked) and go into `ledger/raw/` with your next commit, so the working tree stays clean. After each work step, add an entry to `ledger/LEDGER.md`: the prompt, the change, the link, and my decisions, corrections and observations. Keep my words apart from your notes. Do not write my reflection.
