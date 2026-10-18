@@ -20,6 +20,7 @@ This ledger is source material for Hanif's reflection. Hanif writes the reflecti
 | Oct 17 | "Before moving on, read the prompt first" (Solo App Assignment brief) | Claude compared the brief with the repo and listed 7 gaps | — |
 | Oct 18 | "Let's pick up where we left" | "Assignment rules" section added to CLAUDE.md | [#8](https://github.com/patronofalltrades/Jumper/pull/8) |
 | Oct 18 | Put a hook in this chat and project: no push to main, no approve or merge; flag PR comments; ask when unsure; keep a ledger for the reflection | `.claude/settings.json` hooks, `.claude/hooks/guard.py`, `.claude/hooks/ledger.py`, this ledger, "Agent hooks" section in CLAUDE.md | [#8](https://github.com/patronofalltrades/Jumper/pull/8) |
+| Oct 18 | "This is wrong, add shadcn ui into the packages. This is not a skill. Rewrite this" | shadcn/ui moved from Skills to the Stack table in CLAUDE.md; added to README tools | [#8](https://github.com/patronofalltrades/Jumper/pull/8) |
 
 ## Decisions by Hanif
 
@@ -32,6 +33,7 @@ This ledger is source material for Hanif's reflection. Hanif writes the reflecti
 - Branch for Prompt 1 named `docs/claude-readme`; Hanif merges, Claude does not. (Oct 16)
 - Seven agent skills chosen for the project (Oct 16).
 - Agent guardrails as hooks, plus a ledger for the reflection (Oct 18).
+- shadcn/ui is a package in the stack, not a skill. Hanif approved it and its packages (Oct 18).
 
 ## Corrections and agent issues
 
@@ -40,6 +42,9 @@ Record here when Hanif corrects Claude, or when Claude gets something wrong. Say
 - Oct 18: The new guard hook blocked one of Claude's own test commands, because the test text contained the words of a blocked command. The guard reads the command text, not the intent. Fix: Claude moved the test inputs into a file. (Claude note: this is a known limit of the guard; it can block a harmless command that only mentions a blocked one.)
 
 - Oct 18: The ledger hook logged a false "commit" because a test command only mentioned `git commit` inside its text. Claude found it when reading the raw log. Fix: the hook now reads only the git commands that actually run; the false entry was removed.
+
+- Oct 18: Claude treated shadcn/ui as a skill and as a dependency to ask about. Hanif corrected it: "this is wrong, add shadcn ui into the packages. This is not a skill." Fix: shadcn/ui is now in the stack table.
+- Oct 18: The ledger hook logged each ledger commit, so the tree was never clean and the Stop hook kept asking for a commit. Fix: the hook skips commits that change only `ledger/`.
 
 ## Hanif's observations
 
@@ -50,5 +55,5 @@ Only things Hanif said or wrote. Add the date and the exact words where possible
 
 ## Claude notes (not Hanif's voice)
 
-- Oct 17: shadcn/ui needs packages that are not in the TRD. CLAUDE.md says to ask Hanif before the first component.
+- Oct 18: shadcn/ui is now in the CLAUDE.md stack. The TRD stack table does not list it yet.
 - Oct 17: The brief says the student merges each PR. This agrees with Hanif's rule that Claude never merges.

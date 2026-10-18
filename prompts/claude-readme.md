@@ -23,7 +23,9 @@
 
 6. "Can you put a hook in this chat and project that goes as follows: 1. Whenever we work on a feature, do not push to main and do not approve a PR or a merge without me. 2. You can make comments on the PR, but you have to flag those comments to me in order for me to be aware of your changes. 3. Whenever you are unsure, do not execute without asking for additional prompts from me. 4. At the end of this project, we will have to write a reflection that is purely in my voice. Since you can't write it for me, your task is to keep a tracker or a ledger of all the prompts, all the changes, all the observations that I have made over the course of the project."
 
+7. "shadcn/ui adds packages that are not in the TRD (for example Radix UI). CLAUDE.md lists it as a skill, but tells Claude to ask before it adds the first component. -> this is wrong, add shadcn ui into the packages. This is not a skill. Rewrite this"
+
 ## Decisions
 
-- shadcn/ui is listed as a skill, but its packages (for example Radix UI) are not in the TRD. Per the house rule, Claude asks Hanif before it adds the first component.
+- shadcn/ui is a UI component package, not a skill. It is in the CLAUDE.md stack. Hanif approved it and its packages (for example Radix UI) on October 18, 2026.
 - If a skill and a house rule do not agree, the house rule applies.

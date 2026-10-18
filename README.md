@@ -28,6 +28,7 @@ Jumper is also a passion project. Work on Jumper continues after the class.
 - **React Three Fiber, drei and three.js:** the 3D breadboard
 - **Zustand:** the game state
 - **Tailwind CSS:** the styles
+- **shadcn/ui:** the UI components (forms, dialogs, sheets and toasts)
 - **Recharts:** the dashboard charts
 - **Zod:** the validation of forms and data
 - **Supabase:** log-in and the Postgres database
