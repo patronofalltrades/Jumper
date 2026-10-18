@@ -26,6 +26,14 @@ closes #13
 
 - `npm run typecheck`, `npm run lint`, `npm test` (27 tests), `npm run build`: pass.
 - Red check: the Continue tests failed before `lib/game/continue.ts` existed, then passed.
+- End-to-end test (Oct 18) with Playwright on `npm start`, against the real Supabase project, with a temporary test account (deleted after the test):
+  - Logged out, `/lobby` goes to `/login`.
+  - New user: "Hi, Lobby Tester", 0 XP, **Start Perch**.
+  - 6 project cards in position order; 7 "Coming soon" badges (5 projects and 2 feature tiles); 5 disabled **Start** buttons.
+  - After a completed Level 2 session and 120 XP: 120 XP and **Continue Perch · Level 3**. The button opens `/p/perch/3` ("Ears").
+  - `/p/arduino-foundations/1`, `/p/perch/9` and `/p/perch/abc` show "not found".
+  - At 390 px wide there is no horizontal scroll. Light and dark mode screenshots are correct.
+  - **Log out** goes to `/login`.
 
 ### Known limits
 

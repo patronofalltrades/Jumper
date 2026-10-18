@@ -37,6 +37,7 @@ This ledger is source material for Hanif's reflection. Hanif writes the reflecti
 | Oct 18 | "1. Apply it 2. We will work on names related to boardwork later." | Claude tried to apply the migration with the Management API: 403 for the access token, and the session's safety check blocked further probing. Claude asked Hanif to run the SQL in the SQL Editor. | — |
 | Oct 18 | "success no rows returned after pasting" (Hanif ran the migration in the SQL Editor), then "once finished, add to the descirption" | Claude ran the seed two times (6 projects, 5 levels, 41 tasks, no copies), checked 2 profiles for 2 accounts, and checked that a logged-out visitor sees 0 rows and cannot write. Results added to `prompts/data-model-pr.md`, because the PR is not open yet. | — |
 | Oct 18 | "Issue #12 development: … git checkout Feature/Lobby. Read Readme.md, Claude.md, Plan.md, Schema.md before touching anything and developing. Develop the lobby feature based on Issue" | Feature 2a on `Feature/Lobby`: lobby with greeting, XP, catalog cards, "Coming soon" badges and tiles, Continue button; pure `continueTarget()` with 5 tests; placeholder `/p/[project]/[level]`; PR text in `prompts/lobby-pr.md` | [#13](https://github.com/patronofalltrades/Jumper/issues/13) |
+| Oct 18 | "yes you can" (to a temporary test account for screenshots) | Playwright test on the real Supabase project: greeting, XP, Start and Continue, 6 cards, badges, not-found pages and log-out pass at 390 px in light and dark mode, and at desktop width. Test account deleted. Results in `prompts/lobby-pr.md`. | [#13](https://github.com/patronofalltrades/Jumper/issues/13) |
 
 ## Decisions by Hanif
 
@@ -59,6 +60,7 @@ This ledger is source material for Hanif's reflection. Hanif writes the reflecti
 - Feature 2 work goes on Hanif's branch `Feature/Database` (Oct 18).
 - Hanif applied the feature 2 migration in the SQL Editor after the API route failed. Apply the feature 2 migration to the Supabase project in this session's environment. Pin and part names (`esp.GPIO4`, `bbA.+`) wait for the board work (Oct 18).
 - Feature 2a (lobby) work goes on Hanif's branch `Feature/Lobby` (Oct 18).
+- Hanif allowed a temporary test account in the Supabase project to check the lobby, deleted after the test (Oct 18).
 - Hanif ended the Mac test after sign-up, the confirmation link, log-in and log-out passed: "I have tested enough so we acn proceed". The forgot-password flow and the `Date.now()` fix were not re-tested on the Mac (Oct 18).
 
 ## Corrections and agent issues
