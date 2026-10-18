@@ -1,7 +1,8 @@
 import { useStore } from "zustand";
 import { createStore } from "zustand/vanilla";
 import { perchBench, type Bench } from "@/lib/circuit/bench";
-import { checkHole, checkPlacement, nextPartId, partAt, type Part, type PartType, type PlaceProblem } from "@/lib/circuit/parts";
+import { isModuleType } from "@/lib/circuit/modules";
+import { checkHole, checkModule, checkPlacement, moduleOver, nextPartId, partAt, type LegPart, type Part, type PartType, type PlaceProblem } from "@/lib/circuit/parts";
 
 export type Tool = PartType | "remove";
 
@@ -25,7 +26,8 @@ export type BoardState = {
   history: Part[][];
   tool: Tool;
   wireColor: string;
-  /** The first hole of a part that is not finished yet. */
+  /** The first hole of a two-leg part that is not finished yet. For a module on a phone: the hole of pin 1 that the
+   *  learner looks at before the second tap. */
   pending: string | null;
   /** The hole whose net glows: under the pointer on a laptop, the last tapped hole on a phone. */
   hover: string | null;
@@ -36,8 +38,12 @@ export type BoardState = {
   setTool: (tool: Tool) => void;
   setWireColor: (hex: string) => void;
   setHover: (hole: string | null) => void;
-  /** A click or tap on a hole: start a part, finish it, or remove what is in the hole. */
-  tapHole: (hole: string) => void;
+  /**
+   * A click or tap on a hole: start a part, finish it, or remove what is in the hole.
+   * With a module tool, a click puts the module there. With `preview` (a phone, which has no hover), the first tap
+   * shows where the module goes, and a second tap on the same hole puts it there.
+   */
+  tapHole: (hole: string, preview?: boolean) => void;
   removePart: (id: string) => void;
   undo: () => void;
   cancel: () => void;
@@ -66,14 +72,21 @@ export function createBoardStore(bench: Bench = perchBench()) {
       setHover: (hover) => set({ hover }),
       cancel: () => set({ pending: null, notice: null }),
 
-      tapHole: (hole) => {
+      tapHole: (hole, preview = false) => {
         const { parts, tool, pending, wireColor } = get();
 
         if (tool === "remove") {
-          const part = partAt(parts, hole);
+          const part = partAt(bench, parts, hole) ?? moduleOver(bench, parts, hole);
           if (part) get().removePart(part.id);
           else set({ notice: { problem: "nothing_to_remove", hole } });
           return;
+        }
+
+        if (isModuleType(tool)) {
+          const problem = checkModule(bench, parts, tool, hole);
+          if (preview && hole !== pending) return set({ pending: hole, notice: problem ? { problem, hole } : null });
+          if (problem) return set({ notice: { problem, hole } });
+          return commit([...parts, { id: nextPartId(parts, tool), type: tool, at: hole }]);
         }
 
         if (hole === pending) return set({ pending: null, notice: null });
@@ -86,7 +99,7 @@ export function createBoardStore(bench: Bench = perchBench()) {
         const problem = checkPlacement(bench, parts, tool, pending, hole);
         if (problem) return set({ notice: { problem, hole } });
 
-        const part: Part = { id: nextPartId(parts, tool), type: tool, a: pending, b: hole };
+        const part: LegPart = { id: nextPartId(parts, tool), type: tool, a: pending, b: hole };
         if (tool === "wire") part.color = wireColor;
         commit([...parts, part]);
       },

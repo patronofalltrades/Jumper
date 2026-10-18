@@ -1,0 +1,63 @@
+{
+  "type": "st7789-154",
+  "title": "ST7789 1.54\" SPI screen",
+  "prefix": "lcd",
+  "source_url": "https://www.lcdwiki.com/res/MSP1541/1.54inch_4-line-SPI_IPS_Module_MSP1541_User_Manual_EN.pdf",
+  "_note": "One row of 8 pins.",
+  "across": false,
+  "pins": [
+    {
+      "name": "GND",
+      "label": "GND",
+      "row": 0,
+      "col": 0
+    },
+    {
+      "name": "VCC",
+      "label": "VCC",
+      "row": 0,
+      "col": 1
+    },
+    {
+      "name": "SCL",
+      "label": "SCL",
+      "row": 0,
+      "col": 2
+    },
+    {
+      "name": "SDA",
+      "label": "SDA",
+      "row": 0,
+      "col": 3
+    },
+    {
+      "name": "RES",
+      "label": "RES",
+      "row": 0,
+      "col": 4
+    },
+    {
+      "name": "DC",
+      "label": "DC",
+      "row": 0,
+      "col": 5
+    },
+    {
+      "name": "CS",
+      "label": "CS",
+      "row": 0,
+      "col": 6
+    },
+    {
+      "name": "BLK",
+      "label": "BLK",
+      "row": 0,
+      "col": 7
+    }
+  ],
+  "body": {
+    "margin": 1.6,
+    "height": 1.6,
+    "color": "#16324F"
+  }
+}

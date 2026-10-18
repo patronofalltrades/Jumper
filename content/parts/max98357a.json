@@ -1,0 +1,69 @@
+{
+  "type": "max98357a",
+  "title": "MAX98357A I²S amplifier",
+  "prefix": "amp",
+  "source_url": "https://learn.adafruit.com/adafruit-max98357-i2s-class-d-mono-amp/pinouts",
+  "_note": "7 header pins in one row. OUT+ and OUT− are the speaker terminal on the far edge, across the center gap.",
+  "across": true,
+  "pins": [
+    {
+      "name": "LRC",
+      "label": "LRC",
+      "row": 0,
+      "col": 0
+    },
+    {
+      "name": "BCLK",
+      "label": "BCLK",
+      "row": 0,
+      "col": 1
+    },
+    {
+      "name": "DIN",
+      "label": "DIN",
+      "row": 0,
+      "col": 2
+    },
+    {
+      "name": "GAIN",
+      "label": "GAIN",
+      "row": 0,
+      "col": 3
+    },
+    {
+      "name": "SD",
+      "label": "SD",
+      "row": 0,
+      "col": 4
+    },
+    {
+      "name": "GND",
+      "label": "GND",
+      "row": 0,
+      "col": 5
+    },
+    {
+      "name": "VIN",
+      "label": "Vin",
+      "row": 0,
+      "col": 6
+    },
+    {
+      "name": "OUT+",
+      "label": "+",
+      "row": 4,
+      "col": 2
+    },
+    {
+      "name": "OUT-",
+      "label": "−",
+      "row": 4,
+      "col": 4
+    }
+  ],
+  "body": {
+    "margin": 0.75,
+    "height": 1.3,
+    "color": "#1F3F8A"
+  }
+}

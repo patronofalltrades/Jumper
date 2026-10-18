@@ -128,3 +128,48 @@ export function drawShield(): CanvasTexture {
   g.restore();
   return new CanvasTexture(canvas);
 }
+
+/** The top of a module: the PCB color, a gold pad and a label at each pin, and the name of the part. */
+export function drawModule(
+  outline: { x0: number; x1: number; z0: number; z1: number },
+  pins: { x: number; z: number; label: string }[],
+  color: string,
+  title: string,
+): CanvasTexture {
+  const { x0, x1, z0, z1 } = outline;
+  const { canvas, g, X, Z } = canvasFor(x1 - x0, z1 - z0, x0, z0);
+  const font = monoFont();
+
+  g.fillStyle = color;
+  g.fillRect(0, 0, canvas.width, canvas.height);
+
+  // Labels go on the side of the pad with more room, so that they stay on the board.
+  const mid = (x0 + x1) / 2;
+  for (const pin of pins) {
+    g.fillStyle = "#C9A646";
+    g.beginPath();
+    g.arc(X(pin.x), Z(pin.z), 0.28 * PX, 0, Math.PI * 2);
+    g.fill();
+    g.fillStyle = "#F2F4F5";
+    g.font = `600 ${0.42 * PX}px ${font}`;
+    g.textBaseline = "middle";
+    const right = pin.x <= mid;
+    g.textAlign = right ? "left" : "right";
+    g.fillText(pin.label, X(pin.x + (right ? 0.42 : -0.42)), Z(pin.z));
+  }
+
+  // The name, along the pins: beside a single row of pads, or in the middle between two rows.
+  if (!title) return new CanvasTexture(canvas);
+  const oneRow = new Set(pins.map((p) => p.x)).size === 1;
+  g.save();
+  g.fillStyle = "rgba(242,244,245,0.75)";
+  g.font = `700 ${0.36 * PX}px ${font}`;
+  g.textAlign = "center";
+  g.textBaseline = "middle";
+  g.translate(X(oneRow ? x0 + 0.3 : mid), Z((z0 + z1) / 2));
+  g.rotate(-Math.PI / 2);
+  g.fillText(title, 0, 0);
+  g.restore();
+
+  return new CanvasTexture(canvas);
+}

@@ -3,9 +3,9 @@
 import { useMemo } from "react";
 import { CatmullRomCurve3, CubicBezierCurve3, Quaternion, Vector3 } from "three";
 import type { Hole } from "@/lib/circuit/bench";
-import type { Part } from "@/lib/circuit/parts";
+import type { LegPart } from "@/lib/circuit/parts";
 
-// Wires, resistors and LEDs, made from code shapes as in reference/breadboard-prototype.html.
+// Wires, resistors, LEDs and the speaker, made from code shapes as in reference/breadboard-prototype.html.
 
 const LEG = { color: "#B9BFC5", metalness: 0.7, roughness: 0.3 };
 const UP = new Vector3(0, 1, 0);
@@ -24,7 +24,7 @@ function Leg({ points }: { points: Vector3[] }) {
 /** Red glow on a part that the Remove tool points at. */
 const removeTint = (hot: boolean) => (hot ? { emissive: "#c9412f", emissiveIntensity: 0.6 } : {});
 
-export function PartMesh({ part, a, b, hot }: { part: Part; a: Hole; b: Hole; hot: boolean }) {
+export function PartMesh({ part, a, b, hot }: { part: LegPart; a: Hole; b: Hole; hot: boolean }) {
   const shape = useMemo(() => {
     const dir = new Vector3(b.x - a.x, 0, b.z - a.z);
     const length = dir.length();
@@ -35,6 +35,7 @@ export function PartMesh({ part, a, b, hot }: { part: Part; a: Hole; b: Hole; ho
 
   if (part.type === "wire") return <Wire a={a} b={b} color={part.color ?? "#D63A2F"} hot={hot} length={shape.length} />;
   if (part.type === "resistor") return <Resistor a={a} b={b} hot={hot} {...shape} />;
+  if (part.type === "speaker") return <Speaker a={a} b={b} hot={hot} {...shape} />;
   return <Led a={a} b={b} hot={hot} {...shape} />;
 }
 
@@ -144,6 +145,36 @@ function Led({ a, b, hot, dir, mid }: Shape) {
       <mesh position={[plus.x, plus.y + 0.01, plus.z]} rotation={[-Math.PI / 2, 0, 0]}>
         <planeGeometry args={[0.07, 0.3]} />
         <meshBasicMaterial color="#ffffff" />
+      </mesh>
+    </group>
+  );
+}
+
+/** A small 8 Ω speaker on two leads: red to the + hole (a), black to the − hole (b). It sits above the board. */
+function Speaker({ a, b, hot, mid }: Shape) {
+  const y = 2.4;
+  const leads = useMemo(() => {
+    const top = (side: number) => mid.clone().add(new Vector3(side * 0.4, y - 0.35, 0));
+    return [
+      { color: "#D63A2F", curve: new CatmullRomCurve3([at(a, 0.02), at(a, 0.9), top(-1)]) },
+      { color: "#25292D", curve: new CatmullRomCurve3([at(b, 0.02), at(b, 0.9), top(1)]) },
+    ];
+  }, [a, b, mid]);
+  return (
+    <group>
+      {leads.map((l, i) => (
+        <mesh key={i} castShadow>
+          <tubeGeometry args={[l.curve, 24, 0.08, 8, false]} />
+          <meshStandardMaterial color={l.color} roughness={0.5} {...removeTint(hot)} />
+        </mesh>
+      ))}
+      <mesh position={[mid.x, y, mid.z]} castShadow>
+        <cylinderGeometry args={[1.5, 1.3, 0.6, 32]} />
+        <meshStandardMaterial color="#2A2D30" roughness={0.6} metalness={0.3} {...removeTint(hot)} />
+      </mesh>
+      <mesh position={[mid.x, y + 0.31, mid.z]} rotation={[-Math.PI / 2, 0, 0]}>
+        <circleGeometry args={[1.2, 32]} />
+        <meshStandardMaterial color="#4A4F54" roughness={0.9} />
       </mesh>
     </group>
   );

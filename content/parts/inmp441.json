@@ -1,0 +1,51 @@
+{
+  "type": "inmp441",
+  "title": "INMP441 I²S mic",
+  "prefix": "mic",
+  "source_url": "https://invensense.tdk.com/wp-content/uploads/2015/02/INMP441.pdf",
+  "_note": "One row of 6 pins, in the order of the common breakout board header.",
+  "across": false,
+  "pins": [
+    {
+      "name": "LR",
+      "label": "L/R",
+      "row": 0,
+      "col": 0
+    },
+    {
+      "name": "WS",
+      "label": "WS",
+      "row": 0,
+      "col": 1
+    },
+    {
+      "name": "SCK",
+      "label": "SCK",
+      "row": 0,
+      "col": 2
+    },
+    {
+      "name": "SD",
+      "label": "SD",
+      "row": 0,
+      "col": 3
+    },
+    {
+      "name": "VDD",
+      "label": "VDD",
+      "row": 0,
+      "col": 4
+    },
+    {
+      "name": "GND",
+      "label": "GND",
+      "row": 0,
+      "col": 5
+    }
+  ],
+  "body": {
+    "margin": 1.6,
+    "height": 1.3,
+    "color": "#5B2A86"
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "type": "pushbutton",
+  "title": "Pushbutton (6 mm, 4 legs)",
+  "prefix": "btn",
+  "source_url": "https://docs.arduino.cc/built-in-examples/digital/Button/",
+  "_note": "Pin 1 is the first hole that you tap. row and col count rows and columns from pin 1. The two legs in the same column always connect, so they have the same name. A press connects pin 1 to pin 2. across: the part must go across the center gap.",
+  "across": true,
+  "pins": [
+    {
+      "name": "1",
+      "label": "1",
+      "row": 0,
+      "col": 0
+    },
+    {
+      "name": "2",
+      "label": "2",
+      "row": 0,
+      "col": 2
+    },
+    {
+      "name": "1",
+      "label": "1",
+      "row": 1,
+      "col": 0
+    },
+    {
+      "name": "2",
+      "label": "2",
+      "row": 1,
+      "col": 2
+    }
+  ],
+  "body": {
+    "margin": 0.75,
+    "height": 1.1,
+    "color": "#2B2F33"
+  }
+}

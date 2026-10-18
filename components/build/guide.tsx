@@ -3,7 +3,9 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import text from "@/content/ui/build.json";
 import type { Bench } from "@/lib/circuit/bench";
-import { buildNets, describeHole } from "@/lib/circuit/nets";
+import { isModuleType } from "@/lib/circuit/modules";
+import { buildNets, describeHole, type ModulePin } from "@/lib/circuit/nets";
+import type { Part } from "@/lib/circuit/parts";
 import { boardStore, useBoard } from "@/lib/game/board-store";
 import { cn } from "@/lib/utils";
 
@@ -33,6 +35,10 @@ function pinName(name: string) {
   return names[name] ?? (gpio ? fill(text.pins.gpio, { n: gpio[1] }) : name);
 }
 
+const problems: Record<string, string> = text.problem;
+const partNames: Record<string, string> = text.tray.parts;
+const modulePinName = (p: ModulePin) => `${partNames[p.type]} ${p.pin}`;
+
 const joinNames = (names: string[]) => (names.length < 2 ? names.join("") : `${names.slice(0, -1).join(", ")} and ${names.at(-1)}`);
 
 /** What to do now, at the top of the board. */
@@ -43,11 +49,13 @@ export function GuideBar() {
   const touch = useTouch();
   const act = touch ? "Tap" : "Click";
 
-  const steps = text.guide[tool] as { start: string; finish?: string };
-  const instruction = fill(pending && steps.finish ? steps.finish : steps.start, { act });
+  const placing = isModuleType(tool);
+  const steps = (placing ? text.guide.module : text.guide[tool]) as { start: string; finish?: string; preview?: string };
+  const next = pending ? (steps.finish ?? steps.preview) : undefined;
+  const instruction = fill(next ?? steps.start, { act, part: placing ? partNames[tool].toLowerCase() : "" });
   const step = steps.finish ? (pending ? 2 : 1) : null;
   // A notice without a hole (nothing to undo) has no spot on the board, so it shows here.
-  const problem = notice && !notice.hole ? text.problem[notice.problem] : null;
+  const problem = notice && !notice.hole ? problems[notice.problem] : null;
 
   return (
     <div className="pointer-events-none absolute inset-x-0 top-3 z-10 flex justify-center px-3">
@@ -65,7 +73,7 @@ export function GuideBar() {
         )}
         <div className="min-w-0">
           <p className={cn("text-[15px] leading-snug font-semibold", problem && "text-destructive")}>{problem ?? instruction}</p>
-          {pending && !problem && <p className="text-sm text-muted-foreground">{touch ? text.guide.stop.phone : text.guide.stop.laptop}</p>}
+          {pending && !placing && !problem && <p className="text-sm text-muted-foreground">{touch ? text.guide.stop.phone : text.guide.stop.laptop}</p>}
         </div>
       </div>
     </div>
@@ -132,8 +140,8 @@ export function SpotCard() {
 
   if (!spot || (spot.touch && now >= spot.at + 4000)) return <div ref={ref} hidden />;
 
-  const problem = notice?.hole ? text.problem[notice.problem] : null;
-  const lines = problem ? null : hover ? holeLines(bench, nets, hover) : null;
+  const problem = notice?.hole ? problems[notice.problem] : null;
+  const lines = problem ? null : hover ? holeLines(bench, parts, nets, hover) : null;
   if (!problem && !lines) return <div ref={ref} hidden />;
 
   // Across: with a mouse, the card sits beside the pointer and flips near the right edge.
@@ -167,16 +175,19 @@ export function SpotCard() {
 }
 
 /** The words for a hole: a title, what connects inside the breadboard, and what connects to it. */
-function holeLines(bench: Bench, nets: ReturnType<typeof buildNets>, hole: string): string[] {
-  const info = describeHole(bench, nets, hole);
+function holeLines(bench: Bench, parts: Part[], nets: ReturnType<typeof buildNets>, hole: string): string[] {
+  const info = describeHole(bench, parts, nets, hole);
   const h = bench.byId.get(hole)!;
   const lines =
     info.kind === "pin"
       ? [fill(text.hole.pin, { pin: pinName(info.pin!) }), text.hole.pinTip]
-      : info.kind === "rail"
+      : info.kind === "part"
+        ? [fill(text.hole.part, { part: partNames[info.part!.type], pin: info.part!.pin }), text.hole.partTip]
+        : info.kind === "rail"
         ? [text.hole.rail[info.rail!], text.hole.railLine]
         : [fill(text.hole.main, { row: h.row, column: h.n }), text.hole.line];
-  if (info.pins.length) lines.push(fill(text.hole.connectedPins, { pin: joinNames(info.pins.map(pinName)) }));
+  const connectedPins = [...info.pins.map(pinName), ...info.partPins.map(modulePinName)];
+  if (connectedPins.length) lines.push(fill(text.hole.connectedPins, { pin: joinNames(connectedPins) }));
   else if (info.rails.length) lines.push(fill(text.hole.connectedRail, { rail: joinNames(info.rails.map((r) => text.railName[r])) }));
   else if (info.kind === "rail") lines.push(text.hole.railEmpty);
   else if (info.kind === "main") lines.push(text.hole.empty);
