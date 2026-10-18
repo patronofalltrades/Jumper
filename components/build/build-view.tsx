@@ -3,7 +3,7 @@
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { SaveSnapshot } from "@/components/snapshots/save-snapshot";
+import { SaveSnapshot, type LevelOption } from "@/components/snapshots/save-snapshot";
 import text from "@/content/ui/build.json";
 import snapText from "@/content/ui/snapshots.json";
 import type { Part } from "@/lib/circuit/parts";
@@ -11,7 +11,7 @@ import { boardStore, useBoard, WIRE_COLORS, type Tool } from "@/lib/game/board-s
 import type { Rules } from "@/lib/circuit/check";
 import { needsAck, type Plan } from "@/lib/game/engine";
 import { readSavedLevel, useLevel } from "./autosave";
-import { useLevelCheck } from "./check";
+import { EMPTY_NOTE, useEmptyBoard, useLevelCheck } from "./check";
 import { useFeedback } from "./feedback";
 import { GuideBar, SpotCard, useNoticeTimer } from "./guide";
 import { Hearts, PinnedPopup, PopupLayer, useLaptop, type LevelTask } from "./popups";
@@ -69,9 +69,11 @@ type Props = {
   rules: Rules;
   /** The ready-made board of the earlier levels, for a browser that has no saved board. */
   start: Part[];
+  /** The levels of the project, for the level select of Save snapshot. */
+  levels: LevelOption[];
 };
 
-export function BuildView({ user, project, levelId, position, eyebrow, title, goal, tasks, rules, start }: Props) {
+export function BuildView({ user, project, levelId, position, eyebrow, title, goal, tasks, rules, start, levels }: Props) {
   useKeys();
   useNoticeTimer();
   useFeedback();
@@ -80,6 +82,7 @@ export function BuildView({ user, project, levelId, position, eyebrow, title, go
   const levelCheck = useLevelCheck({ user, project, position, rules });
   const laptop = useLaptop();
   const progress = useBoard((s) => s.progress);
+  const empty = useEmptyBoard();
   const mapHref = `/p/${project}`;
 
   // A task that brings a new idea shows its Concept pop-up first.
@@ -112,7 +115,7 @@ export function BuildView({ user, project, levelId, position, eyebrow, title, go
           <h1 className="truncate text-lg leading-tight font-extrabold tracking-tight">{title}</h1>
         </div>
         <SaveSnapshot
-          levelId={levelId}
+          levels={levels}
           read={() => {
             const { parts, progress: now } = boardStore.getState();
             return { parts, session: readSavedLevel(user, project, position)?.session ?? null, mistakes: now.mistakes };
@@ -155,13 +158,22 @@ export function BuildView({ user, project, levelId, position, eyebrow, title, go
         {building && <GuideBar />}
         {/* The learner closed the Check card to fix the board: the Check button stays at the bottom of the board. */}
         {progress.phase === "ready_to_check" && !levelCheck.state.open && (
-          <button
-            type="button"
-            onClick={() => void levelCheck.check()}
-            className="absolute bottom-4 left-1/2 z-20 min-h-12 -translate-x-1/2 rounded-xl border-b-4 border-primary-deep bg-primary px-8 text-base font-extrabold tracking-wide text-primary-foreground uppercase shadow-panel outline-none focus-visible:ring-2 focus-visible:ring-ring active:translate-y-0.5 active:border-b-2"
-          >
-            {text.play.check.button}
-          </button>
+          <div className="absolute inset-x-3 bottom-4 z-20 flex flex-col items-center gap-2">
+            {empty && (
+              <p id={EMPTY_NOTE} className="max-w-xs rounded-xl bg-card px-3 py-2 text-center text-sm font-semibold shadow-panel">
+                {text.play.check.empty}
+              </p>
+            )}
+            <button
+              type="button"
+              onClick={() => void levelCheck.check()}
+              disabled={empty}
+              aria-describedby={empty ? EMPTY_NOTE : undefined}
+              className="min-h-12 rounded-xl border-b-4 border-primary-deep bg-primary px-8 text-base font-extrabold tracking-wide text-primary-foreground uppercase shadow-panel outline-none focus-visible:ring-2 focus-visible:ring-ring active:translate-y-0.5 active:border-b-2 disabled:opacity-60"
+            >
+              {text.play.check.button}
+            </button>
+          </div>
         )}
         <SpotCard />
         {laptop && popups}

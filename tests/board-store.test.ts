@@ -16,6 +16,18 @@ describe("board store", () => {
     expect(store.getState().pending).toBeNull();
   });
 
+  it("keeps the board that the level opened with, so a new part shows as placed by the learner", () => {
+    const store = createBoardStore();
+    const start = [{ id: "w1", type: "wire" as const, a: "A-a3", b: "A-a9", color: "#D63A2F" }];
+    store.getState().open("perch/2", { parts: start });
+    tap(store, "A-a20", "A-a25");
+    expect(store.getState().base).toEqual(start);
+    expect(store.getState().parts).toHaveLength(2);
+    // A board that this browser saved keeps the base of its first visit.
+    store.getState().open("perch/3", { parts: store.getState().parts, base: start });
+    expect(store.getState().base).toEqual(start);
+  });
+
   it("places a wire with two taps", () => {
     const store = createBoardStore();
     tap(store, "A-a3");

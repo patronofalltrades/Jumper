@@ -16,6 +16,8 @@ import type { Plan, Progress } from "@/lib/game/engine";
 
 const savedSchema = z.object({
   parts: z.array(partSchema),
+  /** The board that the level opened with. A board saved before issue #27 does not have it. */
+  base: z.array(partSchema).optional(),
   progress: z.object({
     phase: z.enum(["intro", "task", "mistake", "ready_to_check"]),
     index: z.number().int().nonnegative(),
@@ -66,7 +68,7 @@ export function useLevel({ user, project, levelId, position, plan, start }: Prop
     const own = read(key);
     const before = read(keyOf(user, project, position - 1));
     const setup: LevelSetup = own
-      ? { plan, parts: own.parts as Part[], progress: own.progress as Progress }
+      ? { plan, parts: own.parts as Part[], base: (own.base ?? start) as Part[], progress: own.progress as Progress }
       : { plan, parts: before?.progress.phase === "ready_to_check" ? (before.parts as Part[]) : start };
     boardStore.getState().open(`${project}/${position}`, setup);
 
@@ -84,8 +86,8 @@ export function useLevel({ user, project, levelId, position, plan, start }: Prop
           return undefined;
         }
         session = result.id;
-        const { parts, progress } = boardStore.getState();
-        write(key, { parts, progress, session });
+        const { parts, base, progress } = boardStore.getState();
+        write(key, { parts, base, progress, session });
         return session;
       }));
 
@@ -100,9 +102,9 @@ export function useLevel({ user, project, levelId, position, plan, start }: Prop
     };
 
     const save = () => {
-      const { parts, progress, level } = boardStore.getState();
+      const { parts, base, progress, level } = boardStore.getState();
       if (level !== `${project}/${position}`) return;
-      write(key, { parts, progress, session });
+      write(key, { parts, base, progress, session });
       // Wait for a pause, so that fast work sends one request.
       clearTimeout(timer);
       timer = setTimeout(() => void sync(progress), 800);

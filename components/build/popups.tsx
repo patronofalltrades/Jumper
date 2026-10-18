@@ -12,7 +12,7 @@ import { boardStore, useBoard } from "@/lib/game/board-store";
 import { needsAck, taskSpot, type Mistake } from "@/lib/game/engine";
 import { HEARTS, heartsLeft } from "@/lib/game/hearts";
 import { cn } from "@/lib/utils";
-import type { Failed, LevelCheck } from "./check";
+import { EMPTY_NOTE, useEmptyBoard, type Failed, type LevelCheck } from "./check";
 import { pinName } from "./guide";
 
 // The pop-ups of build mode (PLAN.md "How build mode works"): Place, Wire, Concept and Mistake, plus the level intro
@@ -198,10 +198,16 @@ function CheckBody({ check, onCheck, onClose }: { check: LevelCheck; onCheck: ()
   const { xp, mistakes, fails } = useBoard((s) => s.progress);
   const bench = useBoard((s) => s.bench);
   const parts = useBoard((s) => s.parts);
+  const empty = useEmptyBoard();
   const button = (
-    <PressButton onClick={onCheck} disabled={check.busy} className="disabled:opacity-60">
+    <PressButton onClick={onCheck} disabled={check.busy || empty} aria-describedby={empty ? EMPTY_NOTE : undefined} className="disabled:opacity-60">
       {check.busy ? text.play.check.checking : text.play.check.button}
     </PressButton>
+  );
+  const emptyNote = empty && (
+    <p id={EMPTY_NOTE} className="text-sm font-semibold text-muted-foreground">
+      {text.play.check.empty}
+    </p>
   );
 
   if (check.failed) {
@@ -215,6 +221,7 @@ function CheckBody({ check, onCheck, onClose }: { check: LevelCheck; onCheck: ()
         <p className="text-[15px] leading-snug font-semibold">{reasonText(bench, parts, check.failed)}</p>
         <p className="text-sm text-muted-foreground">{heartsText(fails)}</p>
         {check.error && <p role="alert" className="text-sm font-semibold text-destructive">{check.error}</p>}
+        {emptyNote}
         <div className="flex justify-end gap-2">
           <PressButton tone="plain" onClick={onClose}>
             {text.play.check.fix}
@@ -244,6 +251,7 @@ function CheckBody({ check, onCheck, onClose }: { check: LevelCheck; onCheck: ()
         ))}
       </dl>
       {check.error && <p role="alert" className="text-sm font-semibold text-destructive">{check.error}</p>}
+      {emptyNote}
       <div className="flex justify-end">{button}</div>
     </>
   );

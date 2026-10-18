@@ -55,3 +55,16 @@ export function checkLevel(bench: Bench, parts: Part[], rules: Rules): CheckResu
   }
   return best;
 }
+
+/**
+ * The parts that the learner placed in this level: the parts that are not on the board that the level opened with.
+ * A part counts as placed when no part of `base` is the same (same id, type and holes), so a part that the learner
+ * moves, or removes and puts back with the same id in a new hole, counts.
+ */
+export function placedParts(parts: Part[], base: Part[]): Part[] {
+  const before = new Set(base.map((p) => JSON.stringify(p)));
+  return parts.filter((p) => !before.has(JSON.stringify(p)));
+}
+
+/** True when the learner placed no part, so there is nothing for the level Check to test (issue #27). */
+export const isEmptyBoard = (parts: Part[], base: Part[]) => placedParts(parts, base).length === 0;

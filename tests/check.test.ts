@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { perchBench } from "@/lib/circuit/bench";
-import { checkLevel } from "@/lib/circuit/check";
+import { checkLevel, isEmptyBoard, placedParts } from "@/lib/circuit/check";
 import type { Part } from "@/lib/circuit/parts";
 import { loadBoards, startBoard } from "@/lib/content/boards";
 import { loadProjects } from "@/lib/content/load";
@@ -47,5 +47,37 @@ describe("level check", () => {
   it("accepts a resistor with its two sides the other way round", () => {
     const board = finished(2).map((p) => (p.id === "r1" && p.type === "resistor" ? { ...p, a: p.b, b: p.a } : p));
     expect(checkLevel(bench, board, rulesOf(2))).toEqual({ passed: true });
+  });
+});
+
+describe("empty board", () => {
+  const start = finished(1);
+
+  it("is empty when the learner placed no part: a new level, or every placed part removed", () => {
+    expect(isEmptyBoard([], [])).toBe(true);
+    expect(isEmptyBoard(start, start)).toBe(true);
+  });
+
+  it("is not empty when the learner placed one part", () => {
+    const board = [...start, wire("w9", "A-a20", "A-a25")];
+    expect(isEmptyBoard(board, start)).toBe(false);
+    expect(placedParts(board, start).map((p) => p.id)).toEqual(["w9"]);
+  });
+
+  it("counts a part that the learner moved, even with the same id", () => {
+    const [first, ...rest] = start;
+    const moved = { ...first, b: "A-a30" } as Part;
+    expect(placedParts([moved, ...rest], start)).toEqual([moved]);
+  });
+
+  // A level with only "Got it" tasks would keep Check off for good.
+  for (const level of perch.levels) {
+    it(`is not empty on the finished board of level ${level.position}`, () => {
+      expect(isEmptyBoard(finished(level.position), startBoard(boards, level.position))).toBe(false);
+    });
+  }
+
+  it("is still empty when the learner removed a part of the start board and placed nothing", () => {
+    expect(isEmptyBoard(start.slice(1), start)).toBe(true);
   });
 });

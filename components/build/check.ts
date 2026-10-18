@@ -4,9 +4,9 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { recordAttempt } from "@/app/actions/attempt";
 import text from "@/content/ui/build.json";
-import { checkLevel, type CheckResult, type Rules } from "@/lib/circuit/check";
+import { checkLevel, isEmptyBoard, type CheckResult, type Rules } from "@/lib/circuit/check";
 import { endpointHole } from "@/lib/circuit/nets";
-import { boardStore } from "@/lib/game/board-store";
+import { boardStore, useBoard } from "@/lib/game/board-store";
 import { readSavedLevel } from "./autosave";
 
 // The level Check (PLAN.md feature 5a). The browser checks the board with the level rules, then the server saves the
@@ -24,13 +24,19 @@ export type LevelCheck = {
 
 type Props = { user: string; project: string; position: number; rules: Rules };
 
+/** True when the learner placed no part in this level. The Check button is then off, with a note (issue #27). */
+export const useEmptyBoard = () => useBoard((s) => isEmptyBoard(s.parts, s.base));
+
+/** The id of the note under a Check button that is off. The button points to it with aria-describedby. */
+export const EMPTY_NOTE = "check-empty-note";
+
 export function useLevelCheck({ user, project, position, rules }: Props) {
   const router = useRouter();
   const [state, setState] = useState<LevelCheck>({ open: true, busy: false, failed: null, error: null });
 
   const check = async () => {
-    const { bench, parts, progress } = boardStore.getState();
-    if (progress.phase !== "ready_to_check" || state.busy) return;
+    const { bench, parts, base, progress } = boardStore.getState();
+    if (progress.phase !== "ready_to_check" || state.busy || isEmptyBoard(parts, base)) return;
     const session = readSavedLevel(user, project, position)?.session;
     if (!session) return setState({ open: true, busy: false, failed: null, error: text.play.check.noSession });
 
