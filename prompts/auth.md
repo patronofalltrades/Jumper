@@ -17,3 +17,5 @@
 6. Hanif pasted the `npm run dev` log from the Mac test. Sign-up, the email link and log-in worked. The log also showed a `Date.now()` prerender error on `/lobby`. Claude fixed it.
 
 7. "also add a forget password feature because I forgot my password"
+
+8. "I have tested enough so we acn proceed"

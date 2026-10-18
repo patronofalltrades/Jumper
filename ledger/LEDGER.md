@@ -31,6 +31,7 @@ This ledger is source material for Hanif's reflection. Hanif writes the reflecti
 | Oct 18 | "completely test the flow first before moving on…" | Cloud session cannot reach Supabase. Test moved to Hanif's Mac; Claude gave the steps. | — |
 | Oct 18 | Pasted the `npm run dev` log: sign-up, confirmation link, log-in work; `Date.now()` error on /lobby | Fix: `await connection()` in the Supabase server client | `b9ed7d1` |
 | Oct 18 | "also add a forget password feature because I forgot my password" | `/forgot-password` and `/reset-password`, "Forgot password?" link on Log in, safe `next` path in `/auth/callback`, 5 more tests | — |
+| Oct 18 | "I have tested enough so we acn proceed" | Feature 1 closed for review. Claude wrote the PR title and body for Hanif to open. | — |
 
 ## Decisions by Hanif
 
@@ -50,6 +51,7 @@ This ledger is source material for Hanif's reflection. Hanif writes the reflecti
 - Test feature 1 end to end on the real Supabase project before moving on, with success responses and screenshots as evidence. Test account email: Hanif's Berkeley address, so Hanif can click the confirmation link (Oct 18).
 - The cloud session cannot reach Supabase (network policy). Hanif chose to test feature 1 on the Mac, with Claude giving the steps (Oct 18).
 - Add a forgot-password feature to feature 1 (Oct 18).
+- Hanif ended the Mac test after sign-up, the confirmation link, log-in and log-out passed: "I have tested enough so we acn proceed". The forgot-password flow and the `Date.now()` fix were not re-tested on the Mac (Oct 18).
 
 ## Corrections and agent issues
 
