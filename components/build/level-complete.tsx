@@ -5,7 +5,7 @@ import { Dialog } from "radix-ui";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { PerchWake } from "@/components/art/perch-wake";
 import { readSavedLevel } from "@/components/build/autosave";
-import { SaveSnapshot } from "@/components/snapshots/save-snapshot";
+import { SaveSnapshot, type LevelOption } from "@/components/snapshots/save-snapshot";
 import { Button } from "@/components/ui/button";
 import text from "@/content/ui/complete.json";
 import { accuracy, accuracyTier, formatDuration, titleTier } from "@/lib/stats/level-summary";
@@ -21,7 +21,7 @@ export type LevelSummary = {
 // The pop-up at the end of a level: the device wakes up, then XP, accuracy and time.
 // It does not close with Esc or a click outside; Continue is the way out, and it has the focus.
 /** Where Save snapshot finds the board: the level and the user, as build mode saved them in this browser. */
-export type SaveFrom = { levelId: number; user: string; project: string; position: number };
+export type SaveFrom = { levels: LevelOption[]; user: string; project: string; position: number };
 
 export function LevelComplete({ summary, continueHref, save, preview = false }: { summary: LevelSummary; continueHref: string; save: SaveFrom; preview?: boolean }) {
   const continueRef = useRef<HTMLAnchorElement>(null);
@@ -60,7 +60,7 @@ export function LevelComplete({ summary, continueHref, save, preview = false }: 
 
           <div className="rise-in mt-6 w-full max-w-md" style={{ animationDelay: "1.4s" }}>
             <div className="flex gap-3">
-              <SaveSnapshot levelId={save.levelId} read={() => readSavedLevel(save.user, save.project, save.position)}>
+              <SaveSnapshot levels={save.levels} read={() => readSavedLevel(save.user, save.project, save.position)}>
                 <Button variant="outline" className="h-14 px-5">
                   <CameraIcon />
                   <span className="max-sm:sr-only">{text.snapshot}</span>

@@ -34,8 +34,8 @@ async function Complete({ slug, position, preview }: { slug: string; position: s
   if (error) throw error;
   if (!level) notFound();
 
-  const [{ count: levelCount }, { data: session }] = await Promise.all([
-    supabase.from("levels").select("id", { count: "exact", head: true }).eq("project_id", level.project_id),
+  const [{ data: levels, error: levelsError }, { data: session }] = await Promise.all([
+    supabase.from("levels").select("id, position, title").eq("project_id", level.project_id).order("position"),
     supabase
       .from("sessions")
       .select("started_at, ended_at, tasks_done, mistakes, xp_earned")
@@ -45,6 +45,7 @@ async function Complete({ slug, position, preview }: { slug: string; position: s
       .limit(1)
       .maybeSingle(),
   ]);
+  if (levelsError) throw levelsError;
 
   let summary: LevelSummary;
   if (session) {
@@ -60,7 +61,7 @@ async function Complete({ slug, position, preview }: { slug: string; position: s
     notFound();
   }
 
-  const next = level.position < (levelCount ?? 0) ? `/p/${slug}/${level.position + 1}` : "/lobby";
-  const save = { levelId: level.id, user: auth.claims.sub, project: slug, position: level.position };
+  const next = level.position < levels.length ? `/p/${slug}/${level.position + 1}` : "/lobby";
+  const save = { levels, user: auth.claims.sub, project: slug, position: level.position };
   return <LevelComplete summary={summary} continueHref={next} save={save} preview={!session} />;
 }

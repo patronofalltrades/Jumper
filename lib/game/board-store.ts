@@ -23,13 +23,16 @@ export type Flash = { kind: "snap" | "buzz"; holes: string[]; at: number };
 
 /** What a level starts with: its tasks, and the board and progress from the browser, if it has them. */
 /** `readOnly`: a saved snapshot. The camera moves and the nets glow, but taps do not change the board. */
-export type LevelSetup = { plan?: Plan; parts?: Part[]; progress?: Progress; readOnly?: boolean };
+/** `base`: the board that the level opened with, before the learner placed a part. It defaults to `parts`. */
+export type LevelSetup = { plan?: Plan; parts?: Part[]; base?: Part[]; progress?: Progress; readOnly?: boolean };
 
 export type BoardState = {
   bench: Bench;
   /** The level that this board belongs to, for example "perch/1". */
   level: string | null;
   parts: Part[];
+  /** The board that the level opened with. The level Check is off until the learner places a part (issue #27). */
+  base: Part[];
   /** Earlier versions of `parts`, newest last. Undo goes back one. */
   history: Part[][];
   tool: Tool;
@@ -95,6 +98,7 @@ export function createBoardStore(bench: Bench = perchBench()) {
       bench,
       level: null,
       parts: [],
+      base: [],
       history: [],
       tool: "wire",
       wireColor: WIRE_COLORS[0].hex,
@@ -113,6 +117,7 @@ export function createBoardStore(bench: Bench = perchBench()) {
         set({
           level,
           parts: setup.parts ?? [],
+          base: setup.base ?? setup.parts ?? [],
           history: [],
           tool: (task && taskTool(task.target)) || "wire",
           pending: null,

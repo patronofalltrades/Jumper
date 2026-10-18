@@ -43,6 +43,9 @@ async function Level({ slug, position }: { slug: string; position: string }) {
   // A level opens when the level before it passed (issue #19).
   if (!isUnlocked(data.position, await passedLevels(supabase, project.id))) redirect(`/p/${slug}`);
 
+  const { data: levels, error: levelsError } = await supabase.from("levels").select("id, position, title").eq("project_id", project.id).order("position");
+  if (levelsError) throw levelsError;
+
   const tasks: LevelTask[] = data.tasks.map((t) => ({ ...t, target: targetSchema.parse(t.target) }));
   const rules = rulesSchema.parse(data.rules);
 
@@ -58,6 +61,7 @@ async function Level({ slug, position }: { slug: string; position: string }) {
       tasks={tasks}
       rules={rules}
       start={startBoard(await loadBoards(slug), data.position)}
+      levels={levels}
     />
   );
 }

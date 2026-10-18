@@ -3,30 +3,34 @@
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
+import { fieldErrors, snapshotEditSchema, snapshotFormSchema, type FieldErrors } from "@/lib/snapshots/form";
 import { wiringSchema } from "@/lib/snapshots/wiring";
 
 // Snapshots are the lab notebook (PLAN.md feature 6, TRD 9). Row-level security keeps each row to its owner:
 // user_id defaults to auth.uid(), and a read, an edit or a delete can only reach the user's own rows.
 
-const text = {
-  title: z.string().trim().min(1).max(80),
-  notes: z.string().trim().max(2000),
-};
-const newSnapshot = z.object({
-  levelId: z.number().int().positive(),
+// The title, notes and level use the same schemas as the forms (lib/snapshots/form.ts), so a wrong field gives the
+// same message under that field.
+const newSnapshot = snapshotFormSchema.extend({
   sessionId: z.uuid().nullable(),
-  ...text,
   wiring: wiringSchema,
   mistakes: z.number().int().nonnegative(),
 });
-const edit = z.object({ id: z.uuid(), ...text });
+const edit = snapshotEditSchema.extend({ id: z.uuid() });
 
-export type SnapshotResult = { id?: string; error?: string };
+export type SnapshotResult = { id?: string; error?: string; fieldErrors?: FieldErrors };
+
+/** The result for input that the schema refuses: the message of each form field, or one general message. */
+function refused(schema: z.ZodType, input: unknown, general: string): SnapshotResult {
+  const errors = fieldErrors(schema, input);
+  const { levelId, title, notes } = errors;
+  return levelId || title || notes ? { fieldErrors: { levelId, title, notes } } : { error: general };
+}
 
 /** Saves the board as a new snapshot, and gives its id. */
-export async function createSnapshot(input: z.infer<typeof newSnapshot>): Promise<SnapshotResult> {
+export async function createSnapshot(input: z.input<typeof newSnapshot>): Promise<SnapshotResult> {
   const parsed = newSnapshot.safeParse(input);
-  if (!parsed.success) return { error: "Write a title (1 to 80 characters)." };
+  if (!parsed.success) return refused(newSnapshot, input, "We could not read this board. Open the level again, then save.");
   const { levelId, sessionId, title, notes, wiring, mistakes } = parsed.data;
   const supabase = await createClient();
   // The snapshot passed when its session passed the level Check (issue #25).
@@ -43,7 +47,7 @@ export async function createSnapshot(input: z.infer<typeof newSnapshot>): Promis
 /** Changes the title and the notes of a snapshot. */
 export async function updateSnapshot(input: z.infer<typeof edit>): Promise<SnapshotResult> {
   const parsed = edit.safeParse(input);
-  if (!parsed.success) return { error: "Write a title (1 to 80 characters)." };
+  if (!parsed.success) return refused(edit, input, "This snapshot does not exist.");
   const { id, title, notes } = parsed.data;
   const supabase = await createClient();
   const { data, error } = await supabase.from("snapshots").update({ title, notes }).eq("id", id).select("id").maybeSingle();

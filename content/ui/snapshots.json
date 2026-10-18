@@ -5,6 +5,8 @@
     "short": "Save",
     "heading": "Save a snapshot",
     "text": "A snapshot keeps this board in your lab notebook. You can open it later and look at it in 3D.",
+    "level": "Level",
+    "level_hint": "Select a level",
     "title": "Title",
     "title_hint": "For example: Ears wired",
     "notes": "Notes",
@@ -14,7 +16,13 @@
     "cancel": "Cancel",
     "done": "Saved to your lab notebook.",
     "open": "Open the snapshot",
-    "no_board": "This browser has no saved board for this level. Open the level and save the snapshot there."
+    "no_board": "This browser has no saved board for this level. Open the level and save the snapshot there.",
+    "errors": {
+      "level": "Select the level of this board.",
+      "title_empty": "Write a title. For example: Ears wired.",
+      "title_long": "The title is too long. Use 80 characters or fewer.",
+      "notes_long": "The notes are too long. Use 2000 characters or fewer."
+    }
   },
   "list": {
     "heading": "Lab notebook",

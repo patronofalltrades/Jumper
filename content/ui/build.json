@@ -132,6 +132,7 @@
       "fix": "Fix the board",
       "noSession": "We could not save your Check, because this level has no saved session. Go back to the level map, then open the level again.",
       "error": "We could not save your Check. Try again.",
+      "empty": "Place a part on the board first. Check tests the parts that you place.",
       "names": {
         "resistor": "Resistor",
         "led": "LED"
