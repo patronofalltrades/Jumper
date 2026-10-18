@@ -2,18 +2,21 @@
 
 import { Html, Line } from "@react-three/drei";
 import { useThree } from "@react-three/fiber";
-import Link from "next/link";
 import { useCallback, useMemo, useRef, useSyncExternalStore, type ReactNode } from "react";
 import { Vector3, type Camera, type Object3D } from "three";
 import text from "@/content/ui/build.json";
-import { terminalAt, partPins } from "@/lib/circuit/parts";
+import type { Bench } from "@/lib/circuit/bench";
+import { terminalAt, partPins, type Part } from "@/lib/circuit/parts";
 import type { Task } from "@/lib/content/schema";
 import { boardStore, useBoard } from "@/lib/game/board-store";
 import { needsAck, taskSpot, type Mistake } from "@/lib/game/engine";
+import { HEARTS, heartsLeft } from "@/lib/game/hearts";
 import { cn } from "@/lib/utils";
+import type { Failed, LevelCheck } from "./check";
+import { pinName } from "./guide";
 
 // The pop-ups of build mode (PLAN.md "How build mode works"): Place, Wire, Concept and Mistake, plus the level intro
-// and the end of the level. All their words come from the level content and content/ui/build.json.
+// and the level Check. All their words come from the level content and content/ui/build.json.
 // Laptop: the Place, Wire and Mistake pop-ups hang over the board, with a line down to the target pin (TRD 5.3).
 // Phone: every pop-up is a sheet at the bottom of the board, so it does not cover the glowing holes.
 
@@ -142,7 +145,9 @@ function MistakeBody({ mistake }: { mistake: Mistake }) {
   );
 }
 
-type LevelInfo = { eyebrow: string; title: string; goal: string; tasks: LevelTask[]; mapHref: string };
+type LevelInfo = { eyebrow: string; title: string; goal: string; tasks: LevelTask[] };
+/** The level Check card: its state, and what its buttons do. */
+type CheckProps = { check: LevelCheck; onCheck: () => void; onClose: () => void };
 
 function IntroBody({ eyebrow, title, goal, tasks }: LevelInfo) {
   return (
@@ -158,11 +163,74 @@ function IntroBody({ eyebrow, title, goal, tasks }: LevelInfo) {
   );
 }
 
-function ReadyBody({ mapHref }: { mapHref: string }) {
-  const { xp, mistakes } = useBoard((s) => s.progress);
+const names: Record<string, string> = { ...text.tray.parts, ...text.play.check.names };
+const legs: Record<string, string> = text.play.check.legs;
+const rails: Record<string, string> = text.railName;
+
+/** A plain name for an endpoint of a level rule: "esp.GPIO4" → "GPIO 4", "mic1.WS" → "Mic WS", "led1.anode" → "LED + leg". */
+function endpointName(bench: Bench, parts: Part[], endpoint: string) {
+  const [owner, pin] = endpoint.split(".");
+  if (owner === "esp") return pinName(pin);
+  if (/^bb[AB]$/.test(owner)) return rails[pin] ?? pin;
+  const part = parts.find((p) => p.id === owner);
+  if (!part) return endpoint;
+  const label = legs[pin] ?? partPins(bench, part).find((p) => p.name === pin)?.label ?? pin;
+  return `${names[part.type] ?? owner} ${label}`;
+}
+
+/** The text of a failed Check: the forbid rule text, or the missing connection in plain words. */
+function reasonText(bench: Bench, parts: Part[], failed: Failed) {
+  if (failed.message) return failed.message;
+  const template = failed.code === "missing_ground" ? text.play.check.missing_ground : text.play.check.wrong_pin;
+  // A ground rule names its other end first: "Mic L/R does not connect to ground".
+  const [a, b] = failed.code === "missing_ground" && /\.GND$|^bb[AB]\.-$/.test(failed.connection.a) ? [failed.connection.b, failed.connection.a] : [failed.connection.a, failed.connection.b];
+  return fill(template, { a: endpointName(bench, parts, a), b: endpointName(bench, parts, b) });
+}
+
+function heartsText(fails: number) {
+  const hearts = heartsLeft(fails);
+  if (fails > 0 && hearts === HEARTS) return text.play.check.refilled;
+  return hearts === 0 ? text.play.check.noHearts : fill(text.play.check.lostHeart, { n: hearts });
+}
+
+/** The end of the tasks: Check the level. After a fail: the reason, the hearts, and "Fix the board". */
+function CheckBody({ check, onCheck, onClose }: { check: LevelCheck; onCheck: () => void; onClose: () => void }) {
+  const { xp, mistakes, fails } = useBoard((s) => s.progress);
+  const bench = useBoard((s) => s.bench);
+  const parts = useBoard((s) => s.parts);
+  const button = (
+    <PressButton onClick={onCheck} disabled={check.busy} className="disabled:opacity-60">
+      {check.busy ? text.play.check.checking : text.play.check.button}
+    </PressButton>
+  );
+
+  if (check.failed) {
+    return (
+      <>
+        <div className="flex items-center justify-between gap-2">
+          <Chip tone="mistake">{text.play.kind.mistake}</Chip>
+          <Hearts fails={fails} />
+        </div>
+        <h2 className="text-2xl leading-tight font-extrabold tracking-tight">{text.play.check.failTitle}</h2>
+        <p className="text-[15px] leading-snug font-semibold">{reasonText(bench, parts, check.failed)}</p>
+        <p className="text-sm text-muted-foreground">{heartsText(fails)}</p>
+        {check.error && <p role="alert" className="text-sm font-semibold text-destructive">{check.error}</p>}
+        <div className="flex justify-end gap-2">
+          <PressButton tone="plain" onClick={onClose}>
+            {text.play.check.fix}
+          </PressButton>
+          {button}
+        </div>
+      </>
+    );
+  }
+
   return (
     <>
-      <h2 className="text-2xl leading-tight font-extrabold tracking-tight">{text.play.ready.title}</h2>
+      <div className="flex items-center justify-between gap-2">
+        <h2 className="text-2xl leading-tight font-extrabold tracking-tight">{text.play.ready.title}</h2>
+        <Hearts fails={fails} />
+      </div>
       <p className="text-sm text-muted-foreground">{text.play.ready.text}</p>
       <dl className="grid grid-cols-2 gap-2">
         {[
@@ -175,15 +243,26 @@ function ReadyBody({ mapHref }: { mapHref: string }) {
           </div>
         ))}
       </dl>
-      <div className="flex justify-end">
-        <Link
-          href={mapHref}
-          className="inline-flex min-h-11 items-center justify-center rounded-xl border-b-4 border-primary-deep bg-primary px-4 text-sm font-bold text-primary-foreground active:translate-y-0.5 active:border-b-2"
-        >
-          {text.play.ready.map}
-        </Link>
-      </div>
+      {check.error && <p role="alert" className="text-sm font-semibold text-destructive">{check.error}</p>}
+      <div className="flex justify-end">{button}</div>
     </>
+  );
+}
+
+/** The hearts of the level, as in Duolingo: full hearts for the hearts left. */
+export function Hearts({ fails }: { fails: number }) {
+  const left = heartsLeft(fails);
+  return (
+    <span className="inline-flex items-center gap-0.5" role="img" aria-label={fill(text.play.check.hearts, { n: left })}>
+      {Array.from({ length: HEARTS }, (_, i) => (
+        <svg key={i} width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
+          <path
+            d="M12 21s-7.5-4.6-9.5-9.2C1 8.4 3.3 5 6.8 5c2.1 0 3.6 1.2 5.2 3 1.6-1.8 3.1-3 5.2-3 3.5 0 5.8 3.4 4.3 6.8C19.5 16.4 12 21 12 21Z"
+            fill={i < left ? "var(--destructive)" : "var(--muted)"}
+          />
+        </svg>
+      ))}
+    </span>
   );
 }
 
@@ -202,10 +281,10 @@ function Card({ mistake, className, children }: { mistake?: boolean; className?:
 /**
  * The pop-ups in the page. Phone: all of them, in a sheet under the board. The sheet has a fixed height, so the board
  * does not move when the text changes, and the sheet does not cover the board.
- * Laptop: the intro, the Concept pop-up and the end of the level, over the center of the board. (Task and Mistake
+ * Laptop: the intro, the Concept pop-up and the level Check, over the center of the board. (Task and Mistake
  * pop-ups hang in 3D.)
  */
-export function PopupLayer({ level, conceptOpen, onConceptDone }: { level: LevelInfo; conceptOpen: boolean; onConceptDone: () => void }) {
+export function PopupLayer({ level, conceptOpen, onConceptDone, check }: { level: LevelInfo; conceptOpen: boolean; onConceptDone: () => void; check: CheckProps }) {
   const laptop = useLaptop();
   const progress = useBoard((s) => s.progress);
   const task = level.tasks[progress.index];
@@ -213,7 +292,10 @@ export function PopupLayer({ level, conceptOpen, onConceptDone }: { level: Level
   let body: ReactNode = null;
   let mistake = false;
   if (progress.phase === "intro") body = <IntroBody {...level} />;
-  else if (progress.phase === "ready_to_check") body = <ReadyBody mapHref={level.mapHref} />;
+  else if (progress.phase === "ready_to_check" && check.check.open) {
+    body = <CheckBody {...check} />;
+    mistake = !!check.check.failed;
+  }
   else if (progress.phase === "task" && conceptOpen && task?.concept) body = <ConceptBody concept={task.concept} onDone={onConceptDone} />;
   else if (!laptop && progress.phase === "mistake" && progress.mistake) {
     body = <MistakeBody mistake={progress.mistake} />;
@@ -223,7 +305,7 @@ export function PopupLayer({ level, conceptOpen, onConceptDone }: { level: Level
 
   return laptop ? (
     <div className="absolute inset-0 z-20 flex items-center justify-center bg-[#0d1418]/25 p-4">
-      <Card className="w-full max-w-md rounded-2xl">{body}</Card>
+      <Card mistake={mistake} className="w-full max-w-md rounded-2xl">{body}</Card>
     </div>
   ) : (
     <div className="z-10 h-60 shrink-0 overflow-y-auto border-t border-border bg-card">

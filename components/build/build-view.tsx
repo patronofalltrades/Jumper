@@ -8,11 +8,13 @@ import text from "@/content/ui/build.json";
 import snapText from "@/content/ui/snapshots.json";
 import type { Part } from "@/lib/circuit/parts";
 import { boardStore, useBoard, WIRE_COLORS, type Tool } from "@/lib/game/board-store";
-import { needsAck, type Forbid, type Plan } from "@/lib/game/engine";
+import type { Rules } from "@/lib/circuit/check";
+import { needsAck, type Plan } from "@/lib/game/engine";
 import { readSavedLevel, useLevel } from "./autosave";
+import { useLevelCheck } from "./check";
 import { useFeedback } from "./feedback";
 import { GuideBar, SpotCard, useNoticeTimer } from "./guide";
-import { PinnedPopup, PopupLayer, useLaptop, type LevelTask } from "./popups";
+import { Hearts, PinnedPopup, PopupLayer, useLaptop, type LevelTask } from "./popups";
 import { cn } from "@/lib/utils";
 
 export type { LevelTask };
@@ -63,17 +65,19 @@ type Props = {
   title: string;
   goal: string;
   tasks: LevelTask[];
-  forbid: Forbid[];
+  /** The require and forbid rules of the level, for the level Check. */
+  rules: Rules;
   /** The ready-made board of the earlier levels, for a browser that has no saved board. */
   start: Part[];
 };
 
-export function BuildView({ user, project, levelId, position, eyebrow, title, goal, tasks, forbid, start }: Props) {
+export function BuildView({ user, project, levelId, position, eyebrow, title, goal, tasks, rules, start }: Props) {
   useKeys();
   useNoticeTimer();
   useFeedback();
-  const plan: Plan = useMemo(() => ({ tasks: tasks.map((t) => ({ target: t.target, xp: t.xp })), forbid }), [tasks, forbid]);
+  const plan: Plan = useMemo(() => ({ tasks: tasks.map((t) => ({ target: t.target, xp: t.xp })), forbid: rules.forbid }), [tasks, rules]);
   const saveError = useLevel({ user, project, levelId, position, plan, start });
+  const levelCheck = useLevelCheck({ user, project, position, rules });
   const laptop = useLaptop();
   const progress = useBoard((s) => s.progress);
   const mapHref = `/p/${project}`;
@@ -86,7 +90,12 @@ export function BuildView({ user, project, levelId, position, eyebrow, title, go
   const building = progress.phase === "mistake" || (progress.phase === "task" && !!task && !needsAck(task.target));
 
   const popups = (
-    <PopupLayer level={{ eyebrow, title, goal, tasks, mapHref }} conceptOpen={conceptOpen} onConceptDone={() => setConceptRead(progress.index)} />
+    <PopupLayer
+      level={{ eyebrow, title, goal, tasks }}
+      conceptOpen={conceptOpen}
+      onConceptDone={() => setConceptRead(progress.index)}
+      check={{ check: levelCheck.state, onCheck: () => void levelCheck.check(), onClose: levelCheck.close }}
+    />
   );
 
   return (
@@ -119,12 +128,15 @@ export function BuildView({ user, project, levelId, position, eyebrow, title, go
           </button>
         </SaveSnapshot>
         <div className="flex shrink-0 flex-col items-end gap-1">
-          <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2.5 py-1 font-mono text-sm font-semibold">
-            <svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M13 2 4 14h7l-1 8 9-12h-7l1-8Z" fill="var(--probe)" />
-            </svg>
-            {progress.xp} XP
-          </span>
+          <div className="flex items-center gap-2">
+            <Hearts fails={progress.fails} />
+            <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2.5 py-1 font-mono text-sm font-semibold">
+              <svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M13 2 4 14h7l-1 8 9-12h-7l1-8Z" fill="var(--probe)" />
+              </svg>
+              {progress.xp} XP
+            </span>
+          </div>
           <div
             className="h-2 w-24 overflow-hidden rounded-full bg-muted sm:w-40"
             role="progressbar"
@@ -141,6 +153,16 @@ export function BuildView({ user, project, levelId, position, eyebrow, title, go
       <div className="relative min-h-0 flex-1">
         <BuildScene>{laptop && <PinnedPopup tasks={tasks} hidden={conceptOpen} />}</BuildScene>
         {building && <GuideBar />}
+        {/* The learner closed the Check card to fix the board: the Check button stays at the bottom of the board. */}
+        {progress.phase === "ready_to_check" && !levelCheck.state.open && (
+          <button
+            type="button"
+            onClick={() => void levelCheck.check()}
+            className="absolute bottom-4 left-1/2 z-20 min-h-12 -translate-x-1/2 rounded-xl border-b-4 border-primary-deep bg-primary px-8 text-base font-extrabold tracking-wide text-primary-foreground uppercase shadow-panel outline-none focus-visible:ring-2 focus-visible:ring-ring active:translate-y-0.5 active:border-b-2"
+          >
+            {text.play.check.button}
+          </button>
+        )}
         <SpotCard />
         {laptop && popups}
         {saveError && (

@@ -24,6 +24,7 @@ const savedSchema = z.object({
     xp: z.number().int().nonnegative(),
     mistake: z.object({ code: z.string(), message: z.string().optional(), parts: z.array(z.string()) }).nullable(),
     swaps: z.array(z.string()),
+    fails: z.number().int().nonnegative().default(0),
   }),
   session: z.string().optional(),
 });

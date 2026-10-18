@@ -1,0 +1,57 @@
+import type { Bench } from "./bench.ts";
+import { buildNets, endpointHole } from "./nets.ts";
+import type { Part, PartType } from "./parts.ts";
+
+// The level check (TRD 6.2): the level passes when every `require` connection is true and no `forbid` connection is
+// true. It compares connections, not holes, so any layout that makes the same circuit passes.
+
+export type Connection = { a: string; b: string };
+export type Rules = { require: Connection[]; forbid: (Connection & { code: string; message: string })[] };
+
+/**
+ * A failed check gives one reason: the forbid rule code (with its text from the content), or "missing_ground" or
+ * "wrong_pin" for a require connection that is not there.
+ */
+export type CheckResult = { passed: true } | { passed: false; code: string; message?: string; connection: Connection };
+
+/** The two sides of a resistor or a button are the same. The learner can use either side as "1". */
+const SYMMETRIC: PartType[] = ["resistor", "pushbutton"];
+
+/** A ground endpoint: a GND pin, or a − rail. */
+const isGround = (endpoint: string) => /\.GND$/.test(endpoint) || /^bb[AB]\.-$/.test(endpoint);
+
+function turn(endpoint: string, turned: Set<string>) {
+  const [owner, pin] = endpoint.split(".");
+  if (!turned.has(owner) || (pin !== "1" && pin !== "2")) return endpoint;
+  return `${owner}.${pin === "1" ? "2" : "1"}`;
+}
+
+export function checkLevel(bench: Bench, parts: Part[], rules: Rules): CheckResult {
+  const nets = buildNets(bench, parts);
+  const owners = new Set([...rules.require, ...rules.forbid].flatMap((c) => [c.a, c.b]).map((e) => e.split(".")[0]));
+  const free = parts.filter((p) => SYMMETRIC.includes(p.type) && owners.has(p.id)).map((p) => p.id);
+
+  // Try each way round of the resistors and buttons. Report the way with the fewest problems, forbid rules first.
+  let best: CheckResult = { passed: true };
+  let fewest = Infinity;
+  for (let mask = 0; mask < 1 << free.length; mask++) {
+    const turned = new Set(free.filter((_, i) => mask & (1 << i)));
+    const on = (c: Connection) => {
+      const a = endpointHole(bench, parts, turn(c.a, turned));
+      const b = endpointHole(bench, parts, turn(c.b, turned));
+      return a !== null && b !== null && nets.get(a) === nets.get(b);
+    };
+    const broken = rules.forbid.filter(on);
+    const missing = rules.require.filter((c) => !on(c));
+    const problems = broken.length + missing.length;
+    if (problems === 0) return { passed: true };
+    if (problems >= fewest) continue;
+    fewest = problems;
+    const [f] = broken;
+    const [m] = missing;
+    best = f
+      ? { passed: false, code: f.code, message: f.message, connection: { a: f.a, b: f.b } }
+      : { passed: false, code: isGround(m.a) || isGround(m.b) ? "missing_ground" : "wrong_pin", connection: { a: m.a, b: m.b } };
+  }
+  return best;
+}

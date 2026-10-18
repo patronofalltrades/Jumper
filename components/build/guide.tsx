@@ -29,7 +29,7 @@ function useTouch() {
   return useSyncExternalStore(subscribeTouch, () => document.documentElement.dataset.touch === "true", () => false);
 }
 
-function pinName(name: string) {
+export function pinName(name: string) {
   const names: Record<string, string> = text.pins;
   const gpio = /^GPIO(\d+)$/.exec(name);
   return names[name] ?? (gpio ? fill(text.pins.gpio, { n: gpio[1] }) : name);
