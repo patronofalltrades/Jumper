@@ -2,7 +2,7 @@
 
 This file lists each table in the Jumper database, its columns and its relations. It also compares the built schema with section 3 of [PLAN.md](PLAN.md).
 
-- SQL: [supabase/migrations/20261018000000_data_model.sql](supabase/migrations/20261018000000_data_model.sql)
+- SQL: [supabase/migrations/20261018000000_data_model.sql](supabase/migrations/20261018000000_data_model.sql) (tables) and [supabase/migrations/20261018100000_level_check.sql](supabase/migrations/20261018100000_level_check.sql) (the `record_attempt` function)
 - Content that fills the content tables: [content/projects/](content/projects/), loaded by [supabase/seed.ts](supabase/seed.ts) (`npm run seed`)
 - Source of truth for the design: [TRD section 7](docs/TRD.md#7-database-schema)
 
@@ -89,7 +89,7 @@ Row-level security protects these tables. Each user can select, insert, update a
 | session_id | uuid | Foreign key → sessions.id |
 | level_id | int | Foreign key → levels.id |
 | passed | boolean | |
-| mistake_type | text, nullable | Empty when the attempt passed |
+| mistake_type | text, nullable | Empty when the attempt passed. Else a forbid rule code (for example `short_power`, `reversed_led`), `missing_ground` or `wrong_pin` |
 | created_at | timestamptz | |
 
 **snapshots** (main item): a saved board.
@@ -117,6 +117,16 @@ Row-level security protects these tables. Each user can select, insert, update a
 | created_at | timestamptz | |
 
 A user can star only their own snapshots. The policy checks this, because a foreign key check does not use row-level security.
+
+## Functions
+
+**record_attempt**(session, passed, mistake_type, tasks_done, mistakes, task_xp) → `{ completed, fails }`. The level Check calls it (issue #25). It runs as the user, so row-level security applies.
+
+- A failed Check: it adds one row to `attempts`, with the mistake type.
+- A passed Check, in one transaction: it adds the attempt, sets the session to `completed` with `ended_at`, and sets `xp_earned` to the task XP + the level XP + 10 XP when the session has no mistakes and no failed Check. Then it adds `xp_earned` to `profiles.xp`.
+- A pass needs all the tasks of the level done. The task XP cannot be more than the sum of the task XP of the level.
+- A second Check on a completed session changes nothing.
+- `fails` is the number of failed Checks in the session. The app shows hearts from it: 3 − fails, and at 0 hearts the next fail gives 3 new hearts.
 
 ## Relations
 
@@ -160,3 +170,4 @@ erDiagram
 | `stars` | Same columns | Plus the rule that a user stars only their own snapshots. |
 | Content "readable by everyone" | Readable by logged-in users only | All app pages need a log-in (issue #11). |
 | `created_at` (date) | timestamptz | The dashboard needs the time, not only the date. |
+| Hearts (PLAN.md section 2) | No column. Hearts come from the failed attempts of the session | One source of truth. A failed Check already saves an attempt (issue #25). |

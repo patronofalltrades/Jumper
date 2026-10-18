@@ -1,5 +1,5 @@
 {
-  "_note": "Text for the build page and the level map, in ASD-STE100. {act} is \"Click\" on a laptop and \"Tap\" on a phone. {pin}, {rail}, {part}, {n} and {total} are filled in by the app.",
+  "_note": "Text for the build page and the level map, in ASD-STE100. {act} is \"Click\" on a laptop and \"Tap\" on a phone. {pin}, {rail}, {part}, {n}, {total}, {a} and {b} are filled in by the app.",
   "guide": {
     "wire": {
       "start": "{act} a hole to start the wire.",
@@ -113,12 +113,38 @@
     },
     "ready": {
       "title": "All tasks are done",
-      "text": "You made every connection of this level.",
+      "text": "Press Check. The app tests all the connections of this level.",
       "xp": "XP",
       "mistakes": "Mistakes",
       "map": "Level map"
     },
-    "saveError": "We could not save your progress. Your board is still saved on this device."
+    "saveError": "We could not save your progress. Your board is still saved on this device.",
+    "check": {
+      "button": "Check",
+      "checking": "Checking…",
+      "hearts": "{n} hearts",
+      "failTitle": "Not yet",
+      "missing_ground": "{a} does not connect to ground. Connect it to the ground rail (−).",
+      "wrong_pin": "{a} does not connect to {b}. Find the wire that is missing or on the wrong pin.",
+      "lostHeart": "You lost 1 heart. Hearts left: {n}.",
+      "noHearts": "You have no hearts left. You can check again. If the next Check fails, you get 3 new hearts.",
+      "refilled": "You get 3 new hearts. Read the reason above, then try again.",
+      "fix": "Fix the board",
+      "noSession": "We could not save your Check, because this level has no saved session. Go back to the level map, then open the level again.",
+      "error": "We could not save your Check. Try again.",
+      "names": {
+        "resistor": "Resistor",
+        "led": "LED"
+      },
+      "legs": {
+        "anode": "+ leg",
+        "cathode": "− leg",
+        "1": "side 1",
+        "2": "side 2",
+        "+": "+ lead",
+        "-": "− lead"
+      }
+    }
   },
   "map": {
     "back": "Lobby",

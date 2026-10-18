@@ -29,10 +29,11 @@ export async function createSnapshot(input: z.infer<typeof newSnapshot>): Promis
   if (!parsed.success) return { error: "Write a title (1 to 80 characters)." };
   const { levelId, sessionId, title, notes, wiring, mistakes } = parsed.data;
   const supabase = await createClient();
+  // The snapshot passed when its session passed the level Check (issue #25).
+  const { data: session } = sessionId ? await supabase.from("sessions").select("status").eq("id", sessionId).maybeSingle() : { data: null };
   const { data, error } = await supabase
     .from("snapshots")
-    // passed stays false until the level Check exists (Hanif, issue #23).
-    .insert({ level_id: levelId, session_id: sessionId, title, notes, wiring, mistake_count: mistakes })
+    .insert({ level_id: levelId, session_id: sessionId, title, notes, wiring, passed: session?.status === "completed", mistake_count: mistakes })
     .select("id")
     .single();
   if (error) return { error: "We could not save the snapshot. Try again." };

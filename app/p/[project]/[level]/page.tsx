@@ -56,7 +56,7 @@ async function Level({ slug, position }: { slug: string; position: string }) {
       title={data.title}
       goal={data.goal}
       tasks={tasks}
-      forbid={rules.forbid}
+      rules={rules}
       start={startBoard(await loadBoards(slug), data.position)}
     />
   );

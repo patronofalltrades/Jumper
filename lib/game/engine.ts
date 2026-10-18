@@ -7,7 +7,8 @@ import { checkModule, isTerminal, LEG_NAMES, partPins, terminalAt, type LegType,
 // the parts on the bench. It does not know React, the 3D scene or the database.
 //
 //   intro → task ⇄ mistake
-//   task → task (next task) → … → ready_to_check (the level Check is feature 5a)
+//   task → task (next task) → … → ready_to_check
+// In ready_to_check the learner presses Check (lib/circuit/check.ts). A fail costs a heart; a pass ends the level.
 
 export type Connection = { a: string; b: string };
 export type Forbid = Connection & { code: string; message: string };
@@ -31,6 +32,8 @@ export type Progress = {
   mistake: Mistake | null;
   /** Parts with two equal sides (a resistor, a button) whose sides "1" and "2" the learner used the other way round. */
   swaps: string[];
+  /** Failed level Checks in this session. They set the hearts (lib/game/hearts.ts). */
+  fails: number;
 };
 
 export type EngineEvent =
@@ -44,7 +47,7 @@ export type EngineEvent =
 /** A correct change snaps in. A wrong one buzzes. */
 export type Effect = "snap" | "buzz" | null;
 
-export const startProgress = (): Progress => ({ phase: "intro", index: 0, tasksDone: 0, mistakes: 0, xp: 0, mistake: null, swaps: [] });
+export const startProgress = (): Progress => ({ phase: "intro", index: 0, tasksDone: 0, mistakes: 0, xp: 0, mistake: null, swaps: [], fails: 0 });
 
 const LEG_TYPES = Object.keys(LEG_NAMES) as LegType[];
 

@@ -7,7 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 export const metadata: Metadata = { title: "Level complete · Jumper" };
 
 // The Level complete screen for the user's latest completed session of this level.
-// In development, ?preview shows sample numbers when there is no session yet (the level check is a later feature).
+// In development, ?preview shows sample numbers when there is no session yet .
 export default function CompletePage({ params, searchParams }: PageProps<"/p/[project]/[level]/complete">) {
   return (
     <Suspense fallback={null}>

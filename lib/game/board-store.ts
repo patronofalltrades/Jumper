@@ -52,6 +52,8 @@ export type BoardState = {
   start: () => void;
   ack: () => void;
   dismiss: () => void;
+  /** The result of a failed level Check: the failed Checks of the session so far. */
+  failed: (fails: number) => void;
   setTool: (tool: Tool) => void;
   setWireColor: (hex: string) => void;
   setHover: (hole: string | null) => void;
@@ -125,6 +127,7 @@ export function createBoardStore(bench: Bench = perchBench()) {
       start: () => set(play({ type: "start" })),
       ack: () => set(play({ type: "ack", parts: get().parts })),
       dismiss: () => set(play({ type: "dismiss" })),
+      failed: (fails) => set({ progress: { ...get().progress, fails } }),
       setTool: (tool) => set({ tool, pending: null, notice: null }),
       setWireColor: (wireColor) => set({ wireColor, tool: "wire", pending: null, notice: null }),
       setHover: (hover) => set({ hover }),

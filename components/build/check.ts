@@ -1,0 +1,59 @@
+"use client";
+
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { recordAttempt } from "@/app/actions/attempt";
+import text from "@/content/ui/build.json";
+import { checkLevel, type CheckResult, type Rules } from "@/lib/circuit/check";
+import { endpointHole } from "@/lib/circuit/nets";
+import { boardStore } from "@/lib/game/board-store";
+import { readSavedLevel } from "./autosave";
+
+// The level Check (PLAN.md feature 5a). The browser checks the board with the level rules, then the server saves the
+// attempt. A pass opens the Level complete pop-up with the real session. A fail costs a heart and tells the reason.
+
+export type Failed = Extract<CheckResult, { passed: false }>;
+
+export type LevelCheck = {
+  /** The Check card is open. When the learner closes it to fix the board, a Check button stays on the board. */
+  open: boolean;
+  busy: boolean;
+  failed: Failed | null;
+  error: string | null;
+};
+
+type Props = { user: string; project: string; position: number; rules: Rules };
+
+export function useLevelCheck({ user, project, position, rules }: Props) {
+  const router = useRouter();
+  const [state, setState] = useState<LevelCheck>({ open: true, busy: false, failed: null, error: null });
+
+  const check = async () => {
+    const { bench, parts, progress } = boardStore.getState();
+    if (progress.phase !== "ready_to_check" || state.busy) return;
+    const session = readSavedLevel(user, project, position)?.session;
+    if (!session) return setState({ open: true, busy: false, failed: null, error: text.play.check.noSession });
+
+    setState((s) => ({ ...s, open: true, busy: true, error: null }));
+    const result = checkLevel(bench, parts, rules);
+    const saved = await recordAttempt({
+      session,
+      passed: result.passed,
+      mistakeType: result.passed ? null : result.code,
+      tasksDone: progress.tasksDone,
+      mistakes: progress.mistakes,
+      xp: progress.xp,
+    });
+    if (saved.error || saved.fails === undefined) return setState((s) => ({ ...s, busy: false, error: saved.error ?? text.play.check.error }));
+
+    // The two ends of the connection flash: green for a pass, red for the reason of a fail.
+    const ends = result.passed ? [] : [result.connection.a, result.connection.b].map((e) => endpointHole(bench, parts, e)).filter((h): h is string => h !== null);
+    boardStore.setState({ flash: { kind: result.passed ? "snap" : "buzz", holes: ends, at: Date.now() } });
+
+    if (saved.completed) return router.push(`/p/${project}/${position}/complete`);
+    boardStore.getState().failed(saved.fails);
+    setState({ open: true, busy: false, failed: result.passed ? null : result, error: null });
+  };
+
+  return { state, check, close: () => setState((s) => ({ ...s, open: false })) };
+}
