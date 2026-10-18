@@ -68,7 +68,7 @@ Each layer uses a standard tool with a free tier. Claude Code knows these tools 
 | UI components | shadcn/ui, on Radix UI and Tailwind CSS | The components go into the repository as source code. Thus we can change them. They give accessible forms, dialogs, sheets and toasts. | Hand-written components |
 | Charts | Recharts | Simple React charts for the dashboard | Chart.js |
 | Validation | Zod | One schema checks forms and the JSON for wiring and rules. | Checks written by hand |
-| Authentication | Supabase Auth, email and password | Users sign up in the app. The live Demo Day sign-up needs this. | Auth.js |
+| Authentication | Supabase Auth, email and password, through `@supabase/supabase-js` and `@supabase/ssr` | Users sign up in the app. `@supabase/ssr` keeps the session in cookies, so server pages and middleware can read it. The live Demo Day sign-up needs this. | Auth.js |
 | Database | Supabase Postgres with row-level security | Real tables and foreign keys. The database enforces data isolation. | SQLite and Prisma |
 | Hosting | Vercel | Free. It makes a preview URL for each pull request and deploys production when a pull request merges to main. | Replit, Render |
 | Tests | Vitest (unit and integration), Playwright (optional end-to-end) | Fast TypeScript tests. Playwright runs a smoke test at phone size. | Jest |
@@ -296,7 +296,7 @@ Jumper uses four environments. All use free tiers.
 
 - **Database changes:** Write SQL files in `supabase/migrations/`. Apply them with the Supabase CLI. Each schema change is a separate pull request. Apply it to production immediately after the merge.
 - **Content:** `supabase/seed.ts` loads `content/projects/*.json`. When you run it again, it updates projects, levels and tasks. It does not change user data.
-- **Secrets:** Vercel keeps `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` for each environment. Only the seed script and CI use the service-role key. Do not send the service-role key to the browser.
+- **Secrets:** Vercel keeps `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` for each environment. The publishable key replaces the old anon key. Only the seed script and CI use `SUPABASE_SECRET_KEY` (it replaces the service-role key). Do not send the secret key to the browser. Do not put keys in the repository or in a prompt.
 - **Branch protection:** `main` requires a pull request. This agrees with the assignment rule: no direct commits to main.
 
 ## 12. Performance, phone support and open questions

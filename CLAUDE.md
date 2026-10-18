@@ -20,7 +20,7 @@ Each project uses the same build mode. A new project adds data (levels, tasks, p
 | UI components | [shadcn/ui](https://ui.shadcn.com/) (on Radix UI and Tailwind CSS) for forms, dialogs, sheets and toasts. Add components with `npx shadcn@latest add <component>`. Hanif approved shadcn/ui and its packages on October 18, 2026, and added it to the TRD. |
 | Charts | Recharts |
 | Validation | Zod |
-| Authentication | Supabase Auth (email and password) |
+| Authentication | Supabase Auth (email and password), with `@supabase/supabase-js` and `@supabase/ssr`. Variables: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`. `SUPABASE_SECRET_KEY` only for the seed script and CI, never in the browser. |
 | Database | Supabase Postgres with row-level security |
 | Hosting | Vercel |
 | Tests | Vitest (unit and integration), Playwright (optional end-to-end) |
@@ -68,6 +68,7 @@ Use these skills when you work on Jumper. They do not replace the house rules. I
 | frontend-design | `frontend-design@claude-plugins-official` | Make screens with high design quality. Use the design direction in the PRD (workbench look, Duolingo game feel) and the tokens from the prototype. |
 | Matt Pocock skills | [mattpocock/skills](https://github.com/mattpocock/skills) | Small engineering skills for TypeScript work, for example planning, tests and refactors. |
 | Superpowers | `superpowers@claude-plugins-official` | Brainstorm, plan, debug in steps, and write tests first (red, then green). |
+| Supabase Server | [supabase/server](https://github.com/supabase/server) | Guidance from Supabase for server code. Our app uses `@supabase/ssr`, not `@supabase/server`; where the skill suggests `@supabase/server`, use the TRD stack. |
 
 **Install (Claude Code):**
 
@@ -79,6 +80,7 @@ npx skills add rebelytics/one-skill-to-rule-them-all --skill task-observer
 claude plugin install frontend-design@claude-plugins-official
 claude plugin install mattpocock-skills@claude-plugins-official
 claude plugin install superpowers@claude-plugins-official
+npx skills add supabase/server
 ```
 
 **task-observer activation:** At the start of each session that uses a tool, load the task-observer skill before you plan or write code. If a session becomes multi-step work, or I correct how you work, load it at that moment, before the next write.

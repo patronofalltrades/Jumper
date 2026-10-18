@@ -23,6 +23,7 @@ This ledger is source material for Hanif's reflection. Hanif writes the reflecti
 | Oct 18 | "This is wrong, add shadcn ui into the packages. This is not a skill. Rewrite this" | shadcn/ui moved from Skills to the Stack table in CLAUDE.md; added to README tools | [#8](https://github.com/patronofalltrades/Jumper/pull/8) |
 | Oct 18 | "Yes" to adding shadcn/ui to the TRD; asked "Do we need to add a supabase key?" | shadcn/ui row added to the TRD stack table. Claude explained the Supabase keys. | [#8](https://github.com/patronofalltrades/Jumper/pull/8) |
 | Oct 18 | Pasted the Supabase connect steps (package, env vars, optional skill) | No package installed yet. Ledger hook now redacts keys. Claude asked which package and env names to use. | [#8](https://github.com/patronofalltrades/Jumper/pull/8) |
+| Oct 18 | Chose supabase-js + ssr, NEXT_PUBLIC_ variable names, and to add the Supabase Server skill | TRD and CLAUDE.md name the packages and variables; skill added to CLAUDE.md | [#8](https://github.com/patronofalltrades/Jumper/pull/8) |
 
 ## Decisions by Hanif
 
@@ -36,6 +37,7 @@ This ledger is source material for Hanif's reflection. Hanif writes the reflecti
 - Seven agent skills chosen for the project (Oct 16).
 - Agent guardrails as hooks, plus a ledger for the reflection (Oct 18).
 - shadcn/ui is a package in the stack, not a skill. Hanif approved it and its packages (Oct 18).
+- Supabase: `@supabase/supabase-js` + `@supabase/ssr` (not the dashboard's `@supabase/server`); variables `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, secret key only for seed and CI; add the Supabase Server skill anyway (Oct 18).
 
 ## Corrections and agent issues
 

@@ -29,6 +29,8 @@
 
 9. Hanif pasted the Supabase "connect" steps: install `@supabase/server`, set `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY` and `SUPABASE_JWKS_URL`, and optionally `npx skills add supabase/server`. (Key values removed from this log.)
 
+10. Answers: package "supabase-js + ssr", variable names "NEXT_PUBLIC_ names", Supabase Server skill "Yes, add it".
+
 ## Decisions
 
 - shadcn/ui is a UI component package, not a skill. It is in the CLAUDE.md stack. Hanif approved it and its packages (for example Radix UI) on October 18, 2026.
