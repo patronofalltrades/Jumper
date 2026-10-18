@@ -50,6 +50,7 @@ This ledger is source material for Hanif's reflection. Hanif writes the reflecti
 | Oct 18 | "on phone, lock to vertical only. So when it is turned sideways the website does not follow", then "which one is easier?", then "let's build that one and push it to the same PR" | Portrait lock where the browser allows it (web app manifest, `screen.orientation.lock`), and a "Turn your phone upright" card that covers the page on a sideways phone. The board keeps its parts. 11 Playwright checks pass. | [#15](https://github.com/patronofalltrades/Jumper/issues/15) |
 | Oct 18 | "cool, let's add comment on the PR and then merge", then "here's the PR https://github.com/patronofalltrades/Jumper/pull/16" | Hanif opened PR #16. Claude posted one status comment. Claude did not merge (house rule: only Hanif merges). | [#16](https://github.com/patronofalltrades/Jumper/pull/16), [comment](https://github.com/patronofalltrades/Jumper/pull/16#issuecomment-6253175153) |
 | Oct 18 | "Work on Module placement: button, mic, amplifier, screen Issue #17 Branch: …Feature%2FModules. Read these first: Claude.md, PLAN.md, Readme.md, Schema.md" | Claude asked 2 questions (button and the gap; how the speaker connects). Feature 4 on `Feature/Modules`: pin layouts in `content/parts/`, module footprints and placement rules in `lib/circuit`, parts tray, green or red shadow, two-tap place on a phone, remove and undo, speaker part. 82 tests, typecheck, lint, build pass; 15 touch checks at 390 px (light and dark) and 2 laptop checks pass. PR text in `prompts/modules-pr.md`. | [#17](https://github.com/patronofalltrades/Jumper/issues/17) |
+| Oct 18 | "I am not sure as I am still learning about the hardware, so can you help check the pin orders?" | Claude checked the 4 pin layouts against the Adafruit board file, a KiCad INMP441 footprint and the LCDWIKI manual. 2 fixes: the mic has 2 rows of 3 pins and goes across the gap (it was 1 row of 6); the amp speaker terminal had + and − swapped. 83 tests and 30 touch checks pass. | [#17](https://github.com/patronofalltrades/Jumper/issues/17) |
 
 ## Decisions by Hanif
 
@@ -109,6 +110,7 @@ Record here when Hanif corrects Claude, or when Claude gets something wrong. Say
 - Oct 18: Hanif found that the build-page instructions were in the wrong place and too technical: "placement of the instructions seem off and it's too technical. Use STE1000 to guide users and rethink where we should put the prompts/instructions for the user". (Claude note: the hint was small grey text in the tool bar, far from the board, and the messages used hole codes such as "A-j8" and "GPIO1".) Fix: a guide bar at the top of the board, a card next to the pointer or finger, and ASD-STE100 text in `content/ui/build.json`.
 - Oct 18: Bug found by Claude's touch stress test (Hanif asked for it). When the learner changed from Wire to another tool, the wire color row went away, the board area got taller, and the whole bench moved on the screen: a tap landed 2 columns away. How found: the Level 2 resistor went into A-h11 instead of A-h9; a probe showed that only the tool change moved the taps. Fix: the color row keeps its space for every tool.
 - Oct 18: Two more bugs from the same stress test, found in the screenshots: after the phone turned, the camera kept the old framing, so the bench was very small; and in landscape the hole card could go below the board, behind the tool bar. Fix: the camera frames the bench again when the screen shape changes a lot; the card goes above or below the finger where it fits, and stays inside the board.
+- Oct 18: Two pin layouts from Claude's first feature 4 commit were wrong. How found: Hanif was not sure about the pin orders and asked Claude to check them; Claude read the Adafruit board file and a KiCad footprint from GitHub. (1) The INMP441 was one row of 6 pins; the real round board has 2 rows of 3, 7.62 mm apart. (2) The MAX98357A speaker terminal had + and − swapped. Fix: new layouts in `content/parts/inmp441.json` and `max98357a.json`, tests updated. (Claude note: the first version used web search summaries that gave pin names but not the physical layout.)
 
 ## Hanif's observations
 
@@ -116,6 +118,7 @@ Only things Hanif said or wrote. Add the date and the exact words where possible
 
 - Oct 16: "I want to understand hardware without buying a bench full of parts." (pitch, PLAN.md)
 - Oct 18: Hanif wants the reflection "purely in my voice" and asked Claude to keep a ledger instead of writing it.
+- Oct 18: "I am not sure as I am still learning about the hardware, so can you help check the pin orders?"
 
 ## Claude notes (not Hanif's voice)
 
@@ -145,3 +148,4 @@ Only things Hanif said or wrote. Add the date and the exact words where possible
 - Oct 18: Pin orders come from web sources that Claude could search but not fully read: INMP441 (a 6-pin breakout definition), MAX98357A (Adafruit), ST7789 1.54" (LCDWIKI manual). Sellers can use a different order.
 - Oct 18: The guard blocked `git checkout -b Feature/Modules origin/Feature/Modules` again. Claude used `git switch Feature/Modules`, which tracks Hanif's branch.
 - Oct 18: The browser check for feature 4 ran on Claude's scratchpad page (Vite, the CSS from `npm run build`), as for feature 3. The real log-in route is not checked yet.
+- Oct 18: This session cannot open most maker web sites (Adafruit Learn, Keyestudio docs, LCDWIKI): the network policy refuses them. GitHub files can be read. The pushbutton check comes from Claude's knowledge, not from a datasheet that Claude opened.

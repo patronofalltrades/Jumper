@@ -20,3 +20,13 @@
    - Tests: `tests/modules.test.ts` (16) and 5 more in `tests/board-store.test.ts`. 82 tests pass.
 
    Browser check (Claude's scratchpad page with the same `BuildView`, not the log-in route): 15 touch checks at 390 × 844 in light and dark mode, and 2 mouse checks at 1280 × 800, pass.
+
+2. "I am not sure as I am still learning about the hardware, so can you help check the pin orders?"
+
+   Claude checked each pin layout against a board design file or a maker's manual. This session can read GitHub files, but not most maker web sites.
+   - **MAX98357A:** the Adafruit board file (`Adafruit MAX98357 Breakout.brd` in adafruit/Adafruit-MAX98357-I2S-Amp-Breakout). The header order LRC, BCLK, DIN, GAIN, SD, GND, Vin was correct. **Fixed:** the speaker terminal had + and − the wrong way. On the real board, − is on the LRC side and + is on the Vin side. The terminal is about 13 mm from the header, so it is now 3 rows from the header, not 4.
+   - **INMP441:** a KiCad footprint of the round breakout (barafael/inmp441-breakout-kicad). **Fixed:** the board has 2 rows of 3 pins, 7.62 mm apart (GND, VDD, SD and L/R, WS, SCK), not 1 row of 6. 7.62 mm is the width of the center gap, so the mic now goes across the gap, like a chip.
+   - **ST7789 1.54":** the LCDWIKI MSP1541 manual: GND, VCC, SCL, SDA, RES, DC, CS, BLK. Correct. Some 1.54" screens have 7 pins with no CS; Perch uses CS (GPIO 41), so it needs the 8-pin screen.
+   - **Pushbutton:** a 6 mm button has 4 legs. The 2 legs that are 6.5 mm apart always connect; a press connects them to the other 2. Across the gap, the always-connected legs are in the same column. Correct (from Claude's knowledge of the common button datasheets; Claude could not open one in this session).
+
+   Tests updated: 83 pass. The 15 touch checks at 390 px pass again in light and dark mode.

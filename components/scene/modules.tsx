@@ -87,7 +87,7 @@ export function ModuleMesh({ bench, type, at, hot, probe, removeHot, onPointerMo
         </mesh>
       )}
       {type === "inmp441" && (
-        <mesh position={[(x0 + x1) / 2 - 0.75, y + PCB_T + 0.12, (z0 + z1) / 2]} castShadow raycast={() => null}>
+        <mesh position={[(x0 + x1) / 2, y + PCB_T + 0.12, z0 + 0.6]} castShadow raycast={() => null}>
           <cylinderGeometry args={[0.3, 0.3, 0.24, 20]} />
           <meshStandardMaterial color="#C2C8CC" metalness={0.7} roughness={0.3} />
         </mesh>

@@ -70,8 +70,8 @@ describe("board store: modules", () => {
   it("puts a module down with one click on a laptop", () => {
     const store = createBoardStore();
     store.getState().setTool("inmp441");
-    tap(store, "B-f3");
-    expect(store.getState().parts).toEqual([{ id: "mic1", type: "inmp441", at: "B-f3" }]);
+    tap(store, "A-e3");
+    expect(store.getState().parts).toEqual([{ id: "mic1", type: "inmp441", at: "A-e3" }]);
   });
 
   it("on a phone, shows where the module goes on the first tap, and puts it down on a second tap on the same hole", () => {
@@ -102,13 +102,13 @@ describe("board store: modules", () => {
   it("removes a module by a tap on a pin or under its body, and undo puts it back", () => {
     const store = createBoardStore();
     store.getState().setTool("inmp441");
-    tap(store, "B-f3");
+    tap(store, "A-e3");
     store.getState().setTool("remove");
-    tap(store, "B-g5");
+    tap(store, "A-g4");
     expect(store.getState().parts).toEqual([]);
     store.getState().undo();
     expect(store.getState().parts.map((p) => p.id)).toEqual(["mic1"]);
-    tap(store, "B-f8");
+    tap(store, "A-f5");
     expect(store.getState().parts).toEqual([]);
   });
 

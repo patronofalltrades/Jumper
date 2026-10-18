@@ -19,19 +19,20 @@ As a learner, I want to drop multi-pin modules (button, mic, amplifier, screen) 
 
 ## Decisions (Hanif)
 
-- The pushbutton must go **across** the center gap, as on a real breadboard. The mic and the screen stay on one side. The amplifier goes across, because its speaker terminal is on the far edge.
+- The pushbutton must go **across** the center gap, as on a real breadboard. The mic also goes across (its 2 rows of pins are 7.62 mm apart, the width of the gap). The amplifier goes across, because its speaker terminal is on the far edge. The screen stays on one side.
 - The speaker is a two-leg part (+ and −), like the LED. The learner wires it to OUT+ and OUT− of the amplifier.
 
 ## Checks
 
-- `npm test`: 82 tests pass (21 new for modules).
+- `npm test`: 83 tests pass (22 new for modules).
 - `npm run typecheck`, `npm run lint`, `npm run build`: pass.
 - Playwright, 390 × 844 touch, light and dark mode: 15 of 15 checks pass (tray, shadow, two-tap place, wire to the mic, hover card, off-board and gap refusals, all 5 parts, remove, undo, no sideways scroll). Laptop 1280 × 800: one click places, Ctrl+Z undoes.
 - Not checked yet: the real `/p/perch/3` route with a log-in. Please check it on your Mac before you merge.
 
 ## Notes
 
-- Pin order sources: INMP441 6-pin board (L/R, WS, SCK, SD, VDD, GND), Adafruit MAX98357A pinouts, LCDWIKI 1.54" ST7789 manual. Breakout boards from different sellers can have a different order.
+- Pin layouts checked against: the Adafruit MAX98357A board file (header LRC, BCLK, DIN, GAIN, SD, GND, Vin; − terminal on the LRC side), a KiCad footprint of the round INMP441 board (2 rows: GND, VDD, SD and L/R, WS, SCK, 7.62 mm apart), and the LCDWIKI MSP1541 manual for the 8-pin ST7789 (GND, VCC, SCL, SDA, RES, DC, CS, BLK). Boards from other sellers can differ: check the labels on your board.
+- The real amplifier terminal is a 3.5 mm screw block. Jumper puts OUT+ and OUT− in breadboard holes, so that the learner can wire the speaker.
 - Modules do not turn. Pin 1 is at the lowest column, and the other pins go to higher columns.
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
