@@ -27,3 +27,7 @@
    - `lib/game/board-store.ts`: Zustand store with tools, the first hole of a part, hover, notices and undo. Tests in `tests/board-store.test.ts`.
    - `components/scene/`: the R3F scene (lights, boards, instanced holes, ESP32-S3, wire, resistor, LED, camera limits).
    - `components/build/build-view.tsx` and `/p/[project]/[level]`: top bar, tool bar, hints.
+
+4. "placement of the instructions seem off and it's too technical. Use STE1000 to guide users and rethink where we should put the prompts/instructions for the user"
+
+   Claude moved the guidance to two places. The guide bar at the top of the board tells what to do now, with "Step 1 of 2" for parts with two legs. A card next to the pointer (above the finger on a phone) tells what is at the hole and what connects to it, or why the last click did not work, in red. The tool bar keeps only the tools and the wire colors, so the bottom of the screen stays free for the task pop-ups of feature 5. All the text is in `content/ui/build.json`, in ASD-STE100, with no hole codes. `describeHole()` in `lib/circuit/nets.ts` gives the facts for the card (3 new tests).

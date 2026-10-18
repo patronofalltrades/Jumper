@@ -80,3 +80,33 @@ export function connected(bench: Bench, parts: Part[], nets: Nets, a: string, b:
   const hb = endpointHole(bench, parts, b);
   return ha !== null && hb !== null && nets.get(ha) === nets.get(hb);
 }
+
+export type HoleInfo = {
+  kind: "pin" | "main" | "rail";
+  /** The ESP32-S3 pin in this hole, for example "GPIO4". */
+  pin?: string;
+  /** The polarity of a rail hole. */
+  rail?: "+" | "-";
+  /** ESP32-S3 pins on the same net, without the pin in this hole. */
+  pins: string[];
+  /** Polarity of the rails on the same net. */
+  rails: ("+" | "-")[];
+};
+
+/** What is at a hole, and what it connects to: the facts for the hint next to the pointer. */
+export function describeHole(bench: Bench, nets: Nets, hole: string): HoleInfo {
+  const h = bench.byId.get(hole)!;
+  const own = bench.pinAt.get(hole)?.name;
+  const net = netHoles(nets, hole);
+  const pins = new Set<string>();
+  const rails = new Set<"+" | "-">();
+  for (const id of net) {
+    const pin = bench.pinAt.get(id)?.name;
+    if (pin && pin !== own) pins.add(pin);
+    const other = bench.byId.get(id)!;
+    if (other.kind === "rail" && !bench.covered.has(id)) rails.add(other.row.endsWith("+") ? "+" : "-");
+  }
+  const polarity = h.kind === "rail" ? (h.row.endsWith("+") ? "+" : "-") : undefined;
+  if (polarity) rails.delete(polarity);
+  return { kind: own ? "pin" : h.kind, pin: own, rail: polarity, pins: [...pins], rails: [...rails] };
+}

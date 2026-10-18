@@ -2,9 +2,9 @@
 
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { useEffect, useSyncExternalStore, type ReactNode } from "react";
-import { boardStore, useBoard, WIRE_COLORS, type Notice, type Tool } from "@/lib/game/board-store";
-import type { Bench } from "@/lib/circuit/bench";
+import { useEffect, type ReactNode } from "react";
+import { boardStore, useBoard, WIRE_COLORS, type Tool } from "@/lib/game/board-store";
+import { GuideBar, SpotCard, useNoticeTimer } from "./guide";
 import { cn } from "@/lib/utils";
 
 // Only this page loads three.js, so the lobby stays fast (TRD 12.1).
@@ -28,6 +28,7 @@ const TOOLS: { tool: Tool; label: string; key: string; icon: ReactNode }[] = [
 
 export function BuildView({ level, eyebrow, title }: { level: string; eyebrow: string; title: string }) {
   useKeys();
+  useNoticeTimer();
   useEffect(() => boardStore.getState().open(level), [level]);
 
   return (
@@ -47,7 +48,8 @@ export function BuildView({ level, eyebrow, title }: { level: string; eyebrow: s
 
       <div className="relative min-h-0 flex-1">
         <BuildScene />
-        <HoverLabel />
+        <GuideBar />
+        <SpotCard />
       </div>
 
       <ToolBar />
@@ -63,10 +65,7 @@ function ToolBar() {
   return (
     <div className="z-10 border-t border-border bg-card px-3 pt-2 pb-[max(env(safe-area-inset-bottom),10px)] sm:px-4">
       <div className="mx-auto flex max-w-2xl flex-col gap-2">
-        <div className="flex min-h-7 items-center justify-between gap-3">
-          <Hint />
-          {tool === "wire" && <Swatches />}
-        </div>
+        {tool === "wire" && <Swatches />}
         <div className="grid grid-cols-5 gap-1.5 sm:gap-2" role="toolbar" aria-label="Tools">
           {TOOLS.map((t) => (
             <ToolButton key={t.tool} pressed={tool === t.tool} onClick={() => setTool(t.tool)} label={t.label} shortcut={t.key}>
@@ -109,7 +108,8 @@ function ToolButton({
 function Swatches() {
   const wireColor = useBoard((s) => s.wireColor);
   return (
-    <div className="flex shrink-0 gap-1.5" role="group" aria-label="Wire color">
+    <div className="flex items-center justify-center gap-2" role="group" aria-label="Wire color">
+      <span className="text-xs font-semibold text-muted-foreground">Wire color</span>
       {WIRE_COLORS.map((c) => (
         <button
           key={c.hex}
@@ -122,87 +122,6 @@ function Swatches() {
         />
       ))}
     </div>
-  );
-}
-
-const subscribeTouch = (update: () => void) => {
-  const observer = new MutationObserver(update);
-  observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-touch"] });
-  return () => observer.disconnect();
-};
-
-/** "tap" on a touch screen and "click" with a mouse, from data-touch on <html> (set in the lobby work, components/device-tag.tsx). */
-function useTapWord() {
-  const touch = useSyncExternalStore(subscribeTouch, () => document.documentElement.dataset.touch === "true", () => false);
-  return touch ? "Tap" : "Click";
-}
-
-function Hint() {
-  const tool = useBoard((s) => s.tool);
-  const pending = useBoard((s) => s.pending);
-  const notice = useBoard((s) => s.notice);
-  const bench = useBoard((s) => s.bench);
-  const tap = useTapWord();
-
-  useEffect(() => {
-    if (!notice) return;
-    const timer = setTimeout(() => boardStore.setState({ notice: null }), 3500);
-    return () => clearTimeout(timer);
-  }, [notice]);
-
-  const text = notice ? noticeText(notice, bench) : toolHint(tool, pending !== null, tap);
-  return (
-    <p role="status" className={cn("min-w-0 text-sm text-balance", notice ? "font-semibold text-destructive" : "text-muted-foreground")}>
-      {text}
-    </p>
-  );
-}
-
-function toolHint(tool: Tool, pending: boolean, tap: string) {
-  const lower = tap.toLowerCase();
-  if (tool === "remove") return `Remove: ${lower} a part or one of its holes.`;
-  if (tool === "led") return pending ? `Now ${lower} the hole for the − (short) leg, 1 to 3 holes away.` : `LED: ${lower} the hole for the + (long) leg.`;
-  if (tool === "resistor") return pending ? `Now ${lower} the hole for the second leg, 2 to 10 holes away.` : `Resistor: ${lower} the hole for the first leg.`;
-  return pending ? `Now ${lower} the hole for the other end. Esc cancels.` : `Wire: ${lower} a hole to start.`;
-}
-
-function noticeText({ problem, hole }: Notice, bench: Bench) {
-  const name = hole ? holeName(hole, bench) : "";
-  switch (problem) {
-    case "covered":
-      return `${name} is under the ESP32-S3. Use a free hole next to its pins.`;
-    case "esp_pin":
-      return `${hole} holds the ESP32-S3 ${bench.pinAt.get(hole!)?.name} pin. Use a free hole in the same strip.`;
-    case "taken":
-      return `${name} already has a leg in it. Each hole holds one.`;
-    case "led_span":
-      return "LED legs reach only 1 to 3 holes. Pick a hole nearer the + leg.";
-    case "resistor_span":
-      return "Put the resistor legs 2 to 10 holes apart.";
-    case "nothing_to_remove":
-      return `There is nothing to remove in ${name}.`;
-    case "nothing_to_undo":
-      return "There is nothing to undo.";
-    default:
-      return "Pick a hole on the breadboard.";
-  }
-}
-
-/** "A-c14", or "A-j8 · GPIO1" for a hole with an ESP32-S3 pin. */
-function holeName(hole: string, bench: Bench) {
-  const pin = bench.pinAt.get(hole);
-  return pin ? `${hole} · ${pin.name}` : hole;
-}
-
-/** The name of the hole under the pointer, top left of the board. */
-function HoverLabel() {
-  const hover = useBoard((s) => s.hover);
-  const bench = useBoard((s) => s.bench);
-  if (!hover) return null;
-  return (
-    <p className="pointer-events-none absolute top-3 left-3 rounded-full border border-border bg-card px-3 py-1 font-mono text-xs font-semibold shadow-panel">
-      {holeName(hover, bench)}
-    </p>
   );
 }
 
