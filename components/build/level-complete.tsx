@@ -4,6 +4,8 @@ import Link from "next/link";
 import { Dialog } from "radix-ui";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { PerchWake } from "@/components/art/perch-wake";
+import { readSavedLevel } from "@/components/build/autosave";
+import { SaveSnapshot } from "@/components/snapshots/save-snapshot";
 import { Button } from "@/components/ui/button";
 import text from "@/content/ui/complete.json";
 import { accuracy, accuracyTier, formatDuration, titleTier } from "@/lib/stats/level-summary";
@@ -18,8 +20,10 @@ export type LevelSummary = {
 
 // The pop-up at the end of a level: the device wakes up, then XP, accuracy and time.
 // It does not close with Esc or a click outside; Continue is the way out, and it has the focus.
-export function LevelComplete({ summary, continueHref, preview = false }: { summary: LevelSummary; continueHref: string; preview?: boolean }) {
-  const [soon, setSoon] = useState(false);
+/** Where Save snapshot finds the board: the level and the user, as build mode saved them in this browser. */
+export type SaveFrom = { levelId: number; user: string; project: string; position: number };
+
+export function LevelComplete({ summary, continueHref, save, preview = false }: { summary: LevelSummary; continueHref: string; save: SaveFrom; preview?: boolean }) {
   const continueRef = useRef<HTMLAnchorElement>(null);
   const percent = accuracy(summary.tasksDone, summary.mistakes);
   const xp = useCountUp(summary.xp, 1200);
@@ -55,16 +59,13 @@ export function LevelComplete({ summary, continueHref, preview = false }: { summ
           </div>
 
           <div className="rise-in mt-6 w-full max-w-md" style={{ animationDelay: "1.4s" }}>
-            {soon && (
-              <p role="status" className="mb-3 rounded-xl border border-border bg-card px-3 py-2 text-sm text-muted-foreground">
-                {text.snapshot_soon}
-              </p>
-            )}
             <div className="flex gap-3">
-              <Button variant="outline" className="h-14 px-5" onClick={() => setSoon(true)}>
-                <CameraIcon />
-                <span className="max-sm:sr-only">{text.snapshot}</span>
-              </Button>
+              <SaveSnapshot levelId={save.levelId} read={() => readSavedLevel(save.user, save.project, save.position)}>
+                <Button variant="outline" className="h-14 px-5">
+                  <CameraIcon />
+                  <span className="max-sm:sr-only">{text.snapshot}</span>
+                </Button>
+              </SaveSnapshot>
               <Button asChild className="h-14 flex-1 text-base tracking-wide uppercase">
                 <Link ref={continueRef} href={continueHref}>{text.continue}</Link>
               </Button>

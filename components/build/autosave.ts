@@ -48,6 +48,12 @@ function write(key: string, saved: Saved) {
   }
 }
 
+/** The board, session and mistakes of a level, as this browser saved them. For Save snapshot outside build mode. */
+export function readSavedLevel(user: string, project: string, position: number) {
+  const saved = read(keyOf(user, project, position));
+  return saved && { parts: saved.parts as Part[], session: saved.session ?? null, mistakes: saved.progress.mistakes };
+}
+
 type Props = { user: string; project: string; levelId: number; position: number; plan: Plan; start: Part[] };
 
 /** Opens the level in the store, saves the board in the browser, and saves the session row. Gives a save error, if any. */

@@ -6,7 +6,7 @@ You do not buy or carry parts. The parts in Jumper are the same as real parts, f
 
 The first project that you can play is **Perch**. Perch is a desk device that gives an AI agent a home, with ears, a voice and a face. You connect Perch in 5 levels. In each level, a pop-up tells you what to do, where to do it, and why. You get XP for each task. Other projects show "Coming soon".
 
-**Live app:** not deployed yet.
+**Live app:** [jumper-inky-sigma.vercel.app](https://jumper-inky-sigma.vercel.app/). Each merge to `main` deploys a new version.
 
 ## About this project
 

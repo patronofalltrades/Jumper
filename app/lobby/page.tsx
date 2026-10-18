@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { logOut } from "@/app/actions/auth";
@@ -88,7 +89,7 @@ async function Lobby({ tab }: { tab: Tab }) {
   );
 }
 
-// The user's snapshots as dark cards, newest first. Snapshots are saved in build mode (feature 6).
+// The user's snapshots as dark cards, newest first. Each card opens its snapshot page.
 async function builds(supabase: Awaited<ReturnType<typeof createClient>>) {
   const { data, error } = await supabase
     .from("snapshots")
@@ -109,12 +110,15 @@ async function builds(supabase: Awaited<ReturnType<typeof createClient>>) {
     const level = snap.levels as unknown as { position: number; title: string; projects: { board: string } };
     const date = new Date(snap.created_at).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
     return (
-      <DarkCard key={snap.id} label={date} title={snap.title}>
-        <p className="text-sm text-white/70">
-          Level {level.position} · {level.title}
-        </p>
-        <BoardArt board={level.projects.board} className="mt-auto w-full" />
-      </DarkCard>
+      // `contents`: the link adds no box, so the card keeps its place in the card row.
+      <Link key={snap.id} href={`/snapshots/${snap.id}`} className="contents">
+        <DarkCard label={date} title={snap.title}>
+          <p className="text-sm text-white/70">
+            Level {level.position} · {level.title}
+          </p>
+          <BoardArt board={level.projects.board} className="mt-auto w-full" />
+        </DarkCard>
+      </Link>
     );
   });
 }

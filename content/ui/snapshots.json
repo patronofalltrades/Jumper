@@ -1,0 +1,40 @@
+{
+  "_note": "Text for snapshots (the lab notebook), in ASD-STE100. {n}, {parts}, {wires} and {level} are filled in by the app.",
+  "save": {
+    "button": "Save snapshot",
+    "short": "Save",
+    "heading": "Save a snapshot",
+    "text": "A snapshot keeps this board in your lab notebook. You can open it later and look at it in 3D.",
+    "title": "Title",
+    "title_hint": "For example: Ears wired",
+    "notes": "Notes",
+    "notes_hint": "What did you learn? What went wrong?",
+    "submit": "Save",
+    "saving": "Saving…",
+    "cancel": "Cancel",
+    "done": "Saved to your lab notebook.",
+    "open": "Open the snapshot",
+    "no_board": "This browser has no saved board for this level. Open the level and save the snapshot there."
+  },
+  "list": {
+    "heading": "Lab notebook",
+    "text": "Your saved boards, newest first.",
+    "empty": "No snapshots yet. In build mode, press Save snapshot to keep your board here.",
+    "level": "Level {level}",
+    "mistakes": "{n} mistakes",
+    "passed": "Passed",
+    "not_passed": "Not checked"
+  },
+  "page": {
+    "back": "Lab notebook",
+    "board": "{parts} parts · {wires} wires",
+    "view_only": "View only. Turn the board to look at it. Point at a hole to see what it connects to.",
+    "edit": "Save changes",
+    "saved": "Changes saved.",
+    "delete": "Delete",
+    "delete_heading": "Delete this snapshot?",
+    "delete_text": "You cannot undo this. The snapshot and its stars go away.",
+    "delete_yes": "Yes, delete",
+    "broken": "This snapshot has a board that the app cannot read."
+  }
+}

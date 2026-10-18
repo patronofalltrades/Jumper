@@ -3,11 +3,13 @@
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { SaveSnapshot } from "@/components/snapshots/save-snapshot";
 import text from "@/content/ui/build.json";
+import snapText from "@/content/ui/snapshots.json";
 import type { Part } from "@/lib/circuit/parts";
 import { boardStore, useBoard, WIRE_COLORS, type Tool } from "@/lib/game/board-store";
 import { needsAck, type Forbid, type Plan } from "@/lib/game/engine";
-import { useLevel } from "./autosave";
+import { readSavedLevel, useLevel } from "./autosave";
 import { useFeedback } from "./feedback";
 import { GuideBar, SpotCard, useNoticeTimer } from "./guide";
 import { PinnedPopup, PopupLayer, useLaptop, type LevelTask } from "./popups";
@@ -100,6 +102,22 @@ export function BuildView({ user, project, levelId, position, eyebrow, title, go
           <p className="truncate font-mono text-[11px] font-medium tracking-wide text-muted-foreground uppercase">{eyebrow}</p>
           <h1 className="truncate text-lg leading-tight font-extrabold tracking-tight">{title}</h1>
         </div>
+        <SaveSnapshot
+          levelId={levelId}
+          read={() => {
+            const { parts, progress: now } = boardStore.getState();
+            return { parts, session: readSavedLevel(user, project, position)?.session ?? null, mistakes: now.mistakes };
+          }}
+        >
+          <button
+            type="button"
+            aria-label={snapText.save.button}
+            className="inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-xl border border-b-4 border-border bg-card px-3 text-sm font-semibold active:translate-y-0.5 active:border-b-2"
+          >
+            {icon("M4 8h3l2-3h6l2 3h3v11H4zM12 16.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7")}
+            <span className="max-sm:hidden">{snapText.save.short}</span>
+          </button>
+        </SaveSnapshot>
         <div className="flex shrink-0 flex-col items-end gap-1">
           <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2.5 py-1 font-mono text-sm font-semibold">
             <svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true">
