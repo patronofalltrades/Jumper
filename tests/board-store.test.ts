@@ -6,6 +6,16 @@ import { createBoardStore } from "@/lib/game/board-store";
 const tap = (store: ReturnType<typeof createBoardStore>, ...holes: string[]) => holes.forEach((h) => store.getState().tapHole(h));
 
 describe("board store", () => {
+  it("does not change a read-only board (a saved snapshot)", () => {
+    const store = createBoardStore();
+    const parts = [{ id: "w1", type: "wire" as const, a: "A-a3", b: "A-a9", color: "#D63A2F" }];
+    store.getState().open("snapshot/1", { parts, readOnly: true });
+    tap(store, "A-b3", "A-b9");
+    store.getState().removePart("w1");
+    expect(store.getState().parts).toEqual(parts);
+    expect(store.getState().pending).toBeNull();
+  });
+
   it("places a wire with two taps", () => {
     const store = createBoardStore();
     tap(store, "A-a3");

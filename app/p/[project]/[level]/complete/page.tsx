@@ -22,6 +22,8 @@ async function Complete({ slug, position, preview }: { slug: string; position: s
   if (!/^[1-9]\d*$/.test(position)) notFound();
 
   const supabase = await createClient();
+  const { data: auth } = await supabase.auth.getClaims();
+  if (!auth?.claims) notFound();
   const { data: level, error } = await supabase
     .from("levels")
     .select("id, position, xp, project_id, projects!inner(slug, status)")
@@ -59,5 +61,6 @@ async function Complete({ slug, position, preview }: { slug: string; position: s
   }
 
   const next = level.position < (levelCount ?? 0) ? `/p/${slug}/${level.position + 1}` : "/lobby";
-  return <LevelComplete summary={summary} continueHref={next} preview={!session} />;
+  const save = { levelId: level.id, user: auth.claims.sub, project: slug, position: level.position };
+  return <LevelComplete summary={summary} continueHref={next} save={save} preview={!session} />;
 }

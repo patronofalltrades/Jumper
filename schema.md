@@ -102,7 +102,7 @@ Row-level security protects these tables. Each user can select, insert, update a
 | session_id | uuid, nullable | Foreign key → sessions.id |
 | title | text | Must not be empty |
 | notes | text | |
-| wiring | jsonb | Parts and wires (TRD section 6.3) |
+| wiring | jsonb | The board: `{ "version": 1, "parts": [...] }`. The parts and wires use the same format as `content/boards/` (issue #23) |
 | passed | boolean | |
 | mistake_count | int | |
 | created_at | timestamptz | |
@@ -156,6 +156,7 @@ erDiagram
 | — | `levels.rules.forbid[].message` | The Mistake pop-up text is content, not code (house rule 7). |
 | `snapshots.id`, `sessions.id`, `attempts.id` (text) | uuid | The database makes random IDs. |
 | — | `snapshots.session_id` (uuid, nullable) | A snapshot can link to the session that made it (TRD section 7). |
+| `wiring` as in TRD 6.3 (`boards`, `parts`, `wires`) | `{ version, parts }`, with wires as parts (`type: "wire"`) | The bench and `content/boards/` use this format. Thus the snapshot page opens the board with no conversion (issue #23). |
 | `stars` | Same columns | Plus the rule that a user stars only their own snapshots. |
 | Content "readable by everyone" | Readable by logged-in users only | All app pages need a log-in (issue #11). |
 | `created_at` (date) | timestamptz | The dashboard needs the time, not only the date. |

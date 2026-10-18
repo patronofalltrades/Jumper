@@ -22,7 +22,8 @@ export const WIRE_COLORS = [
 export type Flash = { kind: "snap" | "buzz"; holes: string[]; at: number };
 
 /** What a level starts with: its tasks, and the board and progress from the browser, if it has them. */
-export type LevelSetup = { plan?: Plan; parts?: Part[]; progress?: Progress };
+/** `readOnly`: a saved snapshot. The camera moves and the nets glow, but taps do not change the board. */
+export type LevelSetup = { plan?: Plan; parts?: Part[]; progress?: Progress; readOnly?: boolean };
 
 export type BoardState = {
   bench: Bench;
@@ -43,6 +44,7 @@ export type BoardState = {
   plan: Plan | null;
   progress: Progress;
   flash: Flash | null;
+  readOnly: boolean;
 
   /** Opens the board of a level. A different level starts from `setup`, or an empty bench; the same level keeps its state. */
   open: (level: string, setup?: LevelSetup) => void;
@@ -100,6 +102,7 @@ export function createBoardStore(bench: Bench = perchBench()) {
       plan: null,
       progress: startProgress(),
       flash: null,
+      readOnly: false,
 
       open: (level, setup = {}) => {
         if (level === get().level) return;
@@ -116,6 +119,7 @@ export function createBoardStore(bench: Bench = perchBench()) {
           plan: setup.plan ?? null,
           progress,
           flash: null,
+          readOnly: setup.readOnly ?? false,
         });
       },
       start: () => set(play({ type: "start" })),
@@ -127,6 +131,7 @@ export function createBoardStore(bench: Bench = perchBench()) {
       cancel: () => set({ pending: null, notice: null }),
 
       tapHole: (hole, preview = false) => {
+        if (get().readOnly) return;
         const { parts, tool, pending, wireColor } = get();
 
         if (tool === "remove") {
@@ -160,6 +165,7 @@ export function createBoardStore(bench: Bench = perchBench()) {
 
       // A module goes with the leads and wires in its screw terminal.
       removePart: (id) => {
+        if (get().readOnly) return;
         const gone = (p: Part) => p.id === id || (!isModule(p) && (p.a.startsWith(`${id}.`) || p.b.startsWith(`${id}.`)));
         commit(get().parts.filter((p) => !gone(p)));
       },
