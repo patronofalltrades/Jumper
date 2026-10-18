@@ -1,15 +1,19 @@
 #!/usr/bin/env python3
 """Ledger hooks for the reflection (rules 2-4 of CLAUDE.md "Agent hooks").
 
-  ledger.py prompt   UserPromptSubmit: log Hanif's prompt, remind Claude of the rules
-  ledger.py comment  PostToolUse (GitHub comment tools): log it, tell Claude to flag it
-  ledger.py commit   PostToolUse (Bash): log commits and pushes
+  ledger.py prompt     UserPromptSubmit: log Hanif's prompt, remind Claude of the rules
+  ledger.py comment    PostToolUse (GitHub comment tools): log it, tell Claude to flag it
+  ledger.py precommit  PreToolUse (Bash): before a git commit, log it and stage the ledger
 
-Each session writes its own file in ledger/raw/, so branches never conflict.
+Entries wait in .git/jumper-ledger-pending.md, which git does not track, so the
+working tree stays clean between commits. Before each commit they move to
+ledger/raw/<date>-<session>.md and that file is staged, so it rides in the same
+commit. Each session has its own file, so branches never conflict.
 """
 import json
 import os
 import re
+import shlex
 import subprocess
 import sys
 from datetime import datetime, timezone
@@ -23,24 +27,64 @@ RULES = (
 )
 
 
-def branch():
-    try:
-        return subprocess.run(["git", "-C", ROOT, "rev-parse", "--abbrev-ref", "HEAD"],
-                              capture_output=True, text=True, timeout=5).stdout.strip()
-    except Exception:
-        return "?"
+def git(*args):
+    return subprocess.run(["git", "-C", ROOT, *args], capture_output=True, text=True, timeout=5).stdout.strip()
 
 
-def append(data, kind, body):
+def pending_path():
+    return os.path.join(ROOT, git("rev-parse", "--git-dir") or ".git", "jumper-ledger-pending.md")
+
+
+def append(kind, body):
+    now = datetime.now(timezone.utc)
+    with open(pending_path(), "a", encoding="utf-8") as f:
+        f.write(f"\n## {now:%Y-%m-%d %H:%M}Z · {kind} · branch `{git('rev-parse', '--abbrev-ref', 'HEAD')}`\n\n{body.strip()}\n")
+
+
+def flush(data):
+    """Move pending entries into this session's raw file and stage it."""
+    src = pending_path()
+    if not os.path.exists(src):
+        return
     now = datetime.now(timezone.utc)
     sid = (data.get("session_id") or "nosession")[:8]
-    path = os.path.join(ROOT, "ledger", "raw", f"{now:%Y-%m-%d}-{sid}.md")
-    os.makedirs(os.path.dirname(path), exist_ok=True)
-    new = not os.path.exists(path)
-    with open(path, "a", encoding="utf-8") as f:
-        if new:
+    rel = os.path.join("ledger", "raw", f"{now:%Y-%m-%d}-{sid}.md")
+    dst = os.path.join(ROOT, rel)
+    os.makedirs(os.path.dirname(dst), exist_ok=True)
+    with open(src, encoding="utf-8") as f:
+        entries = f.read()
+    with open(dst, "a", encoding="utf-8") as f:
+        if f.tell() == 0:
             f.write(f"# Raw ledger: {now:%Y-%m-%d}, session {sid}\n\nWritten by .claude/hooks/ledger.py. Do not edit.\n")
-        f.write(f"\n## {now:%H:%M}Z · {kind} · branch `{branch()}`\n\n{body.strip()}\n")
+        f.write(entries)
+    os.remove(src)
+    git("add", rel)
+
+
+def commit_message(part):
+    try:
+        words = shlex.split(part)
+    except ValueError:
+        return None
+    for i, w in enumerate(words[:-1]):
+        if w in ("-m", "--message") or (re.fullmatch(r"-[a-zA-Z]*m", w)):
+            return words[i + 1].splitlines()[0]
+    return None
+
+
+def git_commands(cmd):
+    """(verb, segment) for each git command a shell line actually runs."""
+    out = []
+    for part in re.split(r"&&|\|\||;|\n", cmd):
+        words = part.split()
+        if not words or words[0] != "git":
+            continue
+        sub = words[1:]
+        while sub and sub[0].startswith("-"):
+            sub = sub[2:] if sub[0] in ("-C", "-c") else sub[1:]
+        if sub:
+            out.append((sub[0], part))
+    return out
 
 
 def main():
@@ -51,14 +95,13 @@ def main():
     if mode == "prompt":
         prompt = data.get("prompt", "")
         if prompt.strip():
-            append(data, "Prompt (Hanif)", "\n".join("> " + line for line in prompt.splitlines()))
+            append("Prompt (Hanif)", "\n".join("> " + line for line in prompt.splitlines()))
         print(RULES)
 
     elif mode == "comment":
         tool = data.get("tool_name", "").removeprefix("mcp__github__")
         where = f"{inp.get('owner')}/{inp.get('repo')} #{inp.get('pullNumber') or inp.get('issue_number') or '?'}"
-        body = inp.get("body") or inp.get("comment") or ""
-        append(data, f"GitHub comment by Claude ({tool}, {where})", body)
+        append(f"GitHub comment by Claude ({tool}, {where})", inp.get("body") or inp.get("comment") or "")
         print(json.dumps({
             "systemMessage": f"Claude posted a GitHub comment on {where}.",
             "hookSpecificOutput": {
@@ -68,32 +111,12 @@ def main():
             },
         }))
 
-    elif mode == "commit":
-        verbs = git_verbs(inp.get("command", ""))
-        if "commit" in verbs or "push" in verbs:
-            files = subprocess.run(["git", "-C", ROOT, "show", "--name-only", "--format=", "HEAD"],
-                                   capture_output=True, text=True, timeout=5).stdout.split()
-            if files and all(f.startswith("ledger/") for f in files):
-                return  # a ledger-only commit; logging it would leave the tree dirty forever
-            log =subprocess.run(["git", "-C", ROOT, "log", "-1", "--format=%h %s"],
-                                 capture_output=True, text=True, timeout=5).stdout.strip()
-            kind = " and ".join(k for v, k in (("commit", "Commit"), ("push", "Push")) if v in verbs)
-            append(data, f"{kind} by Claude", f"`{log}`")
-
-
-def git_verbs(cmd):
-    """Git subcommands actually run by a shell command, not words inside its arguments."""
-    verbs = set()
-    for part in re.split(r"&&|\|\||;|\n", cmd):
-        words = part.split()
-        if not words or words[0] != "git":
-            continue
-        sub = words[1:]
-        while sub and sub[0].startswith("-"):
-            sub = sub[2:] if sub[0] in ("-C", "-c") else sub[1:]
-        if sub:
-            verbs.add(sub[0])
-    return verbs
+    elif mode == "precommit":
+        commits = [part for verb, part in git_commands(inp.get("command", "")) if verb == "commit"]
+        if commits:
+            msg = commit_message(commits[0]) or "(message not captured; see git log)"
+            append("Commit by Claude", f"`{msg}`")
+            flush(data)
 
 
 if __name__ == "__main__":

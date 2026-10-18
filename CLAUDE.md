@@ -54,7 +54,7 @@ Each project uses the same build mode. A new project adds data (levels, tasks, p
 1. **No push to `main`, no merge, no approval.** `.claude/hooks/guard.py` blocks `git push` to `main`, `git commit`, `merge` or `rebase` on `main`, PR merges and PR approvals. Only I merge and approve.
 2. **Flag each PR comment.** Claude can comment on a pull request. After each comment, a hook tells Claude to flag it to me in the reply, with the link and a one-line summary.
 3. **If you are not sure, ask.** Do not act on a guess. Stop and ask me for more instructions. A hook repeats this rule at each prompt.
-4. **Keep the ledger.** A hook logs each of my prompts, each commit and push, and each GitHub comment in `ledger/raw/`. After each work step, add an entry to `ledger/LEDGER.md`: the prompt, the change, the link, and my decisions, corrections and observations. Keep my words apart from your notes. Do not write my reflection.
+4. **Keep the ledger.** A hook logs each of my prompts, each of your commits, and each GitHub comment. The entries wait in `.git/` (not tracked) and go into `ledger/raw/` with your next commit, so the working tree stays clean. After each work step, add an entry to `ledger/LEDGER.md`: the prompt, the change, the link, and my decisions, corrections and observations. Keep my words apart from your notes. Do not write my reflection.
 
 ## Skills
 

@@ -4,7 +4,7 @@ This ledger is source material for Hanif's reflection. Hanif writes the reflecti
 
 ## How the ledger works
 
-- **Raw log (automatic).** A hook (`.claude/hooks/ledger.py`) writes each prompt from Hanif, each commit and push by Claude, and each GitHub comment by Claude to `ledger/raw/<date>-<session>.md`. Do not edit these files.
+- **Raw log (automatic).** A hook (`.claude/hooks/ledger.py`) records each prompt from Hanif, each commit by Claude, and each GitHub comment by Claude. The entries wait in `.git/jumper-ledger-pending.md` and move to `ledger/raw/<date>-<session>.md` with Claude's next commit. Do not edit these files. Entries that have not been committed are lost if the cloud session ends first.
 - **This file (curated).** Claude adds an entry after each work step: the prompt, the change, the link, and Hanif's decisions, corrections and observations.
 - **Two voices are kept apart.** "Hanif said / decided" is only what Hanif wrote. "Claude note" is Claude's view, marked as such. Use only the first for quotes in the reflection.
 - Commit ledger files on the current branch, with the work they describe.
@@ -45,6 +45,7 @@ Record here when Hanif corrects Claude, or when Claude gets something wrong. Say
 
 - Oct 18: Claude treated shadcn/ui as a skill and as a dependency to ask about. Hanif corrected it: "this is wrong, add shadcn ui into the packages. This is not a skill." Fix: shadcn/ui is now in the stack table.
 - Oct 18: The ledger hook logged each ledger commit, so the tree was never clean and the Stop hook kept asking for a commit. Fix: the hook skips commits that change only `ledger/`.
+- Oct 18: The Stop hook asked for a commit again after the shadcn/ui change. Cause: the ledger hook wrote to a tracked file after each commit and after each prompt, so the tree was dirty at the end of almost every turn. Fix: entries now wait in `.git/` and go into the same commit as Claude's next change.
 
 ## Hanif's observations
 

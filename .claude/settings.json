@@ -17,6 +17,17 @@
             "timeout": 10
           }
         ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/ledger.py\" precommit",
+            "if": "Bash(git *)",
+            "timeout": 10
+          }
+        ]
       }
     ],
     "PostToolUse": [
@@ -26,17 +37,6 @@
           {
             "type": "command",
             "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/ledger.py\" comment",
-            "timeout": 10
-          }
-        ]
-      },
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/ledger.py\" commit",
-            "if": "Bash(git *)",
             "timeout": 10
           }
         ]
