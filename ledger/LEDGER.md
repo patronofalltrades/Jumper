@@ -78,6 +78,7 @@ This ledger is source material for Hanif's reflection. Hanif writes the reflecti
 | Oct 18 | "check these: The real routes with Supabase. The Check button on an empty board in a browser.", then "Yes, then delete it" (temporary test account) | Claude ran the app (`next start`) on the real Supabase project with a throwaway account and Playwright: log-in, Check off on an empty board with the note, a failed Check, "Fix the board", the wire removed so the board Check button goes off, a pass, Save snapshot messages and save, edit messages and save. All pass. The board Check button got a solid grey look when off (it was see-through). Account deleted; 0 rows left. | [#27](https://github.com/patronofalltrades/Jumper/issues/27) |
 | Oct 18 | "can we add to the plan a couple of features: 1. Home page before sign in 2. Walkthrough Video 3. Mascot creation" | Claude asked 3 questions (see Decisions). Claude added rows 14–16 with a user story each to the "Plan vs. Reality" table of `PLAN.md`. The original plan text did not change. | — |
 | Oct 18 | "walkthrough includes walkthrough of the levels" | Claude changed the user story of row 15 in `PLAN.md`: the video also walks through the levels of the project. | — |
+| Oct 18 | "short clip for all levels", then the answer "One clip per level" | Claude changed row 15 in `PLAN.md`: one intro video, plus one short clip at the start of each level. | — |
 
 ## Decisions by Hanif
 
@@ -127,7 +128,7 @@ This ledger is source material for Hanif's reflection. Hanif writes the reflecti
 - For the level Check (#25), Hanif chose: the red/green test is "Reversed LED fails"; at 0 hearts the next fail fills the hearts again ("Refill to 3"); the +10 XP bonus needs no task mistakes and no failed Check; hearts come from the failed attempts of the session, with no new column (Oct 18, issue #25).
 - For Validation (#27), Hanif chose: the save form gets a level select that the learner must fill in, with its own message ("Former option"); an explicit guard turns Check off on an empty board, with a friendly note and a unit test ("former"); a message under each field, with the text in `content/ui/snapshots.json`, also in the edit form ("Yes") (Oct 18).
 - Hanif allowed a temporary test account on the real Supabase project for the #27 route check, deleted after the test ("Yes, then delete it") (Oct 18).
-- For the new features, Hanif chose: add them as rows in the "Plan vs. Reality" table (assignment rule 2); the walkthrough video is an in-app intro video that also walks through the levels; the mascot is one fixed Jumper mascot, not one that each learner makes (Oct 18).
+- For the new features, Hanif chose: add them as rows in the "Plan vs. Reality" table (assignment rule 2); the walkthrough video is an in-app intro video, plus one short clip at the start of each level; the mascot is one fixed Jumper mascot, not one that each learner makes (Oct 18).
 
 ## Corrections and agent issues
 
