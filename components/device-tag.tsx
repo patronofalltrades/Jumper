@@ -15,6 +15,11 @@ export function DeviceTag() {
       document.documentElement.dataset.touch = String(touch.matches);
     };
     update();
+    // Lock a phone to upright where the browser allows it (an installed app, or full screen on Android).
+    // Other browsers refuse, and the "Turn your phone upright" card covers the page instead.
+    if (deviceKind(Math.min(window.screen.width, window.screen.height)) === "phone") {
+      (screen.orientation as (ScreenOrientation & { lock?: (o: string) => Promise<void> }) | undefined)?.lock?.("portrait").catch(() => {});
+    }
     narrow.addEventListener("change", update);
     touch.addEventListener("change", update);
     return () => {

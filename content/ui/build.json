@@ -1,0 +1,63 @@
+{
+  "_note": "Text for the build page, in ASD-STE100. {act} is \"Click\" on a laptop and \"Tap\" on a phone. {pin}, {rail} and {n} are filled in by the app.",
+  "guide": {
+    "wire": {
+      "start": "{act} a hole to start the wire.",
+      "finish": "{act} a second hole to end the wire."
+    },
+    "resistor": {
+      "start": "{act} a hole for the first leg of the resistor.",
+      "finish": "{act} a hole for the second leg. Use a hole 2 to 10 holes away."
+    },
+    "led": {
+      "start": "{act} a hole for the long leg (+) of the LED.",
+      "finish": "{act} a hole for the short leg (−). Use a hole near the long leg."
+    },
+    "remove": {
+      "start": "{act} a part to remove it."
+    },
+    "step": "Step {n} of 2",
+    "stop": {
+      "laptop": "Press Esc to stop.",
+      "phone": "Tap the same hole again to stop."
+    }
+  },
+  "problem": {
+    "covered": "You cannot use this hole. The ESP32-S3 board is on top of it.",
+    "esp_pin": "A pin of the ESP32-S3 is in this hole. Use an empty hole in the same line.",
+    "taken": "This hole is full. One hole holds one leg or one wire end.",
+    "led_span": "The LED legs are short. Use a hole 1 to 3 holes from the long leg.",
+    "resistor_span": "Use a hole 2 to 10 holes from the first leg.",
+    "nothing_to_remove": "There is no part in this hole.",
+    "nothing_to_undo": "There is nothing to undo.",
+    "no_hole": "Use a hole on the breadboard."
+  },
+  "hole": {
+    "pin": "ESP32-S3 pin: {pin}",
+    "main": "Row {row}, column {column}",
+    "rail": {
+      "+": "Power rail (+)",
+      "-": "Ground rail (−)"
+    },
+    "line": "The 5 holes in this line connect.",
+    "railLine": "All the holes on this rail connect.",
+    "connectedPins": "Connected to {pin}.",
+    "connectedRail": "Connected to the {rail}.",
+    "empty": "Nothing connects to this line yet.",
+    "pinTip": "Connect to this pin from an empty hole in the same line.",
+    "railEmpty": "Nothing connects to this rail yet."
+  },
+  "pins": {
+    "3V3": "3V3 (3.3 V power)",
+    "5V": "5V (5 V power)",
+    "GND": "GND (ground)",
+    "RST": "RST (reset)",
+    "GPIO43": "TX (GPIO 43)",
+    "GPIO44": "RX (GPIO 44)",
+    "gpio": "GPIO {n}"
+  },
+  "railName": {
+    "+": "power rail (+)",
+    "-": "ground rail (−)"
+  }
+}
