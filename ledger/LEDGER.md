@@ -21,6 +21,7 @@ This ledger is source material for Hanif's reflection. Hanif writes the reflecti
 | Oct 18 | "Let's pick up where we left" | "Assignment rules" section added to CLAUDE.md | [#8](https://github.com/patronofalltrades/Jumper/pull/8) |
 | Oct 18 | Put a hook in this chat and project: no push to main, no approve or merge; flag PR comments; ask when unsure; keep a ledger for the reflection | `.claude/settings.json` hooks, `.claude/hooks/guard.py`, `.claude/hooks/ledger.py`, this ledger, "Agent hooks" section in CLAUDE.md | [#8](https://github.com/patronofalltrades/Jumper/pull/8) |
 | Oct 18 | "This is wrong, add shadcn ui into the packages. This is not a skill. Rewrite this" | shadcn/ui moved from Skills to the Stack table in CLAUDE.md; added to README tools | [#8](https://github.com/patronofalltrades/Jumper/pull/8) |
+| Oct 18 | "Yes" to adding shadcn/ui to the TRD; asked "Do we need to add a supabase key?" | shadcn/ui row added to the TRD stack table. Claude explained the Supabase keys. | [#8](https://github.com/patronofalltrades/Jumper/pull/8) |
 
 ## Decisions by Hanif
 
@@ -57,5 +58,5 @@ Only things Hanif said or wrote. Add the date and the exact words where possible
 
 ## Claude notes (not Hanif's voice)
 
-- Oct 18: shadcn/ui is now in the CLAUDE.md stack. The TRD stack table does not list it yet.
+- Oct 18: shadcn/ui is now in the CLAUDE.md stack and the TRD stack table.
 - Oct 17: The brief says the student merges each PR. This agrees with Hanif's rule that Claude never merges.

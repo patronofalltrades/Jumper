@@ -25,6 +25,8 @@
 
 7. "shadcn/ui adds packages that are not in the TRD (for example Radix UI). CLAUDE.md lists it as a skill, but tells Claude to ask before it adds the first component. -> this is wrong, add shadcn ui into the packages. This is not a skill. Rewrite this"
 
+8. "Yes" (add shadcn/ui to the TRD stack table). "Do we need to add a supabase key?"
+
 ## Decisions
 
 - shadcn/ui is a UI component package, not a skill. It is in the CLAUDE.md stack. Hanif approved it and its packages (for example Radix UI) on October 18, 2026.

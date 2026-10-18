@@ -17,7 +17,7 @@ Each project uses the same build mode. A new project adds data (levels, tasks, p
 | 3D | three.js through React Three Fiber, with drei |
 | Game state | Zustand |
 | Styles | Tailwind CSS, with design tokens from the prototype |
-| UI components | [shadcn/ui](https://ui.shadcn.com/) (on Radix UI and Tailwind CSS) for forms, dialogs, sheets and toasts. Add components with `npx shadcn@latest add <component>`. Hanif approved shadcn/ui and its packages on October 18, 2026. |
+| UI components | [shadcn/ui](https://ui.shadcn.com/) (on Radix UI and Tailwind CSS) for forms, dialogs, sheets and toasts. Add components with `npx shadcn@latest add <component>`. Hanif approved shadcn/ui and its packages on October 18, 2026, and added it to the TRD. |
 | Charts | Recharts |
 | Validation | Zod |
 | Authentication | Supabase Auth (email and password) |

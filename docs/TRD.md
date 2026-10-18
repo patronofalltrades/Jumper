@@ -65,6 +65,7 @@ Each layer uses a standard tool with a free tier. Claude Code knows these tools 
 | 3D | three.js through React Three Fiber, with the drei helper library | 3D parts are React components. drei gives camera controls, `Html` pop-ups and glTF loading. | Plain three.js (as in the prototype) |
 | Game state | Zustand store | A small, fast store. The 3D scene and the UI both read it. | Redux, XState |
 | Styles | Tailwind CSS with design tokens from the prototype | An agent writes it quickly. Tokens keep the light and dark themes the same. | CSS modules |
+| UI components | shadcn/ui, on Radix UI and Tailwind CSS | The components go into the repository as source code. Thus we can change them. They give accessible forms, dialogs, sheets and toasts. | Hand-written components |
 | Charts | Recharts | Simple React charts for the dashboard | Chart.js |
 | Validation | Zod | One schema checks forms and the JSON for wiring and rules. | Checks written by hand |
 | Authentication | Supabase Auth, email and password | Users sign up in the app. The live Demo Day sign-up needs this. | Auth.js |
