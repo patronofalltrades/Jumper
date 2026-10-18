@@ -1,0 +1,26 @@
+# Checks each pull request (TRD section 10): type check, lint and the Vitest tests.
+# These checks do not use Supabase, so the workflow needs no secrets.
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  check:
+    name: Type check, lint and tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Type check
+        run: npm run typecheck
+      - name: Lint
+        run: npm run lint
+      - name: Tests (Vitest)
+        run: npm test

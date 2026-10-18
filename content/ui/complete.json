@@ -1,0 +1,22 @@
+{
+  "_note": "Text for the Level complete screen, in ASD-STE100. {xp} is filled in by the app.",
+  "title": {
+    "clean": "Clean build!",
+    "solid": "Solid build!",
+    "complete": "Level complete!"
+  },
+  "subtitle": "You got {xp} XP!",
+  "cards": {
+    "xp": "TOTAL XP",
+    "accuracy": {
+      "perfect": "PERFECT",
+      "great": "GREAT",
+      "good": "GOOD"
+    },
+    "time": "TIME"
+  },
+  "continue": "Continue",
+  "snapshot": "Save snapshot",
+  "snapshot_soon": "Snapshots are coming soon. Then you can keep this board in your lab notebook.",
+  "preview": "Preview with sample numbers. Only on your computer."
+}
