@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { loadBoards, startBoard } from "@/lib/content/boards";
+import { loadProjects } from "@/lib/content/load";
 import { createBoardStore } from "@/lib/game/board-store";
 
 const tap = (store: ReturnType<typeof createBoardStore>, ...holes: string[]) => holes.forEach((h) => store.getState().tapHole(h));
@@ -70,8 +72,8 @@ describe("board store: modules", () => {
   it("puts a module down with one click on a laptop", () => {
     const store = createBoardStore();
     store.getState().setTool("inmp441");
-    tap(store, "A-e3");
-    expect(store.getState().parts).toEqual([{ id: "mic1", type: "inmp441", at: "A-e3" }]);
+    tap(store, "A-e1");
+    expect(store.getState().parts).toEqual([{ id: "mic1", type: "inmp441", at: "A-e1" }]);
   });
 
   it("on a phone, shows where the module goes on the first tap, and puts it down on a second tap on the same hole", () => {
@@ -102,13 +104,13 @@ describe("board store: modules", () => {
   it("removes a module by a tap on a pin or under its body, and undo puts it back", () => {
     const store = createBoardStore();
     store.getState().setTool("inmp441");
-    tap(store, "A-e3");
+    tap(store, "A-e1");
     store.getState().setTool("remove");
-    tap(store, "A-g4");
+    tap(store, "A-g2");
     expect(store.getState().parts).toEqual([]);
     store.getState().undo();
     expect(store.getState().parts.map((p) => p.id)).toEqual(["mic1"]);
-    tap(store, "A-f5");
+    tap(store, "A-f3");
     expect(store.getState().parts).toEqual([]);
   });
 
@@ -117,5 +119,60 @@ describe("board store: modules", () => {
     store.getState().setTool("speaker");
     tap(store, "A-a1", "A-a20");
     expect(store.getState().parts).toEqual([{ id: "spk1", type: "speaker", a: "A-a1", b: "A-a20" }]);
+  });
+});
+
+const perchBoards = await loadBoards("perch");
+
+describe("board store: build mode", () => {
+  const level3 = () => {
+    const perch = loadProjects().find((p) => p.slug === "perch")!;
+    const level = perch.levels[2];
+    const store = createBoardStore();
+    store.getState().open("perch/3", {
+      plan: { tasks: level.tasks.map((t) => ({ target: t.target, xp: t.xp })), forbid: level.rules.forbid },
+      parts: startBoard(perchBoards, 3),
+    });
+    return store;
+  };
+
+  it("starts in the intro, then picks the tool of the first task", () => {
+    const store = level3();
+    expect(store.getState().progress.phase).toBe("intro");
+    store.getState().start();
+    expect(store.getState().progress.phase).toBe("task");
+    expect(store.getState().tool).toBe("inmp441");
+  });
+
+  it("snaps a correct part in with a green flash on its pins, and picks the wire for the next task", () => {
+    const store = level3();
+    store.getState().start();
+    tap(store, "B-e27");
+    expect(store.getState().progress).toMatchObject({ index: 1, tasksDone: 1, xp: 10 });
+    expect(store.getState().flash).toMatchObject({ kind: "snap", holes: expect.arrayContaining(["B-e27", "B-f29"]) });
+    expect(store.getState().tool).toBe("wire");
+  });
+
+  it("buzzes a wrong wire with the forbid rule that it breaks, and Undo ends the mistake", () => {
+    const store = level3();
+    store.getState().start();
+    tap(store, "B-e27");
+    // VDD of the mic (column 28, rows a–e) to the ground rail.
+    tap(store, "B-c28", "B-R-20");
+    expect(store.getState().progress).toMatchObject({ phase: "mistake", mistakes: 1, mistake: { code: "reversed_power" } });
+    expect(store.getState().flash?.kind).toBe("buzz");
+    store.getState().undo();
+    expect(store.getState().progress).toMatchObject({ phase: "task", mistake: null, mistakes: 1, index: 1 });
+  });
+
+  it("removes the speaker with the amplifier whose terminal holds it", () => {
+    const store = createBoardStore();
+    store.getState().setTool("max98357a");
+    tap(store, "A-c11");
+    store.getState().setTool("speaker");
+    tap(store, "amp1.OUT+", "amp1.OUT-");
+    expect(store.getState().parts.map((p) => p.id)).toEqual(["amp1", "spk1"]);
+    store.getState().removePart("amp1");
+    expect(store.getState().parts).toEqual([]);
   });
 });

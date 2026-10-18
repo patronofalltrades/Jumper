@@ -203,7 +203,7 @@
           "position": 1,
           "kind": "place",
           "instruction": "Put the push button across the center gap of breadboard A.",
-          "popup_why": "A 4-leg button has two pairs of legs that are always connected. Across the gap, each pair sits in its own column, so only a press joins the two sides.",
+          "popup_why": "A 4-leg button has two pairs of legs that are always connected. Across the gap, each pair sits in its own column, so only a press joins the two sides. Use a column near an end of the breadboard: in the other columns, an ESP32-S3 pin is already in the line.",
           "concept": null,
           "target": {
             "kind": "place",
@@ -368,7 +368,7 @@
           "position": 1,
           "kind": "place",
           "instruction": "Put the INMP441 mic on breadboard B.",
-          "popup_why": "On the breadboard, each of the 6 mic pins has its own column. Thus each pin gets its own wire.",
+          "popup_why": "Each of the 6 mic pins gets its own column, so each pin gets its own wire. The mic goes across the center gap, near an end of breadboard B. In the other columns, an ESP32-S3 pin is already in the line, and it would connect to a mic pin.",
           "concept": "I²S: I²S sends digital sound between chips on three wires. A bit clock (SCK) ticks once for each bit. A word select (WS) tells which channel, left or right, is on the line. A data line (SD) carries the bits. The ESP32-S3 makes the clocks, and the mic sends the data.",
           "target": {
             "kind": "place",
@@ -536,8 +536,8 @@
         {
           "position": 1,
           "kind": "place",
-          "instruction": "Put the MAX98357A amplifier on breadboard A.",
-          "popup_why": "On the breadboard, each pin of the amplifier has its own column. Thus each pin gets its own wire.",
+          "instruction": "Put the MAX98357A amplifier on breadboard A, in rows a to e.",
+          "popup_why": "Each pin of the amplifier has its own column, so each pin gets its own wire. Use rows a to e: in rows f to j of breadboard A, the columns already connect to the ESP32-S3 pins.",
           "concept": "Class D amplifier: A GPIO pin cannot drive a speaker, because a speaker needs much more current. The MAX98357A takes the I²S sound data, changes it back into an analog signal and makes it stronger. \"Class D\" means that its output switches on and off very fast, so it wastes little power as heat.",
           "target": {
             "kind": "place",
@@ -635,42 +635,14 @@
         {
           "position": 8,
           "kind": "place",
-          "instruction": "Put the speaker next to breadboard A.",
-          "popup_why": "The speaker does not go into the breadboard. It connects to the two output pins of the amplifier.",
+          "instruction": "Put the speaker leads into the screw terminal of the amplifier: the + lead into +, then the − lead into −.",
+          "popup_why": "The speaker does not go into the breadboard. Its leads go into the screw terminal, which holds them tightly. The two outputs move in opposite directions, so this doubles the voltage across the speaker. Neither output is ground: do not connect a speaker lead to ground.",
           "concept": null,
           "target": {
             "kind": "place",
             "part": "speaker",
             "id": "spk1",
-            "zone": "beside-bbA"
-          },
-          "source_url": "https://learn.adafruit.com/adafruit-max98357-i2s-class-d-mono-amp/pinouts",
-          "xp": 10
-        },
-        {
-          "position": 9,
-          "kind": "wire",
-          "instruction": "Connect the + wire of the speaker to the + output of the amplifier.",
-          "popup_why": "The amplifier drives the speaker from two outputs that move in opposite directions. This doubles the voltage across the speaker.",
-          "concept": null,
-          "target": {
-            "kind": "wire",
-            "a": "spk1.+",
-            "b": "amp1.OUT+"
-          },
-          "source_url": "https://learn.adafruit.com/adafruit-max98357-i2s-class-d-mono-amp/pinouts",
-          "xp": 10
-        },
-        {
-          "position": 10,
-          "kind": "wire",
-          "instruction": "Connect the − wire of the speaker to the − output of the amplifier.",
-          "popup_why": "Do not connect a speaker wire to ground. The two outputs are not ground and +. Both of them move, and a wire to ground can damage the amplifier.",
-          "concept": null,
-          "target": {
-            "kind": "wire",
-            "a": "spk1.-",
-            "b": "amp1.OUT-"
+            "zone": "amp1.OUT+,amp1.OUT-"
           },
           "source_url": "https://learn.adafruit.com/adafruit-max98357-i2s-class-d-mono-amp/pinouts",
           "xp": 10
@@ -737,7 +709,7 @@
           "position": 1,
           "kind": "place",
           "instruction": "Put the ST7789 screen on breadboard B.",
-          "popup_why": "On the breadboard, each of the 8 screen pins has its own column. Thus each pin gets its own wire.",
+          "popup_why": "Each of the 8 screen pins has its own column, so each pin gets its own wire. Use rows f to j of breadboard B: in rows a to e, the columns already connect to the ESP32-S3 pins.",
           "concept": "SPI: SPI is a fast way for a chip to send data to a part. A clock line ticks, a data line carries the bits, and a chip-select line selects the part that listens. The screen has 240 × 240 pixels, and the ESP32-S3 sends them many times each second, so the screen needs a fast bus.",
           "target": {
             "kind": "place",

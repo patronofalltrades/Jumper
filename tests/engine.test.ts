@@ -1,0 +1,212 @@
+import { describe, expect, it } from "vitest";
+import { perchBench } from "@/lib/circuit/bench";
+import { buildNets, connected } from "@/lib/circuit/nets";
+import type { Part } from "@/lib/circuit/parts";
+import { loadBoards, startBoard } from "@/lib/content/boards";
+import { loadProjects } from "@/lib/content/load";
+import { needsAck, startProgress, step, taskSpot, toolFor, type Effect, type Plan, type Progress } from "@/lib/game/engine";
+
+const bench = perchBench();
+const perch = loadProjects().find((p) => p.slug === "perch")!;
+const boards = await loadBoards("perch");
+const planOf = (position: number): Plan => {
+  const level = perch.levels.find((l) => l.position === position)!;
+  return { tasks: level.tasks.map((t) => ({ target: t.target, xp: t.xp })), forbid: level.rules.forbid };
+};
+const wire = (id: string, a: string, b: string): Part => ({ id, type: "wire", a, b });
+
+/** A learner on one level: start, "Got it" on the parts that are always there, then put each part down. */
+function learner(position: number, start: Part[] = startBoard(boards, position)) {
+  const plan = planOf(position);
+  let progress: Progress = startProgress();
+  let board = start;
+  const effects: Effect[] = [];
+  const send = (event: Parameters<typeof step>[3]) => {
+    const next = step(bench, plan, progress, event);
+    progress = next.progress;
+    effects.push(next.effect);
+    return next;
+  };
+  const ackAll = () => {
+    while (progress.phase === "task" && needsAck(plan.tasks[progress.index].target)) send({ type: "ack", parts: board });
+  };
+  return {
+    plan,
+    get progress() {
+      return progress;
+    },
+    get board() {
+      return board;
+    },
+    effects,
+    send,
+    start() {
+      send({ type: "start" });
+      ackAll();
+    },
+    put(...parts: Part[]) {
+      for (const p of parts) {
+        const after = [...board, p];
+        send({ type: "change", before: board, after });
+        board = after;
+        ackAll();
+      }
+    },
+    remove(id: string) {
+      const after = board.filter((p) => p.id !== id);
+      send({ type: "change", before: board, after });
+      board = after;
+    },
+  };
+}
+
+describe("each Perch level, played with its finished board", () => {
+  for (const level of perch.levels) {
+    it(`level ${level.position}: every part snaps in, with no mistakes, and the level rules are true at the end`, () => {
+      const l = learner(level.position);
+      l.start();
+      l.put(...boards.levels[level.position]);
+
+      expect(l.effects.every((e) => e === "snap" || e === null)).toBe(true);
+      expect(l.progress).toMatchObject({
+        phase: "ready_to_check",
+        index: level.tasks.length,
+        tasksDone: level.tasks.length,
+        mistakes: 0,
+        xp: level.tasks.reduce((n, t) => n + t.xp, 0),
+      });
+      const nets = buildNets(bench, l.board);
+      for (const r of level.rules.require) expect(connected(bench, l.board, nets, r.a, r.b), `${r.a} → ${r.b}`).toBe(true);
+      for (const f of level.rules.forbid) expect(connected(bench, l.board, nets, f.a, f.b), f.code).toBe(false);
+    });
+  }
+});
+
+describe("task engine", () => {
+  it("waits in the intro until the learner starts", () => {
+    const l = learner(1);
+    l.put(wire("w1", "B-e5", "A-L+1"));
+    expect(l.progress.phase).toBe("intro");
+    l.send({ type: "start" });
+    expect(l.progress).toMatchObject({ phase: "task", index: 0 });
+  });
+
+  it("finishes a task for a part that is always on the bench with Got it, and gives its XP", () => {
+    const l = learner(1);
+    l.send({ type: "start" });
+    expect(l.send({ type: "ack", parts: [] }).effect).toBe("snap");
+    expect(l.progress).toMatchObject({ index: 1, tasksDone: 1, xp: l.plan.tasks[0].xp });
+  });
+
+  it("does not accept Got it on a wire task", () => {
+    const l = learner(1);
+    l.start();
+    expect(l.progress.index).toBe(3);
+    expect(l.send({ type: "ack", parts: [] })).toMatchObject({ effect: null, progress: { index: 3 } });
+  });
+
+  it("snaps a correct wire and opens the next task", () => {
+    const l = learner(1);
+    l.start();
+    l.put(wire("w1", "B-c6", "A-L+4"));
+    expect(l.effects.at(-1)).toBe("snap");
+    expect(l.progress).toMatchObject({ phase: "task", index: 4, mistakes: 0 });
+  });
+
+  it("buzzes a forbidden wire and opens a Mistake pop-up with the text of the forbid rule", () => {
+    const l = learner(1);
+    l.start();
+    // 3V3 (row a of B, column 5) to a GND pin (row j of A, column 5): a short circuit.
+    l.put(wire("w1", "B-e5", "A-f5"));
+    expect(l.effects.at(-1)).toBe("buzz");
+    expect(l.progress.phase).toBe("mistake");
+    expect(l.progress.mistakes).toBe(1);
+    expect(l.progress.mistake).toMatchObject({ code: "short_power", parts: ["w1"] });
+    expect(l.progress.mistake!.message).toContain("short circuit");
+  });
+
+  it("buzzes a wire that does not make the connection of the task, with a general mistake", () => {
+    const l = learner(1);
+    l.start();
+    l.put(wire("w1", "A-a1", "A-a5"));
+    expect(l.progress.mistake).toEqual({ code: "wrong_wire", parts: ["w1"] });
+  });
+
+  it("ends the mistake when the wrong wire goes, or on Try again", () => {
+    const l = learner(1);
+    l.start();
+    l.put(wire("w1", "A-a1", "A-a5"));
+    l.remove("w1");
+    expect(l.progress).toMatchObject({ phase: "task", mistake: null, mistakes: 1 });
+    l.put(wire("w2", "A-a1", "A-a5"));
+    l.send({ type: "dismiss" });
+    expect(l.progress).toMatchObject({ phase: "task", mistake: null, mistakes: 2 });
+  });
+
+  it("lets the learner use either side of the resistor, and remembers the choice", () => {
+    const l = learner(2);
+    l.start();
+    l.put(...boards.levels[2].slice(0, 3));
+    expect(l.progress.index).toBe(3);
+    // The resistor goes from A-a2 (side 1) to A-a4 (side 2), and the LED + leg is in the line of side 1.
+    l.put({ id: "r1", type: "resistor", a: "A-a2", b: "A-a4" }, { id: "led1", type: "led", a: "A-b2", b: "A-b1" });
+    // GPIO 2 to side 2 is good: the resistor is the same both ways.
+    l.put(wire("w7", "A-f9", "A-c4"));
+    expect(l.progress).toMatchObject({ swaps: ["r1"], mistakes: 0 });
+    // Task 7 (the resistor to the LED + leg) is already true, so the engine goes on to task 8.
+    expect(l.progress.index).toBe(7);
+  });
+
+  it("refuses a part on the wrong breadboard", () => {
+    const l = learner(3);
+    l.start();
+    l.put({ id: "mic1", type: "inmp441", at: "A-e1" });
+    expect(l.progress.mistake).toEqual({ code: "wrong_place", parts: ["mic1"] });
+  });
+
+  it("refuses the speaker leads the wrong way round in the terminal", () => {
+    const l = learner(4);
+    l.start();
+    l.put(...boards.levels[4].slice(0, -1));
+    l.put({ id: "spk1", type: "speaker", a: "amp1.OUT-", b: "amp1.OUT+" });
+    expect(l.progress.mistake?.code).toBe("wrong_place");
+  });
+
+  it("gives the tool of each task", () => {
+    expect(toolFor("resistor-220")).toBe("resistor");
+    expect(toolFor("inmp441")).toBe("inmp441");
+    expect(toolFor("bb400")).toBeNull();
+    expect(toolFor("esp32-s3-devkitc-1")).toBeNull();
+  });
+});
+
+describe("task spot", () => {
+  it("glows the free holes of both ends of a wire task", () => {
+    const spot = taskSpot(bench, [], planOf(1).tasks[3].target);
+    // 3V3 is in B-a5 and B-a6: their lines, and the + rail of A.
+    expect(spot.holes).toEqual(expect.arrayContaining(["B-a5", "B-e5", "B-b6", "A-L+1", "A-L+25"]));
+    expect(spot.holes).not.toContain("A-L-1");
+  });
+
+  it("glows only the holes where pin 1 of a module can go", () => {
+    const spot = taskSpot(bench, [], planOf(3).tasks[0].target);
+    expect(spot.holes.sort()).toEqual(["B-e1", "B-e2", "B-e27", "B-e28"]);
+  });
+
+  it("glows the terminal for the speaker", () => {
+    const amp: Part = { id: "amp1", type: "max98357a", at: "A-c11" };
+    expect(taskSpot(bench, [amp], planOf(4).tasks.at(-1)!.target).holes).toEqual(["amp1.OUT+", "amp1.OUT-"]);
+  });
+});
+
+describe("boards", () => {
+  it("has no boards for a project without a board file", async () => {
+    expect(await loadBoards("arduino-foundations")).toEqual({ levels: {} });
+    expect(await loadBoards("../x")).toEqual({ levels: {} });
+  });
+
+  it("starts a level with the boards of the levels before it", () => {
+    expect(startBoard(boards, 1)).toEqual([]);
+    expect(startBoard(boards, 3).map((p) => p.id)).toEqual([...boards.levels[1], ...boards.levels[2]].map((p) => p.id));
+  });
+});

@@ -12,21 +12,33 @@ import { useFontTexture } from "./use-font-texture";
 
 const HEADER_Y = 0.5;
 const PCB_T = 0.16;
+const TERMINAL_H = 0.9;
+
+/** Height of the top of the screw terminal of a module: where speaker leads and wires go in. */
+export const terminalTop = (type: ModuleType) => FOOTPRINTS[type].body.height + PCB_T + TERMINAL_H;
+
+type Handlers = {
+  onPointerMove: (e: ThreeEvent<PointerEvent>) => void;
+  onClick: (e: ThreeEvent<MouseEvent>) => void;
+};
 
 type Props = {
   bench: Bench;
+  id: string;
   type: ModuleType;
   at: string;
-  hot: Set<string>;
-  probe: Color;
+  /** Pins and terminals that glow, and their colors. */
+  glow: Map<string, Color>;
   /** Red glow: the Remove tool points at the part. */
   removeHot?: boolean;
   /** Pointer handlers for the body. Undefined: the body does not take clicks. */
   onPointerMove?: (e: ThreeEvent<PointerEvent>) => void;
   onClick?: (e: ThreeEvent<MouseEvent>) => void;
+  /** Pointer handlers for a screw of the terminal, from its id ("amp1.OUT+"). */
+  terminalHandlers?: (terminal: string) => Handlers;
 };
 
-export function ModuleMesh({ bench, type, at, hot, probe, removeHot, onPointerMove, onClick }: Props) {
+export function ModuleMesh({ bench, id, type, at, glow, removeHot, onPointerMove, onClick, terminalHandlers }: Props) {
   const fp = FOOTPRINTS[type];
   const layout = useMemo(() => {
     const pins = footprintHoles(bench, type, at) ?? [];
@@ -60,8 +72,8 @@ export function ModuleMesh({ bench, type, at, hot, probe, removeHot, onPointerMo
         <meshStandardMaterial attach="material-4" {...edge} />
         <meshStandardMaterial attach="material-5" {...edge} />
       </mesh>
-      {layout.pins.map((p) => {
-        const lit = hot.has(p.hole);
+      {layout.pins.filter((p) => !p.terminal).map((p) => {
+        const lit = glow.get(p.hole);
         return (
           <group key={p.hole}>
             {/* The plastic of the header, and the metal pin from the hole to the top of the PCB. */}
@@ -75,7 +87,7 @@ export function ModuleMesh({ bench, type, at, hot, probe, removeHot, onPointerMo
             </mesh>
             <mesh position={[p.x, y + PCB_T + 0.05, p.z]} raycast={() => null}>
               <boxGeometry args={[0.3, 0.1, 0.3]} />
-              <meshStandardMaterial color={lit ? probe : "#C9A646"} emissive={lit ? probe : "#000000"} emissiveIntensity={lit ? 0.8 : 0} metalness={0.6} roughness={0.35} />
+              <meshStandardMaterial color={lit ?? "#C9A646"} emissive={lit ?? "#000000"} emissiveIntensity={lit ? 0.8 : 0} metalness={0.6} roughness={0.35} />
             </mesh>
           </group>
         );
@@ -92,22 +104,39 @@ export function ModuleMesh({ bench, type, at, hot, probe, removeHot, onPointerMo
           <meshStandardMaterial color="#C2C8CC" metalness={0.7} roughness={0.3} />
         </mesh>
       )}
-      {type === "max98357a" && <Terminal pins={layout.pins.filter((p) => p.name.startsWith("OUT"))} y={y + PCB_T} />}
+      {layout.pins.some((p) => p.terminal) && (
+        <Terminal
+          pins={layout.pins.filter((p) => p.terminal).map((p) => ({ ...p, id: `${id}.${p.name}` }))}
+          y={y + PCB_T}
+          glow={glow}
+          handlers={terminalHandlers}
+        />
+      )}
       {type === "st7789-154" && <Display x0={x0} x1={x1} z={z0} y={y + PCB_T} />}
     </group>
   );
 }
 
-/** The green screw terminal for the speaker wires, over the OUT+ and OUT− pins. */
-function Terminal({ pins, y }: { pins: { x: number; z: number }[]; y: number }) {
-  if (pins.length < 2) return null;
+/** The green screw terminal for the speaker leads, on top of the module. Each screw takes a click or a tap. */
+function Terminal({ pins, y, glow, handlers }: { pins: { id: string; x: number; z: number }[]; y: number; glow: Map<string, Color>; handlers?: (terminal: string) => Handlers }) {
   const x = pins[0].x;
   const zs = pins.map((p) => p.z);
   return (
-    <mesh position={[x + 0.5, y + 0.45, (Math.min(...zs) + Math.max(...zs)) / 2]} castShadow raycast={() => null}>
-      <boxGeometry args={[1.0, 0.9, Math.max(...zs) - Math.min(...zs) + 1.2]} />
-      <meshStandardMaterial color="#2E9D5B" roughness={0.5} />
-    </mesh>
+    <group>
+      <mesh position={[x, y + TERMINAL_H / 2, (Math.min(...zs) + Math.max(...zs)) / 2]} castShadow raycast={() => null}>
+        <boxGeometry args={[1.0, TERMINAL_H, Math.max(...zs) - Math.min(...zs) + 1.2]} />
+        <meshStandardMaterial color="#2E9D5B" roughness={0.5} />
+      </mesh>
+      {pins.map((p) => {
+        const lit = glow.get(p.id);
+        return (
+          <mesh key={p.id} position={[p.x, y + TERMINAL_H + 0.05, p.z]} {...handlers?.(p.id)}>
+            <cylinderGeometry args={[0.38, 0.38, 0.12, 20]} />
+            <meshStandardMaterial color={lit ?? "#C2C8CC"} emissive={lit ?? "#000000"} emissiveIntensity={lit ? 0.8 : 0} metalness={0.7} roughness={0.3} />
+          </mesh>
+        );
+      })}
+    </group>
   );
 }
 

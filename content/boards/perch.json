@@ -1,0 +1,249 @@
+{
+  "_note": "A finished board for each level of Perch: the parts that the level adds, in task order. When the browser has no saved board of the level before, level N starts with the parts of levels 1 to N−1. tests/engine.test.ts plays each level with these parts.",
+  "levels": {
+    "1": [
+      {
+        "id": "w1",
+        "type": "wire",
+        "a": "B-e5",
+        "b": "A-L+1",
+        "color": "#D63A2F"
+      },
+      {
+        "id": "w2",
+        "type": "wire",
+        "a": "A-f5",
+        "b": "A-L-1",
+        "color": "#25292D"
+      },
+      {
+        "id": "w3",
+        "type": "wire",
+        "a": "A-L+25",
+        "b": "B-R+25",
+        "color": "#D63A2F"
+      },
+      {
+        "id": "w4",
+        "type": "wire",
+        "a": "A-L-25",
+        "b": "B-R-25",
+        "color": "#25292D"
+      }
+    ],
+    "2": [
+      {
+        "id": "btn1",
+        "type": "pushbutton",
+        "at": "A-e27"
+      },
+      {
+        "id": "w5",
+        "type": "wire",
+        "a": "A-f8",
+        "b": "A-a27",
+        "color": "#E2AE12"
+      },
+      {
+        "id": "w6",
+        "type": "wire",
+        "a": "A-a29",
+        "b": "A-L-23",
+        "color": "#25292D"
+      },
+      {
+        "id": "r1",
+        "type": "resistor",
+        "a": "A-a2",
+        "b": "A-a4"
+      },
+      {
+        "id": "led1",
+        "type": "led",
+        "a": "A-b4",
+        "b": "A-b3"
+      },
+      {
+        "id": "w7",
+        "type": "wire",
+        "a": "A-f9",
+        "b": "A-c2",
+        "color": "#2F6FD6"
+      },
+      {
+        "id": "w8",
+        "type": "wire",
+        "a": "A-c3",
+        "b": "A-L-3",
+        "color": "#25292D"
+      }
+    ],
+    "3": [
+      {
+        "id": "mic1",
+        "type": "inmp441",
+        "at": "B-e27"
+      },
+      {
+        "id": "w9",
+        "type": "wire",
+        "a": "B-c28",
+        "b": "B-R+20",
+        "color": "#D63A2F"
+      },
+      {
+        "id": "w10",
+        "type": "wire",
+        "a": "B-c27",
+        "b": "B-R-20",
+        "color": "#25292D"
+      },
+      {
+        "id": "w11",
+        "type": "wire",
+        "a": "B-h27",
+        "b": "B-R-21",
+        "color": "#25292D"
+      },
+      {
+        "id": "w12",
+        "type": "wire",
+        "a": "B-h28",
+        "b": "B-e8",
+        "color": "#2E9D5B"
+      },
+      {
+        "id": "w13",
+        "type": "wire",
+        "a": "B-h29",
+        "b": "B-e9",
+        "color": "#2F6FD6"
+      },
+      {
+        "id": "w14",
+        "type": "wire",
+        "a": "B-c29",
+        "b": "B-e10",
+        "color": "#E2AE12"
+      }
+    ],
+    "4": [
+      {
+        "id": "amp1",
+        "type": "max98357a",
+        "at": "A-c11"
+      },
+      {
+        "id": "w15",
+        "type": "wire",
+        "a": "A-a17",
+        "b": "A-L+15",
+        "color": "#D63A2F"
+      },
+      {
+        "id": "w16",
+        "type": "wire",
+        "a": "A-a16",
+        "b": "A-L-15",
+        "color": "#25292D"
+      },
+      {
+        "id": "w17",
+        "type": "wire",
+        "a": "A-b15",
+        "b": "A-b17",
+        "color": "#E2AE12"
+      },
+      {
+        "id": "w18",
+        "type": "wire",
+        "a": "A-a13",
+        "b": "B-e11",
+        "color": "#2E9D5B"
+      },
+      {
+        "id": "w19",
+        "type": "wire",
+        "a": "A-a12",
+        "b": "B-e12",
+        "color": "#2F6FD6"
+      },
+      {
+        "id": "w20",
+        "type": "wire",
+        "a": "A-a11",
+        "b": "B-e13",
+        "color": "#E2AE12"
+      },
+      {
+        "id": "spk1",
+        "type": "speaker",
+        "a": "amp1.OUT+",
+        "b": "amp1.OUT-"
+      }
+    ],
+    "5": [
+      {
+        "id": "lcd1",
+        "type": "st7789-154",
+        "at": "B-h3"
+      },
+      {
+        "id": "w21",
+        "type": "wire",
+        "a": "B-j4",
+        "b": "B-R+3",
+        "color": "#D63A2F"
+      },
+      {
+        "id": "w22",
+        "type": "wire",
+        "a": "B-j3",
+        "b": "B-R-2",
+        "color": "#25292D"
+      },
+      {
+        "id": "w23",
+        "type": "wire",
+        "a": "B-f5",
+        "b": "A-i22",
+        "color": "#E2AE12"
+      },
+      {
+        "id": "w24",
+        "type": "wire",
+        "a": "B-f6",
+        "b": "A-i21",
+        "color": "#2E9D5B"
+      },
+      {
+        "id": "w25",
+        "type": "wire",
+        "a": "B-f7",
+        "b": "A-i19",
+        "color": "#2F6FD6"
+      },
+      {
+        "id": "w26",
+        "type": "wire",
+        "a": "B-f8",
+        "b": "A-i12",
+        "color": "#E2AE12"
+      },
+      {
+        "id": "w27",
+        "type": "wire",
+        "a": "B-f9",
+        "b": "A-i11",
+        "color": "#2E9D5B"
+      },
+      {
+        "id": "w28",
+        "type": "wire",
+        "a": "B-f10",
+        "b": "A-i10",
+        "color": "#2F6FD6"
+      }
+    ]
+  }
+}

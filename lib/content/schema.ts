@@ -55,3 +55,17 @@ export const projectSchema = z
 export type Project = z.infer<typeof projectSchema>;
 export type Level = z.infer<typeof levelSchema>;
 export type Task = z.infer<typeof taskSchema>;
+
+// A part on the bench (TRD 6.3): a two-leg part from hole `a` to hole `b`, or a module with pin 1 in hole `at`.
+// A leg can also go into a screw terminal: "amp1.OUT+".
+const spot = z.string().regex(/^([AB]-[a-jLR+-]+\d+|[a-z][A-Za-z0-9]*\.[A-Za-z0-9+-]+)$/);
+
+export const partSchema = z.union([
+  z.object({ id: z.string().min(1), type: z.enum(["wire", "resistor", "led", "speaker"]), a: spot, b: spot, color: z.string().optional() }),
+  z.object({ id: z.string().min(1), type: z.enum(["pushbutton", "inmp441", "max98357a", "st7789-154"]), at: spot }),
+]);
+
+/** content/boards/<project>.json: the parts that each level adds, by level position. */
+export const boardsSchema = z.object({ levels: z.record(z.string().regex(/^[1-9]\d*$/), z.array(partSchema)) });
+
+export type Boards = z.infer<typeof boardsSchema>;

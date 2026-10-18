@@ -1,7 +1,11 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { Suspense } from "react";
-import { BuildView } from "@/components/build/build-view";
+import { BuildView, type LevelTask } from "@/components/build/build-view";
+import { loadBoards, startBoard } from "@/lib/content/boards";
+import { rulesSchema, targetSchema } from "@/lib/content/schema";
+import { passedLevels } from "@/lib/game/featured";
+import { isUnlocked } from "@/lib/game/map";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = { title: "Level · Jumper" };
@@ -21,16 +25,39 @@ async function Level({ slug, position }: { slug: string; position: string }) {
   if (!/^[1-9]\d*$/.test(position)) notFound();
 
   const supabase = await createClient();
+  const { data: auth } = await supabase.auth.getClaims();
+  if (!auth?.claims) redirect("/login");
+
   const { data, error } = await supabase
     .from("levels")
-    .select("position, title, projects!inner(slug, title, status)")
+    .select("id, position, title, goal, rules, tasks(position, kind, instruction, popup_why, concept, target, source_url, xp), projects!inner(id, slug, title, status)")
     .eq("projects.slug", slug)
     .eq("projects.status", "available")
     .eq("position", Number(position))
+    .order("position", { referencedTable: "tasks" })
     .maybeSingle();
   if (error) throw error;
   if (!data) notFound();
-  const project = data.projects as unknown as { title: string };
+  const project = data.projects as unknown as { id: number; title: string };
 
-  return <BuildView level={`${slug}/${data.position}`} eyebrow={`${project.title.split(":")[0]} · Level ${data.position}`} title={data.title} />;
+  // A level opens when the level before it passed (issue #19).
+  if (!isUnlocked(data.position, await passedLevels(supabase, project.id))) redirect(`/p/${slug}`);
+
+  const tasks: LevelTask[] = data.tasks.map((t) => ({ ...t, target: targetSchema.parse(t.target) }));
+  const rules = rulesSchema.parse(data.rules);
+
+  return (
+    <BuildView
+      user={auth.claims.sub}
+      project={slug}
+      levelId={data.id}
+      position={data.position}
+      eyebrow={`${project.title.split(":")[0]} · Level ${data.position}`}
+      title={data.title}
+      goal={data.goal}
+      tasks={tasks}
+      forbid={rules.forbid}
+      start={startBoard(await loadBoards(slug), data.position)}
+    />
+  );
 }
