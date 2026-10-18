@@ -61,29 +61,42 @@ def flush(data):
     git("add", rel)
 
 
-def commit_message(part):
-    try:
-        words = shlex.split(part)
-    except ValueError:
-        return None
+def commit_message(words):
     for i, w in enumerate(words[:-1]):
-        if w in ("-m", "--message") or (re.fullmatch(r"-[a-zA-Z]*m", w)):
+        if w in ("-m", "--message") or re.fullmatch(r"-[a-zA-Z]*m", w):
             return words[i + 1].splitlines()[0]
     return None
 
 
+def segments(cmd):
+    """Split a shell line into commands, respecting quotes (so '&&' inside a string is not a split)."""
+    lex = shlex.shlex(cmd, posix=True, punctuation_chars=True)
+    lex.whitespace_split = True
+    try:
+        tokens = list(lex)
+    except ValueError:
+        return []
+    out, cur = [], []
+    for t in tokens:
+        if set(t) <= set(";&|"):
+            out.append(cur)
+            cur = []
+        else:
+            cur.append(t)
+    return [s for s in out + [cur] if s]
+
+
 def git_commands(cmd):
-    """(verb, segment) for each git command a shell line actually runs."""
+    """(verb, words) for each git command a shell line actually runs."""
     out = []
-    for part in re.split(r"&&|\|\||;|\n", cmd):
-        words = part.split()
-        if not words or words[0] != "git":
+    for words in segments(cmd):
+        if words[0] != "git":
             continue
         sub = words[1:]
         while sub and sub[0].startswith("-"):
             sub = sub[2:] if sub[0] in ("-C", "-c") else sub[1:]
         if sub:
-            out.append((sub[0], part))
+            out.append((sub[0], words))
     return out
 
 

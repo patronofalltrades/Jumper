@@ -46,6 +46,7 @@ Record here when Hanif corrects Claude, or when Claude gets something wrong. Say
 - Oct 18: Claude treated shadcn/ui as a skill and as a dependency to ask about. Hanif corrected it: "this is wrong, add shadcn ui into the packages. This is not a skill." Fix: shadcn/ui is now in the stack table.
 - Oct 18: The ledger hook logged each ledger commit, so the tree was never clean and the Stop hook kept asking for a commit. Fix: the hook skips commits that change only `ledger/`.
 - Oct 18: The Stop hook asked for a commit again after the shadcn/ui change. Cause: the ledger hook wrote to a tracked file after each commit and after each prompt, so the tree was dirty at the end of almost every turn. Fix: entries now wait in `.git/` and go into the same commit as Claude's next change.
+- Oct 18: The new ledger hook split commands at `&&` even inside quoted text. It logged a fake commit from a test command and could not read a multi-line commit message. Claude found both in the raw log. Fix: the hook now reads commands the way the shell does, with quotes; 6 test cases pass. The two bad entries were corrected.
 
 ## Hanif's observations
 
