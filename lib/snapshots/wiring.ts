@@ -9,7 +9,7 @@ export type Wiring = z.infer<typeof wiringSchema>;
 
 /** The board, as the JSON to save. */
 export function toWiring(parts: Part[]): Wiring {
-  return { version: 1, parts: parts.filter((p) => p.type !== "wire") };
+  return { version: 1, parts };
 }
 
 /** The board from saved JSON, or null if the JSON is not a board. */
