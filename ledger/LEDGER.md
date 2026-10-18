@@ -34,6 +34,7 @@ This ledger is source material for Hanif's reflection. Hanif writes the reflecti
 | Oct 18 | "I have tested enough so we acn proceed" | Feature 1 closed for review. Claude wrote the PR title and body for Hanif to open. | — |
 | Oct 18 | "Open Issue #11, read the claude.md and readme.md files before touching anything. Then start developing" | Claude read the docs and issue #11 and started feature 2 locally, because no branch existed yet | [#11](https://github.com/patronofalltrades/Jumper/issues/11) |
 | Oct 18 | "branch is ready" (`Feature/Database`) | Feature 2 on `Feature/Database`: migration with 8 tables, row-level security, profile trigger and backfill; 6 projects and 5 Perch levels (41 tasks) as JSON; Zod content schema; idempotent `npm run seed`; schema.md; 15 new Vitest tests | [#11](https://github.com/patronofalltrades/Jumper/issues/11) |
+| Oct 18 | "1. Apply it 2. We will work on names related to boardwork later." | Claude tried to apply the migration with the Management API: 403 for the access token, and the session's safety check blocked further probing. Claude asked Hanif to run the SQL in the SQL Editor. | — |
 
 ## Decisions by Hanif
 
@@ -54,6 +55,7 @@ This ledger is source material for Hanif's reflection. Hanif writes the reflecti
 - The cloud session cannot reach Supabase (network policy). Hanif chose to test feature 1 on the Mac, with Claude giving the steps (Oct 18).
 - Add a forgot-password feature to feature 1 (Oct 18).
 - Feature 2 work goes on Hanif's branch `Feature/Database` (Oct 18).
+- Apply the feature 2 migration to the Supabase project in this session's environment. Pin and part names (`esp.GPIO4`, `bbA.+`) wait for the board work (Oct 18).
 - Hanif ended the Mac test after sign-up, the confirmation link, log-in and log-out passed: "I have tested enough so we acn proceed". The forgot-password flow and the `Date.now()` fix were not re-tested on the Mac (Oct 18).
 
 ## Corrections and agent issues
