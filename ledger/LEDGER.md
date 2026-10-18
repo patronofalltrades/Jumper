@@ -25,6 +25,13 @@ This ledger is source material for Hanif's reflection. Hanif writes the reflecti
 | Oct 18 | Pasted the Supabase connect steps (package, env vars, optional skill) | No package installed yet. Ledger hook now redacts keys. Claude asked which package and env names to use. | [#8](https://github.com/patronofalltrades/Jumper/pull/8) |
 | Oct 18 | Chose supabase-js + ssr, NEXT_PUBLIC_ variable names, and to add the Supabase Server skill | TRD and CLAUDE.md name the packages and variables; skill added to CLAUDE.md | [#8](https://github.com/patronofalltrades/Jumper/pull/8) |
 | Oct 18 | "Do not merge PRs, do not open branches, do not start issues. All of these have to be done by me." | Rule 1a in CLAUDE.md; guard now blocks branch, issue and PR creation | [#8](https://github.com/patronofalltrades/Jumper/pull/8) |
+| Oct 18 | "Start feature one, look into issue #8" (then stopped Claude) | Claude only read files | — |
+| Oct 18 | "Start feature one, look into issue #8, read claude.md and read.me before taking action on anything" | Claude read the docs. #8 is the merged PR; feature 1 is issue #9. Claude asked 4 questions. | [#9](https://github.com/patronofalltrades/Jumper/issues/9) |
+| Oct 18 | "no, work on the feature/auth branch/ yes I have a supabase key" | Feature 1 on branch `Feature/auth`: Next.js 16 app, Supabase email and password sign-up, log-in and log-out, proxy that sends visitors to /login, shadcn/ui-style form parts, 7 Vitest tests | [#9](https://github.com/patronofalltrades/Jumper/issues/9) |
+| Oct 18 | "completely test the flow first before moving on…" | Cloud session cannot reach Supabase. Test moved to Hanif's Mac; Claude gave the steps. | — |
+| Oct 18 | Pasted the `npm run dev` log: sign-up, confirmation link, log-in work; `Date.now()` error on /lobby | Fix: `await connection()` in the Supabase server client | `b9ed7d1` |
+| Oct 18 | "also add a forget password feature because I forgot my password" | `/forgot-password` and `/reset-password`, "Forgot password?" link on Log in, safe `next` path in `/auth/callback`, 5 more tests | — |
+| Oct 18 | "I have tested enough so we acn proceed" | Feature 1 closed for review. Claude wrote the PR title and body for Hanif to open. | — |
 
 ## Decisions by Hanif
 
@@ -40,6 +47,11 @@ This ledger is source material for Hanif's reflection. Hanif writes the reflecti
 - shadcn/ui is a package in the stack, not a skill. Hanif approved it and its packages (Oct 18).
 - Supabase: `@supabase/supabase-js` + `@supabase/ssr` (not the dashboard's `@supabase/server`); variables `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, secret key only for seed and CI; add the Supabase Server skill anyway (Oct 18).
 - Hanif does every GitHub step: issues, branches, pull requests, merges. Claude only gives the steps and the text, then works on Hanif's branch (Oct 18).
+- Feature 1 work goes on Hanif's branch `Feature/auth`, not the session branch (Oct 18).
+- Test feature 1 end to end on the real Supabase project before moving on, with success responses and screenshots as evidence. Test account email: Hanif's Berkeley address, so Hanif can click the confirmation link (Oct 18).
+- The cloud session cannot reach Supabase (network policy). Hanif chose to test feature 1 on the Mac, with Claude giving the steps (Oct 18).
+- Add a forgot-password feature to feature 1 (Oct 18).
+- Hanif ended the Mac test after sign-up, the confirmation link, log-in and log-out passed: "I have tested enough so we acn proceed". The forgot-password flow and the `Date.now()` fix were not re-tested on the Mac (Oct 18).
 
 ## Corrections and agent issues
 
@@ -56,6 +68,10 @@ Record here when Hanif corrects Claude, or when Claude gets something wrong. Say
 - Oct 18: Hanif pasted Supabase setup text with the project URL and the publishable key (the secret key was masked). The ledger hook saved the prompt word for word, so the keys would have gone into the repository with the next commit. Claude found it before the commit. Fix: the hook now removes Supabase keys, JWTs and project URLs from every entry.
 - Oct 18: Claude offered to open the feature 1 issue and branch itself. Hanif corrected it: "do not merge PRs, do not open branches, do not start issues. All of these have to be done by me." (Claude note: Claude had opened issue #7, branch `docs/claude-readme` and PR #8 itself on Oct 16, when Prompt 1 asked it to.)
 
+- Oct 18: Hanif stopped Claude after "Start feature one, look into issue #8" and repeated it with "read claude.md and read.me before taking action on anything". (Claude note: Claude had started to read files and list issues without reading README.md first. Also, #8 is a pull request, not an issue; feature 1 is issue #9.)
+
+- Oct 18: Bug found by Hanif in the Mac test. After log-in, the `npm run dev` log showed `Route "/lobby": Next.js encountered the unstable value Date.now() while prerendering`. Cause: Supabase `getClaims()` reads the clock to check token expiry, and Next 16 Cache Components does not allow this during prerender. Claude did not see it in the cloud session, because the error needs a real session and the session could not reach Supabase. Fix: `await connection()` at the top of `createClient()` in `lib/supabase/server.ts`, so pages that use Supabase render at request time.
+
 ## Hanif's observations
 
 Only things Hanif said or wrote. Add the date and the exact words where possible.
@@ -66,4 +82,8 @@ Only things Hanif said or wrote. Add the date and the exact words where possible
 ## Claude notes (not Hanif's voice)
 
 - Oct 18: shadcn/ui is now in the CLAUDE.md stack and the TRD stack table.
+- Oct 18: Hanif pasted the Supabase steps for `@supabase/server` again. Claude kept the earlier decision (`@supabase/ssr`, `NEXT_PUBLIC_` names) and put the URL and publishable key only in `.env.local`, which git ignores. The secret key is not used.
+- Oct 18: The network policy blocks ui.shadcn.com, so `npx shadcn init` failed. Claude wrote `components.json` and the Button, Input and Label parts by hand, in shadcn style on Radix UI. Packages: radix-ui, class-variance-authority, clsx, tailwind-merge.
+- Oct 18: Claude changed `@types/node` from 20 to 22, because Vitest 5 needs it and the machine runs Node 22.
+- Oct 18: Hanif did not answer 2 questions. Claude chose: sign-up asks only for email and password (issue #9 puts profiles in feature 2), and the app works with email confirmation on or off.
 - Oct 17: The brief says the student merges each PR. This agrees with Hanif's rule that Claude never merges.

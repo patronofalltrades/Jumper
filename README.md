@@ -38,4 +38,28 @@ Jumper is also a passion project. Work on Jumper continues after the class.
 
 ## Run the app
 
-Available after feature 1 (sign up and log in).
+You must have Node.js 22 or a later version, and a Supabase project.
+
+1. Install the packages:
+
+   ```
+   npm install
+   ```
+
+2. Copy `.env.example` to `.env.local`. Write the project URL and the publishable key from Supabase (**Project Settings > API Keys**) into `.env.local`. Do not commit `.env.local`.
+3. Start the app:
+
+   ```
+   npm run dev
+   ```
+
+4. Open http://localhost:3000. The app sends you to the log-in page. Select **Create an account**.
+
+### Checks
+
+| Command | What it does |
+| --- | --- |
+| `npm test` | Runs the Vitest tests |
+| `npm run typecheck` | Makes the route types, then runs the TypeScript check |
+| `npm run lint` | Runs ESLint |
+| `npm run build` | Makes the production build |
