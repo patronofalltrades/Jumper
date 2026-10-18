@@ -6,6 +6,7 @@ import type { AuthState } from "@/app/actions/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Logo } from "@/components/logo";
 
 type Action = (prev: AuthState, formData: FormData) => Promise<AuthState>;
 
@@ -91,13 +92,8 @@ function AuthCard({ title, children, footer }: { title: string; children: ReactN
   return (
     <main className="flex flex-1 items-center justify-center px-4 py-10">
       <div className="w-full max-w-sm rounded-2xl border border-border bg-card p-6 shadow-panel">
-        <div className="mb-6 flex items-center gap-2.5">
-          <svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true">
-            <path d="M5 24 C5 6, 25 6, 25 24" fill="none" stroke="var(--pcb)" strokeWidth="3.2" strokeLinecap="round" />
-            <rect x="2.5" y="22" width="5" height="6" rx="1" fill="var(--ink)" />
-            <rect x="22.5" y="22" width="5" height="6" rx="1" fill="var(--ink)" />
-          </svg>
-          <span className="text-2xl font-extrabold tracking-tight">Jumper</span>
+        <div className="mb-6">
+          <Logo />
         </div>
         <h1 className="mb-5 text-xl font-bold tracking-tight">{title}</h1>
         {children}

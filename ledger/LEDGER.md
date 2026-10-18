@@ -36,6 +36,14 @@ This ledger is source material for Hanif's reflection. Hanif writes the reflecti
 | Oct 18 | "branch is ready" (`Feature/Database`) | Feature 2 on `Feature/Database`: migration with 8 tables, row-level security, profile trigger and backfill; 6 projects and 5 Perch levels (41 tasks) as JSON; Zod content schema; idempotent `npm run seed`; schema.md; 15 new Vitest tests | [#11](https://github.com/patronofalltrades/Jumper/issues/11) |
 | Oct 18 | "1. Apply it 2. We will work on names related to boardwork later." | Claude tried to apply the migration with the Management API: 403 for the access token, and the session's safety check blocked further probing. Claude asked Hanif to run the SQL in the SQL Editor. | — |
 | Oct 18 | "success no rows returned after pasting" (Hanif ran the migration in the SQL Editor), then "once finished, add to the descirption" | Claude ran the seed two times (6 projects, 5 levels, 41 tasks, no copies), checked 2 profiles for 2 accounts, and checked that a logged-out visitor sees 0 rows and cannot write. Results added to `prompts/data-model-pr.md`, because the PR is not open yet. | — |
+| Oct 18 | "Issue #12 development: … git checkout Feature/Lobby. Read Readme.md, Claude.md, Plan.md, Schema.md before touching anything and developing. Develop the lobby feature based on Issue" | Feature 2a on `Feature/Lobby`: lobby with greeting, XP, catalog cards, "Coming soon" badges and tiles, Continue button; pure `continueTarget()` with 5 tests; placeholder `/p/[project]/[level]`; PR text in `prompts/lobby-pr.md` | [#13](https://github.com/patronofalltrades/Jumper/issues/13) |
+| Oct 18 | "yes you can" (to a temporary test account for screenshots) | Playwright test on the real Supabase project: greeting, XP, Start and Continue, 6 cards, badges, not-found pages and log-out pass at 390 px in light and dark mode, and at desktop width. Test account deleted. Results in `prompts/lobby-pr.md`. | [#13](https://github.com/patronofalltrades/Jumper/issues/13) |
+| Oct 18 | "using https://github.com/morluto/rea, can you distill this user interface and experience, copy it for our jumper project?" (ToyCAD screenshot) | Claude broke the design down by hand (REA reads programs and websites, not images) and asked 3 questions | — |
+| Oct 18 | "1. A 2. Yes I will open it manually you just tell me what to do 3 Build both" | Claude gave Hanif 5 checklist lines for #13; no new branch, because `Feature/Lobby` had no PR yet | [#13](https://github.com/patronofalltrades/Jumper/issues/13) |
+| Oct 18 | "Do we want to work on a mascot…?" / "Alright so we're using the things we will be working on as card heroes" | No mascot; the Perch device and the boards are the card pictures | — |
+| Oct 18 | "I added the new work on issue 13. Let's work on it" | ToyCAD-style lobby: backdrop, Projects / My builds switch, Continue card, card row with dots, board and Perch SVG drawings, bottom dock, `/play`, `/soon/[page]`. Typecheck, lint, 27 tests and build pass; design checked with sample data. | [#13](https://github.com/patronofalltrades/Jumper/issues/13) |
+| Oct 18 | "can you show me on local?", then "still stuck… Can you safely check and troubleshoot?" | The session cannot reach the Mac. A read-only script showed the Mac's folder `~/jumper-auth` on `Feature/auth`. A second script found the folder and switched it to `Feature/Lobby`; the dev server ran. | — |
+| Oct 18 | "awesome! It's working. Some notes: 1. … scroll downwards/vertically … 2. the navigation pane should be placed on the bottom of the phone screen 3. A script should be written to detect whether a user is opening the site on a laptop or a phone" | Phone: one column of cards, full-width bottom bar. `deviceKind()` with 4 tests, and `data-device` / `data-touch` on `<html>`. 31 tests and build pass. | [#13](https://github.com/patronofalltrades/Jumper/issues/13) |
 
 ## Decisions by Hanif
 
@@ -57,7 +65,15 @@ This ledger is source material for Hanif's reflection. Hanif writes the reflecti
 - Add a forgot-password feature to feature 1 (Oct 18).
 - Feature 2 work goes on Hanif's branch `Feature/Database` (Oct 18).
 - Hanif applied the feature 2 migration in the SQL Editor after the API route failed. Apply the feature 2 migration to the Supabase project in this session's environment. Pin and part names (`esp.GPIO4`, `bbA.+`) wait for the board work (Oct 18).
+- Feature 2a (lobby) work goes on Hanif's branch `Feature/Lobby` (Oct 18).
+- Hanif allowed a temporary test account in the Supabase project to check the lobby, deleted after the test (Oct 18).
 - Hanif ended the Mac test after sign-up, the confirmation link, log-in and log-out passed: "I have tested enough so we acn proceed". The forgot-password flow and the `Date.now()` fix were not re-tested on the Mac (Oct 18).
+- Hanif chose the ToyCAD layout with the Jumper colors: "1. A" (Oct 18).
+- Hanif does the GitHub steps for the design work: "Yes I will open it manually you just tell me what to do" (Oct 18).
+- Hanif asked for both the lobby and the dock: "3 Build both" (Oct 18).
+- Hanif tested the new lobby on his Mac: "awesome! It's working." (Oct 18).
+- Hanif asked for a vertical card list and a bottom bar on phones, and for a script that detects a laptop or a phone (Oct 18).
+- Hanif agreed to no mascot: "Alright so we're using the things we will be working on as card heroes" (Oct 18).
 
 ## Corrections and agent issues
 
@@ -78,6 +94,8 @@ Record here when Hanif corrects Claude, or when Claude gets something wrong. Say
 
 - Oct 18: Bug found by Hanif in the Mac test. After log-in, the `npm run dev` log showed `Route "/lobby": Next.js encountered the unstable value Date.now() while prerendering`. Cause: Supabase `getClaims()` reads the clock to check token expiry, and Next 16 Cache Components does not allow this during prerender. Claude did not see it in the cloud session, because the error needs a real session and the session could not reach Supabase. Fix: `await connection()` at the top of `createClient()` in `lib/supabase/server.ts`, so pages that use Supabase render at request time.
 
+- Oct 18: Claude's first local-run steps did not say to `cd` into the project folder, and the second steps had a placeholder path (`/path/from/the/--- line`) that Hanif ran as written. Hanif found both from the errors ("not a git repository", "string not in pwd"). Fix: Claude sent one script that finds the folder by itself.
+
 ## Hanif's observations
 
 Only things Hanif said or wrote. Add the date and the exact words where possible.
@@ -96,3 +114,10 @@ Only things Hanif said or wrote. Add the date and the exact words where possible
 - Oct 18: This session's environment now has the Supabase URL, the secret key and an access token, and it can reach Supabase (it could not for feature 1). Claude did not apply the migration to a real project without Hanif's answer.
 - Oct 18: Content choices for feature 2: "Press Check" is not a task row (the level check is its own step, and a task must have a place or wire target). Endpoint names such as `esp.GPIO4`, `mic1.WS` and `bbA.+` are a first draft; the parts registry in features 3 and 4 can rename them. Source URLs come from Claude's knowledge; the session could not open them to check.
 - Oct 17: The brief says the student merges each PR. This agrees with Hanif's rule that Claude never merges.
+- Oct 18: Hanif wrote "Issue #12" for the lobby. #12 is the merged data model PR; the lobby issue is #13. Claude used #13.
+- Oct 18: Lobby choices by Claude: an abandoned session sends the user back to the same level; when the last level is complete, Continue opens the last level; the "Coming soon" feature tiles take their text from `content/features.json`.
+- Oct 18: REA (morluto/rea) reads binaries, apps and websites. It cannot read a screenshot, so Claude did the ToyCAD breakdown by hand.
+- Oct 18: Design choices by Claude: the "Coming soon" features and the user's snapshots are dark cards; the dock's Build button goes to `/play` (the Continue level); Dashboard and Profile go to "Coming soon" pages; the near-black of the backdrop is the same in light and dark mode. Claude checked the design with sample data on a temporary page and did not make a new test account without Hanif's answer.
+- Oct 18: The Desktop Commander tools in this session run on the cloud machine (Linux), not on Hanif's Mac, so Claude could not check the Mac directly. Claude sent read-only scripts instead.
+- Oct 18: For "detect laptop or phone", Claude used the window width (640 px, the same as Tailwind `sm:`) and not the browser's user-agent text, because the width also covers a narrow laptop window and agrees with the CSS layout. Touch is a separate attribute (`data-touch`). The layout is in CSS, so the page does not jump when the script runs.
+
