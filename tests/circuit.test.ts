@@ -167,17 +167,17 @@ describe("ESP32-S3 pin names", () => {
 
 describe("describeHole", () => {
   it("names the ESP32-S3 pin in a pin hole, and the other pins on its net", () => {
-    expect(describeHole(bench, nets(), "B-a5")).toEqual({ kind: "pin", pin: "3V3", rail: undefined, pins: [], rails: [] });
+    expect(describeHole(bench, [], nets(), "B-a5")).toEqual({ kind: "pin", pin: "3V3", part: undefined, rail: undefined, pins: [], partPins: [], rails: [] });
   });
 
   it("tells that a free hole connects to a pin through its line of 5 holes", () => {
-    expect(describeHole(bench, nets(), "A-f8")).toMatchObject({ kind: "main", pins: ["GPIO1"], rails: [] });
-    expect(describeHole(bench, nets(), "A-a8")).toMatchObject({ kind: "main", pins: [], rails: [] });
+    expect(describeHole(bench, [], nets(), "A-f8")).toMatchObject({ kind: "main", pins: ["GPIO1"], rails: [] });
+    expect(describeHole(bench, [], nets(), "A-a8")).toMatchObject({ kind: "main", pins: [], rails: [] });
   });
 
   it("tells that a rail connects to a pin through a wire", () => {
     const parts = [wire("w1", "B-d5", "A-L+3")];
-    expect(describeHole(bench, nets(parts), "A-L+20")).toMatchObject({ kind: "rail", rail: "+", pins: ["3V3"], rails: [] });
-    expect(describeHole(bench, nets(parts), "B-e5")).toMatchObject({ kind: "main", pins: ["3V3"], rails: ["+"] });
+    expect(describeHole(bench, parts, nets(parts), "A-L+20")).toMatchObject({ kind: "rail", rail: "+", pins: ["3V3"], rails: [] });
+    expect(describeHole(bench, parts, nets(parts), "B-e5")).toMatchObject({ kind: "main", pins: ["3V3"], rails: ["+"] });
   });
 });

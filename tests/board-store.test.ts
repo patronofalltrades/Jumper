@@ -65,3 +65,57 @@ describe("board store", () => {
     expect(store.getState().history).toEqual([]);
   });
 });
+
+describe("board store: modules", () => {
+  it("puts a module down with one click on a laptop", () => {
+    const store = createBoardStore();
+    store.getState().setTool("inmp441");
+    tap(store, "A-e3");
+    expect(store.getState().parts).toEqual([{ id: "mic1", type: "inmp441", at: "A-e3" }]);
+  });
+
+  it("on a phone, shows where the module goes on the first tap, and puts it down on a second tap on the same hole", () => {
+    const store = createBoardStore();
+    store.getState().setTool("st7789-154");
+    store.getState().tapHole("B-f3", true);
+    expect(store.getState().pending).toBe("B-f3");
+    expect(store.getState().parts).toEqual([]);
+    store.getState().tapHole("B-f5", true);
+    expect(store.getState().pending).toBe("B-f5");
+    store.getState().tapHole("B-f5", true);
+    expect(store.getState().parts).toEqual([{ id: "lcd1", type: "st7789-154", at: "B-f5" }]);
+    expect(store.getState().pending).toBeNull();
+  });
+
+  it("refuses a module that does not fit, and says why", () => {
+    const store = createBoardStore();
+    store.getState().setTool("pushbutton");
+    tap(store, "A-a3");
+    expect(store.getState().parts).toEqual([]);
+    expect(store.getState().notice).toEqual({ problem: "needs_gap", hole: "A-a3" });
+    store.getState().tapHole("B-j29", true);
+    expect(store.getState().notice).toEqual({ problem: "off_board", hole: "B-j29" });
+    store.getState().tapHole("B-j29", true);
+    expect(store.getState().parts).toEqual([]);
+  });
+
+  it("removes a module by a tap on a pin or under its body, and undo puts it back", () => {
+    const store = createBoardStore();
+    store.getState().setTool("inmp441");
+    tap(store, "A-e3");
+    store.getState().setTool("remove");
+    tap(store, "A-g4");
+    expect(store.getState().parts).toEqual([]);
+    store.getState().undo();
+    expect(store.getState().parts.map((p) => p.id)).toEqual(["mic1"]);
+    tap(store, "A-f5");
+    expect(store.getState().parts).toEqual([]);
+  });
+
+  it("places a speaker with two taps, on any two free holes", () => {
+    const store = createBoardStore();
+    store.getState().setTool("speaker");
+    tap(store, "A-a1", "A-a20");
+    expect(store.getState().parts).toEqual([{ id: "spk1", type: "speaker", a: "A-a1", b: "A-a20" }]);
+  });
+});

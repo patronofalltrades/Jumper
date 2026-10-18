@@ -3,13 +3,17 @@
 import { Line, OrbitControls } from "@react-three/drei";
 import { Canvas, useThree, type ThreeEvent } from "@react-three/fiber";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { Color, MathUtils, Object3D, Vector3, type CanvasTexture, type InstancedMesh } from "three";
+import { Color, MathUtils, Object3D, Vector3, type InstancedMesh } from "three";
 import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
 import { BOARD, BOARD_B_X, nearestHole, type Bench, type Hole } from "@/lib/circuit/bench";
+import { isModuleType, type ModuleType } from "@/lib/circuit/modules";
 import { buildNets, netHoles } from "@/lib/circuit/nets";
+import { checkModule, isModule, partPins } from "@/lib/circuit/parts";
 import { boardStore, useBoard } from "@/lib/game/board-store";
+import { ModuleGhost, ModuleMesh } from "./modules";
 import { PartMesh } from "./parts";
 import { drawBreadboard, drawEsp, drawShield, SHIELD } from "./textures";
+import { useFontTexture } from "./use-font-texture";
 
 const HOLE_BASE = new Color("#3B4146");
 /** The bench center, between the two breadboards. */
@@ -127,9 +131,9 @@ function Bench() {
     if (!isTap(e)) return;
     const hole = point(e);
     if (!hole) return;
-    // A phone has no hover, so a tap also shows the net of the hole.
+    // A phone has no hover, so a tap also shows the net of the hole, and a module shows where it goes before it is put down.
     boardStore.getState().setHover(hole.id);
-    boardStore.getState().tapHole(hole.id);
+    boardStore.getState().tapHole(hole.id, isTouchScreen());
   };
   const handlers = { onPointerMove: onMove, onClick, onPointerLeave: () => boardStore.getState().setHover(null) };
 
@@ -140,8 +144,9 @@ function Bench() {
       <Holes bench={bench} board="A" hot={hot} probe={probe} />
       <Holes bench={bench} board="B" hot={hot} probe={probe} />
       <Esp32S3 bench={bench} hot={hot} probe={probe} />
-      <Parts bench={bench} removing={tool === "remove"} />
-      {pending && <PendingMarker hole={bench.byId.get(pending)!} to={hover && hover !== pending ? bench.byId.get(hover) : undefined} probe={probe} />}
+      <Parts bench={bench} removing={tool === "remove"} hot={hot} probe={probe} />
+      {isModuleType(tool) && <Ghost tool={tool} />}
+      {pending && !isModuleType(tool) && <PendingMarker hole={bench.byId.get(pending)!} to={hover && hover !== pending ? bench.byId.get(hover) : undefined} probe={probe} />}
     </group>
   );
 }
@@ -229,7 +234,7 @@ function Esp32S3({ bench, hot, probe }: { bench: Bench; hot: Set<string>; probe:
     const pin = pinNear(e);
     if (!isTap(e) || !pin) return;
     boardStore.getState().setHover(pin);
-    boardStore.getState().tapHole(pin);
+    boardStore.getState().tapHole(pin, isTouchScreen());
   };
 
   return (
@@ -292,7 +297,7 @@ function Esp32S3({ bench, hot, probe }: { bench: Bench; hot: Set<string>; probe:
   );
 }
 
-function Parts({ bench, removing }: { bench: Bench; removing: boolean }) {
+function Parts({ bench, removing, hot, probe }: { bench: Bench; removing: boolean; hot: Set<string>; probe: Color }) {
   const parts = useBoard((s) => s.parts);
   const [target, setTarget] = useState<string | null>(null);
   const invalidate = useThree((s) => s.invalidate);
@@ -315,11 +320,70 @@ function Parts({ bench, removing }: { bench: Bench; removing: boolean }) {
               : undefined
           }
         >
-          <PartMesh part={p} a={bench.byId.get(p.a)!} b={bench.byId.get(p.b)!} hot={removing && target === p.id} />
+          {isModule(p) ? (
+            <ModuleMesh
+              bench={bench}
+              type={p.type}
+              at={p.at}
+              hot={hot}
+              probe={probe}
+              removeHot={removing && target === p.id}
+              {...(removing ? {} : pinHandlers(partPins(bench, p).map((pin) => pin.hole)))}
+            />
+          ) : (
+            <PartMesh part={p} a={bench.byId.get(p.a)!} b={bench.byId.get(p.b)!} hot={removing && target === p.id} />
+          )}
         </group>
       ))}
     </group>
   );
+}
+
+/**
+ * The body of a module covers its pins, so the pointer on the body points at the nearest pin: you see what the pin
+ * connects to, and a tap says to use an empty hole in the same line.
+ */
+function pinHandlers(pins: string[]) {
+  const { bench } = boardStore.getState();
+  const pinNear = (e: ThreeEvent<PointerEvent | MouseEvent>) => {
+    let best: string | null = null;
+    let bestDistance = 1.2;
+    for (const id of pins) {
+      const h = bench.byId.get(id)!;
+      const d = Math.hypot(h.x - e.point.x, h.z - e.point.z);
+      if (d < bestDistance) {
+        bestDistance = d;
+        best = id;
+      }
+    }
+    return best;
+  };
+  return {
+    onPointerMove: (e: ThreeEvent<PointerEvent>) => {
+      e.stopPropagation();
+      if (e.pointerType === "touch") return;
+      const pin = pinNear(e);
+      if (pin !== boardStore.getState().hover) boardStore.getState().setHover(pin);
+    },
+    onClick: (e: ThreeEvent<MouseEvent>) => {
+      e.stopPropagation();
+      const pin = pinNear(e);
+      if (!isTap(e) || !pin) return;
+      boardStore.getState().setHover(pin);
+      boardStore.getState().tapHole(pin, isTouchScreen());
+    },
+  };
+}
+
+/** Where the selected module will go: at the hole under the pointer, or at the tapped hole on a phone. */
+function Ghost({ tool }: { tool: ModuleType }) {
+  const bench = useBoard((s) => s.bench);
+  const parts = useBoard((s) => s.parts);
+  const hover = useBoard((s) => s.hover);
+  const pending = useBoard((s) => s.pending);
+  const at = isTouchScreen() ? pending : hover;
+  if (!at) return null;
+  return <ModuleGhost bench={bench} type={tool} at={at} ok={!checkModule(bench, parts, tool, at)} />;
 }
 
 /** A ring on the first hole of an unfinished part, and a dashed line to the hole under the pointer. */
@@ -346,36 +410,6 @@ function PendingMarker({ hole, to, probe }: { hole: Hole; to?: Hole; probe: Colo
       )}
     </group>
   );
-}
-
-/** A canvas texture, drawn again when the web fonts finish loading, so that the labels use IBM Plex Mono. */
-function useFontTexture(draw: () => CanvasTexture) {
-  const gl = useThree((s) => s.gl);
-  const invalidate = useThree((s) => s.invalidate);
-  const [texture, setTexture] = useState<CanvasTexture | null>(null);
-  const drawRef = useRef(draw);
-
-  useEffect(() => {
-    let current: CanvasTexture | null = null;
-    let live = true;
-    const paint = () => {
-      if (!live) return;
-      current?.dispose();
-      current = drawRef.current();
-      current.anisotropy = gl.capabilities.getMaxAnisotropy();
-      current.colorSpace = "srgb";
-      setTexture(current);
-      invalidate();
-    };
-    paint();
-    document.fonts.ready.then(paint);
-    return () => {
-      live = false;
-      current?.dispose();
-    };
-  }, [gl, invalidate]);
-
-  return texture;
 }
 
 /** The --probe color of the page, for the glow. It follows the light or dark theme. */

@@ -1,5 +1,5 @@
 {
-  "_note": "Text for the build page, in ASD-STE100. {act} is \"Click\" on a laptop and \"Tap\" on a phone. {pin}, {rail} and {n} are filled in by the app.",
+  "_note": "Text for the build page, in ASD-STE100. {act} is \"Click\" on a laptop and \"Tap\" on a phone. {pin}, {rail}, {part} and {n} are filled in by the app.",
   "guide": {
     "wire": {
       "start": "{act} a hole to start the wire.",
@@ -20,17 +20,32 @@
     "stop": {
       "laptop": "Press Esc to stop.",
       "phone": "Tap the same hole again to stop."
+    },
+    "speaker": {
+      "start": "{act} a hole for the + lead of the speaker.",
+      "finish": "{act} a hole for the − lead."
+    },
+    "module": {
+      "start": "{act} the hole for pin 1 of the {part}. The shadow shows where the part goes.",
+      "preview": "Look at the shadow. {act} the same hole again to put the {part} there, or tap a different hole."
     }
   },
   "problem": {
     "covered": "You cannot use this hole. The ESP32-S3 board is on top of it.",
     "esp_pin": "A pin of the ESP32-S3 is in this hole. Use an empty hole in the same line.",
-    "taken": "This hole is full. One hole holds one leg or one wire end.",
+    "taken": "This hole is full. One hole holds one leg, one pin or one wire end.",
     "led_span": "The LED legs are short. Use a hole 1 to 3 holes from the long leg.",
     "resistor_span": "Use a hole 2 to 10 holes from the first leg.",
     "nothing_to_remove": "There is no part in this hole.",
     "nothing_to_undo": "There is nothing to undo.",
-    "no_hole": "Use a hole on the breadboard."
+    "no_hole": "Use a hole on the breadboard.",
+    "part_pin": "A pin of a part is in this hole. Use an empty hole in the same line.",
+    "under_part": "You cannot use this hole. A part is on top of it.",
+    "off_board": "The part does not fit here. Some pins are off the breadboard. Move pin 1.",
+    "rail_pin": "Put the pins of this part in the middle of the breadboard, not on a rail.",
+    "needs_gap": "This part must go across the center gap, with pins on the two sides. Move pin 1.",
+    "on_gap": "This part must stay on one side of the center gap. Move pin 1.",
+    "on_part": "The part would go on top of another part. Use a different place."
   },
   "hole": {
     "pin": "ESP32-S3 pin: {pin}",
@@ -45,7 +60,9 @@
     "connectedRail": "Connected to the {rail}.",
     "empty": "Nothing connects to this line yet.",
     "pinTip": "Connect to this pin from an empty hole in the same line.",
-    "railEmpty": "Nothing connects to this rail yet."
+    "railEmpty": "Nothing connects to this rail yet.",
+    "part": "{part} pin: {pin}",
+    "partTip": "Connect to this pin from an empty hole in the same line."
   },
   "pins": {
     "3V3": "3V3 (3.3 V power)",
@@ -59,5 +76,15 @@
   "railName": {
     "+": "power rail (+)",
     "-": "ground rail (−)"
+  },
+  "tray": {
+    "label": "Parts",
+    "parts": {
+      "pushbutton": "Button",
+      "inmp441": "Mic",
+      "max98357a": "Amp",
+      "speaker": "Speaker",
+      "st7789-154": "Screen"
+    }
   }
 }
