@@ -45,6 +45,7 @@ This ledger is source material for Hanif's reflection. Hanif writes the reflecti
 - Hanif does every GitHub step: issues, branches, pull requests, merges. Claude only gives the steps and the text, then works on Hanif's branch (Oct 18).
 - Feature 1 work goes on Hanif's branch `Feature/auth`, not the session branch (Oct 18).
 - Test feature 1 end to end on the real Supabase project before moving on, with success responses and screenshots as evidence. Test account email: Hanif's Berkeley address, so Hanif can click the confirmation link (Oct 18).
+- The cloud session cannot reach Supabase (network policy). Hanif chose to test feature 1 on the Mac, with Claude giving the steps (Oct 18).
 
 ## Corrections and agent issues
 
