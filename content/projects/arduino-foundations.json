@@ -1,0 +1,9 @@
+{
+  "slug": "arduino-foundations",
+  "title": "Arduino Foundations",
+  "tagline": "Breadboard basics, Ohm's law, LEDs and buttons",
+  "board": "Arduino Uno",
+  "status": "coming_soon",
+  "position": 2,
+  "levels": []
+}

@@ -47,13 +47,20 @@ You must have Node.js 22 or a later version, and a Supabase project.
    ```
 
 2. Copy `.env.example` to `.env.local`. Write the project URL and the publishable key from Supabase (**Project Settings > API Keys**) into `.env.local`. Do not commit `.env.local`.
-3. Start the app:
+3. Make the database. Run the SQL files in `supabase/migrations/` in the Supabase **SQL Editor**, in name order. Then add `SUPABASE_SECRET_KEY` to `.env.local` and load the projects, levels and tasks:
+
+   ```
+   npm run seed
+   ```
+
+   You can run the seed again. It updates the rows and does not make copies. [schema.md](schema.md) lists the tables.
+4. Start the app:
 
    ```
    npm run dev
    ```
 
-4. Open http://localhost:3000. The app sends you to the log-in page. Select **Create an account**.
+5. Open http://localhost:3000. The app sends you to the log-in page. Select **Create an account**.
 
 ### Checks
 
@@ -63,3 +70,4 @@ You must have Node.js 22 or a later version, and a Supabase project.
 | `npm run typecheck` | Makes the route types, then runs the TypeScript check |
 | `npm run lint` | Runs ESLint |
 | `npm run build` | Makes the production build |
+| `npm run seed` | Loads `content/projects/` into the database |
