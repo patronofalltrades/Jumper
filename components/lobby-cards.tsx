@@ -85,7 +85,7 @@ export function ProjectCard({ project }: { project: ProjectRow }) {
   );
   const className = "relative flex min-h-[12rem] flex-1 flex-col overflow-hidden rounded-[28px] bg-card p-5 text-foreground shadow-panel";
   return available ? (
-    <Link href={`/p/${project.slug}/1`} className={cn(className, "w-full sm:w-[72vw] sm:max-w-[20rem]")}>
+    <Link href={`/p/${project.slug}`} className={cn(className, "w-full sm:w-[72vw] sm:max-w-[20rem]")}>
       {body}
     </Link>
   ) : (

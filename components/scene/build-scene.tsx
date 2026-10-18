@@ -2,20 +2,24 @@
 
 import { Line, OrbitControls } from "@react-three/drei";
 import { Canvas, useThree, type ThreeEvent } from "@react-three/fiber";
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Color, MathUtils, Object3D, Vector3, type InstancedMesh } from "three";
 import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
 import { BOARD, BOARD_B_X, nearestHole, type Bench, type Hole } from "@/lib/circuit/bench";
 import { isModuleType, type ModuleType } from "@/lib/circuit/modules";
 import { buildNets, netHoles } from "@/lib/circuit/nets";
-import { checkModule, isModule, partPins } from "@/lib/circuit/parts";
+import { checkModule, isModule, partPins, terminalAt, type Part } from "@/lib/circuit/parts";
+import { useTaskSpot } from "@/components/build/popups";
 import { boardStore, useBoard } from "@/lib/game/board-store";
-import { ModuleGhost, ModuleMesh } from "./modules";
-import { PartMesh } from "./parts";
+import { ModuleGhost, ModuleMesh, terminalTop } from "./modules";
+import { PartMesh, type End } from "./parts";
 import { drawBreadboard, drawEsp, drawShield, SHIELD } from "./textures";
 import { useFontTexture } from "./use-font-texture";
 
 const HOLE_BASE = new Color("#3B4146");
+/** The flash of a part that snaps in, and of a wrong one. */
+const SNAP = new Color("#3BE07F");
+const BUZZ = new Color("#E5432F");
 /** The bench center, between the two breadboards. */
 const TARGET = new Vector3(BOARD_B_X / 2 + BOARD.centerX - 0.5, 0, 1.5);
 /** Keep the camera target on the bench, so that a pan cannot lose the board. */
@@ -28,7 +32,8 @@ let pressedAt = 0;
 const isTap = (e: ThreeEvent<MouseEvent>) => e.delta < 6 && performance.now() - pressedAt < 600;
 const isTouchScreen = () => document.documentElement.dataset.touch === "true";
 
-export default function BuildScene() {
+/** The 3D bench. `children` go inside the canvas: the pop-up that hangs over the target pin. */
+export default function BuildScene({ children }: { children?: ReactNode }) {
   return (
     <Canvas
       shadows
@@ -55,6 +60,7 @@ export default function BuildScene() {
       />
       <CameraRig />
       <Bench />
+      {children}
     </Canvas>
   );
 }
@@ -113,11 +119,24 @@ function Bench() {
   const hover = useBoard((s) => s.hover);
   const pending = useBoard((s) => s.pending);
   const tool = useBoard((s) => s.tool);
+  const flash = useBoard((s) => s.flash);
   const probe = useProbeColor();
+  const spot = useTaskSpot();
+  const blink = useBlink(!!spot?.holes.length);
 
   // Nets change only when a part changes, not on each frame.
   const nets = useMemo(() => buildNets(bench, parts), [bench, parts]);
-  const hot = useMemo(() => (hover ? netHoles(nets, hover) : new Set<string>()), [nets, hover]);
+  // What glows, and in which color. A flash is first, then the net under the pointer (pale), then the task target,
+  // which blinks so that it looks different from the pointer.
+  const glow = useMemo(() => {
+    const colors = new Map<string, Color>();
+    const hover_ = probe.clone().lerp(new Color("#ffffff"), 0.45);
+    const target = blink ? probe : probe.clone().lerp(HOLE_BASE, 0.6);
+    for (const h of spot?.holes ?? []) colors.set(h, target);
+    if (hover) for (const h of netHoles(nets, hover)) colors.set(h, hover_);
+    for (const h of flash?.holes ?? []) for (const n of netHoles(nets, h)) colors.set(n, flash!.kind === "snap" ? SNAP : BUZZ);
+    return colors;
+  }, [spot, blink, hover, flash, nets, probe]);
 
   const point = (e: ThreeEvent<PointerEvent | MouseEvent>, radius?: number) =>
     nearestHole(bench, e.point.x, e.point.z, radius ?? (isTouchScreen() ? 0.7 : 0.5));
@@ -141,12 +160,14 @@ function Bench() {
     <group>
       <Breadboard x0={0} handlers={handlers} />
       <Breadboard x0={BOARD_B_X} handlers={handlers} />
-      <Holes bench={bench} board="A" hot={hot} probe={probe} />
-      <Holes bench={bench} board="B" hot={hot} probe={probe} />
-      <Esp32S3 bench={bench} hot={hot} probe={probe} />
-      <Parts bench={bench} removing={tool === "remove"} hot={hot} probe={probe} />
+      <Holes bench={bench} board="A" glow={glow} />
+      <Holes bench={bench} board="B" glow={glow} />
+      <Esp32S3 bench={bench} glow={glow} />
+      <Parts bench={bench} removing={tool === "remove"} glow={glow} />
       {isModuleType(tool) && <Ghost tool={tool} />}
-      {pending && !isModuleType(tool) && <PendingMarker hole={bench.byId.get(pending)!} to={hover && hover !== pending ? bench.byId.get(hover) : undefined} probe={probe} />}
+      {pending && !isModuleType(tool) && endOf(bench, parts, pending) && (
+        <PendingMarker hole={endOf(bench, parts, pending)!} to={hover && hover !== pending ? (endOf(bench, parts, hover) ?? undefined) : undefined} probe={probe} />
+      )}
     </group>
   );
 }
@@ -172,8 +193,27 @@ function Breadboard({ x0, handlers }: { x0: number; handlers: Handlers }) {
   );
 }
 
-/** The 400 holes of one breadboard, as one instanced mesh: one draw call. Holes in the hovered net glow. */
-function Holes({ bench, board, hot, probe }: { bench: Bench; board: "A" | "B"; hot: Set<string>; probe: Color }) {
+/** The end of a leg: a breadboard hole, or the top of a screw terminal. */
+function endOf(bench: Bench, parts: Part[], id: string): End | null {
+  const hole = bench.byId.get(id);
+  if (hole) return hole;
+  const terminal = terminalAt(bench, parts, id);
+  return terminal && { id, x: terminal.under.x, z: terminal.under.z, lift: terminalTop(terminal.part.type) };
+}
+
+/** True and false in turn, twice a second, while `on`: the blink of the target holes. */
+function useBlink(on: boolean) {
+  const [lit, setLit] = useState(true);
+  useEffect(() => {
+    if (!on) return;
+    const timer = setInterval(() => setLit((l) => !l), 600);
+    return () => clearInterval(timer);
+  }, [on]);
+  return !on || lit;
+}
+
+/** The 400 holes of one breadboard, as one instanced mesh: one draw call. Holes in `glow` light up. */
+function Holes({ bench, board, glow }: { bench: Bench; board: "A" | "B"; glow: Map<string, Color> }) {
   const mesh = useRef<InstancedMesh>(null);
   const invalidate = useThree((s) => s.invalidate);
   const holes = useMemo(() => bench.holes.filter((h) => h.board === board && !bench.covered.has(h.id)), [bench, board]);
@@ -191,10 +231,10 @@ function Holes({ bench, board, hot, probe }: { bench: Bench; board: "A" | "B"; h
 
   useLayoutEffect(() => {
     const m = mesh.current!;
-    holes.forEach((h, i) => m.setColorAt(i, hot.has(h.id) ? probe : HOLE_BASE));
+    holes.forEach((h, i) => m.setColorAt(i, glow.get(h.id) ?? HOLE_BASE));
     if (m.instanceColor) m.instanceColor.needsUpdate = true;
     invalidate();
-  }, [holes, hot, probe, invalidate]);
+  }, [holes, glow, invalidate]);
 
   return (
     <instancedMesh ref={mesh} args={[undefined, undefined, holes.length]} receiveShadow raycast={() => null}>
@@ -204,7 +244,7 @@ function Holes({ bench, board, hot, probe }: { bench: Bench; board: "A" | "B"; h
   );
 }
 
-function Esp32S3({ bench, hot, probe }: { bench: Bench; hot: Set<string>; probe: Color }) {
+function Esp32S3({ bench, glow }: { bench: Bench; glow: Map<string, Color> }) {
   const { x0, x1, z0, z1 } = bench.esp;
   const top = useFontTexture(() => drawEsp(bench));
   const shield = useFontTexture(drawShield);
@@ -256,11 +296,11 @@ function Esp32S3({ bench, hot, probe }: { bench: Bench; hot: Set<string>; probe:
           </mesh>
           {zs.map((z) => {
             const hole = bench.holes.find((h) => h.x === x && h.z === z)!;
-            const lit = hot.has(hole.id);
+            const lit = glow.get(hole.id);
             return (
               <mesh key={z} position={[x, PCB_Y + PCB_T + 0.06, z]} raycast={() => null}>
                 <boxGeometry args={[0.32, 0.12, 0.32]} />
-                <meshStandardMaterial color={lit ? probe : "#C9A646"} emissive={lit ? probe : "#000000"} emissiveIntensity={lit ? 0.8 : 0} metalness={0.6} roughness={0.35} />
+                <meshStandardMaterial color={lit ?? "#C9A646"} emissive={lit ?? "#000000"} emissiveIntensity={lit ? 0.8 : 0} metalness={0.6} roughness={0.35} />
               </mesh>
             );
           })}
@@ -297,7 +337,7 @@ function Esp32S3({ bench, hot, probe }: { bench: Bench; hot: Set<string>; probe:
   );
 }
 
-function Parts({ bench, removing, hot, probe }: { bench: Bench; removing: boolean; hot: Set<string>; probe: Color }) {
+function Parts({ bench, removing, glow }: { bench: Bench; removing: boolean; glow: Map<string, Color> }) {
   const parts = useBoard((s) => s.parts);
   const [target, setTarget] = useState<string | null>(null);
   const invalidate = useThree((s) => s.invalidate);
@@ -323,15 +363,15 @@ function Parts({ bench, removing, hot, probe }: { bench: Bench; removing: boolea
           {isModule(p) ? (
             <ModuleMesh
               bench={bench}
+              id={p.id}
               type={p.type}
               at={p.at}
-              hot={hot}
-              probe={probe}
+              glow={glow}
               removeHot={removing && target === p.id}
-              {...(removing ? {} : pinHandlers(partPins(bench, p).map((pin) => pin.hole)))}
+              {...(removing ? {} : { ...pinHandlers(partPins(bench, p).flatMap((pin) => (pin.terminal ? [] : [pin.hole]))), terminalHandlers })}
             />
           ) : (
-            <PartMesh part={p} a={bench.byId.get(p.a)!} b={bench.byId.get(p.b)!} hot={removing && target === p.id} />
+            <PartMesh part={p} a={endOf(bench, parts, p.a)!} b={endOf(bench, parts, p.b)!} hot={removing && target === p.id} />
           )}
         </group>
       ))}
@@ -375,6 +415,22 @@ function pinHandlers(pins: string[]) {
   };
 }
 
+/** A screw of a terminal: the pointer on it shows its net, and a click or tap puts a lead or a wire end into it. */
+function terminalHandlers(terminal: string) {
+  return {
+    onPointerMove: (e: ThreeEvent<PointerEvent>) => {
+      e.stopPropagation();
+      if (e.pointerType !== "touch" && boardStore.getState().hover !== terminal) boardStore.getState().setHover(terminal);
+    },
+    onClick: (e: ThreeEvent<MouseEvent>) => {
+      e.stopPropagation();
+      if (!isTap(e)) return;
+      boardStore.getState().setHover(terminal);
+      boardStore.getState().tapHole(terminal, isTouchScreen());
+    },
+  };
+}
+
 /** Where the selected module will go: at the hole under the pointer, or at the tapped hole on a phone. */
 function Ghost({ tool }: { tool: ModuleType }) {
   const bench = useBoard((s) => s.bench);
@@ -387,18 +443,18 @@ function Ghost({ tool }: { tool: ModuleType }) {
 }
 
 /** A ring on the first hole of an unfinished part, and a dashed line to the hole under the pointer. */
-function PendingMarker({ hole, to, probe }: { hole: Hole; to?: Hole; probe: Color }) {
+function PendingMarker({ hole, to, probe }: { hole: End; to?: End; probe: Color }) {
   return (
     <group>
-      <mesh position={[hole.x, 0.04, hole.z]} rotation={[-Math.PI / 2, 0, 0]} raycast={() => null}>
+      <mesh position={[hole.x, (hole.lift ?? 0) + 0.04, hole.z]} rotation={[-Math.PI / 2, 0, 0]} raycast={() => null}>
         <ringGeometry args={[0.32, 0.5, 28]} />
         <meshBasicMaterial color={probe} />
       </mesh>
       {to && (
         <Line
           points={[
-            [hole.x, 0.3, hole.z],
-            [to.x, 0.3, to.z],
+            [hole.x, (hole.lift ?? 0) + 0.3, hole.z],
+            [to.x, (to.lift ?? 0) + 0.3, to.z],
           ]}
           color={probe}
           lineWidth={2}

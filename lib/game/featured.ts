@@ -66,3 +66,14 @@ async function latestSession(supabase: Supabase, projectId: number): Promise<Lat
 export function shortName(title: string) {
   return title.split(":")[0];
 }
+
+/** The positions of the levels of one project that passed: the user has a completed session on them. */
+export async function passedLevels(supabase: Supabase, projectId: number): Promise<number[]> {
+  const { data, error } = await supabase
+    .from("sessions")
+    .select("levels!inner(position, project_id)")
+    .eq("status", "completed")
+    .eq("levels.project_id", projectId);
+  if (error) throw error;
+  return [...new Set((data ?? []).map((row) => (row.levels as unknown as { position: number }).position))];
+}

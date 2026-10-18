@@ -2,11 +2,18 @@
 
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { useEffect, useRef, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import text from "@/content/ui/build.json";
+import type { Part } from "@/lib/circuit/parts";
 import { boardStore, useBoard, WIRE_COLORS, type Tool } from "@/lib/game/board-store";
+import { needsAck, type Forbid, type Plan } from "@/lib/game/engine";
+import { useLevel } from "./autosave";
+import { useFeedback } from "./feedback";
 import { GuideBar, SpotCard, useNoticeTimer } from "./guide";
+import { PinnedPopup, PopupLayer, useLaptop, type LevelTask } from "./popups";
 import { cn } from "@/lib/utils";
+
+export type { LevelTask };
 
 // Only this page loads three.js, so the lobby stays fast (TRD 12.1).
 const BuildScene = dynamic(() => import("@/components/scene/build-scene"), {
@@ -19,6 +26,8 @@ const icon = (d: string) => (
     <path d={d} />
   </svg>
 );
+
+const fill = (template: string, values: Record<string, string | number>) => template.replace(/\{(\w+)\}/g, (_, k: string) => String(values[k]));
 
 /** The parts tray: modules and the speaker, in the order of content/ui/build.json. */
 const TRAY = Object.entries(text.tray.parts).map(([tool, label]) => ({ tool: tool as Tool, label }));
@@ -43,32 +52,87 @@ const pickTool = (tool: ToolKey) => {
   boardStore.getState().setTool(next);
 };
 
-export function BuildView({ level, eyebrow, title }: { level: string; eyebrow: string; title: string }) {
+type Props = {
+  user: string;
+  project: string;
+  levelId: number;
+  position: number;
+  eyebrow: string;
+  title: string;
+  goal: string;
+  tasks: LevelTask[];
+  forbid: Forbid[];
+  /** The ready-made board of the earlier levels, for a browser that has no saved board. */
+  start: Part[];
+};
+
+export function BuildView({ user, project, levelId, position, eyebrow, title, goal, tasks, forbid, start }: Props) {
   useKeys();
   useNoticeTimer();
-  useEffect(() => boardStore.getState().open(level), [level]);
+  useFeedback();
+  const plan: Plan = useMemo(() => ({ tasks: tasks.map((t) => ({ target: t.target, xp: t.xp })), forbid }), [tasks, forbid]);
+  const saveError = useLevel({ user, project, levelId, position, plan, start });
+  const laptop = useLaptop();
+  const progress = useBoard((s) => s.progress);
+  const mapHref = `/p/${project}`;
+
+  // A task that brings a new idea shows its Concept pop-up first.
+  const [conceptRead, setConceptRead] = useState(-1);
+  const conceptOpen = progress.phase === "task" && !!tasks[progress.index]?.concept && conceptRead < progress.index;
+  // The guide bar tells how to use the tool. A task that needs only "Got it" does not use a tool.
+  const task = tasks[progress.index];
+  const building = progress.phase === "mistake" || (progress.phase === "task" && !!task && !needsAck(task.target));
+
+  const popups = (
+    <PopupLayer level={{ eyebrow, title, goal, tasks, mapHref }} conceptOpen={conceptOpen} onConceptDone={() => setConceptRead(progress.index)} />
+  );
 
   return (
     <div className="fixed inset-0 flex flex-col bg-background">
       <header className="z-10 flex items-center gap-3 border-b border-border bg-card px-4 py-2.5">
         <Link
-          href="/lobby"
+          href={mapHref}
           className="inline-flex min-h-11 shrink-0 items-center rounded-xl border border-b-4 border-border bg-card px-3 text-sm font-semibold active:translate-y-0.5 active:border-b-2"
         >
-          ← Lobby
+          ← {text.map.levels}
         </Link>
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <p className="truncate font-mono text-[11px] font-medium tracking-wide text-muted-foreground uppercase">{eyebrow}</p>
           <h1 className="truncate text-lg leading-tight font-extrabold tracking-tight">{title}</h1>
+        </div>
+        <div className="flex shrink-0 flex-col items-end gap-1">
+          <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2.5 py-1 font-mono text-sm font-semibold">
+            <svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M13 2 4 14h7l-1 8 9-12h-7l1-8Z" fill="var(--probe)" />
+            </svg>
+            {progress.xp} XP
+          </span>
+          <div
+            className="h-2 w-24 overflow-hidden rounded-full bg-muted sm:w-40"
+            role="progressbar"
+            aria-label={fill(text.play.task, { n: progress.tasksDone, total: tasks.length })}
+            aria-valuemin={0}
+            aria-valuemax={tasks.length}
+            aria-valuenow={progress.tasksDone}
+          >
+            <div className="h-full rounded-full bg-primary transition-[width] duration-500" style={{ width: `${(progress.tasksDone / tasks.length) * 100}%` }} />
+          </div>
         </div>
       </header>
 
       <div className="relative min-h-0 flex-1">
-        <BuildScene />
-        <GuideBar />
+        <BuildScene>{laptop && <PinnedPopup tasks={tasks} hidden={conceptOpen} />}</BuildScene>
+        {building && <GuideBar />}
         <SpotCard />
+        {laptop && popups}
+        {saveError && (
+          <p role="alert" className="absolute inset-x-3 top-20 z-30 sm:inset-x-auto sm:top-3 sm:right-3 sm:max-w-xs rounded-xl border border-destructive bg-card px-3 py-2 text-sm font-semibold text-destructive shadow-panel">
+            {saveError}
+          </p>
+        )}
       </div>
 
+      {!laptop && popups}
       <ToolBar />
     </div>
   );

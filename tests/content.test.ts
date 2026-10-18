@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { placeConnections } from "@/lib/game/engine";
 import { loadProjects } from "@/lib/content/load";
 import { taskSchema } from "@/lib/content/schema";
 
@@ -46,9 +47,10 @@ describe("content/projects", () => {
     }
   });
 
-  it("makes each level require exactly the connections that its wire tasks teach", () => {
+  it("makes each level require exactly the connections that its tasks teach", () => {
     for (const l of levels) {
-      const taught = l.tasks.flatMap((t) => (t.target.kind === "wire" ? [pair(t.target)] : []));
+      // A wire task teaches one connection. A part that goes into a terminal (the speaker) teaches one for each lead.
+      const taught = l.tasks.flatMap((t) => (t.target.kind === "wire" ? [pair(t.target)] : placeConnections(t.target).map(pair)));
       expect(l.rules.require.map(pair).sort(), `${l.project} level ${l.position}`).toEqual(taught.sort());
     }
   });

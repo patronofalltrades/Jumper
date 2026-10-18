@@ -15,6 +15,8 @@ export type FootprintPin = {
   /** Rows (a, b, c…) and columns from pin 1. */
   row: number;
   col: number;
+  /** A screw terminal on top of the module: the pin is not in a breadboard hole. Speaker leads and wires go into it. */
+  terminal?: boolean;
 };
 
 export type Footprint = {
@@ -41,9 +43,13 @@ export type ModuleType = keyof typeof FOOTPRINTS;
 
 export const isModuleType = (type: string): type is ModuleType => type in FOOTPRINTS;
 
-export type PinHole = { name: string; label: string; hole: string };
+/** A pin and its hole. For a terminal pin, `hole` is the hole under the terminal: it gives the place, not a connection. */
+export type PinHole = { name: string; label: string; hole: string; terminal?: boolean };
 
-/** The hole of each pin when pin 1 is in hole `at`. Null if `at` is not a main hole, or a pin is off the breadboard. */
+/**
+ * The hole of each pin when pin 1 is in hole `at`. Null if `at` is not a main hole, or a pin is off the breadboard.
+ * A terminal pin gets the hole under it, for its place on the bench.
+ */
 export function footprintHoles(bench: Bench, type: ModuleType, at: string): PinHole[] | null {
   const first = bench.byId.get(at);
   if (!first || first.kind !== "main") return null;
@@ -53,7 +59,7 @@ export function footprintHoles(bench: Bench, type: ModuleType, at: string): PinH
     const row = MAIN_ROWS[row0 + pin.row];
     const hole = row && bench.byId.get(`${first.board}-${row}${first.n + pin.col}`);
     if (!hole) return null;
-    out.push({ name: pin.name, label: pin.label, hole: hole.id });
+    out.push({ name: pin.name, label: pin.label, hole: hole.id, ...(pin.terminal && { terminal: true }) });
   }
   return out;
 }
@@ -67,15 +73,15 @@ export function bodyOutline(bench: Bench, type: ModuleType, pins: PinHole[]) {
   return { x0: Math.min(...xs) - m, x1: Math.max(...xs) + m, z0: Math.min(...zs) - m, z1: Math.max(...zs) + m };
 }
 
-/** The holes under the body, without the pin holes. Nothing can go in them. */
+/** The holes under the body, without the holes of the pins that go into the breadboard. Nothing can go in them. */
 export function bodyHoles(bench: Bench, type: ModuleType, pins: PinHole[]): Hole[] {
   const { x0, x1, z0, z1 } = bodyOutline(bench, type, pins);
-  const own = new Set(pins.map((p) => p.hole));
+  const own = new Set(pins.filter((p) => !p.terminal).map((p) => p.hole));
   return bench.holes.filter((h) => !own.has(h.id) && h.x > x0 && h.x < x1 && h.z > z0 && h.z < z1);
 }
 
-/** True when the pins are on the two sides of the center gap. */
+/** True when the breadboard pins are on the two sides of the center gap. */
 export function crossesGap(bench: Bench, pins: PinHole[]): boolean {
-  const halves = new Set(pins.map((p) => "abcde".includes(bench.byId.get(p.hole)!.row)));
+  const halves = new Set(pins.filter((p) => !p.terminal).map((p) => "abcde".includes(bench.byId.get(p.hole)!.row)));
   return halves.size === 2;
 }
