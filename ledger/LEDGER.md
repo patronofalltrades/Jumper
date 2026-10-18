@@ -38,6 +38,10 @@ This ledger is source material for Hanif's reflection. Hanif writes the reflecti
 | Oct 18 | "success no rows returned after pasting" (Hanif ran the migration in the SQL Editor), then "once finished, add to the descirption" | Claude ran the seed two times (6 projects, 5 levels, 41 tasks, no copies), checked 2 profiles for 2 accounts, and checked that a logged-out visitor sees 0 rows and cannot write. Results added to `prompts/data-model-pr.md`, because the PR is not open yet. | — |
 | Oct 18 | "Issue #12 development: … git checkout Feature/Lobby. Read Readme.md, Claude.md, Plan.md, Schema.md before touching anything and developing. Develop the lobby feature based on Issue" | Feature 2a on `Feature/Lobby`: lobby with greeting, XP, catalog cards, "Coming soon" badges and tiles, Continue button; pure `continueTarget()` with 5 tests; placeholder `/p/[project]/[level]`; PR text in `prompts/lobby-pr.md` | [#13](https://github.com/patronofalltrades/Jumper/issues/13) |
 | Oct 18 | "yes you can" (to a temporary test account for screenshots) | Playwright test on the real Supabase project: greeting, XP, Start and Continue, 6 cards, badges, not-found pages and log-out pass at 390 px in light and dark mode, and at desktop width. Test account deleted. Results in `prompts/lobby-pr.md`. | [#13](https://github.com/patronofalltrades/Jumper/issues/13) |
+| Oct 18 | "using https://github.com/morluto/rea, can you distill this user interface and experience, copy it for our jumper project?" (ToyCAD screenshot) | Claude broke the design down by hand (REA reads programs and websites, not images) and asked 3 questions | — |
+| Oct 18 | "1. A 2. Yes I will open it manually you just tell me what to do 3 Build both" | Claude gave Hanif 5 checklist lines for #13; no new branch, because `Feature/Lobby` had no PR yet | [#13](https://github.com/patronofalltrades/Jumper/issues/13) |
+| Oct 18 | "Do we want to work on a mascot…?" / "Alright so we're using the things we will be working on as card heroes" | No mascot; the Perch device and the boards are the card pictures | — |
+| Oct 18 | "I added the new work on issue 13. Let's work on it" | ToyCAD-style lobby: backdrop, Projects / My builds switch, Continue card, card row with dots, board and Perch SVG drawings, bottom dock, `/play`, `/soon/[page]`. Typecheck, lint, 27 tests and build pass; design checked with sample data. | [#13](https://github.com/patronofalltrades/Jumper/issues/13) |
 
 ## Decisions by Hanif
 
@@ -62,6 +66,10 @@ This ledger is source material for Hanif's reflection. Hanif writes the reflecti
 - Feature 2a (lobby) work goes on Hanif's branch `Feature/Lobby` (Oct 18).
 - Hanif allowed a temporary test account in the Supabase project to check the lobby, deleted after the test (Oct 18).
 - Hanif ended the Mac test after sign-up, the confirmation link, log-in and log-out passed: "I have tested enough so we acn proceed". The forgot-password flow and the `Date.now()` fix were not re-tested on the Mac (Oct 18).
+- Hanif chose the ToyCAD layout with the Jumper colors: "1. A" (Oct 18).
+- Hanif does the GitHub steps for the design work: "Yes I will open it manually you just tell me what to do" (Oct 18).
+- Hanif asked for both the lobby and the dock: "3 Build both" (Oct 18).
+- Hanif agreed to no mascot: "Alright so we're using the things we will be working on as card heroes" (Oct 18).
 
 ## Corrections and agent issues
 
@@ -102,3 +110,6 @@ Only things Hanif said or wrote. Add the date and the exact words where possible
 - Oct 17: The brief says the student merges each PR. This agrees with Hanif's rule that Claude never merges.
 - Oct 18: Hanif wrote "Issue #12" for the lobby. #12 is the merged data model PR; the lobby issue is #13. Claude used #13.
 - Oct 18: Lobby choices by Claude: an abandoned session sends the user back to the same level; when the last level is complete, Continue opens the last level; the "Coming soon" feature tiles take their text from `content/features.json`.
+- Oct 18: REA (morluto/rea) reads binaries, apps and websites. It cannot read a screenshot, so Claude did the ToyCAD breakdown by hand.
+- Oct 18: Design choices by Claude: the "Coming soon" features and the user's snapshots are dark cards; the dock's Build button goes to `/play` (the Continue level); Dashboard and Profile go to "Coming soon" pages; the near-black of the backdrop is the same in light and dark mode. Claude checked the design with sample data on a temporary page and did not make a new test account without Hanif's answer.
+

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
+import { Dock } from "@/components/dock";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = { title: "Level · Jumper" };
@@ -18,6 +19,7 @@ export default function LevelPage({ params }: PageProps<"/p/[project]/[level]">)
           <Level slug={project} position={level} />
         ))}
       </Suspense>
+      <Dock active="build" />
     </main>
   );
 }

@@ -1,166 +1,120 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { logOut } from "@/app/actions/auth";
+import { BoardArt } from "@/components/art/board-art";
+import { Backdrop } from "@/components/backdrop";
+import { CardRow } from "@/components/card-row";
+import { Dock } from "@/components/dock";
+import { ContinueCard, DarkCard, pairs, ProjectCard, TabSwitch, type Tab } from "@/components/lobby-cards";
 import { Logo } from "@/components/logo";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import features from "@/content/features.json";
-import { continueTarget, type LatestSession } from "@/lib/game/continue";
+import { loadCatalog } from "@/lib/game/featured";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = { title: "Lobby · Jumper" };
 
-type ProjectRow = {
-  id: number;
-  slug: string;
-  title: string;
-  tagline: string;
-  board: string;
-  status: "available" | "coming_soon";
-  levels: { count: number }[];
-};
-
-export default function LobbyPage() {
-  return (
-    <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-8 px-4 py-6 sm:py-10">
-      <header className="flex items-center justify-between gap-4">
-        <Logo />
-        <form action={logOut}>
-          <Button type="submit" variant="outline">
-            Log out
-          </Button>
-        </form>
-      </header>
-      <Suspense fallback={<p className="text-muted-foreground">Loading your lobby…</p>}>
-        <Lobby />
-      </Suspense>
-    </main>
-  );
-}
-
-async function Lobby() {
-  const supabase = await createClient();
-  const { data: auth } = await supabase.auth.getClaims();
-  if (!auth?.claims) redirect("/login");
-
-  const [{ data: profile }, { data: projects, error }] = await Promise.all([
-    supabase.from("profiles").select("display_name, xp").eq("id", auth.claims.sub).maybeSingle(),
-    supabase.from("projects").select("id, slug, title, tagline, board, status, levels(count)").order("position"),
-  ]);
-  if (error) throw error;
-
-  const catalog = (projects ?? []) as ProjectRow[];
-  const name = profile?.display_name || auth.claims.email?.split("@")[0] || "there";
-  const featured = catalog.find((p) => p.status === "available");
-  const target = featured && continueTarget(await latestSession(supabase, featured.id), featured.levels[0]?.count ?? 1);
-  const href = featured && target ? `/p/${featured.slug}/${target.level}` : null;
-
+export default function LobbyPage({ searchParams }: PageProps<"/lobby">) {
   return (
     <>
-      <section className="flex flex-col gap-5 rounded-2xl border border-border bg-card p-5 shadow-panel sm:flex-row sm:items-center sm:justify-between sm:p-6">
-        <div className="flex flex-col gap-2">
-          <h1 className="text-3xl font-extrabold tracking-tight">Hi, {name}</h1>
-          <p className="flex items-center gap-2 text-muted-foreground">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-probe/15 px-3 py-1 font-mono text-sm font-semibold text-foreground">
-              <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M13 2 4 14h7l-1 8 9-12h-7l1-8Z" fill="var(--probe)" />
-              </svg>
-              {profile?.xp ?? 0} XP
-            </span>
-          </p>
-        </div>
-        {featured && target && href && (
-          <Button asChild className="min-h-11 px-6 text-base">
-            <Link href={href}>
-              {target.started ? `Continue ${shortName(featured.title)} · Level ${target.level}` : `Start ${shortName(featured.title)}`}
-            </Link>
-          </Button>
-        )}
-      </section>
-
-      <section className="flex flex-col gap-4" aria-labelledby="projects">
-        <h2 id="projects" className="text-xl font-bold tracking-tight">
-          Projects
-        </h2>
-        <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {catalog.map((project) => (
-            <li key={project.id}>
-              <ProjectCard project={project} href={project === featured ? href : `/p/${project.slug}/1`} />
-            </li>
+      <Backdrop />
+      <main className="flex w-full flex-1 flex-col gap-6 py-5 sm:gap-10 sm:py-8">
+        <Suspense fallback={<p className="px-4 font-semibold text-white sm:px-8">Loading your lobby…</p>}>
+          {searchParams.then(({ tab }) => (
+            <Lobby tab={tab === "builds" ? "builds" : "projects"} />
           ))}
-        </ul>
-      </section>
-
-      <section className="flex flex-col gap-4" aria-labelledby="coming">
-        <h2 id="coming" className="text-xl font-bold tracking-tight">
-          Coming to Jumper
-        </h2>
-        <ul className="grid gap-4 sm:grid-cols-2">
-          {features.map((feature) => (
-            <li
-              key={feature.title}
-              className="flex h-full flex-col gap-2 rounded-2xl border border-dashed border-border bg-muted p-5 text-muted-foreground"
-            >
-              <div className="flex items-start justify-between gap-3">
-                <h3 className="font-bold text-foreground">{feature.title}</h3>
-                <Badge>Coming soon</Badge>
-              </div>
-              <p className="text-sm">{feature.description}</p>
-            </li>
-          ))}
-        </ul>
-      </section>
+        </Suspense>
+      </main>
     </>
   );
 }
 
-function ProjectCard({ project, href }: { project: ProjectRow; href: string | null }) {
-  const available = project.status === "available" && href;
+async function Lobby({ tab }: { tab: Tab }) {
+  const supabase = await createClient();
+  const { data: auth } = await supabase.auth.getClaims();
+  if (!auth?.claims) redirect("/login");
+
+  const [{ data: profile }, { catalog, featured }] = await Promise.all([
+    supabase.from("profiles").select("display_name, xp").eq("id", auth.claims.sub).maybeSingle(),
+    loadCatalog(supabase),
+  ]);
+  const name = profile?.display_name || auth.claims.email?.split("@")[0] || "there";
+  const hero = featured && <ContinueCard featured={featured} name={name} />;
+
   return (
-    <article
-      className={
-        available
-          ? "flex h-full flex-col gap-3 rounded-2xl border border-border bg-card p-5 shadow-panel"
-          : "flex h-full flex-col gap-3 rounded-2xl border border-border bg-muted p-5"
-      }
-    >
-      <div className="flex items-start justify-between gap-3">
-        <span className="font-mono text-xs font-medium tracking-wide text-muted-foreground uppercase">{project.board}</span>
-        {!available && <Badge>Coming soon</Badge>}
-      </div>
-      <h3 className="text-lg leading-snug font-bold">{project.title}</h3>
-      <p className="flex-1 text-sm text-muted-foreground">{project.tagline}</p>
-      {available ? (
-        <Button asChild className="min-h-11">
-          <Link href={href}>Open</Link>
-        </Button>
+    <>
+      <header className="grid grid-cols-[1fr_auto] items-center gap-x-4 gap-y-5 px-4 sm:grid-cols-[1fr_auto_1fr] sm:px-8">
+        <Logo onDark />
+        <TabSwitch tab={tab} />
+        <div className="col-start-2 row-start-1 flex items-center justify-end gap-2 sm:col-start-3">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1.5 font-mono text-sm font-semibold text-white">
+            <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M13 2 4 14h7l-1 8 9-12h-7l1-8Z" fill="var(--probe)" />
+            </svg>
+            {profile?.xp ?? 0} XP
+          </span>
+          <form action={logOut}>
+            <button type="submit" className="rounded-full px-3 py-1.5 text-sm font-semibold text-white/80 hover:bg-white/10 hover:text-white">
+              Log out
+            </button>
+          </form>
+        </div>
+      </header>
+
+      <h1 className="sr-only">Lobby</h1>
+      {tab === "projects" ? (
+        <CardRow label="Projects">
+          {[
+            hero,
+            ...pairs(catalog.filter((p) => p !== featured?.project)).map((pair) => (
+              <div key={pair[0].id} className="flex h-full flex-col gap-3">
+                {pair.map((project) => (
+                  <ProjectCard key={project.id} project={project} />
+                ))}
+              </div>
+            )),
+            ...features.map((feature) => (
+              <DarkCard key={feature.title} label="Coming soon" title={feature.title}>
+                <p className="text-sm text-white/70">{feature.description}</p>
+              </DarkCard>
+            )),
+          ].filter(Boolean)}
+        </CardRow>
       ) : (
-        <Button disabled variant="outline" className="min-h-11">
-          Start
-        </Button>
+        <CardRow label="My builds">{[hero, ...(await builds(supabase))].filter(Boolean)}</CardRow>
       )}
-    </article>
+      <Dock active={tab === "builds" ? "builds" : "lobby"} />
+    </>
   );
 }
 
-// The most recent session of this user in one project, with the position of its level.
-async function latestSession(supabase: Awaited<ReturnType<typeof createClient>>, projectId: number): Promise<LatestSession | null> {
+// The user's snapshots as dark cards, newest first. Snapshots are saved in build mode (feature 6).
+async function builds(supabase: Awaited<ReturnType<typeof createClient>>) {
   const { data, error } = await supabase
-    .from("sessions")
-    .select("status, levels!inner(position, project_id)")
-    .eq("levels.project_id", projectId)
-    .order("started_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+    .from("snapshots")
+    .select("id, title, created_at, levels(position, title, projects(board))")
+    .order("created_at", { ascending: false })
+    .limit(12);
   if (error) throw error;
-  if (!data) return null;
-  const level = data.levels as unknown as { position: number };
-  return { level: level.position, status: data.status };
-}
 
-// "Perch: a home for your AI agent" → "Perch"
-function shortName(title: string) {
-  return title.split(":")[0];
+  if (!data?.length) {
+    return [
+      <DarkCard key="empty" label="My builds" title="No builds yet">
+        <p className="text-sm text-white/70">When you save a snapshot of your board in build mode, it shows here.</p>
+        <BoardArt board="ESP32-S3" className="mt-auto w-full opacity-40" />
+      </DarkCard>,
+    ];
+  }
+  return data.map((snap) => {
+    const level = snap.levels as unknown as { position: number; title: string; projects: { board: string } };
+    const date = new Date(snap.created_at).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+    return (
+      <DarkCard key={snap.id} label={date} title={snap.title}>
+        <p className="text-sm text-white/70">
+          Level {level.position} · {level.title}
+        </p>
+        <BoardArt board={level.projects.board} className="mt-auto w-full" />
+      </DarkCard>
+    );
+  });
 }
