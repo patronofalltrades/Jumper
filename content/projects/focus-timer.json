@@ -1,0 +1,9 @@
+{
+  "slug": "focus-timer",
+  "title": "Focus timer with buzzer",
+  "tagline": "PWM sound, buttons, LED patterns",
+  "board": "ESP32-C3",
+  "status": "coming_soon",
+  "position": 5,
+  "levels": []
+}

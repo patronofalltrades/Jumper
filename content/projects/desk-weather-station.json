@@ -1,0 +1,9 @@
+{
+  "slug": "desk-weather-station",
+  "title": "Desk weather station",
+  "tagline": "Sensors, pull-up resistors, I²C screen",
+  "board": "ESP32 DevKit V1",
+  "status": "coming_soon",
+  "position": 3,
+  "levels": []
+}

@@ -1,0 +1,866 @@
+{
+  "slug": "perch",
+  "title": "Perch: a home for your AI agent",
+  "tagline": "Power, buttons, I²S audio in and out, SPI screen",
+  "board": "ESP32-S3",
+  "status": "available",
+  "position": 1,
+  "levels": [
+    {
+      "position": 1,
+      "title": "Set up the board",
+      "goal": "Put two breadboards side by side, seat the ESP32-S3 across them, and power the rails.",
+      "rules": {
+        "require": [
+          {
+            "a": "esp.3V3",
+            "b": "bbA.+"
+          },
+          {
+            "a": "esp.GND",
+            "b": "bbA.-"
+          },
+          {
+            "a": "bbA.+",
+            "b": "bbB.+"
+          },
+          {
+            "a": "bbA.-",
+            "b": "bbB.-"
+          }
+        ],
+        "forbid": [
+          {
+            "a": "esp.3V3",
+            "b": "esp.GND",
+            "code": "short_power",
+            "message": "This wire connects 3.3 V to ground. That is a short circuit: a large current flows, and the board can get hot or reset. Move the wire so that 3.3 V and ground stay apart."
+          }
+        ]
+      },
+      "xp": 50,
+      "tasks": [
+        {
+          "position": 1,
+          "kind": "place",
+          "instruction": "Put breadboard A on the bench.",
+          "popup_why": "Each column of 5 holes is connected inside the breadboard. The center gap separates the two halves. The long rails at the edges carry power along the full board.",
+          "concept": "Breadboard: Metal clips under the holes connect each group of 5 holes in a column. The center gap keeps the two halves apart, so a part can sit across it without a short. The rails at the edges carry power and ground along the board.",
+          "target": {
+            "kind": "place",
+            "part": "bb400",
+            "id": "bbA",
+            "zone": "table-left"
+          },
+          "source_url": "https://learn.sparkfun.com/tutorials/how-to-use-a-breadboard/all",
+          "xp": 10
+        },
+        {
+          "position": 2,
+          "kind": "place",
+          "instruction": "Put breadboard B to the right of breadboard A.",
+          "popup_why": "The ESP32-S3-DevKitC-1 is wide. On one 400-hole breadboard, its pins fill almost every hole in their columns, and no holes stay free for wires. Two breadboards give each row of pins its own board.",
+          "concept": null,
+          "target": {
+            "kind": "place",
+            "part": "bb400",
+            "id": "bbB",
+            "zone": "table-right"
+          },
+          "source_url": "https://docs.espressif.com/projects/esp-dev-kits/en/latest/esp32s3/esp32-s3-devkitc-1/user_guide.html",
+          "xp": 10
+        },
+        {
+          "position": 3,
+          "kind": "place",
+          "instruction": "Seat the ESP32-S3 across the two breadboards.",
+          "popup_why": "One row of pins goes into breadboard A and the other row into breadboard B. The two rows are never connected, and each pin has free holes in its column for wires.",
+          "concept": null,
+          "target": {
+            "kind": "place",
+            "part": "esp32-s3-devkitc-1",
+            "id": "esp",
+            "zone": "across-bbA-bbB"
+          },
+          "source_url": "https://docs.espressif.com/projects/esp-dev-kits/en/latest/esp32s3/esp32-s3-devkitc-1/user_guide.html",
+          "xp": 10
+        },
+        {
+          "position": 4,
+          "kind": "wire",
+          "instruction": "Connect the 3V3 pin to the + rail of breadboard A.",
+          "popup_why": "The 3V3 pin gives 3.3 V from the regulator on the board. On the + rail, this power is near every part that needs it.",
+          "concept": "Power rails: The two long lines at the edge of a breadboard are rails. One rail carries power (+) and one carries ground (−). Parts connect to the rail with short wires, so you do not run a long wire back to the board for each part.",
+          "target": {
+            "kind": "wire",
+            "a": "esp.3V3",
+            "b": "bbA.+"
+          },
+          "source_url": "https://docs.espressif.com/projects/esp-dev-kits/en/latest/esp32s3/esp32-s3-devkitc-1/user_guide.html",
+          "xp": 10
+        },
+        {
+          "position": 5,
+          "kind": "wire",
+          "instruction": "Connect a GND pin to the − rail of breadboard A.",
+          "popup_why": "Ground is the 0 V return path. Current flows out of 3V3, through a part, and back into GND. Without ground, the loop is open and nothing works.",
+          "concept": null,
+          "target": {
+            "kind": "wire",
+            "a": "esp.GND",
+            "b": "bbA.-"
+          },
+          "source_url": "https://docs.espressif.com/projects/esp-dev-kits/en/latest/esp32s3/esp32-s3-devkitc-1/user_guide.html",
+          "xp": 10
+        },
+        {
+          "position": 6,
+          "kind": "wire",
+          "instruction": "Connect the + rail of breadboard A to the + rail of breadboard B.",
+          "popup_why": "The rails of two breadboards are not connected. This jumper carries 3.3 V to breadboard B, so parts on B get power too.",
+          "concept": null,
+          "target": {
+            "kind": "wire",
+            "a": "bbA.+",
+            "b": "bbB.+"
+          },
+          "source_url": "https://learn.sparkfun.com/tutorials/how-to-use-a-breadboard/all",
+          "xp": 10
+        },
+        {
+          "position": 7,
+          "kind": "wire",
+          "instruction": "Connect the − rail of breadboard A to the − rail of breadboard B.",
+          "popup_why": "All parts must share one ground. Then a 3.3 V signal from the ESP32-S3 means the same thing to a part on breadboard B.",
+          "concept": null,
+          "target": {
+            "kind": "wire",
+            "a": "bbA.-",
+            "b": "bbB.-"
+          },
+          "source_url": "https://learn.sparkfun.com/tutorials/how-to-use-a-breadboard/all",
+          "xp": 10
+        }
+      ]
+    },
+    {
+      "position": 2,
+      "title": "Talk button and status light",
+      "goal": "Add a push button on GPIO 1 and an LED with a 220 Ω resistor on GPIO 2.",
+      "rules": {
+        "require": [
+          {
+            "a": "esp.GPIO1",
+            "b": "btn1.1"
+          },
+          {
+            "a": "btn1.2",
+            "b": "esp.GND"
+          },
+          {
+            "a": "esp.GPIO2",
+            "b": "r1.1"
+          },
+          {
+            "a": "r1.2",
+            "b": "led1.anode"
+          },
+          {
+            "a": "led1.cathode",
+            "b": "esp.GND"
+          }
+        ],
+        "forbid": [
+          {
+            "a": "esp.3V3",
+            "b": "esp.GND",
+            "code": "short_power",
+            "message": "This wire connects 3.3 V to ground. That is a short circuit: a large current flows, and the board can get hot or reset. Move the wire so that 3.3 V and ground stay apart."
+          },
+          {
+            "a": "esp.GPIO1",
+            "b": "esp.GND",
+            "code": "button_bypassed",
+            "message": "This wire connects GPIO 1 directly to ground, around the button. The pin always reads \"pressed\". Connect GPIO 1 to one side of the button only."
+          },
+          {
+            "a": "led1.anode",
+            "b": "esp.GND",
+            "code": "reversed_led",
+            "message": "The LED is backwards. Its long leg (+) is on ground, so no current flows and it stays dark. Turn the LED around: long leg to the resistor, short leg to the − rail."
+          },
+          {
+            "a": "esp.GPIO2",
+            "b": "led1.anode",
+            "code": "missing_resistor",
+            "message": "The LED connects to GPIO 2 without the resistor. Too much current flows, and the LED or the pin can be damaged. Put the 220 Ω resistor between GPIO 2 and the LED."
+          }
+        ]
+      },
+      "xp": 50,
+      "tasks": [
+        {
+          "position": 1,
+          "kind": "place",
+          "instruction": "Put the push button across the center gap of breadboard A.",
+          "popup_why": "A 4-leg button has two pairs of legs that are always connected. Across the gap, each pair sits in its own column, so only a press joins the two sides.",
+          "concept": null,
+          "target": {
+            "kind": "place",
+            "part": "pushbutton",
+            "id": "btn1",
+            "zone": "bbA-center-gap"
+          },
+          "source_url": "https://learn.sparkfun.com/tutorials/switch-basics/all",
+          "xp": 10
+        },
+        {
+          "position": 2,
+          "kind": "wire",
+          "instruction": "Connect GPIO 1 to one side of the button.",
+          "popup_why": "GPIO 1 reads the button. The code turns on the internal pull-up, so the pin reads HIGH until the button connects it to ground.",
+          "concept": "Pull-up resistor: A pin that connects to nothing \"floats\" and reads random values. A pull-up resistor connects the pin weakly to 3.3 V, so it reads HIGH until a button pulls it to ground. The ESP32-S3 has an internal pull-up, so you do not add a resistor.",
+          "target": {
+            "kind": "wire",
+            "a": "esp.GPIO1",
+            "b": "btn1.1"
+          },
+          "source_url": "https://learn.sparkfun.com/tutorials/pull-up-resistors/all",
+          "xp": 10
+        },
+        {
+          "position": 3,
+          "kind": "wire",
+          "instruction": "Connect the other side of the button to the − rail.",
+          "popup_why": "A press connects GPIO 1 to ground, and the pin reads LOW. Released, the pull-up keeps it HIGH. Thus LOW means \"pressed\".",
+          "concept": null,
+          "target": {
+            "kind": "wire",
+            "a": "btn1.2",
+            "b": "esp.GND"
+          },
+          "source_url": "https://learn.sparkfun.com/tutorials/pull-up-resistors/all",
+          "xp": 10
+        },
+        {
+          "position": 4,
+          "kind": "place",
+          "instruction": "Put the 220 Ω resistor on breadboard A.",
+          "popup_why": "The resistor limits the current through the LED. Without it, too much current flows. The LED can burn out, and the GPIO pin gets stressed.",
+          "concept": null,
+          "target": {
+            "kind": "place",
+            "part": "resistor-220",
+            "id": "r1",
+            "zone": "bbA"
+          },
+          "source_url": "https://learn.sparkfun.com/tutorials/light-emitting-diodes-leds/all",
+          "xp": 10
+        },
+        {
+          "position": 5,
+          "kind": "place",
+          "instruction": "Put the LED on breadboard A, with its legs in two different columns.",
+          "popup_why": "An LED has a polarity. The long leg is + (anode) and the short leg is − (cathode). Current flows only from + to −.",
+          "concept": null,
+          "target": {
+            "kind": "place",
+            "part": "led",
+            "id": "led1",
+            "zone": "bbA"
+          },
+          "source_url": "https://learn.sparkfun.com/tutorials/light-emitting-diodes-leds/all",
+          "xp": 10
+        },
+        {
+          "position": 6,
+          "kind": "wire",
+          "instruction": "Connect GPIO 2 to one leg of the resistor.",
+          "popup_why": "GPIO 2 switches the LED. When the code sets the pin HIGH, 3.3 V goes through the resistor to the LED.",
+          "concept": null,
+          "target": {
+            "kind": "wire",
+            "a": "esp.GPIO2",
+            "b": "r1.1"
+          },
+          "source_url": "https://learn.sparkfun.com/tutorials/light-emitting-diodes-leds/all",
+          "xp": 10
+        },
+        {
+          "position": 7,
+          "kind": "wire",
+          "instruction": "Connect the other leg of the resistor to the long leg (+) of the LED.",
+          "popup_why": "Current goes from the resistor into the + leg. With 3.3 V, about 2 V across a red LED and 220 Ω, the current is about (3.3 − 2) ÷ 220 ≈ 6 mA. That is bright enough and safe.",
+          "concept": null,
+          "target": {
+            "kind": "wire",
+            "a": "r1.2",
+            "b": "led1.anode"
+          },
+          "source_url": "https://learn.sparkfun.com/tutorials/light-emitting-diodes-leds/all",
+          "xp": 10
+        },
+        {
+          "position": 8,
+          "kind": "wire",
+          "instruction": "Connect the short leg (−) of the LED to the − rail.",
+          "popup_why": "The − leg returns the current to ground and closes the loop. Now GPIO 2 HIGH turns the light on, and LOW turns it off.",
+          "concept": null,
+          "target": {
+            "kind": "wire",
+            "a": "led1.cathode",
+            "b": "esp.GND"
+          },
+          "source_url": "https://learn.sparkfun.com/tutorials/light-emitting-diodes-leds/all",
+          "xp": 10
+        }
+      ]
+    },
+    {
+      "position": 3,
+      "title": "Ears",
+      "goal": "Connect the INMP441 I²S microphone.",
+      "rules": {
+        "require": [
+          {
+            "a": "mic1.VDD",
+            "b": "esp.3V3"
+          },
+          {
+            "a": "mic1.GND",
+            "b": "esp.GND"
+          },
+          {
+            "a": "mic1.LR",
+            "b": "esp.GND"
+          },
+          {
+            "a": "mic1.WS",
+            "b": "esp.GPIO4"
+          },
+          {
+            "a": "mic1.SCK",
+            "b": "esp.GPIO5"
+          },
+          {
+            "a": "mic1.SD",
+            "b": "esp.GPIO6"
+          }
+        ],
+        "forbid": [
+          {
+            "a": "esp.3V3",
+            "b": "esp.GND",
+            "code": "short_power",
+            "message": "This wire connects 3.3 V to ground. That is a short circuit: a large current flows, and the board can get hot or reset. Move the wire so that 3.3 V and ground stay apart."
+          },
+          {
+            "a": "mic1.VDD",
+            "b": "esp.GND",
+            "code": "reversed_power",
+            "message": "The power of the mic is backwards: VDD is on ground. This can damage the mic. Connect VDD to the + rail and GND to the − rail."
+          }
+        ]
+      },
+      "xp": 50,
+      "tasks": [
+        {
+          "position": 1,
+          "kind": "place",
+          "instruction": "Put the INMP441 mic on breadboard B.",
+          "popup_why": "On the breadboard, each of the 6 mic pins has its own column. Thus each pin gets its own wire.",
+          "concept": "I²S: I²S sends digital sound between chips on three wires. A bit clock (SCK) ticks once for each bit. A word select (WS) tells which channel, left or right, is on the line. A data line (SD) carries the bits. The ESP32-S3 makes the clocks, and the mic sends the data.",
+          "target": {
+            "kind": "place",
+            "part": "inmp441",
+            "id": "mic1",
+            "zone": "bbB"
+          },
+          "source_url": "https://invensense.tdk.com/wp-content/uploads/2015/02/INMP441.pdf",
+          "xp": 10
+        },
+        {
+          "position": 2,
+          "kind": "wire",
+          "instruction": "Connect VDD of the mic to the + rail (3.3 V).",
+          "popup_why": "VDD is the power input of the mic. The INMP441 works from 3.3 V, so the + rail is correct.",
+          "concept": null,
+          "target": {
+            "kind": "wire",
+            "a": "mic1.VDD",
+            "b": "esp.3V3"
+          },
+          "source_url": "https://invensense.tdk.com/wp-content/uploads/2015/02/INMP441.pdf",
+          "xp": 10
+        },
+        {
+          "position": 3,
+          "kind": "wire",
+          "instruction": "Connect GND of the mic to the − rail.",
+          "popup_why": "The mic needs the same ground as the ESP32-S3. Then both chips agree on what a 0 and a 1 are.",
+          "concept": null,
+          "target": {
+            "kind": "wire",
+            "a": "mic1.GND",
+            "b": "esp.GND"
+          },
+          "source_url": "https://invensense.tdk.com/wp-content/uploads/2015/02/INMP441.pdf",
+          "xp": 10
+        },
+        {
+          "position": 4,
+          "kind": "wire",
+          "instruction": "Connect L/R of the mic to the − rail.",
+          "popup_why": "L/R selects the channel. On ground, the mic sends its sound in the left-channel slot. If L/R is not connected, the mic does not know which slot to use.",
+          "concept": null,
+          "target": {
+            "kind": "wire",
+            "a": "mic1.LR",
+            "b": "esp.GND"
+          },
+          "source_url": "https://invensense.tdk.com/wp-content/uploads/2015/02/INMP441.pdf",
+          "xp": 10
+        },
+        {
+          "position": 5,
+          "kind": "wire",
+          "instruction": "Connect WS of the mic to GPIO 4.",
+          "popup_why": "This is WS (word select). It tells the mic when to change between left and right audio. The ESP32-S3 drives it from GPIO 4.",
+          "concept": null,
+          "target": {
+            "kind": "wire",
+            "a": "mic1.WS",
+            "b": "esp.GPIO4"
+          },
+          "source_url": "https://docs.keyestudio.com/projects/ESP32S3_LCD154/en/latest/LCD154/LCD154.html",
+          "xp": 10
+        },
+        {
+          "position": 6,
+          "kind": "wire",
+          "instruction": "Connect SCK of the mic to GPIO 5.",
+          "popup_why": "SCK (serial clock) ticks once for each bit of sound. The mic sends one bit on each tick, so the two chips stay in step.",
+          "concept": null,
+          "target": {
+            "kind": "wire",
+            "a": "mic1.SCK",
+            "b": "esp.GPIO5"
+          },
+          "source_url": "https://docs.keyestudio.com/projects/ESP32S3_LCD154/en/latest/LCD154/LCD154.html",
+          "xp": 10
+        },
+        {
+          "position": 7,
+          "kind": "wire",
+          "instruction": "Connect SD of the mic to GPIO 6.",
+          "popup_why": "SD (serial data) carries the sound from the mic to the ESP32-S3. In this level, it is the only wire where the data goes into the ESP32-S3.",
+          "concept": null,
+          "target": {
+            "kind": "wire",
+            "a": "mic1.SD",
+            "b": "esp.GPIO6"
+          },
+          "source_url": "https://docs.keyestudio.com/projects/ESP32S3_LCD154/en/latest/LCD154/LCD154.html",
+          "xp": 10
+        }
+      ]
+    },
+    {
+      "position": 4,
+      "title": "Voice",
+      "goal": "Connect the MAX98357A amplifier and the speaker.",
+      "rules": {
+        "require": [
+          {
+            "a": "amp1.VIN",
+            "b": "esp.3V3"
+          },
+          {
+            "a": "amp1.GND",
+            "b": "esp.GND"
+          },
+          {
+            "a": "amp1.SD",
+            "b": "amp1.VIN"
+          },
+          {
+            "a": "amp1.DIN",
+            "b": "esp.GPIO7"
+          },
+          {
+            "a": "amp1.BCLK",
+            "b": "esp.GPIO15"
+          },
+          {
+            "a": "amp1.LRC",
+            "b": "esp.GPIO16"
+          },
+          {
+            "a": "spk1.+",
+            "b": "amp1.OUT+"
+          },
+          {
+            "a": "spk1.-",
+            "b": "amp1.OUT-"
+          }
+        ],
+        "forbid": [
+          {
+            "a": "esp.3V3",
+            "b": "esp.GND",
+            "code": "short_power",
+            "message": "This wire connects 3.3 V to ground. That is a short circuit: a large current flows, and the board can get hot or reset. Move the wire so that 3.3 V and ground stay apart."
+          },
+          {
+            "a": "amp1.SD",
+            "b": "esp.GND",
+            "code": "amp_shutdown",
+            "message": "SD is on ground, so the amplifier is in shutdown and stays silent. Connect SD to Vin."
+          },
+          {
+            "a": "amp1.OUT+",
+            "b": "esp.GND",
+            "code": "speaker_to_ground",
+            "message": "This wire connects an output of the amplifier to ground. The outputs must connect only to the speaker. Move the wire to the speaker."
+          },
+          {
+            "a": "amp1.OUT-",
+            "b": "esp.GND",
+            "code": "speaker_to_ground",
+            "message": "This wire connects an output of the amplifier to ground. The outputs must connect only to the speaker. Move the wire to the speaker."
+          }
+        ]
+      },
+      "xp": 50,
+      "tasks": [
+        {
+          "position": 1,
+          "kind": "place",
+          "instruction": "Put the MAX98357A amplifier on breadboard A.",
+          "popup_why": "On the breadboard, each pin of the amplifier has its own column. Thus each pin gets its own wire.",
+          "concept": "Class D amplifier: A GPIO pin cannot drive a speaker, because a speaker needs much more current. The MAX98357A takes the I²S sound data, changes it back into an analog signal and makes it stronger. \"Class D\" means that its output switches on and off very fast, so it wastes little power as heat.",
+          "target": {
+            "kind": "place",
+            "part": "max98357a",
+            "id": "amp1",
+            "zone": "bbA"
+          },
+          "source_url": "https://learn.adafruit.com/adafruit-max98357-i2s-class-d-mono-amp/pinouts",
+          "xp": 10
+        },
+        {
+          "position": 2,
+          "kind": "wire",
+          "instruction": "Connect Vin of the amplifier to the + rail (3.3 V).",
+          "popup_why": "Vin powers the amplifier. It works from 2.5 V to 5.5 V. On 3.3 V, it is less loud than on 5 V, but loud enough for a desk device.",
+          "concept": null,
+          "target": {
+            "kind": "wire",
+            "a": "amp1.VIN",
+            "b": "esp.3V3"
+          },
+          "source_url": "https://learn.adafruit.com/adafruit-max98357-i2s-class-d-mono-amp/pinouts",
+          "xp": 10
+        },
+        {
+          "position": 3,
+          "kind": "wire",
+          "instruction": "Connect GND of the amplifier to the − rail.",
+          "popup_why": "The amplifier needs the same ground as the ESP32-S3, so it reads the data signals correctly.",
+          "concept": null,
+          "target": {
+            "kind": "wire",
+            "a": "amp1.GND",
+            "b": "esp.GND"
+          },
+          "source_url": "https://learn.adafruit.com/adafruit-max98357-i2s-class-d-mono-amp/pinouts",
+          "xp": 10
+        },
+        {
+          "position": 4,
+          "kind": "wire",
+          "instruction": "Connect SD of the amplifier to its Vin pin.",
+          "popup_why": "SD (shutdown) turns the amplifier on and also selects the channel. On ground, the amplifier is off. On Vin, the amplifier is on and plays the left channel.",
+          "concept": null,
+          "target": {
+            "kind": "wire",
+            "a": "amp1.SD",
+            "b": "amp1.VIN"
+          },
+          "source_url": "https://learn.adafruit.com/adafruit-max98357-i2s-class-d-mono-amp/pinouts",
+          "xp": 10
+        },
+        {
+          "position": 5,
+          "kind": "wire",
+          "instruction": "Connect DIN of the amplifier to GPIO 7.",
+          "popup_why": "DIN (data in) carries the sound from the ESP32-S3 to the amplifier. In level 3, the data came in. Here, the data goes out.",
+          "concept": null,
+          "target": {
+            "kind": "wire",
+            "a": "amp1.DIN",
+            "b": "esp.GPIO7"
+          },
+          "source_url": "https://docs.keyestudio.com/projects/ESP32S3_LCD154/en/latest/LCD154/LCD154.html",
+          "xp": 10
+        },
+        {
+          "position": 6,
+          "kind": "wire",
+          "instruction": "Connect BCLK of the amplifier to GPIO 15.",
+          "popup_why": "BCLK is the bit clock. It does the same job as SCK on the mic: one tick for each bit.",
+          "concept": null,
+          "target": {
+            "kind": "wire",
+            "a": "amp1.BCLK",
+            "b": "esp.GPIO15"
+          },
+          "source_url": "https://docs.keyestudio.com/projects/ESP32S3_LCD154/en/latest/LCD154/LCD154.html",
+          "xp": 10
+        },
+        {
+          "position": 7,
+          "kind": "wire",
+          "instruction": "Connect LRC of the amplifier to GPIO 16.",
+          "popup_why": "LRC (left/right clock) is the word select. It does the same job as WS on the mic. It tells the amplifier which channel each sample belongs to.",
+          "concept": null,
+          "target": {
+            "kind": "wire",
+            "a": "amp1.LRC",
+            "b": "esp.GPIO16"
+          },
+          "source_url": "https://docs.keyestudio.com/projects/ESP32S3_LCD154/en/latest/LCD154/LCD154.html",
+          "xp": 10
+        },
+        {
+          "position": 8,
+          "kind": "place",
+          "instruction": "Put the speaker next to breadboard A.",
+          "popup_why": "The speaker does not go into the breadboard. It connects to the two output pins of the amplifier.",
+          "concept": null,
+          "target": {
+            "kind": "place",
+            "part": "speaker",
+            "id": "spk1",
+            "zone": "beside-bbA"
+          },
+          "source_url": "https://learn.adafruit.com/adafruit-max98357-i2s-class-d-mono-amp/pinouts",
+          "xp": 10
+        },
+        {
+          "position": 9,
+          "kind": "wire",
+          "instruction": "Connect the + wire of the speaker to the + output of the amplifier.",
+          "popup_why": "The amplifier drives the speaker from two outputs that move in opposite directions. This doubles the voltage across the speaker.",
+          "concept": null,
+          "target": {
+            "kind": "wire",
+            "a": "spk1.+",
+            "b": "amp1.OUT+"
+          },
+          "source_url": "https://learn.adafruit.com/adafruit-max98357-i2s-class-d-mono-amp/pinouts",
+          "xp": 10
+        },
+        {
+          "position": 10,
+          "kind": "wire",
+          "instruction": "Connect the − wire of the speaker to the − output of the amplifier.",
+          "popup_why": "Do not connect a speaker wire to ground. The two outputs are not ground and +. Both of them move, and a wire to ground can damage the amplifier.",
+          "concept": null,
+          "target": {
+            "kind": "wire",
+            "a": "spk1.-",
+            "b": "amp1.OUT-"
+          },
+          "source_url": "https://learn.adafruit.com/adafruit-max98357-i2s-class-d-mono-amp/pinouts",
+          "xp": 10
+        }
+      ]
+    },
+    {
+      "position": 5,
+      "title": "Face",
+      "goal": "Connect the ST7789 1.54\" SPI screen.",
+      "rules": {
+        "require": [
+          {
+            "a": "lcd1.VCC",
+            "b": "esp.3V3"
+          },
+          {
+            "a": "lcd1.GND",
+            "b": "esp.GND"
+          },
+          {
+            "a": "lcd1.SCL",
+            "b": "esp.GPIO21"
+          },
+          {
+            "a": "lcd1.SDA",
+            "b": "esp.GPIO47"
+          },
+          {
+            "a": "lcd1.RES",
+            "b": "esp.GPIO45"
+          },
+          {
+            "a": "lcd1.DC",
+            "b": "esp.GPIO40"
+          },
+          {
+            "a": "lcd1.CS",
+            "b": "esp.GPIO41"
+          },
+          {
+            "a": "lcd1.BLK",
+            "b": "esp.GPIO42"
+          }
+        ],
+        "forbid": [
+          {
+            "a": "esp.3V3",
+            "b": "esp.GND",
+            "code": "short_power",
+            "message": "This wire connects 3.3 V to ground. That is a short circuit: a large current flows, and the board can get hot or reset. Move the wire so that 3.3 V and ground stay apart."
+          },
+          {
+            "a": "lcd1.VCC",
+            "b": "esp.GND",
+            "code": "reversed_power",
+            "message": "The power of the screen is backwards: VCC is on ground. This can damage the screen. Connect VCC to the + rail and GND to the − rail."
+          }
+        ]
+      },
+      "xp": 50,
+      "tasks": [
+        {
+          "position": 1,
+          "kind": "place",
+          "instruction": "Put the ST7789 screen on breadboard B.",
+          "popup_why": "On the breadboard, each of the 8 screen pins has its own column. Thus each pin gets its own wire.",
+          "concept": "SPI: SPI is a fast way for a chip to send data to a part. A clock line ticks, a data line carries the bits, and a chip-select line selects the part that listens. The screen has 240 × 240 pixels, and the ESP32-S3 sends them many times each second, so the screen needs a fast bus.",
+          "target": {
+            "kind": "place",
+            "part": "st7789-154",
+            "id": "lcd1",
+            "zone": "bbB"
+          },
+          "source_url": "https://learn.adafruit.com/adafruit-1-3-and-1-54-240-x-240-wide-angle-tft-lcd-displays/pinouts",
+          "xp": 10
+        },
+        {
+          "position": 2,
+          "kind": "wire",
+          "instruction": "Connect VCC of the screen to the + rail (3.3 V).",
+          "popup_why": "VCC powers the screen and its controller chip.",
+          "concept": null,
+          "target": {
+            "kind": "wire",
+            "a": "lcd1.VCC",
+            "b": "esp.3V3"
+          },
+          "source_url": "https://learn.adafruit.com/adafruit-1-3-and-1-54-240-x-240-wide-angle-tft-lcd-displays/pinouts",
+          "xp": 10
+        },
+        {
+          "position": 3,
+          "kind": "wire",
+          "instruction": "Connect GND of the screen to the − rail.",
+          "popup_why": "The screen needs the same ground as the ESP32-S3, so it reads the data signals correctly.",
+          "concept": null,
+          "target": {
+            "kind": "wire",
+            "a": "lcd1.GND",
+            "b": "esp.GND"
+          },
+          "source_url": "https://learn.adafruit.com/adafruit-1-3-and-1-54-240-x-240-wide-angle-tft-lcd-displays/pinouts",
+          "xp": 10
+        },
+        {
+          "position": 4,
+          "kind": "wire",
+          "instruction": "Connect SCL of the screen to GPIO 21.",
+          "popup_why": "The label says SCL, but here it is the SPI clock, not I²C. Each tick moves one bit of pixel data.",
+          "concept": null,
+          "target": {
+            "kind": "wire",
+            "a": "lcd1.SCL",
+            "b": "esp.GPIO21"
+          },
+          "source_url": "https://docs.keyestudio.com/projects/ESP32S3_LCD154/en/latest/LCD154/LCD154.html",
+          "xp": 10
+        },
+        {
+          "position": 5,
+          "kind": "wire",
+          "instruction": "Connect SDA of the screen to GPIO 47.",
+          "popup_why": "SDA here is the SPI data input: the pixel data from the ESP32-S3 to the screen. The data goes one way only, so no wire comes back.",
+          "concept": null,
+          "target": {
+            "kind": "wire",
+            "a": "lcd1.SDA",
+            "b": "esp.GPIO47"
+          },
+          "source_url": "https://docs.keyestudio.com/projects/ESP32S3_LCD154/en/latest/LCD154/LCD154.html",
+          "xp": 10
+        },
+        {
+          "position": 6,
+          "kind": "wire",
+          "instruction": "Connect RES of the screen to GPIO 45.",
+          "popup_why": "RES (reset) starts the controller of the screen again. The code pulls it LOW for a short time at start-up, so the screen starts in a known state.",
+          "concept": null,
+          "target": {
+            "kind": "wire",
+            "a": "lcd1.RES",
+            "b": "esp.GPIO45"
+          },
+          "source_url": "https://learn.adafruit.com/adafruit-1-3-and-1-54-240-x-240-wide-angle-tft-lcd-displays/pinouts",
+          "xp": 10
+        },
+        {
+          "position": 7,
+          "kind": "wire",
+          "instruction": "Connect DC of the screen to GPIO 40.",
+          "popup_why": "DC (data/command) tells the screen what the next bytes are. LOW means a command, for example \"set the drawing area\". HIGH means pixel data.",
+          "concept": null,
+          "target": {
+            "kind": "wire",
+            "a": "lcd1.DC",
+            "b": "esp.GPIO40"
+          },
+          "source_url": "https://learn.adafruit.com/adafruit-1-3-and-1-54-240-x-240-wide-angle-tft-lcd-displays/pinouts",
+          "xp": 10
+        },
+        {
+          "position": 8,
+          "kind": "wire",
+          "instruction": "Connect CS of the screen to GPIO 41.",
+          "popup_why": "CS (chip select) is LOW when the ESP32-S3 talks to the screen. With CS, other SPI parts can share the same clock and data wires.",
+          "concept": null,
+          "target": {
+            "kind": "wire",
+            "a": "lcd1.CS",
+            "b": "esp.GPIO41"
+          },
+          "source_url": "https://learn.adafruit.com/adafruit-1-3-and-1-54-240-x-240-wide-angle-tft-lcd-displays/pinouts",
+          "xp": 10
+        },
+        {
+          "position": 9,
+          "kind": "wire",
+          "instruction": "Connect BLK of the screen to GPIO 42.",
+          "popup_why": "BLK controls the backlight. Without light behind it, the screen shows nothing. On a GPIO pin, the code can turn the light on or off.",
+          "concept": null,
+          "target": {
+            "kind": "wire",
+            "a": "lcd1.BLK",
+            "b": "esp.GPIO42"
+          },
+          "source_url": "https://learn.adafruit.com/adafruit-1-3-and-1-54-240-x-240-wide-angle-tft-lcd-displays/pinouts",
+          "xp": 10
+        }
+      ]
+    }
+  ]
+}
