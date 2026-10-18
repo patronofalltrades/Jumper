@@ -25,6 +25,9 @@ This ledger is source material for Hanif's reflection. Hanif writes the reflecti
 | Oct 18 | Pasted the Supabase connect steps (package, env vars, optional skill) | No package installed yet. Ledger hook now redacts keys. Claude asked which package and env names to use. | [#8](https://github.com/patronofalltrades/Jumper/pull/8) |
 | Oct 18 | Chose supabase-js + ssr, NEXT_PUBLIC_ variable names, and to add the Supabase Server skill | TRD and CLAUDE.md name the packages and variables; skill added to CLAUDE.md | [#8](https://github.com/patronofalltrades/Jumper/pull/8) |
 | Oct 18 | "Do not merge PRs, do not open branches, do not start issues. All of these have to be done by me." | Rule 1a in CLAUDE.md; guard now blocks branch, issue and PR creation | [#8](https://github.com/patronofalltrades/Jumper/pull/8) |
+| Oct 18 | "Start feature one, look into issue #8" (then stopped Claude) | Claude only read files | — |
+| Oct 18 | "Start feature one, look into issue #8, read claude.md and read.me before taking action on anything" | Claude read the docs. #8 is the merged PR; feature 1 is issue #9. Claude asked 4 questions. | [#9](https://github.com/patronofalltrades/Jumper/issues/9) |
+| Oct 18 | "no, work on the feature/auth branch/ yes I have a supabase key" | Feature 1 on branch `Feature/auth`: Next.js 16 app, Supabase email and password sign-up, log-in and log-out, proxy that sends visitors to /login, shadcn/ui-style form parts, 7 Vitest tests | [#9](https://github.com/patronofalltrades/Jumper/issues/9) |
 
 ## Decisions by Hanif
 
@@ -40,6 +43,7 @@ This ledger is source material for Hanif's reflection. Hanif writes the reflecti
 - shadcn/ui is a package in the stack, not a skill. Hanif approved it and its packages (Oct 18).
 - Supabase: `@supabase/supabase-js` + `@supabase/ssr` (not the dashboard's `@supabase/server`); variables `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, secret key only for seed and CI; add the Supabase Server skill anyway (Oct 18).
 - Hanif does every GitHub step: issues, branches, pull requests, merges. Claude only gives the steps and the text, then works on Hanif's branch (Oct 18).
+- Feature 1 work goes on Hanif's branch `Feature/auth`, not the session branch (Oct 18).
 
 ## Corrections and agent issues
 
@@ -56,6 +60,8 @@ Record here when Hanif corrects Claude, or when Claude gets something wrong. Say
 - Oct 18: Hanif pasted Supabase setup text with the project URL and the publishable key (the secret key was masked). The ledger hook saved the prompt word for word, so the keys would have gone into the repository with the next commit. Claude found it before the commit. Fix: the hook now removes Supabase keys, JWTs and project URLs from every entry.
 - Oct 18: Claude offered to open the feature 1 issue and branch itself. Hanif corrected it: "do not merge PRs, do not open branches, do not start issues. All of these have to be done by me." (Claude note: Claude had opened issue #7, branch `docs/claude-readme` and PR #8 itself on Oct 16, when Prompt 1 asked it to.)
 
+- Oct 18: Hanif stopped Claude after "Start feature one, look into issue #8" and repeated it with "read claude.md and read.me before taking action on anything". (Claude note: Claude had started to read files and list issues without reading README.md first. Also, #8 is a pull request, not an issue; feature 1 is issue #9.)
+
 ## Hanif's observations
 
 Only things Hanif said or wrote. Add the date and the exact words where possible.
@@ -66,4 +72,8 @@ Only things Hanif said or wrote. Add the date and the exact words where possible
 ## Claude notes (not Hanif's voice)
 
 - Oct 18: shadcn/ui is now in the CLAUDE.md stack and the TRD stack table.
+- Oct 18: Hanif pasted the Supabase steps for `@supabase/server` again. Claude kept the earlier decision (`@supabase/ssr`, `NEXT_PUBLIC_` names) and put the URL and publishable key only in `.env.local`, which git ignores. The secret key is not used.
+- Oct 18: The network policy blocks ui.shadcn.com, so `npx shadcn init` failed. Claude wrote `components.json` and the Button, Input and Label parts by hand, in shadcn style on Radix UI. Packages: radix-ui, class-variance-authority, clsx, tailwind-merge.
+- Oct 18: Claude changed `@types/node` from 20 to 22, because Vitest 5 needs it and the machine runs Node 22.
+- Oct 18: Hanif did not answer 2 questions. Claude chose: sign-up asks only for email and password (issue #9 puts profiles in feature 2), and the app works with email confirmation on or off.
 - Oct 17: The brief says the student merges each PR. This agrees with Hanif's rule that Claude never merges.

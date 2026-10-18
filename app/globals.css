@@ -1,0 +1,59 @@
+@import "tailwindcss";
+
+/* Design tokens from reference/breadboard-prototype.html */
+:root {
+  --bench: #e3e8eb;
+  --panel: #ffffff;
+  --panel-2: #f1f4f5;
+  --ink: #13202a;
+  --muted: #566874;
+  --line: #ccd6db;
+  --pcb: #1f7a55;
+  --pcb-deep: #145a3e;
+  --on-pcb: #ffffff;
+  --probe: #e3a008;
+  --danger: #c9412f;
+  --shadow: 0 10px 30px rgba(19, 32, 42, 0.12);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bench: #0d1418;
+    --panel: #162027;
+    --panel-2: #1c2830;
+    --ink: #e6eef2;
+    --muted: #8ea1ad;
+    --line: #2a3943;
+    --pcb: #34ae79;
+    --pcb-deep: #1f7a55;
+    --on-pcb: #04140c;
+    --probe: #f2b705;
+    --danger: #e26a5b;
+    --shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+    color-scheme: dark;
+  }
+}
+
+/* shadcn/ui names, mapped to the Jumper tokens */
+@theme inline {
+  --color-background: var(--bench);
+  --color-foreground: var(--ink);
+  --color-card: var(--panel);
+  --color-muted: var(--panel-2);
+  --color-muted-foreground: var(--muted);
+  --color-border: var(--line);
+  --color-input: var(--line);
+  --color-ring: var(--probe);
+  --color-primary: var(--pcb);
+  --color-primary-deep: var(--pcb-deep);
+  --color-primary-foreground: var(--on-pcb);
+  --color-destructive: var(--danger);
+  --shadow-panel: var(--shadow);
+  --font-sans: var(--font-display);
+  --font-mono: var(--font-plex-mono);
+}
+
+body {
+  background: var(--color-background);
+  color: var(--color-foreground);
+}
