@@ -27,6 +27,8 @@
 
 8. "Yes" (add shadcn/ui to the TRD stack table). "Do we need to add a supabase key?"
 
+9. Hanif pasted the Supabase "connect" steps: install `@supabase/server`, set `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY` and `SUPABASE_JWKS_URL`, and optionally `npx skills add supabase/server`. (Key values removed from this log.)
+
 ## Decisions
 
 - shadcn/ui is a UI component package, not a skill. It is in the CLAUDE.md stack. Hanif approved it and its packages (for example Radix UI) on October 18, 2026.

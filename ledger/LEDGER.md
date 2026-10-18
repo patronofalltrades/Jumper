@@ -22,6 +22,7 @@ This ledger is source material for Hanif's reflection. Hanif writes the reflecti
 | Oct 18 | Put a hook in this chat and project: no push to main, no approve or merge; flag PR comments; ask when unsure; keep a ledger for the reflection | `.claude/settings.json` hooks, `.claude/hooks/guard.py`, `.claude/hooks/ledger.py`, this ledger, "Agent hooks" section in CLAUDE.md | [#8](https://github.com/patronofalltrades/Jumper/pull/8) |
 | Oct 18 | "This is wrong, add shadcn ui into the packages. This is not a skill. Rewrite this" | shadcn/ui moved from Skills to the Stack table in CLAUDE.md; added to README tools | [#8](https://github.com/patronofalltrades/Jumper/pull/8) |
 | Oct 18 | "Yes" to adding shadcn/ui to the TRD; asked "Do we need to add a supabase key?" | shadcn/ui row added to the TRD stack table. Claude explained the Supabase keys. | [#8](https://github.com/patronofalltrades/Jumper/pull/8) |
+| Oct 18 | Pasted the Supabase connect steps (package, env vars, optional skill) | No package installed yet. Ledger hook now redacts keys. Claude asked which package and env names to use. | [#8](https://github.com/patronofalltrades/Jumper/pull/8) |
 
 ## Decisions by Hanif
 
@@ -48,6 +49,7 @@ Record here when Hanif corrects Claude, or when Claude gets something wrong. Say
 - Oct 18: The ledger hook logged each ledger commit, so the tree was never clean and the Stop hook kept asking for a commit. Fix: the hook skips commits that change only `ledger/`.
 - Oct 18: The Stop hook asked for a commit again after the shadcn/ui change. Cause: the ledger hook wrote to a tracked file after each commit and after each prompt, so the tree was dirty at the end of almost every turn. Fix: entries now wait in `.git/` and go into the same commit as Claude's next change.
 - Oct 18: The new ledger hook split commands at `&&` even inside quoted text. It logged a fake commit from a test command and could not read a multi-line commit message. Claude found both in the raw log. Fix: the hook now reads commands the way the shell does, with quotes; 6 test cases pass. The two bad entries were corrected.
+- Oct 18: Hanif pasted Supabase setup text with the project URL and the publishable key (the secret key was masked). The ledger hook saved the prompt word for word, so the keys would have gone into the repository with the next commit. Claude found it before the commit. Fix: the hook now removes Supabase keys, JWTs and project URLs from every entry.
 
 ## Hanif's observations
 

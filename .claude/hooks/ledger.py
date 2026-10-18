@@ -35,7 +35,22 @@ def pending_path():
     return os.path.join(ROOT, git("rev-parse", "--git-dir") or ".git", "jumper-ledger-pending.md")
 
 
+SECRETS = [
+    (re.compile(r"\bsb_(publishable|secret)_[A-Za-z0-9_\-•.]+"), r"sb_\1_[REDACTED]"),
+    (re.compile(r"\beyJ[A-Za-z0-9_\-]+\.[A-Za-z0-9_\-]+\.[A-Za-z0-9_\-]+"), "[REDACTED_JWT]"),
+    (re.compile(r"https://[a-z0-9]{20}\.supabase\.co"), "https://[PROJECT].supabase.co"),
+]
+
+
+def redact(text):
+    """Keep keys and project URLs out of the committed ledger."""
+    for pattern, repl in SECRETS:
+        text = pattern.sub(repl, text)
+    return text
+
+
 def append(kind, body):
+    body = redact(body)
     now = datetime.now(timezone.utc)
     with open(pending_path(), "a", encoding="utf-8") as f:
         f.write(f"\n## {now:%Y-%m-%d %H:%M}Z · {kind} · branch `{git('rev-parse', '--abbrev-ref', 'HEAD')}`\n\n{body.strip()}\n")
