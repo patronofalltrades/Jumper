@@ -56,6 +56,8 @@ This ledger is source material for Hanif's reflection. Hanif writes the reflecti
 | Oct 18 | "let's do it. what do I need to answer in order for you to develop this?" | Claude found that no level check or session saving exists yet, asked 6 questions and wrote the issue text | — |
 | Oct 18 | "1. Screen Only 2. Coming Soon 3. Use Existing Color 4. Continue with your suggestion 5. Perch device waking up 6. done. Issue is up and branch is here: … git checkout Feature/Pop-up-Modal" | Level complete pop-up on `Feature/Pop-up-Modal`: `lib/stats/level-summary.ts` with 8 tests, text in `content/ui/complete.json`, Perch wake-up drawing and animation, `LevelComplete` dialog, route `/p/[project]/[level]/complete`. 91 tests, typecheck, lint, build pass; checked in Chromium at 390 px and 1280 px, light and dark, and with reduced motion. PR text in `prompts/pop-up-modal-pr.md`. | [#20](https://github.com/patronofalltrades/Jumper/issues/20) |
 | Oct 18 | "can you write me the pr comment here" | Claude pasted the PR title and body from `prompts/pop-up-modal-pr.md` in the chat. Claude did not post on GitHub. | [#20](https://github.com/patronofalltrades/Jumper/issues/20) |
+| Oct 18 | "how do I get the screenshots of red and green?", then "wait I think that screenshot should be the testing on Github's page no?" | Claude gave terminal steps, then found that the repository has no CI workflow, so GitHub shows no checks. Claude gave 2 options and asked. | — |
+| Oct 18 | "let's add CI workflows. That is easier to parse and understand for the professor and the GSI" | `.github/workflows/ci.yml`: type check, lint and Vitest on each PR and each push to `main`, Node 22, no secrets. Clean-install run passes. PR text now uses a red CI commit and a green CI commit. | [#20](https://github.com/patronofalltrades/Jumper/issues/20) |
 
 ## Decisions by Hanif
 
@@ -92,6 +94,7 @@ This ledger is source material for Hanif's reflection. Hanif writes the reflecti
 - Hanif chose that the pushbutton must go across the center gap ("Button must straddle"), although issue #17 says to refuse a module across the gap. Each pin layout says if its part goes across the gap (Oct 18, issue #17).
 - Hanif chose the speaker as a two-leg part, with OUT+ and OUT− of the amplifier in breadboard holes on the far edge ("Speaker as 2-leg part") (Oct 18, issue #17).
 - Hanif chose the Level complete screen from the Duolingo pattern, with these answers: "1. Screen Only 2. Coming Soon 3. Use Existing Color 4. Continue with your suggestion 5. Perch device waking up". So: screen only (no level check yet), Save snapshot shows "coming soon", no new color token, Claude's titles and labels, and the Perch device wakes up in place of a mascot (Oct 18, issue #20).
+- Hanif chose a GitHub Actions CI workflow for the red and green test screenshots: "let's add CI workflows. That is easier to parse and understand for the professor and the GSI" (Oct 18, issue #20).
 
 ## Corrections and agent issues
 
@@ -125,6 +128,7 @@ Only things Hanif said or wrote. Add the date and the exact words where possible
 - Oct 16: "I want to understand hardware without buying a bench full of parts." (pitch, PLAN.md)
 - Oct 18: Hanif wants the reflection "purely in my voice" and asked Claude to keep a ledger instead of writing it.
 - Oct 18: "I am not sure as I am still learning about the hardware, so can you help check the pin orders?"
+- Oct 18: "wait I think that screenshot should be the testing on Github's page no?"
 
 ## Claude notes (not Hanif's voice)
 
@@ -160,3 +164,4 @@ Only things Hanif said or wrote. Add the date and the exact words where possible
 - Oct 18: Feature choices by Claude for #20: the time card uses `--ink` (the page text color), because Hanif chose an existing color but not which one. "CLAIM XP" became **Continue**, because the server adds XP when the level check passes (TRD 7), so there is nothing to claim. Accuracy = tasks done ÷ (tasks done + mistakes). The pop-up does not close with Esc or a click outside; Continue has the focus. No confetti, because it needs a new package.
 - Oct 18: The route `/p/[project]/[level]/complete` shows the user's latest completed session of that level. No code writes sessions yet, so on the live site it shows "not found" until the level check exists. Only in development, `?preview` shows sample numbers with a "Preview" label. The route stays behind the log-in.
 - Oct 18: The browser check for #20 ran on Claude's scratchpad page (Vite, the CSS from `npm run build`), as for features 3 and 4. This session has no publishable key, so the real log-in route is not checked.
+- Oct 18: CI went into the #20 PR and not a separate branch, because the red and green checks must show on this PR. Hanif did not choose between the two when asked; Claude chose and said so. CI (TRD 10) and the Level complete screen are now in one PR. The workflow uses no secrets yet; the TRD plans Supabase test-project secrets for later integration tests.

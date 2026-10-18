@@ -24,3 +24,15 @@
    - `app/p/[project]/[level]/complete/page.tsx`: shows the user's latest completed session of the level. In development only, `?preview` shows sample numbers.
 
    Checks: 91 tests, typecheck, lint and build pass. Chromium on Claude's scratchpad page: 390 × 844 (light and dark), 1280 × 800 (dark), reduced motion, the wake-up at 0.35 s (eyes still closed), Esc does not close it, the focus is on Continue, no console errors.
+
+4. "can you write me the pr comment here"
+
+   Claude pasted the PR title and body from `prompts/pop-up-modal-pr.md`.
+
+5. "how do I get the screenshots of red and green?", then "wait I think that screenshot should be the testing on Github's page no?"
+
+   Claude found that the repository has no GitHub Actions workflow yet (TRD section 10 plans one), so GitHub shows no checks. Claude gave 2 options: terminal screenshots, or a CI workflow with a red commit and a green commit on the PR.
+
+6. "let's add CI workflows. That is easier to parse and understand for the professor and the GSI"
+
+   Claude added `.github/workflows/ci.yml`: on each pull request and each push to `main`, it installs with `npm ci` on Node 22, then runs the type check, lint and Vitest. No secrets. Claude ran the same steps from a clean install: all pass (91 tests). Claude put CI in this PR, because the red and green checks must show on this PR.
