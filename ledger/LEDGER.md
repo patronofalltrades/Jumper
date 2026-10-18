@@ -28,6 +28,9 @@ This ledger is source material for Hanif's reflection. Hanif writes the reflecti
 | Oct 18 | "Start feature one, look into issue #8" (then stopped Claude) | Claude only read files | — |
 | Oct 18 | "Start feature one, look into issue #8, read claude.md and read.me before taking action on anything" | Claude read the docs. #8 is the merged PR; feature 1 is issue #9. Claude asked 4 questions. | [#9](https://github.com/patronofalltrades/Jumper/issues/9) |
 | Oct 18 | "no, work on the feature/auth branch/ yes I have a supabase key" | Feature 1 on branch `Feature/auth`: Next.js 16 app, Supabase email and password sign-up, log-in and log-out, proxy that sends visitors to /login, shadcn/ui-style form parts, 7 Vitest tests | [#9](https://github.com/patronofalltrades/Jumper/issues/9) |
+| Oct 18 | "completely test the flow first before moving on…" | Cloud session cannot reach Supabase. Test moved to Hanif's Mac; Claude gave the steps. | — |
+| Oct 18 | Pasted the `npm run dev` log: sign-up, confirmation link, log-in work; `Date.now()` error on /lobby | Fix: `await connection()` in the Supabase server client | `b9ed7d1` |
+| Oct 18 | "also add a forget password feature because I forgot my password" | `/forgot-password` and `/reset-password`, "Forgot password?" link on Log in, safe `next` path in `/auth/callback`, 5 more tests | — |
 
 ## Decisions by Hanif
 
@@ -46,6 +49,7 @@ This ledger is source material for Hanif's reflection. Hanif writes the reflecti
 - Feature 1 work goes on Hanif's branch `Feature/auth`, not the session branch (Oct 18).
 - Test feature 1 end to end on the real Supabase project before moving on, with success responses and screenshots as evidence. Test account email: Hanif's Berkeley address, so Hanif can click the confirmation link (Oct 18).
 - The cloud session cannot reach Supabase (network policy). Hanif chose to test feature 1 on the Mac, with Claude giving the steps (Oct 18).
+- Add a forgot-password feature to feature 1 (Oct 18).
 
 ## Corrections and agent issues
 
