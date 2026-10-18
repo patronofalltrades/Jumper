@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { placeConnections } from "@/lib/game/engine";
 import { loadProjects } from "@/lib/content/load";
 import { taskSchema } from "@/lib/content/schema";
+import dashboard from "@/content/ui/dashboard.json";
 
 const projects = loadProjects();
 const levels = projects.flatMap((p) => p.levels.map((l) => ({ project: p.slug, ...l })));
@@ -62,6 +63,14 @@ describe("content/projects", () => {
         expect(f.message).not.toBe("");
       }
     }
+  });
+});
+
+describe("content/ui/dashboard.json", () => {
+  it("gives each mistake code of a level Check a plain label for the chart", () => {
+    const codes = new Set(["missing_ground", "wrong_pin", ...levels.flatMap((l) => l.rules.forbid.map((f) => f.code))]);
+    const labels: Record<string, string> = dashboard.mistakes;
+    for (const code of codes) expect(labels[code], code).toBeTruthy();
   });
 });
 

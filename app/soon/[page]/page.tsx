@@ -12,7 +12,6 @@ export const metadata: Metadata = { title: "Coming soon · Jumper" };
 
 // Dock pages that are not built yet.
 const PAGES = {
-  dashboard: { title: "Dashboard", text: "Your levels, XP, first-try pass rate and the mistakes you make most." },
   profile: { title: "Profile", text: "Your name and your account settings." },
 } as const;
 
@@ -49,7 +48,7 @@ function Soon({ page }: { page: string }) {
           )}
         </div>
       </section>
-      <Dock active={page as "dashboard" | "profile"} />
+      <Dock active={page as "profile"} />
     </>
   );
 }
