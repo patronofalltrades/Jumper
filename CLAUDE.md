@@ -37,6 +37,17 @@ Each project uses the same build mode. A new project adds data (levels, tasks, p
 7. Levels, tasks and pop-up text live in `content/` as JSON. Do not write them in code.
 8. Ask me before you add a dependency that is not in the TRD.
 
+## Assignment rules (Solo App brief)
+
+1. Each issue includes the user story for the feature, copied from `PLAN.md`.
+2. Do not change the original text of `PLAN.md`. Add rows only to the "Plan vs. Reality" table at the end.
+3. The pull request that adds a required test includes three items: a plain-English explanation of the test, a red screenshot and a green screenshot, and one sentence about a real change that makes the test fail.
+4. If the agent makes a bug and I find it, the pull request description tells what occurred, how I found it, and how we repaired it.
+5. After each merge to `main`, deploy the app. The live URL must show the current version.
+6. Keep `schema.md` in the root of the repository. It lists each table, its columns and the relations. It compares the built schema with section 3 of `PLAN.md`.
+7. By November 4, 2026: 9 or more merged pull requests, and 5 or more real entries of my data. No placeholder text.
+8. I merge each pull request. Do not merge a pull request.
+
 ## Skills
 
 Use these skills when you work on Jumper. They do not replace the house rules. If a skill and a house rule do not agree, the house rule applies.
