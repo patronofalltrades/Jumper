@@ -25,9 +25,9 @@ As a learner, at the end of each level I want to press Check and get a pass, or 
 - The +10 XP bonus needs no task mistakes and no failed Check.
 - Hearts = failed attempts of the session; no new column.
 
-## Before you merge: database
+## Database
 
-Run `supabase/migrations/20261018100000_level_check.sql` in the Supabase **SQL Editor**. Without it, Check shows "We could not save your Check."
+`supabase/migrations/20261018100000_level_check.sql` is applied on the Supabase project (Hanif ran it in the SQL Editor: "Success. No rows returned").
 
 ## The test
 
