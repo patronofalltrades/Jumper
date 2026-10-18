@@ -2,12 +2,13 @@ import { describe, expect, it } from "vitest";
 import { perchBench } from "@/lib/circuit/bench";
 import { bodyHoles, footprintHoles, FOOTPRINTS, isModuleType } from "@/lib/circuit/modules";
 import { buildNets, connected, describeHole, endpointHole } from "@/lib/circuit/nets";
-import { checkHole, checkModule, nextPartId, partAt, type Part } from "@/lib/circuit/parts";
+import { checkHole, checkModule, checkPlacement, nextPartId, partAt, partPins, terminalAt, type Part } from "@/lib/circuit/parts";
 import { loadProjects } from "@/lib/content/load";
 
 const bench = perchBench();
 const wire = (id: string, a: string, b: string): Part => ({ id, type: "wire", a, b });
-const mic: Part = { id: "mic1", type: "inmp441", at: "A-e3" };
+// Columns 1–4 and 27–30 are free of ESP32-S3 lines on both breadboards.
+const mic: Part = { id: "mic1", type: "inmp441", at: "A-e1" };
 
 describe("module footprints", () => {
   it("puts the mic pins in 2 rows of 3, across the center gap", () => {
@@ -29,9 +30,9 @@ describe("module footprints", () => {
     expect(footprintHoles(bench, "pushbutton", "A-e10")!.map((p) => p.hole)).toEqual(["A-e10", "A-e12", "A-f10", "A-f12"]);
     const amp = footprintHoles(bench, "max98357a", "A-c3")!;
     expect(amp.find((p) => p.name === "VIN")!.hole).toBe("A-c9");
-    // − is on the LRC side and + on the Vin side, as on the real board.
-    expect(amp.find((p) => p.name === "OUT-")!.hole).toBe("A-f5");
-    expect(amp.find((p) => p.name === "OUT+")!.hole).toBe("A-f7");
+    // − is on the LRC side and + on the Vin side, as on the real board. The terminal is on top: these are the holes under it.
+    expect(amp.find((p) => p.name === "OUT-")).toMatchObject({ hole: "A-f5", terminal: true });
+    expect(amp.find((p) => p.name === "OUT+")).toMatchObject({ hole: "A-f7", terminal: true });
   });
 
   it("gives no holes when a pin is off the breadboard", () => {
@@ -66,10 +67,25 @@ describe("module footprints", () => {
 
 describe("module placement", () => {
   it("accepts a module on free holes", () => {
-    expect(checkModule(bench, [], "inmp441", "A-e3")).toBeNull();
+    expect(checkModule(bench, [], "inmp441", "A-e1")).toBeNull();
+    expect(checkModule(bench, [], "inmp441", "B-e27")).toBeNull();
     expect(checkModule(bench, [], "st7789-154", "B-h20")).toBeNull();
     expect(checkModule(bench, [], "pushbutton", "A-e1")).toBeNull();
     expect(checkModule(bench, [], "max98357a", "A-c1")).toBeNull();
+  });
+
+  it("accepts the amp on one side of the gap anywhere, because its speaker terminal is not in the breadboard", () => {
+    expect(checkModule(bench, [], "max98357a", "A-c11")).toBeNull();
+    expect(checkModule(bench, [], "max98357a", "B-f11")).toBeNull();
+  });
+
+  it("refuses a module pin in a line of an ESP32-S3 pin", () => {
+    // Column 14 of A: row j holds GPIO 38, so the mic pins in rows f–j would connect to it.
+    expect(checkModule(bench, [], "inmp441", "A-e14")).toBe("esp_line");
+    expect(checkModule(bench, [], "pushbutton", "A-e10")).toBe("esp_line");
+    // Rows a–e of B share their lines with the J1 pins in row a.
+    expect(checkModule(bench, [], "st7789-154", "B-c10")).toBe("esp_line");
+    expect(checkModule(bench, [], "max98357a", "B-c3")).toBe("esp_line");
   });
 
   it("refuses a module that hangs off the board, or with pin 1 on a rail", () => {
@@ -78,10 +94,9 @@ describe("module placement", () => {
     expect(checkModule(bench, [], "inmp441", "B-x3")).toBe("no_hole");
   });
 
-  it("refuses a button, a mic or an amp that does not go across the center gap", () => {
+  it("refuses a button or a mic that does not go across the center gap", () => {
     expect(checkModule(bench, [], "pushbutton", "A-a1")).toBe("needs_gap");
     expect(checkModule(bench, [], "inmp441", "A-c3")).toBe("needs_gap");
-    expect(checkModule(bench, [], "max98357a", "A-a1")).toBe("needs_gap");
   });
 
   it("refuses a pin in an ESP32-S3 pin hole, or a hole under the ESP32-S3", () => {
@@ -92,17 +107,17 @@ describe("module placement", () => {
   });
 
   it("refuses a pin in a full hole, and a body on top of another part", () => {
-    expect(checkModule(bench, [wire("w1", "A-e5", "A-a20")], "inmp441", "A-e3")).toBe("taken");
-    expect(checkModule(bench, [wire("w1", "A-d4", "A-a20")], "inmp441", "A-e3")).toBe("on_part");
-    expect(checkModule(bench, [mic], "inmp441", "A-e5")).toBe("taken");
-    expect(checkModule(bench, [mic], "inmp441", "A-e7")).toBe("on_part");
+    expect(checkModule(bench, [wire("w1", "A-e3", "A-a20")], "inmp441", "A-e1")).toBe("taken");
+    expect(checkModule(bench, [wire("w1", "A-d2", "A-a20")], "inmp441", "A-e1")).toBe("on_part");
+    expect(checkModule(bench, [mic], "inmp441", "A-e3")).toBe("taken");
+    expect(checkModule(bench, [mic], "inmp441", "A-e5")).toBe("on_part");
   });
 
   it("keeps legs out of the pin holes and from under the body", () => {
-    expect(checkHole(bench, [mic], "A-f4")).toBe("part_pin");
-    expect(checkHole(bench, [mic], "A-g4")).toBe("under_part");
-    expect(checkHole(bench, [mic], "A-h4")).toBeNull();
-    expect(partAt(bench, [mic], "A-f5")).toBe(mic);
+    expect(checkHole(bench, [mic], "A-f2")).toBe("part_pin");
+    expect(checkHole(bench, [mic], "A-g2")).toBe("under_part");
+    expect(checkHole(bench, [mic], "A-h2")).toBeNull();
+    expect(partAt(bench, [mic], "A-f3")).toBe(mic);
   });
 
   it("numbers modules with their prefix", () => {
@@ -114,7 +129,7 @@ describe("module placement", () => {
 
 describe("module nets", () => {
   it("finds module pins by name, as in perch.json", () => {
-    expect(endpointHole(bench, [mic], "mic1.WS")).toBe("A-f4");
+    expect(endpointHole(bench, [mic], "mic1.WS")).toBe("A-f2");
     expect(endpointHole(bench, [mic], "mic1.XX")).toBeNull();
     const spk: Part = { id: "spk1", type: "speaker", a: "A-a1", b: "A-a4" };
     expect(endpointHole(bench, [spk], "spk1.+")).toBe("A-a1");
@@ -123,7 +138,7 @@ describe("module nets", () => {
 
   it("connects a mic pin to an ESP32-S3 pin through a wire", () => {
     // GPIO4 is the 4th pin of J1, in hole B-a8.
-    const parts = [mic, wire("w1", "A-h4", "B-c8")];
+    const parts = [mic, wire("w1", "A-h2", "B-c8")];
     const nets = buildNets(bench, parts);
     expect(connected(bench, parts, nets, "mic1.WS", "esp.GPIO4")).toBe(true);
     expect(connected(bench, parts, nets, "mic1.SCK", "esp.GPIO4")).toBe(false);
@@ -138,9 +153,41 @@ describe("module nets", () => {
   });
 
   it("describes a module pin, and names it on the other end of a wire", () => {
-    const parts = [mic, wire("w1", "A-h4", "B-c8")];
+    const parts = [mic, wire("w1", "A-h2", "B-c8")];
     const nets = buildNets(bench, parts);
-    expect(describeHole(bench, parts, nets, "A-f4")).toMatchObject({ kind: "part", part: { type: "inmp441", pin: "WS" }, pins: ["GPIO4"], partPins: [] });
+    expect(describeHole(bench, parts, nets, "A-f2")).toMatchObject({ kind: "part", part: { type: "inmp441", pin: "WS" }, pins: ["GPIO4"], partPins: [] });
     expect(describeHole(bench, parts, nets, "B-a8")).toMatchObject({ kind: "pin", pin: "GPIO4", partPins: [{ type: "inmp441", pin: "WS" }] });
+  });
+});
+
+describe("screw terminal of the amp", () => {
+  const amp: Part = { id: "amp1", type: "max98357a", at: "A-c11" };
+  const spk: Part = { id: "spk1", type: "speaker", a: "amp1.OUT+", b: "amp1.OUT-" };
+
+  it("names the terminal pins by their endpoint, and finds the hole under them", () => {
+    expect(partPins(bench, amp).filter((p) => p.terminal).map((p) => p.hole)).toEqual(["amp1.OUT-", "amp1.OUT+"]);
+    expect(terminalAt(bench, [amp], "amp1.OUT+")!.under.id).toBe("A-f15");
+    expect(terminalAt(bench, [], "amp1.OUT+")).toBeNull();
+  });
+
+  it("takes one speaker lead or wire end in each terminal, and no resistor or LED leg", () => {
+    expect(checkHole(bench, [amp], "amp1.OUT+")).toBeNull();
+    expect(checkHole(bench, [amp], "amp9.OUT+")).toBe("no_hole");
+    expect(checkPlacement(bench, [amp], "speaker", "amp1.OUT+", "amp1.OUT-")).toBeNull();
+    expect(checkHole(bench, [amp, spk], "amp1.OUT+")).toBe("taken");
+    expect(checkPlacement(bench, [amp], "led", "amp1.OUT+", "A-a1")).toBe("no_hole");
+    // The hole under the terminal is under the body of the amp.
+    expect(checkHole(bench, [amp], "A-f15")).toBe("under_part");
+  });
+
+  it("connects the speaker to the amp outputs through the terminal, and not to the ESP32-S3", () => {
+    const parts = [amp, spk];
+    const nets = buildNets(bench, parts);
+    expect(endpointHole(bench, parts, "amp1.OUT+")).toBe("amp1.OUT+");
+    expect(connected(bench, parts, nets, "spk1.+", "amp1.OUT+")).toBe(true);
+    expect(connected(bench, parts, nets, "spk1.-", "amp1.OUT-")).toBe(true);
+    expect(connected(bench, parts, nets, "amp1.OUT+", "esp.GPIO37")).toBe(false);
+    expect(partAt(bench, parts, "amp1.OUT+")).toBe(spk);
+    expect(describeHole(bench, parts, nets, "amp1.OUT+")).toMatchObject({ kind: "part", part: { type: "max98357a", pin: "+" } });
   });
 });

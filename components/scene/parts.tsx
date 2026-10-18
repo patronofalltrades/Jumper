@@ -9,7 +9,10 @@ import type { LegPart } from "@/lib/circuit/parts";
 
 const LEG = { color: "#B9BFC5", metalness: 0.7, roughness: 0.3 };
 const UP = new Vector3(0, 1, 0);
-const at = (h: Hole, y: number) => new Vector3(h.x, y, h.z);
+
+/** The end of a leg: a hole, or the top of a screw terminal, `lift` above the bench. */
+export type End = Pick<Hole, "id" | "x" | "z"> & { lift?: number };
+const at = (h: End, y: number) => new Vector3(h.x, (h.lift ?? 0) + y, h.z);
 
 function Leg({ points }: { points: Vector3[] }) {
   const curve = useMemo(() => new CatmullRomCurve3(points, false, "centripetal"), [points]);
@@ -24,7 +27,7 @@ function Leg({ points }: { points: Vector3[] }) {
 /** Red glow on a part that the Remove tool points at. */
 const removeTint = (hot: boolean) => (hot ? { emissive: "#c9412f", emissiveIntensity: 0.6 } : {});
 
-export function PartMesh({ part, a, b, hot }: { part: LegPart; a: Hole; b: Hole; hot: boolean }) {
+export function PartMesh({ part, a, b, hot }: { part: LegPart; a: End; b: End; hot: boolean }) {
   const shape = useMemo(() => {
     const dir = new Vector3(b.x - a.x, 0, b.z - a.z);
     const length = dir.length();
@@ -39,7 +42,7 @@ export function PartMesh({ part, a, b, hot }: { part: LegPart; a: Hole; b: Hole;
   return <Led a={a} b={b} hot={hot} {...shape} />;
 }
 
-function Wire({ a, b, color, hot, length }: { a: Hole; b: Hole; color: string; hot: boolean; length: number }) {
+function Wire({ a, b, color, hot, length }: { a: End; b: End; color: string; hot: boolean; length: number }) {
   const curve = useMemo(() => {
     const h = Math.min(0.9 + length * 0.14, 3.6);
     return new CubicBezierCurve3(at(a, 0.5), at(a, h + 0.6), at(b, h + 0.6), at(b, 0.5));
@@ -51,7 +54,7 @@ function Wire({ a, b, color, hot, length }: { a: Hole; b: Hole; color: string; h
         <meshStandardMaterial color={color} roughness={0.5} metalness={0.05} {...removeTint(hot)} />
       </mesh>
       {[a, b].map((h) => (
-        <mesh key={h.id} position={[h.x, 0.3, h.z]} castShadow>
+        <mesh key={h.id} position={at(h, 0.3)} castShadow>
           <boxGeometry args={[0.34, 0.55, 0.34]} />
           <meshStandardMaterial color="#1B1E21" roughness={0.7} {...removeTint(hot)} />
         </mesh>
@@ -60,7 +63,7 @@ function Wire({ a, b, color, hot, length }: { a: Hole; b: Hole; color: string; h
   );
 }
 
-type Shape = { a: Hole; b: Hole; hot: boolean; dir: Vector3; length: number; mid: Vector3; q: Quaternion };
+type Shape = { a: End; b: End; hot: boolean; dir: Vector3; length: number; mid: Vector3; q: Quaternion };
 
 const BANDS: [string, number][] = [
   ["#C8302A", -0.3],
@@ -150,16 +153,17 @@ function Led({ a, b, hot, dir, mid }: Shape) {
   );
 }
 
-/** A small 8 Ω speaker on two leads: red to the + hole (a), black to the − hole (b). It sits above the board. */
+/** A small 8 Ω speaker on two leads: red to the + hole (a), black to the − hole (b). It sits above the board, or above
+ *  the terminal that holds its leads. */
 function Speaker({ a, b, hot, mid }: Shape) {
-  const y = 2.4;
+  const y = 2.4 + Math.max(a.lift ?? 0, b.lift ?? 0);
   const leads = useMemo(() => {
     const top = (side: number) => mid.clone().add(new Vector3(side * 0.4, y - 0.35, 0));
     return [
       { color: "#D63A2F", curve: new CatmullRomCurve3([at(a, 0.02), at(a, 0.9), top(-1)]) },
       { color: "#25292D", curve: new CatmullRomCurve3([at(b, 0.02), at(b, 0.9), top(1)]) },
     ];
-  }, [a, b, mid]);
+  }, [a, b, mid, y]);
   return (
     <group>
       {leads.map((l, i) => (

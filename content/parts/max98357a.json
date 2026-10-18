@@ -3,8 +3,8 @@
   "title": "MAX98357A I²S amplifier",
   "prefix": "amp",
   "source_url": "https://github.com/adafruit/Adafruit-MAX98357-I2S-Amp-Breakout",
-  "_note": "7 header pins in one row, from the Adafruit board file. OUT− and OUT+ are the speaker terminal on the far edge, about 13 mm (5 holes) from the header, with − on the LRC side and + on the Vin side. The real terminal is a 3.5 mm screw block; Jumper puts it in breadboard holes, so that the learner can wire the speaker.",
-  "across": true,
+  "_note": "7 header pins in one row, from the Adafruit board file. OUT− and OUT+ are the 3.5 mm screw terminal on the far edge, about 13 mm from the header, with − on the LRC side and + on the Vin side. terminal: the pin is on top of the module, not in a breadboard hole; the speaker leads or a wire go into it. row and col give its place over the bench. The header is one row, so the part stays on one side of the center gap.",
+  "across": false,
   "pins": [
     {
       "name": "LRC",
@@ -52,13 +52,15 @@
       "name": "OUT-",
       "label": "−",
       "row": 3,
-      "col": 2
+      "col": 2,
+      "terminal": true
     },
     {
       "name": "OUT+",
       "label": "+",
       "row": 3,
-      "col": 4
+      "col": 4,
+      "terminal": true
     }
   ],
   "body": {

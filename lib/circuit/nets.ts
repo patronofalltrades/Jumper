@@ -2,7 +2,7 @@ import type { Bench } from "./bench.ts";
 import type { ModuleType } from "./modules.ts";
 import { isModule, partPins, type Part } from "./parts.ts";
 
-/** Hole id → net id. Holes with the same net id have an electrical connection. */
+/** Hole id (or terminal id, such as "amp1.OUT+") → net id. Holes with the same net id have an electrical connection. */
 export type Nets = Map<string, string>;
 
 function unionFind() {
@@ -26,10 +26,11 @@ function unionFind() {
  * and the ESP32-S3 pins with the same name (3V3, GND) are connected on the board itself. In the same way, the pins of a
  * module with the same name connect (the two legs on each side of a pushbutton).
  * Resistors, LEDs, speakers and modules do not join other pins: current goes through them, but they are not a plain connection.
+ * A screw terminal is a net node of its own: what goes into it connects to that pin of the module.
  */
 export function buildNets(bench: Bench, parts: Part[]): Nets {
   const uf = unionFind();
-  const strip = (hole: string) => bench.byId.get(hole)!.strip;
+  const strip = (hole: string) => bench.byId.get(hole)?.strip ?? hole;
 
   for (const p of parts) if (p.type === "wire") uf.union(strip(p.a), strip(p.b));
 
@@ -41,17 +42,19 @@ export function buildNets(bench: Bench, parts: Part[]): Nets {
     else firstPinStrip.set(pin.name, s);
   }
 
+  const terminals: string[] = [];
   for (const p of parts) {
     if (!isModule(p)) continue;
     const firstByName = new Map<string, string>();
     for (const pin of partPins(bench, p)) {
+      if (pin.terminal) terminals.push(pin.hole);
       const first = firstByName.get(pin.name);
       if (first) uf.union(strip(pin.hole), first);
       else firstByName.set(pin.name, strip(pin.hole));
     }
   }
 
-  return new Map(bench.holes.map((h) => [h.id, uf.find(h.strip)]));
+  return new Map([...bench.holes.map((h) => [h.id, uf.find(h.strip)] as const), ...terminals.map((t) => [t, uf.find(t)] as const)]);
 }
 
 /** All holes in the same net as this hole, the hole too. */
@@ -113,7 +116,8 @@ export type HoleInfo = {
 
 /** What is at a hole, and what it connects to: the facts for the hint next to the pointer. */
 export function describeHole(bench: Bench, parts: Part[], nets: Nets, hole: string): HoleInfo {
-  const h = bench.byId.get(hole)!;
+  // A terminal is not a breadboard hole: it is a pin of its module.
+  const h = bench.byId.get(hole);
   const net = netHoles(nets, hole);
   let part: HoleInfo["part"];
   // Module pins on the net, one entry for each part and pin name (the 2 legs "1" of a button are one entry).
@@ -137,10 +141,10 @@ export function describeHole(bench: Bench, parts: Part[], nets: Nets, hole: stri
   for (const id of net) {
     const pin = bench.pinAt.get(id)?.name;
     if (pin && pin !== own) pins.add(pin);
-    const other = bench.byId.get(id)!;
-    if (other.kind === "rail" && !bench.covered.has(id)) rails.add(other.row.endsWith("+") ? "+" : "-");
+    const other = bench.byId.get(id);
+    if (other?.kind === "rail" && !bench.covered.has(id)) rails.add(other.row.endsWith("+") ? "+" : "-");
   }
-  const polarity = h.kind === "rail" ? (h.row.endsWith("+") ? "+" : "-") : undefined;
+  const polarity = h?.kind === "rail" ? (h.row.endsWith("+") ? "+" : "-") : undefined;
   if (polarity) rails.delete(polarity);
-  return { kind: own ? "pin" : part ? "part" : h.kind, pin: own, part, rail: polarity, pins: [...pins], partPins: [...modulePins.values()], rails: [...rails] };
+  return { kind: own ? "pin" : part || !h ? "part" : h.kind, pin: own, part, rail: polarity, pins: [...pins], partPins: [...modulePins.values()], rails: [...rails] };
 }
