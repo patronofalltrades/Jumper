@@ -44,6 +44,7 @@
   --color-border: var(--line);
   --color-input: var(--line);
   --color-ring: var(--probe);
+  --color-probe: var(--probe);
   --color-primary: var(--pcb);
   --color-primary-deep: var(--pcb-deep);
   --color-primary-foreground: var(--on-pcb);

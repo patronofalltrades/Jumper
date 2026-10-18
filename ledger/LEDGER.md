@@ -36,6 +36,7 @@ This ledger is source material for Hanif's reflection. Hanif writes the reflecti
 | Oct 18 | "branch is ready" (`Feature/Database`) | Feature 2 on `Feature/Database`: migration with 8 tables, row-level security, profile trigger and backfill; 6 projects and 5 Perch levels (41 tasks) as JSON; Zod content schema; idempotent `npm run seed`; schema.md; 15 new Vitest tests | [#11](https://github.com/patronofalltrades/Jumper/issues/11) |
 | Oct 18 | "1. Apply it 2. We will work on names related to boardwork later." | Claude tried to apply the migration with the Management API: 403 for the access token, and the session's safety check blocked further probing. Claude asked Hanif to run the SQL in the SQL Editor. | — |
 | Oct 18 | "success no rows returned after pasting" (Hanif ran the migration in the SQL Editor), then "once finished, add to the descirption" | Claude ran the seed two times (6 projects, 5 levels, 41 tasks, no copies), checked 2 profiles for 2 accounts, and checked that a logged-out visitor sees 0 rows and cannot write. Results added to `prompts/data-model-pr.md`, because the PR is not open yet. | — |
+| Oct 18 | "Issue #12 development: … git checkout Feature/Lobby. Read Readme.md, Claude.md, Plan.md, Schema.md before touching anything and developing. Develop the lobby feature based on Issue" | Feature 2a on `Feature/Lobby`: lobby with greeting, XP, catalog cards, "Coming soon" badges and tiles, Continue button; pure `continueTarget()` with 5 tests; placeholder `/p/[project]/[level]`; PR text in `prompts/lobby-pr.md` | [#13](https://github.com/patronofalltrades/Jumper/issues/13) |
 
 ## Decisions by Hanif
 
@@ -57,6 +58,7 @@ This ledger is source material for Hanif's reflection. Hanif writes the reflecti
 - Add a forgot-password feature to feature 1 (Oct 18).
 - Feature 2 work goes on Hanif's branch `Feature/Database` (Oct 18).
 - Hanif applied the feature 2 migration in the SQL Editor after the API route failed. Apply the feature 2 migration to the Supabase project in this session's environment. Pin and part names (`esp.GPIO4`, `bbA.+`) wait for the board work (Oct 18).
+- Feature 2a (lobby) work goes on Hanif's branch `Feature/Lobby` (Oct 18).
 - Hanif ended the Mac test after sign-up, the confirmation link, log-in and log-out passed: "I have tested enough so we acn proceed". The forgot-password flow and the `Date.now()` fix were not re-tested on the Mac (Oct 18).
 
 ## Corrections and agent issues
@@ -96,3 +98,5 @@ Only things Hanif said or wrote. Add the date and the exact words where possible
 - Oct 18: This session's environment now has the Supabase URL, the secret key and an access token, and it can reach Supabase (it could not for feature 1). Claude did not apply the migration to a real project without Hanif's answer.
 - Oct 18: Content choices for feature 2: "Press Check" is not a task row (the level check is its own step, and a task must have a place or wire target). Endpoint names such as `esp.GPIO4`, `mic1.WS` and `bbA.+` are a first draft; the parts registry in features 3 and 4 can rename them. Source URLs come from Claude's knowledge; the session could not open them to check.
 - Oct 17: The brief says the student merges each PR. This agrees with Hanif's rule that Claude never merges.
+- Oct 18: Hanif wrote "Issue #12" for the lobby. #12 is the merged data model PR; the lobby issue is #13. Claude used #13.
+- Oct 18: Lobby choices by Claude: an abandoned session sends the user back to the same level; when the last level is complete, Continue opens the last level; the "Coming soon" feature tiles take their text from `content/features.json`.
