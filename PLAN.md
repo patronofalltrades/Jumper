@@ -176,4 +176,6 @@ Electronics workbench look: a cool grey bench mat, a realistic white breadboard,
 
 | Planned feature | Shipped / Changed / Cut | Status (Done / Backlogged) | Learning | What changed and why |
 |---|---|---|---|---|
-| | | | | |
+| **14. Home page before sign in** (added Oct 18). User story: As a new visitor, before I sign in I want to see a home page that tells me what Jumper is, shows the 3D breadboard and Perch, and has "Sign up" and "Log in" buttons, so that I know why I should make an account. | Added | Backlogged | | Not in the original plan. Before, a visitor who was not signed in went directly to `/login`. A home page gives the app a front door for Demo Day. |
+| **15. Walkthrough video** (added Oct 18). User story: As a new visitor or learner, I want to watch a short video in the app that shows how build mode works (place a wire, read the pop-up, press Check), so that I know how to play before I start Level 1. | Added | Backlogged | | Not in the original plan. The video is in the app (on the home page and at the first log-in), not a demo video for the course. |
+| **16. Mascot creation** (added Oct 18). User story: As a learner, I want a Jumper mascot that guides me (on the home page, the level map and the pop-ups) and reacts when I pass or fail a task, so that the app feels like a game and not a manual. | Added | Backlogged | | Not in the original plan. One fixed mascot for Jumper, like the Duolingo owl. Learners do not make their own mascot. |
