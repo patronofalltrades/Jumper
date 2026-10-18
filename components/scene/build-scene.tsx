@@ -60,13 +60,16 @@ function CameraRig() {
   const size = useThree((s) => s.size);
   const invalidate = useThree((s) => s.invalidate);
   const controls = useRef<OrbitControlsImpl>(null);
-  const placed = useRef(false);
+  const fittedAspect = useRef(0);
 
-  // Frame the whole bench once, at the first size. A phone in portrait sees it from closer and more from above.
+  // Frame the whole bench at the first size, and again when the shape of the screen changes a lot (a phone turns).
+  // Small changes, such as a phone browser bar that hides, keep the camera where the learner put it.
+  // A phone in portrait sees the bench from closer and more from above.
   useLayoutEffect(() => {
-    if (placed.current || !size.width) return;
-    placed.current = true;
+    if (!size.width || !size.height) return;
     const aspect = size.width / size.height;
+    if (fittedAspect.current && Math.abs(aspect / fittedAspect.current - 1) < 0.25) return;
+    fittedAspect.current = aspect;
     const vfov = MathUtils.degToRad(35);
     const hfov = 2 * Math.atan(Math.tan(vfov / 2) * aspect);
     // Fit the width of both boards (39.4) and most of their length (32.5); the tilt makes the length look shorter.

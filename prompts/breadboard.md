@@ -31,3 +31,9 @@
 4. "placement of the instructions seem off and it's too technical. Use STE1000 to guide users and rethink where we should put the prompts/instructions for the user"
 
    Claude moved the guidance to two places. The guide bar at the top of the board tells what to do now, with "Step 1 of 2" for parts with two legs. A card next to the pointer (above the finger on a phone) tells what is at the hole and what connects to it, or why the last click did not work, in red. The tool bar keeps only the tools and the wire colors, so the bottom of the screen stays free for the task pop-ups of feature 5. All the text is in `content/ui/build.json`, in ASD-STE100, with no hole codes. `describeHole()` in `lib/circuit/nets.ts` gives the facts for the card (3 new tests).
+
+5. "Now it looks better. Can you use playwright to stress test the touch and interaction of the modal when we are doing a project?"
+
+   Claude read "the modal" as the guide bar and the hole card (the task pop-ups come in feature 5). A Playwright script on the scratchpad test page did 34 checks on 4 touch screens (360×640, 390×844, 430×932, 820×1180): Perch Level 1 and Level 2 by touch (the rules from `perch.json` pass), the guide text at each step, mistakes, the card at the 4 corners, long press, one-finger drag, pinch, 200 fast taps with tool changes, undo to an empty bench, a fast double tap, and a turn to landscape in the middle of a wire.
+
+   The test found 3 bugs, and Claude fixed them: the board moved when the tool changed (the color row went away); the camera did not frame the bench again after a turn; the card could go behind the tool bar in landscape. After the fixes, 136 of 136 checks pass.

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import text from "@/content/ui/build.json";
 import type { Bench } from "@/lib/circuit/bench";
 import { buildNets, describeHole } from "@/lib/circuit/nets";
@@ -73,6 +73,8 @@ export function GuideBar() {
 }
 
 const CARD_WIDTH = 240;
+/** Space between the pointer or finger and the card. */
+const GAP = 22;
 
 type Spot = { x: number; y: number; width: number; height: number; touch: boolean; at: number };
 
@@ -108,6 +110,19 @@ export function SpotCard() {
     };
   }, []);
 
+  // Put the card above or below the point, where it fits, and keep it inside the board.
+  // A finger hides the area below it, so on a phone the card goes above when it can.
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el || el.hidden || !spot) return;
+    const h = el.offsetHeight;
+    const fitsAbove = spot.y - GAP - h >= 8;
+    const fitsBelow = spot.y + GAP + h <= spot.height - 8;
+    const above = spot.touch ? fitsAbove || !fitsBelow : !fitsBelow && fitsAbove;
+    const top = above ? spot.y - GAP - h : spot.y + GAP;
+    el.style.top = `${Math.max(8, Math.min(top, spot.height - h - 8))}px`;
+  });
+
   // On a phone, the card goes away 4 seconds after a tap, so it does not hide the board.
   useEffect(() => {
     if (!spot?.touch) return;
@@ -121,15 +136,14 @@ export function SpotCard() {
   const lines = problem ? null : hover ? holeLines(bench, nets, hover) : null;
   if (!problem && !lines) return <div ref={ref} hidden />;
 
-  // Keep the card on the board. With a mouse, it sits beside the pointer and flips near the right edge.
-  // On a phone, it sits above the finger (below it near the top), centered and clamped to the screen.
+  // Across: with a mouse, the card sits beside the pointer and flips near the right edge.
+  // On a phone, it is centered on the finger and kept inside the screen. Up and down: see the layout effect above.
   const W = Math.min(CARD_WIDTH, spot.width - 16);
   const x = spot.touch
     ? Math.min(Math.max(spot.x - W / 2, 8), spot.width - W - 8)
     : spot.x + 14 + W < spot.width
       ? spot.x + 14
       : spot.x - 14 - W;
-  const above = spot.touch ? spot.y > 170 : spot.y > spot.height - 140;
   return (
     <div
       ref={ref}
@@ -137,7 +151,7 @@ export function SpotCard() {
         "pointer-events-none absolute z-10 rounded-xl border px-3 py-2 text-sm shadow-panel",
         problem ? "border-destructive bg-destructive text-white" : "border-border bg-card",
       )}
-      style={{ left: x, top: spot.y, width: W, transform: `translateY(${above ? "calc(-100% - 22px)" : "22px"})` }}
+      style={{ left: x, width: W }}
     >
       {problem ? (
         <p className="font-semibold">{problem}</p>

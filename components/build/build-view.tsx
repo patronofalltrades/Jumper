@@ -65,7 +65,8 @@ function ToolBar() {
   return (
     <div className="z-10 border-t border-border bg-card px-3 pt-2 pb-[max(env(safe-area-inset-bottom),10px)] sm:px-4">
       <div className="mx-auto flex max-w-2xl flex-col gap-2">
-        {tool === "wire" && <Swatches />}
+        {/* The row keeps its space for every tool, so the board does not move when the tool changes. */}
+        <Swatches hidden={tool !== "wire"} />
         <div className="grid grid-cols-5 gap-1.5 sm:gap-2" role="toolbar" aria-label="Tools">
           {TOOLS.map((t) => (
             <ToolButton key={t.tool} pressed={tool === t.tool} onClick={() => setTool(t.tool)} label={t.label} shortcut={t.key}>
@@ -105,10 +106,10 @@ function ToolButton({
   );
 }
 
-function Swatches() {
+function Swatches({ hidden }: { hidden: boolean }) {
   const wireColor = useBoard((s) => s.wireColor);
   return (
-    <div className="flex items-center justify-center gap-2" role="group" aria-label="Wire color">
+    <div className={cn("flex items-center justify-center gap-2", hidden && "invisible")} aria-hidden={hidden} role="group" aria-label="Wire color">
       <span className="text-xs font-semibold text-muted-foreground">Wire color</span>
       {WIRE_COLORS.map((c) => (
         <button
