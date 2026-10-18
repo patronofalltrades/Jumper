@@ -71,7 +71,11 @@ def main():
     elif mode == "commit":
         verbs = git_verbs(inp.get("command", ""))
         if "commit" in verbs or "push" in verbs:
-            log = subprocess.run(["git", "-C", ROOT, "log", "-1", "--format=%h %s"],
+            files = subprocess.run(["git", "-C", ROOT, "show", "--name-only", "--format=", "HEAD"],
+                                   capture_output=True, text=True, timeout=5).stdout.split()
+            if files and all(f.startswith("ledger/") for f in files):
+                return  # a ledger-only commit; logging it would leave the tree dirty forever
+            log =subprocess.run(["git", "-C", ROOT, "log", "-1", "--format=%h %s"],
                                  capture_output=True, text=True, timeout=5).stdout.strip()
             kind = " and ".join(k for v, k in (("commit", "Commit"), ("push", "Push")) if v in verbs)
             append(data, f"{kind} by Claude", f"`{log}`")
