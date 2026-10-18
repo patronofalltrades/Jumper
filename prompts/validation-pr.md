@@ -45,7 +45,17 @@ As a learner, if I save a snapshot without a title or step, I want a friendly me
 - `npm test`: 159 tests pass (19 new).
 - `npm run typecheck`, `npm run lint`, `npm run build`: pass.
 - Browser check (Chromium, 420 px) on a scratchpad page with the real form components and stubbed server actions: empty Save, too-long title and notes, correct Save (the level, title and notes are sent), empty title in the edit form.
-- Not checked yet: the real routes with Supabase, and the Check button on an empty board in a browser. On the live preview: open a level, open Save snapshot, press Save with no level and no title (2 messages). In a level with all tasks done, remove the parts that you placed (the Check button goes off, with the note).
+- Real routes (Chromium, 1280 px): `next start` on the real Supabase project, with a temporary test account. Hanif allowed it, and the account was deleted after the test (its profile, sessions, attempts and snapshots went with it). Results:
+  - Log-in form → lobby.
+  - Level 1 with all tasks done and no part placed: the Check button is off, with the note.
+  - One wire placed: Check is on and fails with "3V3 (3.3 V power) does not connect to power rail (+)…" (attempt `wrong_pin`). "Fix the board" shows the Check button on the board.
+  - The wire removed with the Remove tool: the Check button on the board goes off, with the note.
+  - The finished Level 1 board: Check passes and Level complete opens.
+  - Save snapshot from Level complete: an empty Save shows the level and title messages; a too-long title shows its message and the selected level stays; a correct Save adds the snapshot (`passed = true`).
+  - Edit on the snapshot page: a title of only spaces shows the message; a correct title saves.
+  - No page errors.
+- The real-route check found one visual problem: the Check button on the board was see-through when off, because it used opacity. It now has a solid grey look.
+- Not checked: the server action with wrong input sent around the form (the browser stops the request first). The unit tests cover the same schema.
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
 

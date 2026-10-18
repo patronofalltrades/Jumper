@@ -169,7 +169,7 @@ export function BuildView({ user, project, levelId, position, eyebrow, title, go
               onClick={() => void levelCheck.check()}
               disabled={empty}
               aria-describedby={empty ? EMPTY_NOTE : undefined}
-              className="min-h-12 rounded-xl border-b-4 border-primary-deep bg-primary px-8 text-base font-extrabold tracking-wide text-primary-foreground uppercase shadow-panel outline-none focus-visible:ring-2 focus-visible:ring-ring active:translate-y-0.5 active:border-b-2 disabled:opacity-60"
+              className="min-h-12 rounded-xl border-b-4 border-primary-deep bg-primary px-8 text-base font-extrabold tracking-wide text-primary-foreground uppercase shadow-panel outline-none focus-visible:ring-2 focus-visible:ring-ring active:translate-y-0.5 active:border-b-2 disabled:border-border disabled:bg-muted disabled:text-muted-foreground"
             >
               {text.play.check.button}
             </button>
