@@ -64,6 +64,8 @@ Record here when Hanif corrects Claude, or when Claude gets something wrong. Say
 
 - Oct 18: Hanif stopped Claude after "Start feature one, look into issue #8" and repeated it with "read claude.md and read.me before taking action on anything". (Claude note: Claude had started to read files and list issues without reading README.md first. Also, #8 is a pull request, not an issue; feature 1 is issue #9.)
 
+- Oct 18: Bug found by Hanif in the Mac test. After log-in, the `npm run dev` log showed `Route "/lobby": Next.js encountered the unstable value Date.now() while prerendering`. Cause: Supabase `getClaims()` reads the clock to check token expiry, and Next 16 Cache Components does not allow this during prerender. Claude did not see it in the cloud session, because the error needs a real session and the session could not reach Supabase. Fix: `await connection()` at the top of `createClient()` in `lib/supabase/server.ts`, so pages that use Supabase render at request time.
+
 ## Hanif's observations
 
 Only things Hanif said or wrote. Add the date and the exact words where possible.
