@@ -38,11 +38,9 @@ As a learner, in any project I want to build like a game: a level map I move alo
 - `npm test`: 115 tests pass (32 new). `tests/engine.test.ts` plays all 5 Perch levels with the ready-made boards: every part snaps in, with no mistakes, and the level rules are true at the end.
 - `npm run typecheck`, `npm run lint`, `npm run build`: pass.
 - Browser check on Claude's scratchpad page (the real `BuildView`, server actions replaced by stubs), at 1280 × 800 and 390 × 844 touch: intro, Concept, Got it, a short circuit (Mistake pop-up, Undo), a snap, the end of the level, and Level 4 with the speaker in the terminal.
-- Not checked yet: the real routes with a log-in and the database writes. Please check them on your Mac before you merge.
-
-## Before you test
-
-- Run `npm run seed` again: Level 4 has new task text, and tasks 9 and 10 go away.
+- Real routes on the Supabase project, with a temporary test account (deleted after the test), on `next start` in Chromium at 1280 × 800 and 390 × 844: log-in, the level map (passed, open and locked levels), a locked level sends the learner back to the map, **Start** makes a `sessions` row, and after 3 tasks the row has 3 tasks done, 0 mistakes and 30 XP. After a reload, the level comes back with 30 XP (browser save). With levels 1–3 passed, Level 4 opens with the ready-made board, and the good holes for the amplifier glow. No page errors.
+- `npm run seed` ran on the Supabase project: Perch has 39 tasks, and Level 4 has 8.
+- Not checked on the real routes: wires placed by hand in 3D (checked on the scratchpad page), and the sounds.
 
 ## Not in this PR
 
