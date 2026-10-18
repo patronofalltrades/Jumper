@@ -39,6 +39,8 @@ Record here when Hanif corrects Claude, or when Claude gets something wrong. Say
 
 - Oct 18: The new guard hook blocked one of Claude's own test commands, because the test text contained the words of a blocked command. The guard reads the command text, not the intent. Fix: Claude moved the test inputs into a file. (Claude note: this is a known limit of the guard; it can block a harmless command that only mentions a blocked one.)
 
+- Oct 18: The ledger hook logged a false "commit" because a test command only mentioned `git commit` inside its text. Claude found it when reading the raw log. Fix: the hook now reads only the git commands that actually run; the false entry was removed.
+
 ## Hanif's observations
 
 Only things Hanif said or wrote. Add the date and the exact words where possible.

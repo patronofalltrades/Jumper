@@ -9,6 +9,7 @@ Each session writes its own file in ledger/raw/, so branches never conflict.
 """
 import json
 import os
+import re
 import subprocess
 import sys
 from datetime import datetime, timezone
@@ -68,12 +69,27 @@ def main():
         }))
 
     elif mode == "commit":
-        cmd = inp.get("command", "")
-        if "git commit" in cmd or "git push" in cmd:
+        verbs = git_verbs(inp.get("command", ""))
+        if "commit" in verbs or "push" in verbs:
             log = subprocess.run(["git", "-C", ROOT, "log", "-1", "--format=%h %s"],
                                  capture_output=True, text=True, timeout=5).stdout.strip()
-            kind = "Push by Claude" if "git push" in cmd else "Commit by Claude"
-            append(data, kind, f"`{log}`")
+            kind = " and ".join(k for v, k in (("commit", "Commit"), ("push", "Push")) if v in verbs)
+            append(data, f"{kind} by Claude", f"`{log}`")
+
+
+def git_verbs(cmd):
+    """Git subcommands actually run by a shell command, not words inside its arguments."""
+    verbs = set()
+    for part in re.split(r"&&|\|\||;|\n", cmd):
+        words = part.split()
+        if not words or words[0] != "git":
+            continue
+        sub = words[1:]
+        while sub and sub[0].startswith("-"):
+            sub = sub[2:] if sub[0] in ("-C", "-c") else sub[1:]
+        if sub:
+            verbs.add(sub[0])
+    return verbs
 
 
 if __name__ == "__main__":
