@@ -37,7 +37,7 @@ Level complete (PLAN.md): a summary screen shows XP earned and mistakes made, an
 
 - A change that makes it fail: if `titleTier` uses `mistakes < 2` in place of `mistakes <= 2`, a level with 2 mistakes shows "Level complete!" in place of "Solid build!", and the test fails.
 - Red: the commit "Red: break titleTier on purpose" makes that change. The CI check on this PR fails (1 failed, 7 passed).
-- Green: the next commit puts `<= 2` back. The CI check passes (91 passed).
+- Green: the next commit puts `<= 2` back. The CI check passes (123 passed).
 
 Red (CI fails):
 
@@ -49,7 +49,7 @@ _(screenshot)_
 
 ## Checks
 
-- `npm test`: 91 tests pass (8 new).
+- `npm test`: 123 tests pass (8 new).
 - `npm run typecheck`, `npm run lint`, `npm run build`: pass.
 - GitHub Actions CI on this PR: see the checks below.
 - Chromium, on a test page with the same component: 390 × 844 in light and dark mode, 1280 × 800, and reduced motion. Esc does not close the pop-up; Continue has the focus; no console errors.
