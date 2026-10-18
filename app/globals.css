@@ -58,3 +58,10 @@ body {
   background: var(--color-background);
   color: var(--color-foreground);
 }
+
+/* A phone turned sideways: cover the page with the "Turn your phone upright" card (components/turn-upright.tsx). */
+@media (orientation: landscape) and (pointer: coarse) and (max-height: 500px) {
+  .turn-upright {
+    display: flex;
+  }
+}

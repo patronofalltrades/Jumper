@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Bricolage_Grotesque, IBM_Plex_Mono } from "next/font/google";
 import { DeviceTag } from "@/components/device-tag";
+import { TurnUpright } from "@/components/turn-upright";
 import "./globals.css";
 
 const display = Bricolage_Grotesque({
@@ -25,6 +26,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="flex min-h-full flex-col font-sans">
         <DeviceTag />
         {children}
+        <TurnUpright />
       </body>
     </html>
   );
