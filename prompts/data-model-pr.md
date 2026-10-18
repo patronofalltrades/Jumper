@@ -27,7 +27,12 @@ closes #11
 
 - `npm run typecheck`, `npm run lint`, `npm test` (22 tests): pass.
 - Red check: an empty "why" in one task makes the content test fail, with the exact task in the message.
-- Database: TODO after Hanif applies the migration — seed run twice (no duplicates), row counts, RLS check.
+- Database (Oct 18, after Hanif ran the migration in the SQL Editor: "Success. No rows returned"):
+  - `npm run seed` ran two times. Both runs gave the same result, with no copies: 6 projects, 5 levels, 41 tasks.
+  - Profiles: 2 rows for 2 existing accounts. The backfill worked.
+  - User tables (sessions, attempts, snapshots, stars): empty, as expected.
+  - Row-level security, logged out (publishable key): all 8 tables return 0 rows. An insert into `projects` is refused (`42501`).
+  - Not tested yet: two logged-in users. The data isolation test (feature 12) covers this.
 
 ### Known limits
 
