@@ -24,3 +24,11 @@
 
    Claude built the design on `Feature/Lobby`.
 
+7. "can you show me on local?" and the troubleshooting after it
+
+   The session cannot reach Hanif's Mac. A read-only script found the Mac's Jumper folder (`~/jumper-auth`) on `Feature/auth`. Hanif switched it to `Feature/Lobby` and ran `npm run dev`.
+
+8. "awesome! It's working. Some notes: 1. When it is in phone size, the cards should scroll downwards/vertically instead of horizontally 2. the navigation pane should be placed on the bottom of the phone screen 3. A script should be written to detect whether a user is opening the site on a laptop or a phone"
+
+   Phone: one column of cards and a full-width bottom bar. `lib/device.ts` and `components/device-tag.tsx` detect phone or laptop.
+

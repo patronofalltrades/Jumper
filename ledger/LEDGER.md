@@ -42,6 +42,8 @@ This ledger is source material for Hanif's reflection. Hanif writes the reflecti
 | Oct 18 | "1. A 2. Yes I will open it manually you just tell me what to do 3 Build both" | Claude gave Hanif 5 checklist lines for #13; no new branch, because `Feature/Lobby` had no PR yet | [#13](https://github.com/patronofalltrades/Jumper/issues/13) |
 | Oct 18 | "Do we want to work on a mascot…?" / "Alright so we're using the things we will be working on as card heroes" | No mascot; the Perch device and the boards are the card pictures | — |
 | Oct 18 | "I added the new work on issue 13. Let's work on it" | ToyCAD-style lobby: backdrop, Projects / My builds switch, Continue card, card row with dots, board and Perch SVG drawings, bottom dock, `/play`, `/soon/[page]`. Typecheck, lint, 27 tests and build pass; design checked with sample data. | [#13](https://github.com/patronofalltrades/Jumper/issues/13) |
+| Oct 18 | "can you show me on local?", then "still stuck… Can you safely check and troubleshoot?" | The session cannot reach the Mac. A read-only script showed the Mac's folder `~/jumper-auth` on `Feature/auth`. A second script found the folder and switched it to `Feature/Lobby`; the dev server ran. | — |
+| Oct 18 | "awesome! It's working. Some notes: 1. … scroll downwards/vertically … 2. the navigation pane should be placed on the bottom of the phone screen 3. A script should be written to detect whether a user is opening the site on a laptop or a phone" | Phone: one column of cards, full-width bottom bar. `deviceKind()` with 4 tests, and `data-device` / `data-touch` on `<html>`. 31 tests and build pass. | [#13](https://github.com/patronofalltrades/Jumper/issues/13) |
 
 ## Decisions by Hanif
 
@@ -69,6 +71,8 @@ This ledger is source material for Hanif's reflection. Hanif writes the reflecti
 - Hanif chose the ToyCAD layout with the Jumper colors: "1. A" (Oct 18).
 - Hanif does the GitHub steps for the design work: "Yes I will open it manually you just tell me what to do" (Oct 18).
 - Hanif asked for both the lobby and the dock: "3 Build both" (Oct 18).
+- Hanif tested the new lobby on his Mac: "awesome! It's working." (Oct 18).
+- Hanif asked for a vertical card list and a bottom bar on phones, and for a script that detects a laptop or a phone (Oct 18).
 - Hanif agreed to no mascot: "Alright so we're using the things we will be working on as card heroes" (Oct 18).
 
 ## Corrections and agent issues
@@ -89,6 +93,8 @@ Record here when Hanif corrects Claude, or when Claude gets something wrong. Say
 - Oct 18: Hanif stopped Claude after "Start feature one, look into issue #8" and repeated it with "read claude.md and read.me before taking action on anything". (Claude note: Claude had started to read files and list issues without reading README.md first. Also, #8 is a pull request, not an issue; feature 1 is issue #9.)
 
 - Oct 18: Bug found by Hanif in the Mac test. After log-in, the `npm run dev` log showed `Route "/lobby": Next.js encountered the unstable value Date.now() while prerendering`. Cause: Supabase `getClaims()` reads the clock to check token expiry, and Next 16 Cache Components does not allow this during prerender. Claude did not see it in the cloud session, because the error needs a real session and the session could not reach Supabase. Fix: `await connection()` at the top of `createClient()` in `lib/supabase/server.ts`, so pages that use Supabase render at request time.
+
+- Oct 18: Claude's first local-run steps did not say to `cd` into the project folder, and the second steps had a placeholder path (`/path/from/the/--- line`) that Hanif ran as written. Hanif found both from the errors ("not a git repository", "string not in pwd"). Fix: Claude sent one script that finds the folder by itself.
 
 ## Hanif's observations
 
@@ -112,4 +118,6 @@ Only things Hanif said or wrote. Add the date and the exact words where possible
 - Oct 18: Lobby choices by Claude: an abandoned session sends the user back to the same level; when the last level is complete, Continue opens the last level; the "Coming soon" feature tiles take their text from `content/features.json`.
 - Oct 18: REA (morluto/rea) reads binaries, apps and websites. It cannot read a screenshot, so Claude did the ToyCAD breakdown by hand.
 - Oct 18: Design choices by Claude: the "Coming soon" features and the user's snapshots are dark cards; the dock's Build button goes to `/play` (the Continue level); Dashboard and Profile go to "Coming soon" pages; the near-black of the backdrop is the same in light and dark mode. Claude checked the design with sample data on a temporary page and did not make a new test account without Hanif's answer.
+- Oct 18: The Desktop Commander tools in this session run on the cloud machine (Linux), not on Hanif's Mac, so Claude could not check the Mac directly. Claude sent read-only scripts instead.
+- Oct 18: For "detect laptop or phone", Claude used the window width (640 px, the same as Tailwind `sm:`) and not the browser's user-agent text, because the width also covers a narrow laptop window and agrees with the CSS layout. Touch is a separate attribute (`data-touch`). The layout is in CSS, so the page does not jump when the script runs.
 

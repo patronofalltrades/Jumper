@@ -31,12 +31,13 @@ export function TabSwitch({ tab }: { tab: Tab }) {
   );
 }
 
-export const CARD = "relative flex h-[25rem] flex-col overflow-hidden rounded-[28px] p-6 sm:h-[29rem] sm:p-8";
+// Phone: full width, as tall as the content. Laptop: a fixed height, so the row lines up.
+export const CARD = "relative flex min-h-[15rem] flex-col overflow-hidden rounded-[28px] p-6 sm:h-[29rem] sm:p-8";
 
 export function ContinueCard({ featured, name }: { featured: Featured; name: string }) {
   const { project, level, levelTitle, started, href } = featured;
   return (
-    <Link href={href} className={cn(CARD, "group w-[84vw] max-w-[32rem] bg-card text-foreground shadow-panel")}>
+    <Link href={href} className={cn(CARD, "group min-h-[24rem] w-full bg-card sm:w-[84vw] sm:max-w-[32rem] text-foreground shadow-panel")}>
       <span className="text-sm font-medium text-muted-foreground">Hi, {name}</span>
       <h2 className="mt-3 text-5xl leading-[0.95] font-extrabold tracking-tight sm:text-6xl">
         {started ? "Continue" : "Start"}
@@ -48,7 +49,7 @@ export function ContinueCard({ featured, name }: { featured: Featured; name: str
         {levelTitle && ` · ${levelTitle}`}
       </p>
       <p className="mt-1 font-mono text-xs font-medium tracking-wide text-muted-foreground uppercase">{project.board}</p>
-      <PerchArt className="absolute -right-8 -bottom-6 w-64 transition-transform group-hover:-rotate-3 sm:w-80" />
+      <PerchArt className="absolute -right-8 -bottom-6 w-56 sm:w-64 transition-transform group-hover:-rotate-3 sm:w-80" />
       <span className="mt-auto flex size-16 items-center justify-center rounded-full border-b-4 border-primary-deep bg-primary text-primary-foreground transition-[transform,border] group-active:translate-y-0.5 group-active:border-b-2">
         <svg width="26" height="26" viewBox="0 0 24 24" aria-hidden="true">
           <path d="M8 5.5v13l11-6.5z" fill="currentColor" />
@@ -82,13 +83,13 @@ export function ProjectCard({ project }: { project: ProjectRow }) {
       {!available && <Badge className="mt-auto">Coming soon</Badge>}
     </>
   );
-  const className = "relative flex flex-1 flex-col overflow-hidden rounded-[28px] bg-card p-5 text-foreground shadow-panel";
+  const className = "relative flex min-h-[12rem] flex-1 flex-col overflow-hidden rounded-[28px] bg-card p-5 text-foreground shadow-panel";
   return available ? (
-    <Link href={`/p/${project.slug}/1`} className={cn(className, "w-[72vw] max-w-[20rem]")}>
+    <Link href={`/p/${project.slug}/1`} className={cn(className, "w-full sm:w-[72vw] sm:max-w-[20rem]")}>
       {body}
     </Link>
   ) : (
-    <article className={cn(className, "w-[72vw] max-w-[20rem]")}>
+    <article className={cn(className, "w-full sm:w-[72vw] sm:max-w-[20rem]")}>
       {body}
     </article>
   );
@@ -96,7 +97,7 @@ export function ProjectCard({ project }: { project: ProjectRow }) {
 
 export function DarkCard({ label, title, children }: { label: string; title: string; children: ReactNode }) {
   return (
-    <article className={cn(CARD, "w-[72vw] max-w-[21rem] bg-[#13202a] text-white shadow-panel")}>
+    <article className={cn(CARD, "w-full bg-[#13202a] sm:w-[72vw] sm:max-w-[21rem] text-white shadow-panel")}>
       <span className="text-xs font-medium text-white/60">{label}</span>
       <h3 className="mt-2 text-3xl leading-[1.05] font-extrabold tracking-tight">{title}</h3>
       <div className="mt-3 flex flex-1 flex-col">{children}</div>

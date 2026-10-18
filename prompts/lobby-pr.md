@@ -38,11 +38,17 @@ Hanif chose the layout and feel of the ToyCAD home screen, with the Jumper color
 - `components/dock.tsx`: a bottom dock on the lobby, the level page and the "Coming soon" pages: Lobby, Builds, a centered **Build** button, Dashboard, Profile.
   - **Build** goes to `/play`, which opens the level that Continue opens.
   - Dashboard and Profile go to `/soon/dashboard` and `/soon/profile` ("Coming soon"). Profile also has **Log out**.
+- Phone and laptop layouts (Hanif's notes after his Mac test):
+  - On a phone (narrower than 640 px), the cards stand in one column that scrolls down, with no page dots. On a laptop they stay in the row that scrolls sideways.
+  - On a phone, the dock is one full-width bar on the bottom edge of the screen. On a laptop it stays as floating pills.
+  - `lib/device.ts`: `deviceKind(width)` gives "phone" below 640 px and "laptop" from 640 px, the same width as Tailwind `sm:`. `components/device-tag.tsx` writes it on `<html>` as `data-device`, with `data-touch` for touch screens, and updates it when the window changes size. The layout uses CSS, so it is correct before the script runs. Build mode (tap-to-wire on a phone, PRD section 10) can read the attributes.
+  - `tests/device.test.ts`: 4 Vitest tests for `deviceKind()`.
 - `lib/game/featured.ts`: the catalog query and the Continue level, shared by the lobby and `/play`.
 
 ### Checks
 
-- `npm run typecheck`, `npm run lint`, `npm test` (27 tests), `npm run build`: pass.
+- `npm run typecheck`, `npm run lint`, `npm test` (31 tests), `npm run build`: pass.
+- Red check for the device tests: they failed before `lib/device.ts` existed ("Cannot find package '@/lib/device'"), then passed.
 - Red check: the Continue tests failed before `lib/game/continue.ts` existed, then passed.
 - End-to-end test (Oct 18) with Playwright on `npm start`, against the real Supabase project, with a temporary test account (deleted after the test):
   - Logged out, `/lobby` goes to `/login`.
@@ -52,7 +58,7 @@ Hanif chose the layout and feel of the ToyCAD home screen, with the Jumper color
   - `/p/arduino-foundations/1`, `/p/perch/9` and `/p/perch/abc` show "not found".
   - At 390 px wide there is no horizontal scroll. Light and dark mode screenshots are correct.
   - **Log out** goes to `/login`.
-- Design check (Oct 18), with sample data on a temporary page that was deleted before the commit: light and dark mode at 1440 × 900 and 390 × 844; no horizontal page scroll; the page dots follow the scroll and a click on a dot moves the row. The design is not yet tested end to end with a real account.
+- Design check (Oct 18), with sample data on a temporary page that was deleted before the commit: light and dark mode at 1440 × 900 and 390 × 844; no horizontal page scroll; the page dots follow the scroll and a click on a dot moves the row. Hanif ran the design on his Mac with his account (Oct 18): "awesome! It's working." After the phone changes: one column of cards and the bar at the bottom edge at 390 × 844, with `data-device="phone"`; the row and `data-device="laptop"` at 1440 × 900.
 
 ### Known limits
 

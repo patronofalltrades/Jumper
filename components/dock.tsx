@@ -22,15 +22,19 @@ const RIGHT: Item[] = [
 ];
 
 // The bottom navigation of the logged-in pages. Build, in the center, opens the level that Continue opens.
+// Phone: one full-width bar on the bottom edge of the screen. Laptop: floating pills, as in the ToyCAD reference.
 export function Dock({ active }: { active?: DockPage }) {
   return (
     <>
-      <div className="h-28 shrink-0" aria-hidden="true" />
-      <nav aria-label="Main" className="fixed inset-x-0 bottom-0 z-40 flex justify-center px-4 pb-[max(env(safe-area-inset-bottom),12px)]">
-        <div className="flex items-start gap-2">
+      <div className="h-24 shrink-0 sm:h-28" aria-hidden="true" />
+      <nav
+        aria-label="Main"
+        className="fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-[#0d1418]/95 pt-2 pb-[max(env(safe-area-inset-bottom),8px)] backdrop-blur sm:border-0 sm:bg-transparent sm:px-4 sm:pt-0 sm:pb-3 sm:backdrop-blur-none"
+      >
+        <div className="flex items-start justify-around sm:justify-center sm:gap-2">
           <Group items={LEFT} active={active} />
           <Link href="/play" className="group flex flex-col items-center gap-1.5" aria-current={active === "build" ? "page" : undefined}>
-            <span className="flex size-15 items-center justify-center rounded-full border-b-4 border-border bg-card text-foreground shadow-panel transition-[transform,border] group-active:translate-y-0.5 group-active:border-b-2">
+            <span className="-mt-5 flex size-15 items-center sm:mt-0 justify-center rounded-full border-b-4 border-border bg-card text-foreground shadow-panel transition-[transform,border] group-active:translate-y-0.5 group-active:border-b-2">
               <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
                 <circle cx="12" cy="12" r="9" />
                 <path d="M12 8v8M8 12h8" />
@@ -47,8 +51,8 @@ export function Dock({ active }: { active?: DockPage }) {
 
 function Group({ items, active }: { items: Item[]; active?: DockPage }) {
   return (
-    <div className="flex flex-col items-center gap-1.5">
-      <div className="flex gap-1 rounded-full bg-[#13202a]/90 p-1.5 shadow-panel backdrop-blur">
+    <div className="flex flex-col items-center gap-1 sm:gap-1.5">
+      <div className="flex gap-1 sm:rounded-full sm:bg-[#13202a]/90 sm:p-1.5 sm:shadow-panel sm:backdrop-blur">
         {items.map((item) => (
           <Link
             key={item.page}
@@ -56,7 +60,7 @@ function Group({ items, active }: { items: Item[]; active?: DockPage }) {
             aria-label={item.label}
             aria-current={item.page === active ? "page" : undefined}
             className={cn(
-              "flex h-12 w-15 items-center justify-center rounded-full transition-colors",
+              "flex h-10 w-15 items-center sm:h-12 justify-center rounded-full transition-colors",
               item.page === active ? "bg-white/15 text-white" : "text-white/60 hover:text-white",
             )}
           >
