@@ -48,6 +48,13 @@ Each project uses the same build mode. A new project adds data (levels, tasks, p
 7. By November 4, 2026: 9 or more merged pull requests, and 5 or more real entries of my data. No placeholder text.
 8. I merge each pull request. Do not merge a pull request.
 
+## Agent hooks (enforced in `.claude/settings.json`)
+
+1. **No push to `main`, no merge, no approval.** `.claude/hooks/guard.py` blocks `git push` to `main`, `git commit`, `merge` or `rebase` on `main`, PR merges and PR approvals. Only I merge and approve.
+2. **Flag each PR comment.** Claude can comment on a pull request. After each comment, a hook tells Claude to flag it to me in the reply, with the link and a one-line summary.
+3. **If you are not sure, ask.** Do not act on a guess. Stop and ask me for more instructions. A hook repeats this rule at each prompt.
+4. **Keep the ledger.** A hook logs each of my prompts, each commit and push, and each GitHub comment in `ledger/raw/`. After each work step, add an entry to `ledger/LEDGER.md`: the prompt, the change, the link, and my decisions, corrections and observations. Keep my words apart from your notes. Do not write my reflection.
+
 ## Skills
 
 Use these skills when you work on Jumper. They do not replace the house rules. If a skill and a house rule do not agree, the house rule applies.

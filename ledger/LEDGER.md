@@ -1,0 +1,52 @@
+# Jumper project ledger
+
+This ledger is source material for Hanif's reflection. Hanif writes the reflection in Hanif's own voice. Claude does not write it.
+
+## How the ledger works
+
+- **Raw log (automatic).** A hook (`.claude/hooks/ledger.py`) writes each prompt from Hanif, each commit and push by Claude, and each GitHub comment by Claude to `ledger/raw/<date>-<session>.md`. Do not edit these files.
+- **This file (curated).** Claude adds an entry after each work step: the prompt, the change, the link, and Hanif's decisions, corrections and observations.
+- **Two voices are kept apart.** "Hanif said / decided" is only what Hanif wrote. "Claude note" is Claude's view, marked as such. Use only the first for quotes in the reflection.
+- Commit ledger files on the current branch, with the work they describe.
+
+## Timeline
+
+| Date (2026) | Prompt from Hanif (short) | What changed | Link |
+| --- | --- | --- | --- |
+| Oct 15 | Plan, PRD and TRD prompts (see `prompts/plan.md`, `prompts/prd.md`, `prompts/trd.md`) | PLAN.md, docs/PRD.md, docs/TRD.md merged | [#4](https://github.com/patronofalltrades/Jumper/pull/4), [#5](https://github.com/patronofalltrades/Jumper/pull/5), [#6](https://github.com/patronofalltrades/Jumper/pull/6) |
+| Oct 16 | "Prompt 1": add CLAUDE.md and README, issue + branch `docs/claude-readme`, PR with "closes #N", do not merge | Issue #7. CLAUDE.md (summary, stack, 8 house rules), README in ASD-STE100, prompt log | [#7](https://github.com/patronofalltrades/Jumper/issues/7), [#8](https://github.com/patronofalltrades/Jumper/pull/8) |
+| Oct 16 | Add skills: Ponytail, ECC, shadcn/ui, one-skill-to-rule-them-all | Skills section in CLAUDE.md with install commands | [#8](https://github.com/patronofalltrades/Jumper/pull/8) |
+| Oct 16 | Add frontend-design, mattpocock/skills, Superpowers | 3 more skills in CLAUDE.md | [#8](https://github.com/patronofalltrades/Jumper/pull/8) |
+| Oct 17 | "Before moving on, read the prompt first" (Solo App Assignment brief) | Claude compared the brief with the repo and listed 7 gaps | — |
+| Oct 18 | "Let's pick up where we left" | "Assignment rules" section added to CLAUDE.md | [#8](https://github.com/patronofalltrades/Jumper/pull/8) |
+| Oct 18 | Put a hook in this chat and project: no push to main, no approve or merge; flag PR comments; ask when unsure; keep a ledger for the reflection | `.claude/settings.json` hooks, `.claude/hooks/guard.py`, `.claude/hooks/ledger.py`, this ledger, "Agent hooks" section in CLAUDE.md | [#8](https://github.com/patronofalltrades/Jumper/pull/8) |
+
+## Decisions by Hanif
+
+- Fully digital app. No physical hardware. (PLAN prompt log)
+- One playable project (Perch). All others show "Coming soon". (PLAN prompt log)
+- Sharing and collaboration are future work, shown as "Coming soon". (PLAN prompt log)
+- Phone support for wiring is required. Data must record completed sessions. (PLAN prompt log)
+- Code shapes for 3D parts at launch; glTF from Blender later if needed. (TRD prompt log)
+- PRD and TRD written in ASD-STE100. Later: all docs in ASD-STE100. (TRD prompt log, Prompt 1)
+- Branch for Prompt 1 named `docs/claude-readme`; Hanif merges, Claude does not. (Oct 16)
+- Seven agent skills chosen for the project (Oct 16).
+- Agent guardrails as hooks, plus a ledger for the reflection (Oct 18).
+
+## Corrections and agent issues
+
+Record here when Hanif corrects Claude, or when Claude gets something wrong. Say what happened, how it was noticed, and the fix.
+
+- Oct 18: The new guard hook blocked one of Claude's own test commands, because the test text contained the words of a blocked command. The guard reads the command text, not the intent. Fix: Claude moved the test inputs into a file. (Claude note: this is a known limit of the guard; it can block a harmless command that only mentions a blocked one.)
+
+## Hanif's observations
+
+Only things Hanif said or wrote. Add the date and the exact words where possible.
+
+- Oct 16: "I want to understand hardware without buying a bench full of parts." (pitch, PLAN.md)
+- Oct 18: Hanif wants the reflection "purely in my voice" and asked Claude to keep a ledger instead of writing it.
+
+## Claude notes (not Hanif's voice)
+
+- Oct 17: shadcn/ui needs packages that are not in the TRD. CLAUDE.md says to ask Hanif before the first component.
+- Oct 17: The brief says the student merges each PR. This agrees with Hanif's rule that Claude never merges.

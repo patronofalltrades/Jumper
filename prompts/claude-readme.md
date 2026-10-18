@@ -21,6 +21,8 @@
 
 5. "Let's pick up where we left" → add the "Assignment rules" section.
 
+6. "Can you put a hook in this chat and project that goes as follows: 1. Whenever we work on a feature, do not push to main and do not approve a PR or a merge without me. 2. You can make comments on the PR, but you have to flag those comments to me in order for me to be aware of your changes. 3. Whenever you are unsure, do not execute without asking for additional prompts from me. 4. At the end of this project, we will have to write a reflection that is purely in my voice. Since you can't write it for me, your task is to keep a tracker or a ledger of all the prompts, all the changes, all the observations that I have made over the course of the project."
+
 ## Decisions
 
 - shadcn/ui is listed as a skill, but its packages (for example Radix UI) are not in the TRD. Per the house rule, Claude asks Hanif before it adds the first component.
