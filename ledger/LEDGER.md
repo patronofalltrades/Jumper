@@ -55,6 +55,7 @@ This ledger is source material for Hanif's reflection. Hanif writes the reflecti
 | Oct 18 | "Work on Issue #19: Build Mode … Feature%2FBuildMode is the branch Read: Claude.md, PLAN.md, Readme.md, Schema.md before touch any files" | Claude asked 3 questions (start board, parts that are always on the bench, wrong wire), then 2 more after a hole search found that the amplifier could not go on the bench without a pin in an ESP32-S3 line. Feature 5 on `Feature/BuildMode`: task engine state machine, level map, task pop-ups (pinned on a laptop, a sheet on a phone), target glow, snap and buzz, XP, session row, browser autosave, ready-made boards, amp screw terminal, `esp_line` rule. 115 tests, typecheck, lint, build pass; browser check at 1280 px and 390 px. Prompt log in `prompts/build-mode.md`. | [#19](https://github.com/patronofalltrades/Jumper/issues/19) |
 | Oct 18 | "can you write me the pr comment here" | Claude pasted the PR title and body from `prompts/build-mode-pr.md`. | — |
 | Oct 18 | "can we check then?", then "Yes, run the seed" and "Yes, then delete it" | Claude ran `npm run seed` (Level 4 now has 8 tasks) and tested the real routes with a temporary test account: log-in, map, lock, session row (3 tasks, 30 XP), reload, Level 4 with the ready-made board. All pass, no page errors. Test account and its rows deleted. PR text updated. | [#19](https://github.com/patronofalltrades/Jumper/issues/19) |
+| Oct 18 | "can I check myself", then "it's there, I see the pop up, the guide, and everything" | Claude gave Mac steps (switch to `Feature/BuildMode`, `npm run dev`) and optional SQL to open levels 2–5 for testing. Hanif checked build mode on the Mac. PR text updated. | [#19](https://github.com/patronofalltrades/Jumper/issues/19) |
 
 ## Decisions by Hanif
 
@@ -134,6 +135,7 @@ Only things Hanif said or wrote. Add the date and the exact words where possible
 - Oct 16: "I want to understand hardware without buying a bench full of parts." (pitch, PLAN.md)
 - Oct 18: Hanif wants the reflection "purely in my voice" and asked Claude to keep a ledger instead of writing it.
 - Oct 18: "I am not sure as I am still learning about the hardware, so can you help check the pin orders?"
+- Oct 18: After the Mac test of build mode: "it's there, I see the pop up, the guide, and everything"
 
 ## Claude notes (not Hanif's voice)
 
