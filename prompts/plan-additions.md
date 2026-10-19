@@ -19,3 +19,9 @@
 5. "Plan additions should be an issue with descirptions first. Then I'll create a branch where you can commit"
 
    Claude wrote the issue text. Hanif made issue #30 and the branch `Feature/Feature-Addition`. Claude moved the 3 commits onto that branch.
+
+# Prompt log: Profile (issue #34)
+
+1. "Work on this profile branch: https://github.com/patronofalltrades/Jumper/tree/Feature%2FProfile", "issue number: 34", "Read claude.md, readme.md, PLAN.md, Schema.md before continuing"
+
+   Hanif wrote issue #34 with the user story and the decisions, and made the branch `Feature/Profile`. Claude read the four files and the issue. Claude added row 17 (Profile) to the "Plan vs. Reality" table of `PLAN.md`. The original plan text did not change.
