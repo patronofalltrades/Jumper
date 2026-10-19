@@ -18,7 +18,7 @@ const LEFT: Item[] = [
 ];
 const RIGHT: Item[] = [
   { page: "dashboard", label: "Dashboard", href: "/dashboard", icon: icon("M5 20V11M12 20V5M19 20v-6") },
-  { page: "profile", label: "Profile", href: "/soon/profile", icon: icon("M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM4.5 20a7.5 7.5 0 0 1 15 0") },
+  { page: "profile", label: "Profile", href: "/profile", icon: icon("M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM4.5 20a7.5 7.5 0 0 1 15 0") },
 ];
 
 // The bottom navigation of the logged-in pages. Build, in the center, opens the level that Continue opens.

@@ -1,0 +1,32 @@
+{
+  "_note": "Text for the profile page (PLAN.md feature 17), in ASD-STE100. {date} is filled in by the app.",
+  "heading": "Profile",
+  "text": "Your account, your name and your character.",
+  "email": "Email",
+  "xp": "XP",
+  "joined": "Joined",
+  "account": {
+    "heading": "Name and character",
+    "name": "Display name",
+    "name_hint": "The name that the lobby shows",
+    "avatar": "Character",
+    "save": "Save",
+    "saving": "Saving…",
+    "done": "Saved.",
+    "failed": "We could not save. Try again."
+  },
+  "password": {
+    "heading": "Change password",
+    "new": "New password",
+    "confirm": "Type it again",
+    "save": "Change password",
+    "saving": "Changing…",
+    "done": "Your password is changed."
+  },
+  "log_out": "Log out",
+  "errors": {
+    "name_empty": "Enter a display name.",
+    "name_long": "Use 40 characters or fewer.",
+    "avatar": "Select a character."
+  }
+}
