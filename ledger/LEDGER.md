@@ -80,6 +80,11 @@ This ledger is source material for Hanif's reflection. Hanif writes the reflecti
 | Oct 18 | "walkthrough includes walkthrough of the levels" | Claude changed the user story of row 15 in `PLAN.md`: the video also walks through the levels of the project. | [#30](https://github.com/patronofalltrades/Jumper/issues/30) |
 | Oct 18 | "short clip for all levels", then the answer "One clip per level" | Claude changed row 15 in `PLAN.md`: one intro video, plus one short clip at the start of each level. | [#30](https://github.com/patronofalltrades/Jumper/issues/30) |
 | Oct 18 | "is this under the claude/dazzling branch? let's not do that and use another name", then "Plan additions should be an issue with descirptions first. Then I'll create a branch where you can commit", then the branch `Feature/Feature-Addition` | Claude wrote the issue text. Hanif made issue #30. Claude moved the 3 plan commits from `claude/dazzling-galileo-nkqqzv` onto `Feature/Feature-Addition` and added `prompts/plan-additions.md`. | [#30](https://github.com/patronofalltrades/Jumper/issues/30) |
+| Oct 18 | "merged PR 29. Let's work on Feature 10" | Feature 10 on `Feature/Dashboard` (issue #28): `main` merged in; `lib/stats/dashboard.ts` with 11 tests, test first (the required 67% test of PLAN.md section 4 included); mistake labels in `content/ui/dashboard.json` with a content test; `/dashboard` with four stat cards, an empty state and a Recharts bar chart; the dock opens it. `recharts` installed (in the TRD). 171 tests pass. | [#28](https://github.com/patronofalltrades/Jumper/issues/28) |
+| Oct 18 | "Yes, then delete it" (temporary test account for `/dashboard`) | Real-route check with a throwaway account and Checks through `record_attempt`: empty state, then 3 levels, 4 sessions, 510 XP, 67%, and the mistakes chart, on a phone, a laptop and in dark mode. Account deleted; 0 rows left. | [#28](https://github.com/patronofalltrades/Jumper/issues/28) |
+| Oct 19 | "there are merge conflicts need to be resolved for this PR: …/pull/32 particularly on the ledger side" | PR #32 conflicted with `main` after PR #31 (#30), because both added rows at the end of the same ledger sections. Claude merged `main` into `Feature/Dashboard` (a merge commit, no rebase) and kept both sides: the #30 rows first, then the #28 rows. 171 tests and the type check pass. | [#32](https://github.com/patronofalltrades/Jumper/pull/32) |
+| Oct 19 | "push it", then "wait the green run is still in progress", then "all checks successful, push red commit" | Claude had not pushed yet when Hanif said to wait. After the green run passed, Claude pushed `873f0ba` "Red: count every attempt in the first-try pass rate". CI failed: the required test got 75% and not 67% (3 failed, 168 passed). | [#32](https://github.com/patronofalltrades/Jumper/pull/32) |
+| Oct 19 | Two screenshots, "would these be enough?", then a third, "this one?", then "push green" | Claude said the failing-check screenshot was good, but the first log screenshot showed the "0%" test, not the required one; the third screenshot (`tests/dashboard.test.ts:16:40`, 75% and not 67%) is the required test. Claude pushed the green commit, which counts only the first attempt of each level again. | [#32](https://github.com/patronofalltrades/Jumper/pull/32) |
 
 ## Decisions by Hanif
 
@@ -131,6 +136,8 @@ This ledger is source material for Hanif's reflection. Hanif writes the reflecti
 - Hanif allowed a temporary test account on the real Supabase project for the #27 route check, deleted after the test ("Yes, then delete it") (Oct 18).
 - For the new features, Hanif chose: add them as rows in the "Plan vs. Reality" table (assignment rule 2); the walkthrough video is an in-app intro video, plus one short clip at the start of each level; the mascot is one fixed Jumper mascot, not one that each learner makes (Oct 18).
 - Plan changes get an issue with a description first; then Hanif makes the branch. Do not use the default session branch name (Oct 18, issue #30).
+- Hanif allowed a temporary test account for the #28 dashboard check, deleted after the test ("Yes, then delete it") (Oct 18).
+- Hanif set the order of the #28 red/green test: wait until the green run on the PR head finishes, then push red; push green only after the red screenshots ("wait the green run is still in progress", "push green") (Oct 19).
 
 ## Corrections and agent issues
 
@@ -167,6 +174,7 @@ Record here when Hanif corrects Claude, or when Claude gets something wrong. Say
 - Oct 18: Claude stopped its own shell 2 more times with `kill` commands that searched the process list for text that was also in the same command. Claude then used the background task tools to stop the server.
 - Oct 18: The first route check ran on a build from before the `onSubmit` fix. Claude saw this before it trusted the result, rebuilt, and ran the check again.
 - Oct 18: Claude first committed the plan rows on the default session branch `claude/dazzling-galileo-nkqqzv`, not on a `Feature/…` branch from Hanif (house rules 2 and 1a). Hanif noticed and asked for another name. Fix: Hanif made issue #30 and `Feature/Feature-Addition`; Claude moved the commits there. The old branch can be deleted on GitHub.
+- Oct 18: The first #28 route-check script stopped at a loose selector (the lobby card text also had the word "Dashboard"). The test account of that run was deleted at once; the second run used an exact selector.
 
 ## Hanif's observations
 
@@ -179,6 +187,8 @@ Only things Hanif said or wrote. Add the date and the exact words where possible
 - Oct 18: "wait I think that screenshot should be the testing on Github's page no?"
 - Oct 18: "is this the green success test that we are looking for?"
 - Oct 18: "are we using vercel? I don't think we have set up anything"
+- Oct 19: "wait the green run is still in progress"
+- Oct 19: "would these be enough?" (about the red CI screenshots)
 
 ## Claude notes (not Hanif's voice)
 
@@ -236,3 +246,5 @@ Only things Hanif said or wrote. Add the date and the exact words where possible
 - Oct 18: Validation choices by Claude (#27): the level select starts empty, so the learner must choose a level ("must fill in"). It lists all the levels of the project, and the board saved is still the board of the page. The edit form has no level select (the level of a saved snapshot does not change). "Empty board" means no part that is not on the board that the level opened with; the store keeps that board (`base`), and the browser saves it with the level. A board saved before #27 uses the ready-made start board. A part that the learner moved counts as placed. The `maxLength` limits are gone from the title and notes boxes, so that the "too long" message can show; the server refuses the same input. The edit and save forms send nothing when the browser finds a wrong field.
 - Oct 18: The browser check for #27 ran on Claude's scratchpad page (Vite, the CSS from `npm run build`) with the snapshot server actions replaced by stubs. It covered the Save form (empty, too long, correct) and the edit form. Later, Hanif asked for the real routes and the Check button: see the route check row in the timeline.
 - Oct 18: The user stories of rows 14–16 in `PLAN.md` are Claude's drafts from Hanif's three feature names. Hanif can change them before the issues copy them. The video source (a screen recording or an animation) and the mascot look are not decided yet.
+- Oct 18: Dashboard choices by Claude (#28): the first attempt of a level is its earliest attempt by time, over all sessions; levels with no Check are not in the rate. The rate shows "–" with no Checks, not 0%. The chart counts failed Checks only (task mistakes in build mode have no type). An unknown code shows as "Other mistake". The bars are horizontal, so the labels fit on a phone. The bar color is `--danger` (the mistake color of the app), and the counts are in the text color. The dashboard has no "of 5" total, because more projects come later. The red/green commits wait until Hanif opens the PR, so that CI runs on each one (the lesson from PR #22).
+- Oct 19: The ledger conflicts come back each time two branches are open at the same time, because each one adds rows at the end of the same sections. The fix is always to keep both sides. A merge of `main` into the open branch before the PR opens finds the conflict early.

@@ -1,0 +1,37 @@
+{
+  "_note": "Text for the dashboard, in ASD-STE100. {passed}, {levels} and {n} are filled in by the app. Each mistake code of a level Check (the forbid rules in content/projects/, plus missing_ground and wrong_pin) has a plain label.",
+  "heading": "Dashboard",
+  "text": "Your progress, and the mistakes to practice.",
+  "stats": {
+    "levels": "Levels completed",
+    "sessions": "Completed sessions",
+    "xp": "XP",
+    "first_try": "First-try pass rate",
+    "first_try_detail": "{passed} of {levels} levels passed on the first Check",
+    "first_try_none": "No Checks yet"
+  },
+  "chart": {
+    "heading": "Mistakes you make most",
+    "text": "Failed Checks, by the reason that the Check gave.",
+    "count": "{n} failed Checks",
+    "count_one": "1 failed Check",
+    "empty": "No failed Checks. When a Check fails, its reason shows here, so you know what to practice."
+  },
+  "empty": {
+    "heading": "Start your first level",
+    "text": "Finish the tasks of a level, then press Check. Your numbers show here.",
+    "button": "Build"
+  },
+  "mistakes": {
+    "short_power": "Short circuit (power to ground)",
+    "reversed_power": "Power pin on ground",
+    "reversed_led": "LED turned around",
+    "missing_resistor": "LED with no resistor",
+    "button_bypassed": "Wire around the button",
+    "amp_shutdown": "Amplifier in shutdown (SD on ground)",
+    "speaker_to_ground": "Amplifier output on ground",
+    "missing_ground": "Missing ground",
+    "wrong_pin": "Wrong or missing wire",
+    "other": "Other mistake"
+  }
+}

@@ -17,7 +17,7 @@ const LEFT: Item[] = [
   { page: "builds", label: "Builds", href: "/snapshots", icon: icon("M7 7h12v12H7zM4 16V5a1 1 0 0 1 1-1h11") },
 ];
 const RIGHT: Item[] = [
-  { page: "dashboard", label: "Dashboard", href: "/soon/dashboard", icon: icon("M5 20V11M12 20V5M19 20v-6") },
+  { page: "dashboard", label: "Dashboard", href: "/dashboard", icon: icon("M5 20V11M12 20V5M19 20v-6") },
   { page: "profile", label: "Profile", href: "/soon/profile", icon: icon("M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM4.5 20a7.5 7.5 0 0 1 15 0") },
 ];
 
