@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
@@ -11,6 +12,7 @@ import { ContinueCard, DarkCard, pairs, ProjectCard, TabSwitch, type Tab } from 
 import { Logo } from "@/components/logo";
 import features from "@/content/features.json";
 import { loadCatalog } from "@/lib/game/featured";
+import { avatarSrc } from "@/lib/profile/form";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = { title: "Lobby · Jumper" };
@@ -36,7 +38,7 @@ async function Lobby({ tab }: { tab: Tab }) {
   if (!auth?.claims) redirect("/login");
 
   const [{ data: profile }, { catalog, featured }] = await Promise.all([
-    supabase.from("profiles").select("display_name, xp").eq("id", auth.claims.sub).maybeSingle(),
+    supabase.from("profiles").select("display_name, xp, avatar").eq("id", auth.claims.sub).maybeSingle(),
     loadCatalog(supabase),
   ]);
   const name = profile?.display_name || auth.claims.email?.split("@")[0] || "there";
@@ -54,6 +56,9 @@ async function Lobby({ tab }: { tab: Tab }) {
             </svg>
             {profile?.xp ?? 0} XP
           </span>
+          <Link href="/profile" aria-label="Profile" className="shrink-0 rounded-full ring-white/30 hover:ring-2">
+            <Image src={avatarSrc(profile?.avatar)} alt="" width={36} height={36} className="size-9 rounded-full" />
+          </Link>
           <form action={logOut}>
             <button type="submit" className="rounded-full px-3 py-1.5 text-sm font-semibold text-white/80 hover:bg-white/10 hover:text-white">
               Log out

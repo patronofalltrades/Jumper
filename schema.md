@@ -2,7 +2,7 @@
 
 This file lists each table in the Jumper database, its columns and its relations. It also compares the built schema with section 3 of [PLAN.md](PLAN.md).
 
-- SQL: [supabase/migrations/20261018000000_data_model.sql](supabase/migrations/20261018000000_data_model.sql) (tables) and [supabase/migrations/20261018100000_level_check.sql](supabase/migrations/20261018100000_level_check.sql) (the `record_attempt` function)
+- SQL: [supabase/migrations/20261018000000_data_model.sql](supabase/migrations/20261018000000_data_model.sql) (tables), [supabase/migrations/20261018100000_level_check.sql](supabase/migrations/20261018100000_level_check.sql) (the `record_attempt` function) and [supabase/migrations/20261019000000_profile.sql](supabase/migrations/20261019000000_profile.sql) (the profile character, and the profile columns that a user can change)
 - Content that fills the content tables: [content/projects/](content/projects/), loaded by [supabase/seed.ts](supabase/seed.ts) (`npm run seed`)
 - Source of truth for the design: [TRD section 7](docs/TRD.md#7-database-schema)
 
@@ -55,7 +55,7 @@ All logged-in users can read these tables. The app cannot write to them. Only th
 
 ### User tables
 
-Row-level security protects these tables. Each user can select, insert, update and delete only their own rows (`user_id = auth.uid()`; for profiles, `id = auth.uid()`).
+Row-level security protects these tables. Each user can select, insert, update and delete only their own rows (`user_id = auth.uid()`; for profiles, `id = auth.uid()`). For profiles there is one more limit: a user can only read their row and change `display_name` and `avatar`. Only the sign-up trigger adds a profile, and only `record_attempt` changes `xp`.
 
 **profiles**: one row for each account. A trigger adds the row when a user signs up. The migration also adds rows for accounts that existed before it.
 
@@ -63,7 +63,8 @@ Row-level security protects these tables. Each user can select, insert, update a
 | --- | --- | --- |
 | id | uuid | Primary key. Foreign key → auth.users.id |
 | display_name | text, nullable | From sign-up data, or the part of the email before the @ |
-| xp | int | Default 0 |
+| xp | int | Default 0. Only `record_attempt` changes it |
+| avatar | text | The character of the profile picture: `volt`, `diode`, `pixel`, `servo` or `chip` (the ids in `content/ui/avatars.json`). Default `volt` |
 | created_at | timestamptz | |
 
 **sessions**: one sitting on a level.
@@ -120,7 +121,7 @@ A user can star only their own snapshots. The policy checks this, because a fore
 
 ## Functions
 
-**record_attempt**(session, passed, mistake_type, tasks_done, mistakes, task_xp) → `{ completed, fails }`. The level Check calls it (issue #25). It runs as the user, so row-level security applies.
+**record_attempt**(session, passed, mistake_type, tasks_done, mistakes, task_xp) → `{ completed, fails }`. The level Check calls it (issue #25). It runs as its owner (`security definer`), because users cannot write `profiles.xp` (feature 17). It finds only the session of the user who calls it (`user_id = auth.uid()`), and it writes only that session, its attempt and the profile of that user.
 
 - A failed Check: it adds one row to `attempts`, with the mistake type.
 - A passed Check, in one transaction: it adds the attempt, sets the session to `completed` with `ended_at`, and sets `xp_earned` to the task XP + the level XP + 10 XP when the session has no mistakes and no failed Check. Then it adds `xp_earned` to `profiles.xp`.
@@ -158,6 +159,7 @@ erDiagram
 | `users` table | `profiles` table, with `id` → `auth.users.id` | Supabase Auth keeps the accounts in `auth.users`. `profiles` adds our data to each account (TRD section 7). |
 | `users.id` (text) | `profiles.id` (uuid) | Supabase account IDs are UUIDs. |
 | — | `profiles.xp` (int) | The lobby shows the XP of the user. One column is faster than a sum of all sessions. |
+| — | `profiles.avatar` (text) | The profile picture (PLAN.md feature 17, Plan vs. Reality). A learner selects one of 5 characters. The images are in `public/avatars/`. |
 | `steps` table | `levels` table | The app and the PRD call them levels. |
 | `step_id` columns | `level_id` columns | Same as above. |
 | `projects.id`, `steps.id`, `tasks.id` (number) | int, generated | Same meaning. The database makes the numbers. |
