@@ -28,8 +28,8 @@ export function firstTryPassRate(attempts: Attempt[]): PassRate | null {
     if (!seen || Date.parse(a.createdAt) < Date.parse(seen.createdAt)) first.set(a.levelId, a);
   }
   if (first.size === 0) return null;
-  const passed = attempts.filter((a) => a.passed).length;
-  return { passed, levels: first.size, percent: Math.round((passed / attempts.length) * 100) };
+  const passed = [...first.values()].filter((a) => a.passed).length;
+  return { passed, levels: first.size, percent: Math.round((passed / first.size) * 100) };
 }
 
 /** The failed attempts of each mistake type, most first. Types with the same count are in name order. */

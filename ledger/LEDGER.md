@@ -83,6 +83,8 @@ This ledger is source material for Hanif's reflection. Hanif writes the reflecti
 | Oct 18 | "merged PR 29. Let's work on Feature 10" | Feature 10 on `Feature/Dashboard` (issue #28): `main` merged in; `lib/stats/dashboard.ts` with 11 tests, test first (the required 67% test of PLAN.md section 4 included); mistake labels in `content/ui/dashboard.json` with a content test; `/dashboard` with four stat cards, an empty state and a Recharts bar chart; the dock opens it. `recharts` installed (in the TRD). 171 tests pass. | [#28](https://github.com/patronofalltrades/Jumper/issues/28) |
 | Oct 18 | "Yes, then delete it" (temporary test account for `/dashboard`) | Real-route check with a throwaway account and Checks through `record_attempt`: empty state, then 3 levels, 4 sessions, 510 XP, 67%, and the mistakes chart, on a phone, a laptop and in dark mode. Account deleted; 0 rows left. | [#28](https://github.com/patronofalltrades/Jumper/issues/28) |
 | Oct 19 | "there are merge conflicts need to be resolved for this PR: …/pull/32 particularly on the ledger side" | PR #32 conflicted with `main` after PR #31 (#30), because both added rows at the end of the same ledger sections. Claude merged `main` into `Feature/Dashboard` (a merge commit, no rebase) and kept both sides: the #30 rows first, then the #28 rows. 171 tests and the type check pass. | [#32](https://github.com/patronofalltrades/Jumper/pull/32) |
+| Oct 19 | "push it", then "wait the green run is still in progress", then "all checks successful, push red commit" | Claude had not pushed yet when Hanif said to wait. After the green run passed, Claude pushed `873f0ba` "Red: count every attempt in the first-try pass rate". CI failed: the required test got 75% and not 67% (3 failed, 168 passed). | [#32](https://github.com/patronofalltrades/Jumper/pull/32) |
+| Oct 19 | Two screenshots, "would these be enough?", then a third, "this one?", then "push green" | Claude said the failing-check screenshot was good, but the first log screenshot showed the "0%" test, not the required one; the third screenshot (`tests/dashboard.test.ts:16:40`, 75% and not 67%) is the required test. Claude pushed the green commit, which counts only the first attempt of each level again. | [#32](https://github.com/patronofalltrades/Jumper/pull/32) |
 
 ## Decisions by Hanif
 
@@ -135,6 +137,7 @@ This ledger is source material for Hanif's reflection. Hanif writes the reflecti
 - For the new features, Hanif chose: add them as rows in the "Plan vs. Reality" table (assignment rule 2); the walkthrough video is an in-app intro video, plus one short clip at the start of each level; the mascot is one fixed Jumper mascot, not one that each learner makes (Oct 18).
 - Plan changes get an issue with a description first; then Hanif makes the branch. Do not use the default session branch name (Oct 18, issue #30).
 - Hanif allowed a temporary test account for the #28 dashboard check, deleted after the test ("Yes, then delete it") (Oct 18).
+- Hanif set the order of the #28 red/green test: wait until the green run on the PR head finishes, then push red; push green only after the red screenshots ("wait the green run is still in progress", "push green") (Oct 19).
 
 ## Corrections and agent issues
 
@@ -184,6 +187,8 @@ Only things Hanif said or wrote. Add the date and the exact words where possible
 - Oct 18: "wait I think that screenshot should be the testing on Github's page no?"
 - Oct 18: "is this the green success test that we are looking for?"
 - Oct 18: "are we using vercel? I don't think we have set up anything"
+- Oct 19: "wait the green run is still in progress"
+- Oct 19: "would these be enough?" (about the red CI screenshots)
 
 ## Claude notes (not Hanif's voice)
 
