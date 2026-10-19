@@ -1,18 +1,18 @@
 # Jumper
 
-Jumper is a web app. You use Jumper to learn hardware engineering. You connect real boards on a 3D breadboard, and the app guides you like a game.
+Welcome to **Jumper**, the friendliest way to learn hardware engineering! Jumper is a web app where you build real circuits on a 3D breadboard, and the whole thing guides you forward like a game. No tools, no messy wires on your desk — just you, a screen, and the satisfaction of building something real.
 
-You do not buy or carry parts. The parts in Jumper are the same as real parts, for example the ESP32-S3-DevKitC-1 board, the INMP441 mic, the MAX98357A amplifier and the ST7789 screen. Thus the skills that you learn are correct for real devices.
+Here is the best part: the parts are the real deal. The ESP32-S3-DevKitC-1 board, the INMP441 mic, the MAX98357A amplifier, the ST7789 screen — they are exactly the components you would hold in your hand. So every skill you learn in Jumper is a skill you can carry straight onto a real bench.
 
-The first project that you can play is **Perch**. Perch is a desk device that gives an AI agent a home, with ears, a voice and a face. You connect Perch in 5 levels. In each level, a pop-up tells you what to do, where to do it, and why. You get XP for each task. Other projects show "Coming soon".
+The first project you can play is **Perch**: a cute desk device that gives an AI agent a home, complete with ears, a voice and a face. You bring Perch to life across 5 levels. In every level, a friendly pop-up tells you exactly what to do, where to do it, and why it matters. Every task you finish earns you XP. The other projects are waiting in the wings with a cheerful "Coming soon" badge.
 
-**Live app:** [jumper-inky-sigma.vercel.app](https://jumper-inky-sigma.vercel.app/). Each merge to `main` deploys a new version.
+**Live app:** not deployed yet — but it is on the way!
 
 ## About this project
 
-Jumper is a class project for **Intro to Code (MBA 296C, UC Berkeley Haas, Fall 2026)**.
+Jumper started as a class project for **Intro to Code (MBA 296C, UC Berkeley Haas, Fall 2026)**.
 
-Jumper is also a passion project. Work on Jumper continues after the class.
+But Jumper is more than homework. It is a passion project, and it keeps growing long after the class ends.
 
 ## Documents
 
@@ -38,7 +38,7 @@ Jumper is also a passion project. Work on Jumper continues after the class.
 
 ## Run the app
 
-You must have Node.js 22 or a later version, and a Supabase project.
+You need Node.js 22 (or newer) and a Supabase project. That is it — let's go!
 
 1. Install the packages:
 
@@ -46,21 +46,21 @@ You must have Node.js 22 or a later version, and a Supabase project.
    npm install
    ```
 
-2. Copy `.env.example` to `.env.local`. Write the project URL and the publishable key from Supabase (**Project Settings > API Keys**) into `.env.local`. Do not commit `.env.local`.
+2. Copy `.env.example` to `.env.local`. Add the project URL and the publishable key from Supabase (**Project Settings > API Keys**). Do not commit `.env.local`.
 3. Make the database. Run the SQL files in `supabase/migrations/` in the Supabase **SQL Editor**, in name order. Then add `SUPABASE_SECRET_KEY` to `.env.local` and load the projects, levels and tasks:
 
    ```
    npm run seed
    ```
 
-   You can run the seed again. It updates the rows and does not make copies. [schema.md](schema.md) lists the tables.
+   You can run the seed again any time you like. It updates the rows and never makes copies. [schema.md](schema.md) lists the tables.
 4. Start the app:
 
    ```
    npm run dev
    ```
 
-5. Open http://localhost:3000. The app sends you to the log-in page. Select **Create an account**.
+5. Open http://localhost:3000. The app sends you to the log-in page. Select **Create an account** and you are in.
 
 ### Checks
 
