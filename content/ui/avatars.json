@@ -1,0 +1,10 @@
+{
+  "_note": "The characters that a learner can use as a profile picture, in ASD-STE100. Each image is public/avatars/<id>.svg. The first character is the default.",
+  "avatars": [
+    { "id": "volt", "name": "Volt", "text": "A box robot with a big smile." },
+    { "id": "diode", "name": "Diode", "text": "An egg robot with a dark visor and blue eyes." },
+    { "id": "pixel", "name": "Pixel", "text": "A robot with a monitor for a head." },
+    { "id": "servo", "name": "Servo", "text": "An orange robot in a space helmet." },
+    { "id": "chip", "name": "Chip", "text": "A purple robot with a happy screen face." }
+  ]
+}

@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="Servo">
+<title>Servo</title>
+<rect width="256" height="256" fill="#33424d"/>
+<rect x="50" y="200" width="156" height="84" rx="32" fill="#d9662b" stroke="#13202a" stroke-width="6" stroke-linejoin="round"/>
+<rect x="38" y="106" width="16" height="34" rx="6" fill="#b54f1f" stroke="#13202a" stroke-width="6" stroke-linejoin="round"/><rect x="202" y="106" width="16" height="34" rx="6" fill="#b54f1f" stroke="#13202a" stroke-width="6" stroke-linejoin="round"/>
+<circle cx="128" cy="124" r="78" fill="#e8783a" stroke="#13202a" stroke-width="6" stroke-linejoin="round"/>
+<path d="M64 96 Q128 34 192 96" fill="none" stroke="#b54f1f" stroke-width="5"/>
+<circle cx="128" cy="52" r="7" fill="#f2b705" stroke="#13202a" stroke-width="4"/>
+<rect x="72" y="98" width="112" height="68" rx="32" fill="#1a1f24" stroke="#13202a" stroke-width="6" stroke-linejoin="round"/>
+<circle cx="106" cy="126" r="16" fill="#fdf6e3" opacity=".2"/><circle cx="150" cy="126" r="16" fill="#fdf6e3" opacity=".2"/>
+<circle cx="106" cy="126" r="9" fill="#fdf6e3"/><circle cx="150" cy="126" r="9" fill="#fdf6e3"/>
+<path d="M114 146 Q128 156 142 146" fill="none" stroke="#fdf6e3" stroke-width="4" stroke-linecap="round"/>
+</svg>
