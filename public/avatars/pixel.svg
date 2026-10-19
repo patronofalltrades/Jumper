@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="Pixel">
+<title>Pixel</title>
+<rect width="256" height="256" fill="#e3a008"/>
+<line x1="108" y1="62" x2="88" y2="30" stroke="#13202a" stroke-width="6" stroke-linejoin="round"/><circle cx="86" cy="26" r="8" fill="#c9412f" stroke="#13202a" stroke-width="6" stroke-linejoin="round"/>
+<line x1="148" y1="62" x2="168" y2="30" stroke="#13202a" stroke-width="6" stroke-linejoin="round"/><circle cx="170" cy="26" r="8" fill="#c9412f" stroke="#13202a" stroke-width="6" stroke-linejoin="round"/>
+<rect x="72" y="212" width="112" height="60" rx="16" fill="#3d7bd9" stroke="#13202a" stroke-width="6" stroke-linejoin="round"/>
+<rect x="112" y="188" width="32" height="28" fill="#2c5fae" stroke="#13202a" stroke-width="6" stroke-linejoin="round"/>
+<rect x="46" y="60" width="164" height="132" rx="20" fill="#3d7bd9" stroke="#13202a" stroke-width="6" stroke-linejoin="round"/>
+<rect x="64" y="78" width="128" height="92" rx="12" fill="#0f1d2b" stroke="#13202a" stroke-width="4"/>
+<rect x="92" y="100" width="14" height="14" fill="#5cf08a"/><rect x="150" y="100" width="14" height="14" fill="#5cf08a"/>
+<path d="M94 134 L106 146 L150 146 L162 134" fill="none" stroke="#5cf08a" stroke-width="8"/>
+<circle cx="176" cy="181" r="4" fill="#13202a"/><circle cx="192" cy="181" r="4" fill="#13202a"/>
+</svg>

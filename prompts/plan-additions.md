@@ -25,3 +25,7 @@
 1. "Work on this profile branch: https://github.com/patronofalltrades/Jumper/tree/Feature%2FProfile", "issue number: 34", "Read claude.md, readme.md, PLAN.md, Schema.md before continuing"
 
    Hanif wrote issue #34 with the user story and the decisions, and made the branch `Feature/Profile`. Claude read the four files and the issue. Claude added row 17 (Profile) to the "Plan vs. Reality" table of `PLAN.md`. The original plan text did not change.
+
+2. "add one more feature push to your work: a set of characters that can be used as profile pictures. Provide 5 options to choose from. Use the attached picture as reference:" (a grid of 20 cartoon robots)
+
+   Claude asked 2 questions. Hanif chose "Extend row 17" and "Plan + 5 drawn SVGs". Claude extended the row 17 user story, and drew 5 original robot characters (Volt, Diode, Pixel, Servo, Chip) in `public/avatars/`, with their names in `content/ui/avatars.json`.
