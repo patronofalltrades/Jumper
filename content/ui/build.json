@@ -92,7 +92,8 @@
   "play": {
     "intro": {
       "tasks": "{n} tasks",
-      "start": "Start"
+      "start": "Start",
+      "how": "Follow the yellow arrow. It shows where to click or tap. Holes that blink are holes that you can use."
     },
     "kind": {
       "place": "Place",

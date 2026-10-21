@@ -188,9 +188,27 @@ describe("task spot", () => {
     expect(spot.holes).not.toContain("A-L-1");
   });
 
+  it("shows a free hole to tap at each end of a wire task, the second one near the first", () => {
+    const spot = taskSpot(bench, [], planOf(1).tasks[3].target);
+    const [first, second] = spot.taps.map((h) => bench.byId.get(h)!);
+    // First: an empty hole in the line of 3V3, not the pin hole. Second: a hole on the + rail of A.
+    expect(first.strip).toBe(bench.byId.get("B-a5")!.strip);
+    expect(["B-a5", "B-a6"]).not.toContain(first.id);
+    expect(second.id).toMatch(/^A-L\+/);
+    expect(spot.at).toEqual({ x: first.x, z: first.z });
+  });
+
+  it("outlines a part that is always on the bench", () => {
+    const spot = taskSpot(bench, [], planOf(1).tasks[0].target);
+    expect(spot.taps).toEqual([]);
+    expect(spot.area).toMatchObject({ x0: expect.any(Number), x1: expect.any(Number) });
+    expect(taskSpot(bench, [], planOf(1).tasks[2].target).area).toEqual(bench.esp);
+  });
+
   it("glows only the holes where pin 1 of a module can go", () => {
     const spot = taskSpot(bench, [], planOf(3).tasks[0].target);
     expect(spot.holes.sort()).toEqual(["B-e1", "B-e2", "B-e27", "B-e28"]);
+    expect(spot.holes).toContain(spot.taps[0]);
   });
 
   it("glows the terminal for the speaker", () => {

@@ -185,6 +185,7 @@ function IntroBody({ eyebrow, title, goal, tasks }: LevelInfo) {
       <p className="font-mono text-[11px] font-medium tracking-wide text-muted-foreground uppercase">{eyebrow}</p>
       <h2 className="text-2xl leading-tight font-extrabold tracking-tight">{title}</h2>
       <p className="text-sm leading-relaxed text-muted-foreground">{goal}</p>
+      <p className="rounded-xl bg-muted px-3 py-2 text-sm leading-snug font-semibold">{text.play.intro.how}</p>
       <div className="flex items-center justify-between gap-3">
         <Chip>{fill(text.play.intro.tasks, { n: tasks.length })}</Chip>
         <PressButton onClick={() => boardStore.getState().start()}>{text.play.intro.start}</PressButton>

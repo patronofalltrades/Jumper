@@ -122,7 +122,7 @@ function Bench() {
   const flash = useBoard((s) => s.flash);
   const probe = useProbeColor();
   const spot = useTaskSpot();
-  const blink = useBlink(!!spot?.holes.length);
+  const blink = useBlink(!!spot && (spot.holes.length > 0 || !!spot.area));
 
   // Nets change only when a part changes, not on each frame.
   const nets = useMemo(() => buildNets(bench, parts), [bench, parts]);
@@ -165,6 +165,7 @@ function Bench() {
       <Esp32S3 bench={bench} glow={glow} />
       <Parts bench={bench} removing={tool === "remove"} glow={glow} />
       {isModuleType(tool) && <Ghost tool={tool} />}
+      {spot && <Cue taps={spot.taps} area={spot.area} up={blink} probe={probe} />}
       {pending && !isModuleType(tool) && endOf(bench, parts, pending) && (
         <PendingMarker hole={endOf(bench, parts, pending)!} to={hover && hover !== pending ? (endOf(bench, parts, hover) ?? undefined) : undefined} probe={probe} />
       )}
@@ -440,6 +441,58 @@ function Ghost({ tool }: { tool: ModuleType }) {
   const at = isTouchScreen() ? pending : hover;
   if (!at) return null;
   return <ModuleGhost bench={bench} type={tool} at={at} ok={!checkModule(bench, parts, tool, at)} />;
+}
+
+/**
+ * The "tap here" cue of the task: an arrow that bobs over the next hole to tap, with a ring on the hole. For a wire,
+ * the arrow moves to the second hole after the first tap. A part that is always on the bench gets a blinking outline.
+ */
+function Cue({ taps, area, up, probe }: { taps: string[]; area: { x0: number; x1: number; z0: number; z1: number } | null; up: boolean; probe: Color }) {
+  const bench = useBoard((s) => s.bench);
+  const parts = useBoard((s) => s.parts);
+  const pending = useBoard((s) => s.pending);
+  const tool = useBoard((s) => s.tool);
+  const nets = useMemo(() => buildNets(bench, parts), [bench, parts]);
+
+  let tap = taps[0];
+  // A phone shows a module before the second tap: the arrow goes to that hole.
+  if (pending && isModuleType(tool)) tap = pending;
+  else if (pending && taps.length === 2) tap = netHoles(nets, pending).has(taps[0]) || pending === taps[0] ? taps[1] : taps[0];
+  const end = tap ? endOf(bench, parts, tap) : null;
+  const on = area === bench.esp ? PCB_Y + PCB_T : 0;
+  if (!end && !area) return null;
+
+  return (
+    <group>
+      {end && (
+        <mesh position={[end.x, (end.lift ?? 0) + 0.05, end.z]} rotation={[-Math.PI / 2, 0, 0]} raycast={() => null}>
+          <ringGeometry args={up ? [0.42, 0.62, 28] : [0.5, 0.7, 28]} />
+          <meshBasicMaterial color={probe} />
+        </mesh>
+      )}
+      {area && (
+        <Line
+          points={[
+            [area.x0, on + 0.05, area.z0],
+            [area.x1, on + 0.05, area.z0],
+            [area.x1, on + 0.05, area.z1],
+            [area.x0, on + 0.05, area.z1],
+            [area.x0, on + 0.05, area.z0],
+          ]}
+          color={up ? probe : probe.clone().lerp(new Color("#ffffff"), 0.5)}
+          lineWidth={5}
+          raycast={() => null}
+        />
+      )}
+      {/* The arrow points down at the hole: a cone with its tip at the bottom. */}
+      {end && (
+        <mesh position={[end.x, (end.lift ?? 0) + (up ? 1.3 : 2), end.z]} rotation={[Math.PI, 0, 0]} castShadow raycast={() => null}>
+          <coneGeometry args={[0.55, 1.4, 20]} />
+          <meshStandardMaterial color={probe} emissive={probe} emissiveIntensity={0.35} />
+        </mesh>
+      )}
+    </group>
+  );
 }
 
 /** A ring on the first hole of an unfinished part, and a dashed line to the hole under the pointer. */

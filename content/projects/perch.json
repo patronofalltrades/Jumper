@@ -43,7 +43,7 @@
         {
           "position": 1,
           "kind": "place",
-          "instruction": "Put breadboard A on the table.",
+          "instruction": "This is breadboard A, inside the blinking line. It is already on the table. Read about it, then press Got it.",
           "popup_why": "A breadboard is a board full of holes. Under the holes, metal strips join them in lines of 5. Put two things in the same line of 5, and they touch. The long red and blue lines at the edges are for power.",
           "concept": "Breadboard: A board with many holes. You push parts and wires into the holes. You do not need glue or solder. Under each line of 5 holes, a metal strip joins the holes, so the parts in that line can talk.",
           "target": {
@@ -58,7 +58,7 @@
         {
           "position": 2,
           "kind": "place",
-          "instruction": "Put breadboard B next to breadboard A.",
+          "instruction": "This is breadboard B, inside the blinking line, next to breadboard A. Press Got it.",
           "popup_why": "Our main board is very wide. On one breadboard, its pins would fill almost all the holes, and you would have no space for wires. With two breadboards, each side of the board gets its own breadboard.",
           "concept": null,
           "target": {
@@ -73,7 +73,7 @@
         {
           "position": 3,
           "kind": "place",
-          "instruction": "Put the ESP32-S3 board across the two breadboards.",
+          "instruction": "This is the ESP32-S3 board, inside the blinking line. It already sits across the two breadboards. Press Got it.",
           "popup_why": "The ESP32-S3 is the brain of Perch. It is a tiny computer. One row of its pins goes into breadboard A, and the other row goes into breadboard B. Now each pin has free holes next to it for wires.",
           "concept": "Pin: A small metal leg on a part. Each pin has one job, and its name tells you the job. For example, 3V3 gives power and GND is ground.",
           "target": {
