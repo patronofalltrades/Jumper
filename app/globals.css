@@ -107,9 +107,33 @@ body {
 .perch-wake-led { animation: wake-led 0.9s linear 0.5s; }
 .rise-in { animation: rise-in 0.35s ease-out both; }
 
+/* Volt, the mascot (components/art/volt.tsx): a hop when a task is done, a shake on a mistake, and on Level complete
+   a hop in time with the Perch device. Each motion plays once, when the pose shows. */
+@keyframes volt-hop {
+  0%, 100% { transform: none; }
+  40% { transform: translateY(-14px); }
+  70% { transform: translateY(2px); }
+}
+@keyframes volt-shake {
+  0%, 100% { transform: none; }
+  20% { transform: translateX(-6px) rotate(-4deg); }
+  40% { transform: translateX(5px) rotate(3deg); }
+  60% { transform: translateX(-4px) rotate(-2deg); }
+  80% { transform: translateX(2px); }
+}
+/* Dark mode: a light edge around Volt, so that the dark outline (antenna, arms) shows on a dark card. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .volt { filter: drop-shadow(0 0 1px var(--ink)) drop-shadow(0 0 1px var(--ink)); }
+}
+.volt-body { transform-box: fill-box; transform-origin: 50% 100%; }
+.volt-happy .volt-body { animation: volt-hop 0.5s ease-out 2; }
+.volt-oops .volt-body { animation: volt-shake 0.5s ease-in-out; }
+.volt-cheer .volt-body { animation: wake-pop 0.45s ease-out 0.6s both, volt-hop 0.5s ease-in-out 1.3s 3; }
+
 @media (prefers-reduced-motion: reduce) {
   .perch-wake *,
   .perch-wake-body,
+  .volt-body,
   .rise-in {
     animation: none !important;
   }

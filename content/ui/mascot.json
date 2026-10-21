@@ -1,0 +1,13 @@
+{
+  "_note": "Text for Volt, the Jumper mascot, in ASD-STE100. Volt is also a profile picture (content/ui/avatars.json). Each pose text is the screen reader label of that pose.",
+  "name": "Volt",
+  "poses": {
+    "idle": "Volt waits for you.",
+    "happy": "Volt is happy. You did the step.",
+    "oops": "Volt says oops. Something is not correct.",
+    "cheer": "Volt cheers. You completed the level."
+  },
+  "map": {
+    "here": "Volt is here. Play this level next."
+  }
+}

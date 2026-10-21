@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Dialog } from "radix-ui";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { PerchWake } from "@/components/art/perch-wake";
+import { Volt } from "@/components/art/volt";
 import { readSavedLevel } from "@/components/build/autosave";
 import { SaveSnapshot, type LevelOption } from "@/components/snapshots/save-snapshot";
 import { Button } from "@/components/ui/button";
@@ -44,7 +45,11 @@ export function LevelComplete({ summary, continueHref, save, preview = false }: 
           {preview && <p className="mb-2 rounded-full bg-muted px-3 py-1 text-xs text-muted-foreground">{text.preview}</p>}
 
           <div className="flex w-full max-w-md flex-1 flex-col items-center justify-center gap-6">
-            <PerchWake className="w-44 sm:w-56" />
+            {/* Volt cheers next to the device that wakes up. */}
+            <div className="flex items-end gap-1 sm:gap-3">
+              <Volt pose="cheer" label className="w-24 sm:w-32" />
+              <PerchWake className="w-40 sm:w-56" />
+            </div>
 
             <div className="rise-in text-center" style={{ animationDelay: "0.9s" }}>
               <Dialog.Title className="text-3xl font-extrabold text-probe sm:text-4xl">{text.title[titleTier(summary.mistakes)]}</Dialog.Title>
