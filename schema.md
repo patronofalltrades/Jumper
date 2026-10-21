@@ -121,6 +121,8 @@ A user can star only their own snapshots. The policy checks this, because a fore
 
 The star button on the snapshot list and the snapshot page adds or removes a row (`toggleStar`, issue #40). The list reads `stars(snapshot_id)` with each snapshot, and the Starred view shows the snapshots that have a row.
 
+The lab notebook search, filters and sort (`/snapshots`, issue #42) need no new column. One query reads the snapshots with `ilike` on `title` and `notes`, `level_id` and `passed` for the filters, and `created_at` or `mistake_count` for the sort. Row-level security gives each user only their own snapshots.
+
 ## Functions
 
 **record_attempt**(session, passed, mistake_type, tasks_done, mistakes, task_xp) → `{ completed, fails }`. The level Check calls it (issue #25). It runs as its owner (`security definer`), because users cannot write `profiles.xp` (feature 17). It finds only the session of the user who calls it (`user_id = auth.uid()`), and it writes only that session, its attempt and the profile of that user.

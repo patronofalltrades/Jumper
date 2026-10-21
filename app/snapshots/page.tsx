@@ -3,8 +3,10 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { Backdrop } from "@/components/backdrop";
 import { Dock } from "@/components/dock";
+import { FindForm } from "@/components/snapshots/find-form";
 import { StarButton } from "@/components/snapshots/star-button";
 import text from "@/content/ui/snapshots.json";
+import { applyFind, findHref, isFiltered, readFind, type Find } from "@/lib/snapshots/find";
 import { isStarred, readView, visibleSnapshots, type View } from "@/lib/snapshots/stars";
 import { createClient } from "@/lib/supabase/server";
 
@@ -13,8 +15,7 @@ export const metadata: Metadata = { title: "Lab notebook · Jumper" };
 const t = text.list;
 const fill = (template: string, values: Record<string, string | number>) => template.replace(/\{(\w+)\}/g, (_, k: string) => String(values[k]));
 
-// The lab notebook: the user's snapshots, newest first, and the Starred view (TRD 4, issue #40).
-// Search, filters and sort come with feature 9.
+// The lab notebook: the user's snapshots, the Starred view (issue #40), and search, filters and sort (issue #42).
 export default function SnapshotsPage({ searchParams }: PageProps<"/snapshots">) {
   return (
     <>
@@ -25,8 +26,8 @@ export default function SnapshotsPage({ searchParams }: PageProps<"/snapshots">)
           <p className="mt-2 text-white/70">{t.text}</p>
         </header>
         <Suspense fallback={<p className="text-muted-foreground">Loading…</p>}>
-          {searchParams.then(({ view }) => (
-            <List view={readView(view)} />
+          {searchParams.then((params) => (
+            <List view={readView(params.view)} find={readFind(params)} />
           ))}
         </Suspense>
       </main>
@@ -35,11 +36,11 @@ export default function SnapshotsPage({ searchParams }: PageProps<"/snapshots">)
   );
 }
 
-/** All and Starred. Each tab is a link, so a refresh or a shared link keeps the view. */
-function Tabs({ view }: { view: View }) {
+/** All and Starred. Each tab is a link that keeps the search, the filters and the sort. */
+function Tabs({ view, find }: { view: View; find: Find }) {
   const tabs = [
-    { view: "all", href: "/snapshots", label: t.all },
-    { view: "starred", href: "/snapshots?view=starred", label: t.starred },
+    { view: "all", href: findHref(find, "all"), label: t.all },
+    { view: "starred", href: findHref(find, "starred"), label: t.starred },
   ] as const;
   return (
     <nav aria-label={t.tabs} className="flex w-fit gap-1 rounded-2xl bg-black/50 p-1 backdrop-blur">
@@ -61,20 +62,34 @@ function Tabs({ view }: { view: View }) {
   );
 }
 
-async function List({ view }: { view: View }) {
+async function List({ view, find }: { view: View; find: Find }) {
   const supabase = await createClient();
-  // Row-level security gives only the stars of this user, so `stars` is empty or has one row.
-  const { data, error } = await supabase
-    .from("snapshots")
-    .select("id, title, notes, passed, mistake_count, created_at, levels(position, title), stars(snapshot_id)")
-    .order("created_at", { ascending: false });
-  if (error) throw error;
-  const shown = visibleSnapshots(data, view);
+  // Row-level security gives only the snapshots and the stars of this user, so `stars` is empty or has one row.
+  const [snapshots, levels] = await Promise.all([
+    applyFind(supabase.from("snapshots").select("id, title, notes, passed, mistake_count, created_at, levels(position, title), stars(snapshot_id)"), find),
+    supabase.from("levels").select("id, position, title").order("project_id").order("position"),
+  ]);
+  if (snapshots.error) throw snapshots.error;
+  if (levels.error) throw levels.error;
+  const shown = visibleSnapshots(snapshots.data, view);
 
   return (
     <>
-      <Tabs view={view} />
-      {shown.length ? <Cards snapshots={shown} /> : <p className="rounded-2xl bg-card p-5 text-muted-foreground shadow-panel">{view === "starred" ? t.empty_starred : t.empty}</p>}
+      <Tabs view={view} find={find} />
+      {/* The key resets the boxes when a tab or the clear link opens a new URL. */}
+      <FindForm key={findHref(find, view)} find={find} view={view} levels={levels.data} />
+      {shown.length ? (
+        <Cards snapshots={shown} />
+      ) : isFiltered(find) ? (
+        <div className="flex flex-col items-start gap-3 rounded-2xl bg-card p-5 shadow-panel">
+          <p className="text-muted-foreground">{text.find.none}</p>
+          <Link href={findHref({ ...find, q: "", level: null, result: "all" }, view)} className="font-semibold text-primary underline underline-offset-4">
+            {text.find.clear}
+          </Link>
+        </div>
+      ) : (
+        <p className="rounded-2xl bg-card p-5 text-muted-foreground shadow-panel">{view === "starred" ? t.empty_starred : t.empty}</p>
+      )}
     </>
   );
 }
