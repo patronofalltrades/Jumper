@@ -3,10 +3,13 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { Suspense } from "react";
 import { Backdrop } from "@/components/backdrop";
+import { Volt } from "@/components/art/volt";
 import { Dock } from "@/components/dock";
 import text from "@/content/ui/build.json";
+import mascot from "@/content/ui/mascot.json";
 import { passedLevels, shortName } from "@/lib/game/featured";
 import { levelStatuses, type LevelStatus } from "@/lib/game/map";
+import { mascotLevel } from "@/lib/game/mascot";
 import { createClient } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
 
@@ -43,6 +46,7 @@ async function LevelMap({ slug }: { slug: string }) {
   if (!project) notFound();
 
   const statuses = levelStatuses(project.levels.length, await passedLevels(supabase, project.id));
+  const here = mascotLevel(statuses);
 
   return (
     <section className="flex w-full max-w-lg flex-col gap-6 self-start rounded-[28px] bg-card p-5 shadow-panel sm:p-8">
@@ -72,6 +76,7 @@ async function LevelMap({ slug }: { slug: string }) {
             // The path bends left and right, one step for each level.
             shift={[0, 1, 0, -1][i % 4]}
             last={i === project.levels.length - 1}
+            here={i === here}
           />
         ))}
       </ol>
@@ -79,7 +84,7 @@ async function LevelMap({ slug }: { slug: string }) {
   );
 }
 
-function Node({ href, position, title, tasks, status, shift, last }: { href: string; position: number; title: string; tasks: number; status: LevelStatus; shift: number; last: boolean }) {
+function Node({ href, position, title, tasks, status, shift, last, here }: { href: string; position: number; title: string; tasks: number; status: LevelStatus; shift: number; last: boolean; here: boolean }) {
   const circle = (
     <span
       className={cn(
@@ -114,6 +119,13 @@ function Node({ href, position, title, tasks, status, shift, last }: { href: str
       </span>
     </span>
   );
+  // Volt stands on the level to play now, at the end of its row.
+  const volt = here && (
+    <span className="ml-auto shrink-0" title={mascot.map.here}>
+      <Volt pose="idle" className="h-16 w-auto" />
+      <span className="sr-only">{mascot.map.here}</span>
+    </span>
+  );
   const row = "group flex min-h-20 items-center gap-4 rounded-2xl p-2 outline-none focus-visible:ring-2 focus-visible:ring-ring";
   return (
     <li className="flex flex-col" style={{ paddingLeft: `${(shift + 1) * 2.25}rem` }}>
@@ -121,11 +133,13 @@ function Node({ href, position, title, tasks, status, shift, last }: { href: str
         <div className={row} aria-disabled="true">
           {circle}
           {label}
+          {volt}
         </div>
       ) : (
         <Link href={href} className={cn(row, "hover:bg-muted")}>
           {circle}
           {label}
+          {volt}
         </Link>
       )}
       {!last && <span className="ml-10 h-4 w-1 rounded-full bg-border" aria-hidden="true" />}

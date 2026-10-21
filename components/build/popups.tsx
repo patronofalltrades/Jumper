@@ -4,6 +4,7 @@ import { Html, Line } from "@react-three/drei";
 import { useThree } from "@react-three/fiber";
 import { useCallback, useMemo, useRef, useSyncExternalStore, type ReactNode } from "react";
 import { Vector3, type Camera, type Object3D } from "three";
+import { Volt } from "@/components/art/volt";
 import text from "@/content/ui/build.json";
 import type { Bench } from "@/lib/circuit/bench";
 import { terminalAt, partPins, type Part } from "@/lib/circuit/parts";
@@ -11,6 +12,7 @@ import type { Task } from "@/lib/content/schema";
 import { boardStore, useBoard } from "@/lib/game/board-store";
 import { needsAck, taskSpot, type Mistake } from "@/lib/game/engine";
 import { HEARTS, heartsLeft } from "@/lib/game/hearts";
+import { mascotPose } from "@/lib/game/mascot";
 import { cn } from "@/lib/utils";
 import { EMPTY_NOTE, useEmptyBoard, type Failed, type LevelCheck } from "./check";
 import { pinName } from "./guide";
@@ -89,6 +91,14 @@ function PressButton({ tone = "primary", className, ...props }: { tone?: "primar
   );
 }
 
+/** Volt in the first row of a Task, "what happened" or Mistake pop-up. The board picks the pose; a new pose plays its motion again. */
+function PopupVolt() {
+  const phase = useBoard((s) => s.progress.phase);
+  const done = useBoard((s) => s.done);
+  const pose = mascotPose({ phase, done });
+  return <Volt key={pose} pose={pose} label className="h-14 w-auto shrink-0 sm:h-16" />;
+}
+
 /**
  * A Place or Wire pop-up: what to do. The "what happened" text shows after the task (DoneBody). A part that is always
  * on the bench gets "Got it", so its pop-up shows the two texts together.
@@ -96,10 +106,13 @@ function PressButton({ tone = "primary", className, ...props }: { tone?: "primar
 function TaskBody({ task, total }: { task: LevelTask; total: number }) {
   return (
     <>
-      <div className="flex flex-wrap items-center gap-1.5">
-        <Chip tone="kind">{text.play.kind[task.kind]}</Chip>
-        <Chip>{fill(text.play.task, { n: task.position, total })}</Chip>
-        <Chip tone="xp">{fill(text.play.xp, { n: task.xp })}</Chip>
+      <div className="flex items-center gap-2">
+        <PopupVolt />
+        <div className="flex flex-wrap items-center gap-1.5">
+          <Chip tone="kind">{text.play.kind[task.kind]}</Chip>
+          <Chip>{fill(text.play.task, { n: task.position, total })}</Chip>
+          <Chip tone="xp">{fill(text.play.xp, { n: task.xp })}</Chip>
+        </div>
       </div>
       <h2 className="text-[17px] leading-snug font-extrabold">{task.instruction}</h2>
       {needsAck(task.target) && (
@@ -121,9 +134,12 @@ function TaskBody({ task, total }: { task: LevelTask; total: number }) {
 function DoneBody({ task }: { task: LevelTask }) {
   return (
     <>
-      <div className="flex flex-wrap items-center gap-1.5">
-        <Chip tone="kind">{text.play.kind.done}</Chip>
-        <Chip tone="xp">{fill(text.play.xp, { n: task.xp })}</Chip>
+      <div className="flex items-center gap-2">
+        <PopupVolt />
+        <div className="flex flex-wrap items-center gap-1.5">
+          <Chip tone="kind">{text.play.kind.done}</Chip>
+          <Chip tone="xp">{fill(text.play.xp, { n: task.xp })}</Chip>
+        </div>
       </div>
       <h2 className="text-xl leading-tight font-extrabold">{text.play.done.title}</h2>
       <p className="text-sm leading-relaxed">{task.popup_why}</p>
@@ -161,7 +177,8 @@ function MistakeBody({ mistake }: { mistake: Mistake }) {
   const { undo, dismiss } = boardStore.getState();
   return (
     <>
-      <div>
+      <div className="flex items-center gap-2">
+        <PopupVolt />
         <Chip tone="mistake">{text.play.kind.mistake}</Chip>
       </div>
       <p className="text-[15px] leading-snug font-semibold">{mistake.message ?? mistakeText[mistake.code]}</p>
