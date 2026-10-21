@@ -42,7 +42,7 @@ function Tabs({ view }: { view: View }) {
     { view: "starred", href: "/snapshots?view=starred", label: t.starred },
   ] as const;
   return (
-    <nav aria-label={t.tabs} className="flex w-fit gap-1 rounded-2xl bg-white/10 p-1">
+    <nav aria-label={t.tabs} className="flex w-fit gap-1 rounded-2xl bg-black/50 p-1 backdrop-blur">
       {tabs.map((tab) => (
         <Link
           key={tab.view}

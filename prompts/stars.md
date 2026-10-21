@@ -15,4 +15,8 @@
    - `app/snapshots/[id]/page.tsx`: the star next to the Lab notebook button.
    - Text in `content/ui/snapshots.json` (`list` and the new `stars` section).
 
-   Checks: 186 tests, the type check, lint and the build pass. Not checked in a browser in this session.
+   Checks: 186 tests, the type check, lint and the build pass.
+
+2. "can you show me screenshots of the feature", then the answer "Temp test account"
+
+   Claude ran the real routes with a throwaway test account (3 snapshots) and took screenshots in Chromium, on a phone (390 × 844, dark) and a laptop (1280 × 800, light): the empty Starred view, the list before and after 2 stars, the Starred tab, and the snapshot page. The 2 stars stayed after a reload. No console errors. The "All" tab was hard to read on the yellow backdrop, so the tab bar is darker now. The test account was deleted after the check.
