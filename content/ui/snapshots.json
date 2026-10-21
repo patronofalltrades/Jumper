@@ -26,7 +26,7 @@
   },
   "list": {
     "heading": "Lab notebook",
-    "text": "Your saved boards, newest first.",
+    "text": "Your saved boards. Search them, filter them and sort them.",
     "empty": "No snapshots yet. In build mode, press Save snapshot to keep your board here.",
     "level": "Level {level}",
     "mistakes": "{n} mistakes",
@@ -54,5 +54,22 @@
     "unstar": "Remove the star",
     "failed": "We could not change the star. Try again.",
     "missing": "This snapshot does not exist."
+  },
+  "find": {
+    "label": "Find snapshots",
+    "search": "Search",
+    "search_hint": "Words in the title or the notes",
+    "submit": "Search",
+    "level": "Level",
+    "all_levels": "All levels",
+    "result": "Result",
+    "all_results": "All results",
+    "passed": "Passed",
+    "not_checked": "Not checked",
+    "sort": "Sort",
+    "newest": "Newest first",
+    "mistakes": "Most mistakes first",
+    "none": "No snapshot agrees with your search and filters.",
+    "clear": "Clear the search and filters"
   }
 }
