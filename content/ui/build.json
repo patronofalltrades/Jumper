@@ -1,17 +1,17 @@
 {
-  "_note": "Text for the build page and the level map, in ASD-STE100. {act} is \"Click\" on a laptop and \"Tap\" on a phone. {pin}, {rail}, {part}, {n}, {total}, {a} and {b} are filled in by the app.",
+  "_note": "Text for the build page and the level map, in ASD-STE100. {act} is \"Click\" on a laptop and \"Tap\" on a phone. {pin}, {rail}, {part}, {n}, {total}, {a} and {b} are filled in by the app. Write all text so that a person who never saw a circuit can follow it: short words, one idea in each sentence.",
   "guide": {
     "wire": {
-      "start": "{act} a hole to start the wire.",
-      "finish": "{act} a second hole to end the wire."
+      "start": "{act} a glowing hole. This is where the wire starts.",
+      "finish": "{act} the other glowing hole. This is where the wire ends."
     },
     "resistor": {
       "start": "{act} a hole for the first leg of the resistor.",
-      "finish": "{act} a hole for the second leg. Use a hole 2 to 10 holes away."
+      "finish": "{act} a hole for the second leg, 2 to 10 holes away from the first."
     },
     "led": {
-      "start": "{act} a hole for the long leg (+) of the LED.",
-      "finish": "{act} a hole for the short leg (−). Use a hole near the long leg."
+      "start": "{act} a hole for the long leg of the light (+).",
+      "finish": "{act} a hole next to it for the short leg (−)."
     },
     "remove": {
       "start": "{act} a part to remove it."
@@ -26,44 +26,44 @@
       "finish": "{act} − on the terminal, or a hole, for the − lead."
     },
     "module": {
-      "start": "{act} the hole for pin 1 of the {part}. The shadow shows where the part goes.",
+      "start": "{act} a glowing hole for pin 1 of the {part}. The shadow shows where the part goes.",
       "preview": "Look at the shadow. {act} the same hole again to put the {part} there, or tap a different hole."
     }
   },
   "problem": {
     "covered": "You cannot use this hole. The ESP32-S3 board is on top of it.",
-    "esp_pin": "A pin of the ESP32-S3 is in this hole. Use an empty hole in the same line.",
-    "taken": "This hole is full. One hole holds one leg, one pin or one wire end.",
+    "esp_pin": "The board already has a pin in this hole. Use an empty hole in the same line of 5.",
+    "taken": "This hole is full. Each hole holds only one thing.",
     "led_span": "The LED legs are short. Use a hole 1 to 3 holes from the long leg.",
     "resistor_span": "Use a hole 2 to 10 holes from the first leg.",
     "nothing_to_remove": "There is no part in this hole.",
     "nothing_to_undo": "There is nothing to undo.",
     "no_hole": "Use a hole on the breadboard.",
-    "part_pin": "A pin of a part is in this hole. Use an empty hole in the same line.",
+    "part_pin": "A part already has a pin in this hole. Use an empty hole in the same line of 5.",
     "under_part": "You cannot use this hole. A part is on top of it.",
     "off_board": "The part does not fit here. Some pins are off the breadboard. Move pin 1.",
     "rail_pin": "Put the pins of this part in the middle of the breadboard, not on a rail.",
     "needs_gap": "This part must go across the center gap, with pins on the two sides. Move pin 1.",
     "on_gap": "This part must stay on one side of the center gap. Move pin 1.",
     "on_part": "The part would go on top of another part. Use a different place.",
-    "esp_line": "A pin of this part would connect to an ESP32-S3 pin in the same line. Move the part to lines that have no ESP32-S3 pin."
+    "esp_line": "A pin of this part would touch a pin of the board. Move the part to lines that have no board pin."
   },
   "hole": {
     "pin": "ESP32-S3 pin: {pin}",
     "main": "Row {row}, column {column}",
     "rail": {
-      "+": "Power rail (+)",
-      "-": "Ground rail (−)"
+      "+": "Red + line (power)",
+      "-": "Blue − line (ground)"
     },
-    "line": "The 5 holes in this line connect.",
-    "railLine": "All the holes on this rail connect.",
+    "line": "These 5 holes are joined under the board. What you put in one hole touches the other 4.",
+    "railLine": "All the holes on this long line are joined.",
     "connectedPins": "Connected to {pin}.",
     "connectedRail": "Connected to the {rail}.",
     "empty": "Nothing connects to this line yet.",
-    "pinTip": "Connect to this pin from an empty hole in the same line.",
+    "pinTip": "To use this pin, put a wire in an empty hole in the same line of 5.",
     "railEmpty": "Nothing connects to this rail yet.",
     "part": "{part} pin: {pin}",
-    "partTip": "Connect to this pin from an empty hole in the same line.",
+    "partTip": "To use this pin, put a wire in an empty hole in the same line of 5.",
     "terminalTip": "This is a screw terminal. Put a speaker lead or a wire into it."
   },
   "pins": {
@@ -76,8 +76,8 @@
     "gpio": "GPIO {n}"
   },
   "railName": {
-    "+": "power rail (+)",
-    "-": "ground rail (−)"
+    "+": "red + line",
+    "-": "blue − line"
   },
   "tray": {
     "label": "Parts",
@@ -92,13 +92,15 @@
   "play": {
     "intro": {
       "tasks": "{n} tasks",
-      "start": "Start"
+      "start": "Start",
+      "how": "Follow the yellow arrow. It shows where to click or tap. Holes that blink are holes that you can use."
     },
     "kind": {
       "place": "Place",
       "wire": "Wire",
-      "concept": "New idea",
-      "mistake": "Mistake"
+      "concept": "New word",
+      "mistake": "Mistake",
+      "done": "Nice!"
     },
     "task": "Task {n} of {total}",
     "xp": "+{n} XP",
@@ -107,13 +109,13 @@
     "mistake": {
       "undo": "Undo",
       "retry": "Try again",
-      "wrong_wire": "This wire does not make the connection of this task. Undo it, then use the glowing holes.",
-      "wrong_part": "This is not the part for this task. Undo it, then do the task in the pop-up.",
-      "wrong_place": "This part is not in the correct place. Undo it, then put it where the pop-up tells you."
+      "wrong_wire": "Oops, this wire goes to the wrong place. Undo it, then use the glowing holes.",
+      "wrong_part": "Oops, this is not the part for this step. Undo it, then read the pop-up again.",
+      "wrong_place": "Oops, this part is in the wrong place. Undo it, then put it where the pop-up says."
     },
     "ready": {
       "title": "All tasks are done",
-      "text": "Press Check. The app tests all the connections of this level.",
+      "text": "Press Check. The app tests all your wires.",
       "xp": "XP",
       "mistakes": "Mistakes",
       "map": "Level map"
@@ -124,8 +126,8 @@
       "checking": "Checking…",
       "hearts": "{n} hearts",
       "failTitle": "Not yet",
-      "missing_ground": "{a} does not connect to ground. Connect it to the ground rail (−).",
-      "wrong_pin": "{a} does not connect to {b}. Find the wire that is missing or on the wrong pin.",
+      "missing_ground": "{a} does not go to the blue − line. Add a wire from it to the blue − line.",
+      "wrong_pin": "{a} does not go to {b}. A wire is missing, or it is in the wrong hole.",
       "lostHeart": "You lost 1 heart. Hearts left: {n}.",
       "noHearts": "You have no hearts left. You can check again. If the next Check fails, you get 3 new hearts.",
       "refilled": "You get 3 new hearts. Read the reason above, then try again.",
@@ -145,6 +147,10 @@
         "+": "+ lead",
         "-": "− lead"
       }
+    },
+    "done": {
+      "title": "Here is what happened",
+      "next": "Next"
     }
   },
   "map": {

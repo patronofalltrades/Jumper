@@ -1,7 +1,7 @@
-import type { Bench } from "@/lib/circuit/bench";
+import { BOARD, BOARD_B_X, type Bench } from "@/lib/circuit/bench";
 import { isModuleType } from "@/lib/circuit/modules";
 import { buildNets, endpointHole, netHoles, type Nets } from "@/lib/circuit/nets";
-import { checkModule, isTerminal, LEG_NAMES, partPins, terminalAt, type LegType, type Part, type PartType } from "@/lib/circuit/parts";
+import { checkHole, checkModule, isTerminal, LEG_NAMES, partPins, terminalAt, type LegType, type Part, type PartType } from "@/lib/circuit/parts";
 
 // The build-mode task engine (TRD 6.1): a small state machine. It reads the tasks and the forbid rules of a level, and
 // the parts on the bench. It does not know React, the 3D scene or the database.
@@ -198,7 +198,32 @@ export type Spot = {
   holes: string[];
   /** The point on the bench that the pop-up points at. */
   at: { x: number; z: number };
+  /**
+   * The holes to tap, in order, for the "tap here" arrow: a free hole at each end of a wire (the second one near the
+   * first, so the wire is short), a good hole for pin 1 of a module, or the terminals for the speaker.
+   */
+  taps: string[];
+  /** A part that is always on the bench: its outline glows, so the learner sees which part the pop-up means. */
+  area: { x0: number; x1: number; z0: number; z1: number } | null;
 };
+
+/** The free hole of `options` that is nearest to `to`. */
+function nearest(bench: Bench, options: string[], to: { x: number; z: number }) {
+  let best: string | null = null;
+  let distance = Infinity;
+  for (const id of options) {
+    const h = bench.byId.get(id)!;
+    const d = Math.hypot(h.x - to.x, h.z - to.z);
+    if (d < distance) [best, distance] = [id, d];
+  }
+  return best;
+}
+
+/** The outline of breadboard A or B. */
+function boardArea(board: "A" | "B") {
+  const x = (board === "A" ? 0 : BOARD_B_X) + BOARD.centerX;
+  return { x0: x - BOARD.width / 2, x1: x + BOARD.width / 2, z0: -BOARD.length / 2, z1: BOARD.length / 2 };
+}
 
 function pointOf(bench: Bench, parts: Part[], id: string) {
   const h = bench.byId.get(id) ?? terminalAt(bench, parts, id)?.under;
@@ -212,10 +237,10 @@ function centerOf(points: { x: number; z: number }[]) {
 
 /**
  * The spot of a task on this bench.
- * - Wire: the two ends glow, with every free hole that connects to them. The pop-up points at the first end.
+ * - Wire: the two ends glow, with every free hole that connects to them. The pop-up points at the first hole to tap.
  * - Module: the holes where pin 1 can go glow.
  * - Speaker in a terminal: the terminal glows.
- * - A part that is always on the bench: the pop-up points at it.
+ * - A part that is always on the bench: the pop-up points at it, and its outline glows.
  */
 export function taskSpot(bench: Bench, parts: Part[], target: Target, swaps: string[] = []): Spot {
   const boardCenter = (board: "A" | "B") => centerOf(bench.holes.filter((h) => h.board === board));
@@ -225,23 +250,37 @@ export function taskSpot(bench: Bench, parts: Part[], target: Target, swaps: str
     const ends = [target.a, target.b].map((e) => endpointHole(bench, parts, resolve(e, swaps))).filter((h): h is string => h !== null);
     const holes = new Set(ends.flatMap((h) => [...netHoles(nets, h)]));
     for (const h of [...holes]) if (bench.covered.has(h)) holes.delete(h);
-    const at = ends.length ? pointOf(bench, parts, ends[0]) : null;
-    return { holes: [...holes], at: at ?? boardCenter("A") };
+    // A free hole for each end: an end that is a terminal is its own tap.
+    const free = (end: string) => [...netHoles(nets, end)].filter((h) => bench.byId.has(h) && !checkHole(bench, parts, h));
+    const taps: string[] = [];
+    if (ends.length === 2) {
+      const [a, b] = ends.map((e) => pointOf(bench, parts, e)!);
+      const first = bench.byId.has(ends[0]) ? nearest(bench, free(ends[0]), b) : ends[0];
+      const firstAt = first ? pointOf(bench, parts, first)! : a;
+      const second = bench.byId.has(ends[1]) ? nearest(bench, free(ends[1]), firstAt) : ends[1];
+      if (first && second) taps.push(first, second);
+    }
+    const at = taps.length ? pointOf(bench, parts, taps[0]) : ends.length ? pointOf(bench, parts, ends[0]) : null;
+    return { holes: [...holes], at: at ?? boardCenter("A"), taps, area: null };
   }
 
   const tool = toolFor(target.part);
   const board = zoneBoard(target.zone);
   if (tool && isModuleType(tool)) {
     const holes = bench.holes.filter((h) => (!board || h.board === board) && !checkModule(bench, parts, tool, h.id)).map((h) => h.id);
-    return { holes, at: holes.length ? centerOf(holes.map((h) => bench.byId.get(h)!)) : boardCenter(board ?? "A") };
+    const center = holes.length ? centerOf(holes.map((h) => bench.byId.get(h)!)) : boardCenter(board ?? "A");
+    const tap = nearest(bench, holes, center);
+    return { holes, at: center, taps: tap ? [tap] : [], area: null };
   }
   if (target.zone.includes(".")) {
     const holes = placeConnections(target).map((c) => endpointHole(bench, parts, c.b)).filter((h): h is string => h !== null);
     const points = holes.map((h) => pointOf(bench, parts, h)!).filter(Boolean);
-    return { holes, at: points.length ? centerOf(points) : boardCenter("A") };
+    return { holes, at: points.length ? centerOf(points) : boardCenter("A"), taps: holes, area: null };
   }
-  if (board) return { holes: [], at: boardCenter(board) };
-  // Parts that are always on the bench.
-  if (target.zone.startsWith("across")) return { holes: [], at: { x: (bench.esp.x0 + bench.esp.x1) / 2, z: (bench.esp.z0 + bench.esp.z1) / 2 } };
-  return { holes: [], at: boardCenter(target.zone.endsWith("right") ? "B" : "A") };
+  // Parts that are always on the bench. The ESP32-S3 goes "across-bbA-bbB".
+  const { esp } = bench;
+  if (target.zone.startsWith("across")) return { holes: [], at: { x: (esp.x0 + esp.x1) / 2, z: (esp.z0 + esp.z1) / 2 }, taps: [], area: esp };
+  if (board) return { holes: [], at: boardCenter(board), taps: [], area: null };
+  const side = target.zone.endsWith("right") ? "B" : "A";
+  return { holes: [], at: boardCenter(side), taps: [], area: boardArea(side) };
 }

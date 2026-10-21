@@ -15,8 +15,8 @@ import { cn } from "@/lib/utils";
 import { EMPTY_NOTE, useEmptyBoard, type Failed, type LevelCheck } from "./check";
 import { pinName } from "./guide";
 
-// The pop-ups of build mode (PLAN.md "How build mode works"): Place, Wire, Concept and Mistake, plus the level intro
-// and the level Check. All their words come from the level content and content/ui/build.json.
+// The pop-ups of build mode (PLAN.md "How build mode works"): Place, Wire, Concept and Mistake, plus the level intro,
+// the "what happened" pop-up after a task, and the level Check. All their words come from the level content and content/ui/build.json.
 // Laptop: the Place, Wire and Mistake pop-ups hang over the board, with a line down to the target pin (TRD 5.3).
 // Phone: every pop-up is a sheet at the bottom of the board, so it does not cover the glowing holes.
 
@@ -42,7 +42,8 @@ export function useTaskSpot() {
   const parts = useBoard((s) => s.parts);
   const plan = useBoard((s) => s.plan);
   const progress = useBoard((s) => s.progress);
-  const task = progress.phase === "task" ? plan?.tasks[progress.index] : undefined;
+  const explaining = useBoard((s) => s.done !== null);
+  const task = progress.phase === "task" && !explaining ? plan?.tasks[progress.index] : undefined;
   return useMemo(() => (task ? taskSpot(bench, parts, task.target, progress.swaps) : null), [bench, parts, task, progress.swaps]);
 }
 
@@ -88,7 +89,10 @@ function PressButton({ tone = "primary", className, ...props }: { tone?: "primar
   );
 }
 
-/** A Place or Wire pop-up: what to do, why, and its source. A part that is always on the bench gets "Got it". */
+/**
+ * A Place or Wire pop-up: what to do. The "what happened" text shows after the task (DoneBody). A part that is always
+ * on the bench gets "Got it", so its pop-up shows the two texts together.
+ */
 function TaskBody({ task, total }: { task: LevelTask; total: number }) {
   return (
     <>
@@ -98,12 +102,38 @@ function TaskBody({ task, total }: { task: LevelTask; total: number }) {
         <Chip tone="xp">{fill(text.play.xp, { n: task.xp })}</Chip>
       </div>
       <h2 className="text-[17px] leading-snug font-extrabold">{task.instruction}</h2>
-      <p className="text-sm leading-relaxed text-muted-foreground">{task.popup_why}</p>
+      {needsAck(task.target) && (
+        <>
+          <p className="text-sm leading-relaxed text-muted-foreground">{task.popup_why}</p>
+          <div className="flex items-center justify-between gap-3">
+            <a href={task.source_url} target="_blank" rel="noreferrer" className="text-xs font-semibold text-muted-foreground underline underline-offset-2">
+              {text.play.source}
+            </a>
+            <PressButton onClick={() => boardStore.getState().ack()}>{text.play.gotIt}</PressButton>
+          </div>
+        </>
+      )}
+    </>
+  );
+}
+
+/** After a Place or Wire task: what the learner just did, in plain words. */
+function DoneBody({ task }: { task: LevelTask }) {
+  return (
+    <>
+      <div className="flex flex-wrap items-center gap-1.5">
+        <Chip tone="kind">{text.play.kind.done}</Chip>
+        <Chip tone="xp">{fill(text.play.xp, { n: task.xp })}</Chip>
+      </div>
+      <h2 className="text-xl leading-tight font-extrabold">{text.play.done.title}</h2>
+      <p className="text-sm leading-relaxed">{task.popup_why}</p>
       <div className="flex items-center justify-between gap-3">
         <a href={task.source_url} target="_blank" rel="noreferrer" className="text-xs font-semibold text-muted-foreground underline underline-offset-2">
           {text.play.source}
         </a>
-        {needsAck(task.target) && <PressButton onClick={() => boardStore.getState().ack()}>{text.play.gotIt}</PressButton>}
+        <PressButton autoFocus onClick={() => boardStore.getState().seen()}>
+          {text.play.done.next}
+        </PressButton>
       </div>
     </>
   );
@@ -155,6 +185,7 @@ function IntroBody({ eyebrow, title, goal, tasks }: LevelInfo) {
       <p className="font-mono text-[11px] font-medium tracking-wide text-muted-foreground uppercase">{eyebrow}</p>
       <h2 className="text-2xl leading-tight font-extrabold tracking-tight">{title}</h2>
       <p className="text-sm leading-relaxed text-muted-foreground">{goal}</p>
+      <p className="rounded-xl bg-muted px-3 py-2 text-sm leading-snug font-semibold">{text.play.intro.how}</p>
       <div className="flex items-center justify-between gap-3">
         <Chip>{fill(text.play.intro.tasks, { n: tasks.length })}</Chip>
         <PressButton onClick={() => boardStore.getState().start()}>{text.play.intro.start}</PressButton>
@@ -289,17 +320,19 @@ function Card({ mistake, className, children }: { mistake?: boolean; className?:
 /**
  * The pop-ups in the page. Phone: all of them, in a sheet under the board. The sheet has a fixed height, so the board
  * does not move when the text changes, and the sheet does not cover the board.
- * Laptop: the intro, the Concept pop-up and the level Check, over the center of the board. (Task and Mistake
+ * Laptop: the intro, the "what happened" pop-up, the Concept pop-up and the level Check, over the center of the board. (Task and Mistake
  * pop-ups hang in 3D.)
  */
 export function PopupLayer({ level, conceptOpen, onConceptDone, check }: { level: LevelInfo; conceptOpen: boolean; onConceptDone: () => void; check: CheckProps }) {
   const laptop = useLaptop();
   const progress = useBoard((s) => s.progress);
+  const done = useBoard((s) => s.done);
   const task = level.tasks[progress.index];
 
   let body: ReactNode = null;
   let mistake = false;
   if (progress.phase === "intro") body = <IntroBody {...level} />;
+  else if (done !== null && level.tasks[done]) body = <DoneBody task={level.tasks[done]} />;
   else if (progress.phase === "ready_to_check" && check.check.open) {
     body = <CheckBody {...check} />;
     mistake = !!check.check.failed;
