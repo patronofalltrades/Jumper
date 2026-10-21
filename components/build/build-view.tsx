@@ -82,15 +82,16 @@ export function BuildView({ user, project, levelId, position, eyebrow, title, go
   const levelCheck = useLevelCheck({ user, project, position, rules });
   const laptop = useLaptop();
   const progress = useBoard((s) => s.progress);
+  const explaining = useBoard((s) => s.done !== null);
   const empty = useEmptyBoard();
   const mapHref = `/p/${project}`;
 
-  // A task that brings a new idea shows its Concept pop-up first.
+  // A task that brings a new idea shows its Concept pop-up first, after the "what happened" pop-up of the last task.
   const [conceptRead, setConceptRead] = useState(-1);
-  const conceptOpen = progress.phase === "task" && !!tasks[progress.index]?.concept && conceptRead < progress.index;
+  const conceptOpen = progress.phase === "task" && !explaining && !!tasks[progress.index]?.concept && conceptRead < progress.index;
   // The guide bar tells how to use the tool. A task that needs only "Got it" does not use a tool.
   const task = tasks[progress.index];
-  const building = progress.phase === "mistake" || (progress.phase === "task" && !!task && !needsAck(task.target));
+  const building = progress.phase === "mistake" || (progress.phase === "task" && !explaining && !!task && !needsAck(task.target));
 
   const popups = (
     <PopupLayer
@@ -154,10 +155,10 @@ export function BuildView({ user, project, levelId, position, eyebrow, title, go
       </header>
 
       <div className="relative min-h-0 flex-1">
-        <BuildScene>{laptop && <PinnedPopup tasks={tasks} hidden={conceptOpen} />}</BuildScene>
+        <BuildScene>{laptop && <PinnedPopup tasks={tasks} hidden={conceptOpen || explaining} />}</BuildScene>
         {building && <GuideBar />}
         {/* The learner closed the Check card to fix the board: the Check button stays at the bottom of the board. */}
-        {progress.phase === "ready_to_check" && !levelCheck.state.open && (
+        {progress.phase === "ready_to_check" && !explaining && !levelCheck.state.open && (
           <div className="absolute inset-x-3 bottom-4 z-20 flex flex-col items-center gap-2">
             {empty && (
               <p id={EMPTY_NOTE} className="max-w-xs rounded-xl bg-card px-3 py-2 text-center text-sm font-semibold shadow-panel">

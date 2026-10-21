@@ -175,6 +175,19 @@ describe("board store: build mode", () => {
     expect(store.getState().tool).toBe("wire");
   });
 
+  it("opens the 'what happened' pop-up of the task that the learner finished, and Got it closes it", () => {
+    const store = level3();
+    store.getState().start();
+    expect(store.getState().done).toBeNull();
+    tap(store, "B-e27");
+    expect(store.getState().done).toBe(0);
+    store.getState().seen();
+    expect(store.getState().done).toBeNull();
+    // A wrong wire finishes no task.
+    tap(store, "B-c28", "B-R-20");
+    expect(store.getState().done).toBeNull();
+  });
+
   it("buzzes a wrong wire with the forbid rule that it breaks, and Undo ends the mistake", () => {
     const store = level3();
     store.getState().start();

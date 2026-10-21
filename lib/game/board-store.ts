@@ -46,6 +46,8 @@ export type BoardState = {
   /** The tasks of the level. Null: free building, with no tasks. */
   plan: Plan | null;
   progress: Progress;
+  /** The task that the learner just finished with a part or a wire. Its "what happened" pop-up shows until `seen`. */
+  done: number | null;
   flash: Flash | null;
   readOnly: boolean;
 
@@ -55,6 +57,8 @@ export type BoardState = {
   start: () => void;
   ack: () => void;
   dismiss: () => void;
+  /** "Got it" on the "what happened" pop-up. */
+  seen: () => void;
   /** The result of a failed level Check: the failed Checks of the session so far. */
   failed: (fails: number) => void;
   setTool: (tool: Tool) => void;
@@ -79,8 +83,10 @@ export function createBoardStore(bench: Bench = perchBench()) {
       if (!plan) return {};
       const next = step(bench, plan, progress, event);
       const task = next.progress.index !== progress.index || next.progress.phase !== progress.phase ? plan.tasks[next.progress.index] : undefined;
+      const finished = event.type === "change" && next.progress.tasksDone > progress.tasksDone;
       return {
         progress: next.progress,
+        ...(finished && { done: progress.index }),
         tool: (next.progress.phase === "task" && task && taskTool(task.target)) || tool,
         ...(next.effect && { flash: { kind: next.effect, holes: parts.flatMap((p) => partPins(bench, p).map((pin) => pin.hole)), at: Date.now() } }),
       };
@@ -107,6 +113,7 @@ export function createBoardStore(bench: Bench = perchBench()) {
       notice: null,
       plan: null,
       progress: startProgress(),
+      done: null,
       flash: null,
       readOnly: false,
 
@@ -125,6 +132,7 @@ export function createBoardStore(bench: Bench = perchBench()) {
           notice: null,
           plan: setup.plan ?? null,
           progress,
+          done: null,
           flash: null,
           readOnly: setup.readOnly ?? false,
         });
@@ -132,6 +140,7 @@ export function createBoardStore(bench: Bench = perchBench()) {
       start: () => set(play({ type: "start" })),
       ack: () => set(play({ type: "ack", parts: get().parts })),
       dismiss: () => set(play({ type: "dismiss" })),
+      seen: () => set({ done: null }),
       failed: (fails) => set({ progress: { ...get().progress, fails } }),
       setTool: (tool) => set({ tool, pending: null, notice: null }),
       setWireColor: (wireColor) => set({ wireColor, tool: "wire", pending: null, notice: null }),
