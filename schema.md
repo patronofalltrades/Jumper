@@ -119,6 +119,8 @@ Row-level security protects these tables. Each user can select, insert, update a
 
 A user can star only their own snapshots. The policy checks this, because a foreign key check does not use row-level security.
 
+The star button on the snapshot list and the snapshot page adds or removes a row (`toggleStar`, issue #40). The list reads `stars(snapshot_id)` with each snapshot, and the Starred view shows the snapshots that have a row.
+
 ## Functions
 
 **record_attempt**(session, passed, mistake_type, tasks_done, mistakes, task_xp) → `{ completed, fails }`. The level Check calls it (issue #25). It runs as its owner (`security definer`), because users cannot write `profiles.xp` (feature 17). It finds only the session of the user who calls it (`user_id = auth.uid()`), and it writes only that session, its attempt and the profile of that user.

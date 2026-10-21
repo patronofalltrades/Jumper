@@ -3,7 +3,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { DeleteSnapshot, EditSnapshot, SnapshotBoard } from "@/components/snapshots/snapshot-page";
+import { StarButton } from "@/components/snapshots/star-button";
 import text from "@/content/ui/snapshots.json";
+import { isStarred } from "@/lib/snapshots/stars";
 import { countWiring, readWiring } from "@/lib/snapshots/wiring";
 import { createClient } from "@/lib/supabase/server";
 
@@ -12,7 +14,7 @@ export const metadata: Metadata = { title: "Snapshot · Jumper" };
 const t = text.page;
 const fill = (template: string, values: Record<string, string | number>) => template.replace(/\{(\w+)\}/g, (_, k: string) => String(values[k]));
 
-// One snapshot: the board in 3D (view only), the title and notes to edit, and Delete (TRD 4).
+// One snapshot: the board in 3D (view only), the star, the title and notes to edit, and Delete (TRD 4).
 // Row-level security gives no row for a snapshot of another user, so that request shows "not found".
 export default function SnapshotPage({ params }: PageProps<"/snapshots/[id]">) {
   return (
@@ -29,7 +31,7 @@ async function Snapshot({ id }: { id: string }) {
   const supabase = await createClient();
   const { data: snap, error } = await supabase
     .from("snapshots")
-    .select("id, title, notes, wiring, passed, mistake_count, created_at, levels(position, title)")
+    .select("id, title, notes, wiring, passed, mistake_count, created_at, levels(position, title), stars(snapshot_id)")
     .eq("id", id)
     .maybeSingle();
   if (error) throw error;
@@ -47,12 +49,15 @@ async function Snapshot({ id }: { id: string }) {
       </section>
 
       <aside className="flex flex-col gap-4 border-border bg-card p-4 lg:w-[26rem] lg:overflow-y-auto lg:border-l lg:p-6">
-        <Link
-          href="/snapshots"
-          className="inline-flex min-h-11 w-fit items-center rounded-xl border border-b-4 border-border bg-card px-3 text-sm font-semibold active:translate-y-0.5 active:border-b-2"
-        >
-          ← {t.back}
-        </Link>
+        <div className="flex items-start justify-between gap-3">
+          <Link
+            href="/snapshots"
+            className="inline-flex min-h-11 w-fit items-center rounded-xl border border-b-4 border-border bg-card px-3 text-sm font-semibold active:translate-y-0.5 active:border-b-2"
+          >
+            ← {t.back}
+          </Link>
+          <StarButton id={snap.id} starred={isStarred(snap.stars)} />
+        </div>
         <div>
           <p className="font-mono text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
             {fill(text.list.level, { level: level.position })} · {level.title} · {date}

@@ -31,7 +31,11 @@
     "level": "Level {level}",
     "mistakes": "{n} mistakes",
     "passed": "Passed",
-    "not_passed": "Not checked"
+    "not_passed": "Not checked",
+    "all": "All",
+    "starred": "Starred",
+    "tabs": "Show",
+    "empty_starred": "No starred snapshots yet. Press the star on a snapshot to keep it here."
   },
   "page": {
     "back": "Lab notebook",
@@ -44,5 +48,11 @@
     "delete_text": "You cannot undo this. The snapshot and its stars go away.",
     "delete_yes": "Yes, delete",
     "broken": "This snapshot has a board that the app cannot read."
+  },
+  "stars": {
+    "star": "Star this snapshot",
+    "unstar": "Remove the star",
+    "failed": "We could not change the star. Try again.",
+    "missing": "This snapshot does not exist."
   }
 }
