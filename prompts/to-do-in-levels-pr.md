@@ -21,7 +21,7 @@ Added: I want to see all the tasks of the level as a list that I can track (done
 - Only the panel takes clicks; the rest of the board works as before. The panel stops above the Check button.
 - A screen reader reads "Done", "Now" or "To do" before each task.
 - `taskMarks()` in `lib/game/engine.ts` is a pure function: no React, no 3D.
-- Text in `content/ui/build.json`. No new package. No database change.
+- Text in `content/ui/build.json`. No new package. No schema change.
 
 ## Tests
 
