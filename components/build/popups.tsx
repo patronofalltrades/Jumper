@@ -300,7 +300,13 @@ function CheckBody({ check, onCheck, onClose }: { check: LevelCheck; onCheck: ()
       </dl>
       {check.error && <p role="alert" className="text-sm font-semibold text-destructive">{check.error}</p>}
       {emptyNote}
-      <div className="flex justify-end">{button}</div>
+      {/* The learner can close the card to fix the board, for example after removing parts. The Check button stays on the board. */}
+      <div className="flex justify-end gap-2">
+        <PressButton tone="plain" onClick={onClose}>
+          {text.play.check.fix}
+        </PressButton>
+        {button}
+      </div>
     </>
   );
 }

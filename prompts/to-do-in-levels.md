@@ -23,3 +23,11 @@
    - Task list: the header has a − button (hide the tasks) or a + button (show the tasks), with a tooltip.
 
    Checks: 248 tests, the type check, lint and the build pass. Browser check on the temporary page at 1280 px (light) and 390 px (dark): no "Got it" in the task text; the list "Got it" shows for tasks 1, 2 and 3 of Level 1 and gives "3 of 7 done"; no "Got it" on a wire task; − closes the list and + opens it. No page errors.
+
+3. "resolve ledger conflict"
+
+   Claude merged `main` into the branch and kept both sides of the 4 ledger conflicts.
+
+4. Screenshot of Level 2 (the "All tasks are done" card over an empty board, "Tasks · 0 of 8 done"): "im stuck on this page because there is no way to exit it or to close the pop up"
+
+   Cause: the "All tasks are done" card had only the Check button, and Check is off on an empty board. Only the card of a failed Check had "Fix the board". Fix: the "All tasks are done" card also has "Fix the board" (`components/build/popups.tsx`). It closes the card; the Check button stays on the board. Browser check on the temporary page with the same saved board (Level 2, all tasks passed, then all parts removed) at 1280 px dark and 390 px light: the button shows, the card closes, the Check button stays. No page errors.
