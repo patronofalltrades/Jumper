@@ -29,3 +29,7 @@
 4. "fix the landing page crash"
 
    Claude added `hasWebGL()` to `lib/device.ts` (tests first: `tests/webgl.test.ts`, 4 tests). `BuildScene` shows a note from `content/ui/site.json` in place of the 3D board when the browser has no WebGL, so the page does not stop. The clip player uses the same check. Browser check without WebGL (Chromium with `--disable-3d-apis`) at 1280 px light and 390 px dark and with reduced motion: the landing page loads with the note, **Watch how** plays the right video, no page errors, no sideways scroll. With WebGL, the 3D board shows as before.
+
+5. "resolve conflict in pr"
+
+   `main` had the card fix (#51). Claude merged `main` into `Feature/WalkthroughVideo` and kept both sides of the ledger. Only `ledger/LEDGER.md` had a conflict. 258 tests, the type check and lint pass.
