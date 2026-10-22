@@ -3,6 +3,7 @@ import { perchBench } from "@/lib/circuit/bench";
 import { introClip, levelClip, type Clip, type IntroScript } from "@/lib/game/walkthrough";
 import { loadBoards } from "./boards";
 import { loadProjects } from "./load";
+import { introVideo, levelVideo } from "./videos";
 
 // The walkthrough clips (issue #48) come from content/projects/ and content/boards/, not the database, so the
 // landing page can show the intro clip to a visitor who is not logged in.
@@ -14,7 +15,8 @@ export async function loadLevelClips(slug: string): Promise<Map<number, Clip>> {
   const clips = new Map<number, Clip>();
   for (const level of project?.levels ?? []) {
     if (!boards.levels[level.position]) continue;
-    clips.set(level.position, levelClip(perchBench(), boards, level, text.end.replace("{n}", String(level.position))));
+    const clip = levelClip(perchBench(), boards, level, text.end.replace("{n}", String(level.position)));
+    clips.set(level.position, { ...clip, video: levelVideo(slug, level.position)?.id });
   }
   return clips;
 }
@@ -25,5 +27,5 @@ export async function loadIntroClip(): Promise<Clip | null> {
   const level = loadProjects()
     .find((p) => p.slug === "perch")
     ?.levels.find((l) => l.position === script.level);
-  return level ? introClip(perchBench(), await loadBoards("perch"), level, script) : null;
+  return level ? { ...introClip(perchBench(), await loadBoards("perch"), level, script), video: introVideo()?.id } : null;
 }

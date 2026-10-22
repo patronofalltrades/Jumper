@@ -3,5 +3,6 @@
   "turnUpright": {
     "title": "Turn your phone upright",
     "body": "Jumper works only with the phone upright. Your board stays as it is."
-  }
+  },
+  "no3d": "Your browser cannot show the 3D board. Try a newer browser, or turn on hardware acceleration in the browser settings."
 }
