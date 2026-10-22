@@ -19,6 +19,7 @@ Added: I want to see all the tasks of the level as a list that I can track (done
 - **A − / + button** in the header hides or shows the list.
 - **Laptop:** the panel starts open. **Phone:** a small "Tasks 3/8" chip; a tap opens the list over the board, a second tap closes it. Not on the intro card.
 - **"Fix the board" on the "All tasks are done" card**, so the learner can close it (see the bug below).
+- **The card tells the truth.** After the last task, when the learner removed parts, the card says "Some tasks are not done" and "7 of 8 tasks are done. Use the task list to finish the other tasks. Then press Check." With every tick, it still says "All tasks are done".
 - Only the panel takes clicks; the rest of the board works as before. The panel stops above the Check button.
 - A screen reader reads "Done", "Now" or "To do" before each task.
 - `taskMarks()` in `lib/game/engine.ts` is a pure function: no React, no 3D.

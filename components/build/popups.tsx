@@ -10,7 +10,7 @@ import type { Bench } from "@/lib/circuit/bench";
 import { terminalAt, partPins, type Part } from "@/lib/circuit/parts";
 import type { Task } from "@/lib/content/schema";
 import { boardStore, useBoard } from "@/lib/game/board-store";
-import { needsAck, taskSpot, type Mistake } from "@/lib/game/engine";
+import { needsAck, taskMarks, taskSpot, type Mistake } from "@/lib/game/engine";
 import { HEARTS, heartsLeft } from "@/lib/game/hearts";
 import { mascotPose } from "@/lib/game/mascot";
 import { cn } from "@/lib/utils";
@@ -243,9 +243,15 @@ function heartsText(fails: number) {
 
 /** The end of the tasks: Check the level. After a fail: the reason, the hearts, and "Fix the board". */
 function CheckBody({ check, onCheck, onClose }: { check: LevelCheck; onCheck: () => void; onClose: () => void }) {
-  const { xp, mistakes, fails } = useBoard((s) => s.progress);
+  const progress = useBoard((s) => s.progress);
+  const { xp, mistakes, fails } = progress;
   const bench = useBoard((s) => s.bench);
   const parts = useBoard((s) => s.parts);
+  const plan = useBoard((s) => s.plan);
+  // After the last task, the learner can remove parts. Then the card says so, with the count of the task list.
+  const marks = useMemo(() => (plan ? taskMarks(bench, plan, parts, progress) : []), [bench, plan, parts, progress]);
+  const done = marks.filter((m) => m === "done").length;
+  const allDone = done === marks.length;
   const empty = useEmptyBoard();
   const button = (
     <PressButton onClick={onCheck} disabled={check.busy || empty} aria-describedby={empty ? EMPTY_NOTE : undefined} className="disabled:opacity-60">
@@ -283,10 +289,10 @@ function CheckBody({ check, onCheck, onClose }: { check: LevelCheck; onCheck: ()
   return (
     <>
       <div className="flex items-center justify-between gap-2">
-        <h2 className="text-2xl leading-tight font-extrabold tracking-tight">{text.play.ready.title}</h2>
+        <h2 className="text-2xl leading-tight font-extrabold tracking-tight">{allDone ? text.play.ready.title : text.play.ready.openTitle}</h2>
         <Hearts fails={fails} />
       </div>
-      <p className="text-sm text-muted-foreground">{text.play.ready.text}</p>
+      <p className="text-sm text-muted-foreground">{allDone ? text.play.ready.text : fill(text.play.ready.openText, { n: done, total: marks.length })}</p>
       <dl className="grid grid-cols-2 gap-2">
         {[
           [text.play.ready.xp, xp],

@@ -128,6 +128,8 @@
     "ready": {
       "title": "All tasks are done",
       "text": "Press Check. The app tests all your wires.",
+      "openTitle": "Some tasks are not done",
+      "openText": "{n} of {total} tasks are done. Use the task list to finish the other tasks. Then press Check.",
       "xp": "XP",
       "mistakes": "Mistakes",
       "map": "Level map"

@@ -31,3 +31,7 @@
 4. Screenshot of Level 2 (the "All tasks are done" card over an empty board, "Tasks · 0 of 8 done"): "im stuck on this page because there is no way to exit it or to close the pop up"
 
    Cause: the "All tasks are done" card had only the Check button, and Check is off on an empty board. Only the card of a failed Check had "Fix the board". Fix: the "All tasks are done" card also has "Fix the board" (`components/build/popups.tsx`). It closes the card; the Check button stays on the board. Browser check on the temporary page with the same saved board (Level 2, all tasks passed, then all parts removed) at 1280 px dark and 390 px light: the button shows, the card closes, the Check button stays. No page errors.
+
+5. Claude asked: change the "All tasks are done" wording now, or leave it for a separate issue? Hanif: "yes" (read as "change it now").
+
+   The Check card counts the ticks of the task list. When not every task has a tick, its title is "Some tasks are not done", and the text is "{n} of {total} tasks are done. Use the task list to finish the other tasks. Then press Check." (`content/ui/build.json`). Check stays on, so the learner can still press it. Browser check at 1280 px dark and 390 px light: an empty Level 2 board ("0 of 8"), one wire removed ("7 of 8"), and a full board ("All tasks are done"). No page errors.
