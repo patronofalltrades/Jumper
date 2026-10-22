@@ -18,6 +18,7 @@ Added: I want to see all the tasks of the level as a list that I can track (done
 - **"Got it" in the list.** A breadboard or the ESP32-S3 task gets a "Got it" button in its row, the same as in its pop-up. Level 1 tasks 1 to 3 no longer say "Press Got it." in the text (`content/projects/perch.json`).
 - **A − / + button** in the header hides or shows the list.
 - **Laptop:** the panel starts open. **Phone:** a small "Tasks 3/8" chip; a tap opens the list over the board, a second tap closes it. Not on the intro card.
+- **"Fix the board" on the "All tasks are done" card**, so the learner can close it (see the bug below).
 - Only the panel takes clicks; the rest of the board works as before. The panel stops above the Check button.
 - A screen reader reads "Done", "Now" or "To do" before each task.
 - `taskMarks()` in `lib/game/engine.ts` is a pure function: no React, no 3D.
@@ -38,6 +39,12 @@ These are not one of the two required tests in PLAN.md section 4, so this PR has
 264 tests (after the merge of `main`), the type check, lint and the build pass.
 
 Browser check on a temporary page with the Perch content (not committed), at 390 px and 1280 px, light and dark: the counts, the ticks after a wire is removed and put back, the chip on a phone, and no overlap with the guide bar, the Check button or the tool bar. No page errors, no sideways scroll.
+
+## Bug found by Hanif
+
+- **What occurred:** after the last task, Hanif removed all the parts of Level 2. The "All tasks are done" card stayed over the board. The board was empty, so Check was off, and the card had no other button. Hanif could not close the card or go on building.
+- **How Hanif found it:** Hanif tested the branch on Level 2 and sent a screenshot: "im stuck on this page because there is no way to exit it or to close the pop up".
+- **How we repaired it:** the "All tasks are done" card now has a "Fix the board" button, the same as the card of a failed Check. It closes the card, and the Check button stays at the bottom of the board. The task list shows what to do next. Checked in a browser at 1280 px (dark) and 390 px (light) with the same board: the card closes and the Check button shows.
 
 ## Not in this PR
 
