@@ -4,7 +4,7 @@ import { buildNets, connected } from "@/lib/circuit/nets";
 import type { Part } from "@/lib/circuit/parts";
 import { loadBoards, startBoard } from "@/lib/content/boards";
 import { loadProjects } from "@/lib/content/load";
-import { needsAck, startProgress, step, taskSpot, toolFor, type Effect, type Plan, type Progress } from "@/lib/game/engine";
+import { needsAck, startProgress, step, taskMarks, taskSpot, toolFor, type Effect, type Plan, type Progress } from "@/lib/game/engine";
 
 const bench = perchBench();
 const perch = loadProjects().find((p) => p.slug === "perch")!;
@@ -62,7 +62,7 @@ function learner(position: number, start: Part[] = startBoard(boards, position))
 
 describe("each Perch level, played with its finished board", () => {
   for (const level of perch.levels) {
-    it(`level ${level.position}: every part snaps in, with no mistakes, and the level rules are true at the end`, () => {
+    it(`level ${level.position}: every part snaps in, with no mistakes, every task has a tick, and the level rules are true at the end`, () => {
       const l = learner(level.position);
       l.start();
       l.put(...boards.levels[level.position]);
@@ -75,6 +75,7 @@ describe("each Perch level, played with its finished board", () => {
         mistakes: 0,
         xp: level.tasks.reduce((n, t) => n + t.xp, 0),
       });
+      expect(taskMarks(bench, l.plan, l.board, l.progress).every((m) => m === "done")).toBe(true);
       const nets = buildNets(bench, l.board);
       for (const r of level.rules.require) expect(connected(bench, l.board, nets, r.a, r.b), `${r.a} → ${r.b}`).toBe(true);
       for (const f of level.rules.forbid) expect(connected(bench, l.board, nets, f.a, f.b), f.code).toBe(false);
@@ -214,6 +215,64 @@ describe("task spot", () => {
   it("glows the terminal for the speaker", () => {
     const amp: Part = { id: "amp1", type: "max98357a", at: "A-c11" };
     expect(taskSpot(bench, [amp], planOf(4).tasks.at(-1)!.target).holes).toEqual(["amp1.OUT+", "amp1.OUT-"]);
+  });
+});
+
+describe("task list", () => {
+  /** A learner who finished all the tasks of level 2 with its finished board. */
+  function finished() {
+    const l = learner(2);
+    l.start();
+    l.put(...boards.levels[2]);
+    return l;
+  }
+  const marks = (l: ReturnType<typeof learner>, parts = l.board) => taskMarks(bench, l.plan, parts, l.progress);
+
+  it("on an empty board, marks the task of the pop-up as now and the others as to do", () => {
+    const l = learner(2);
+    l.start();
+    expect(marks(l)).toEqual(["now", "todo", "todo", "todo", "todo", "todo", "todo", "todo"]);
+  });
+
+  it("ticks the tasks of level 1 that need only Got it, when the learner presses it", () => {
+    const l = learner(1);
+    l.send({ type: "start" });
+    expect(marks(l).slice(0, 3)).toEqual(["now", "todo", "todo"]);
+    l.send({ type: "ack", parts: [] });
+    expect(marks(l).slice(0, 3)).toEqual(["done", "now", "todo"]);
+  });
+
+  it("ticks every task on a full board after the last task", () => {
+    const l = finished();
+    expect(l.progress.phase).toBe("ready_to_check");
+    expect(marks(l)).toEqual(Array(8).fill("done"));
+  });
+
+  it("takes away the tick of a removed wire, makes its task now, and gives the tick back when the wire comes back", () => {
+    const l = finished();
+    // w7: GPIO 2 to the resistor (task 6).
+    const w7 = l.board.find((p) => p.id === "w7")!;
+    l.remove("w7");
+    expect(marks(l)).toEqual(["done", "done", "done", "done", "done", "now", "done", "done"]);
+    expect(marks(l, [...l.board, w7])).toEqual(Array(8).fill("done"));
+  });
+
+  it("ticks a wire on the other side of the button", () => {
+    const l = learner(2);
+    l.start();
+    // The button is in A-e27: side 1 in column 27, side 2 in column 29. GPIO 1 (A-f8) goes to side 2, and GND to side 1.
+    l.put({ id: "btn1", type: "pushbutton", at: "A-e27" }, wire("w5", "A-f8", "A-a29"), wire("w6", "A-a27", "A-L-23"));
+    expect(l.progress.mistakes).toBe(0);
+    expect(marks(l).slice(0, 4)).toEqual(["done", "done", "done", "now"]);
+  });
+
+  it("does not tick a task that the learner did not reach yet", () => {
+    const l = learner(2);
+    l.start();
+    // The resistor of task 4 is on the board, but the learner is on task 1: a mistake, not a tick.
+    l.put({ id: "r1", type: "resistor", a: "A-a2", b: "A-a4" });
+    expect(l.progress.phase).toBe("mistake");
+    expect(marks(l)).toEqual(["now", "todo", "todo", "todo", "todo", "todo", "todo", "todo"]);
   });
 });
 

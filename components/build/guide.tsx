@@ -41,7 +41,7 @@ const modulePinName = (p: ModulePin) => `${partNames[p.type]} ${p.pin}`;
 
 const joinNames = (names: string[]) => (names.length < 2 ? names.join("") : `${names.slice(0, -1).join(", ")} and ${names.at(-1)}`);
 
-/** What to do now, at the top of the board. */
+/** What to do now, at the top of the board. The build page puts it above the task list. */
 export function GuideBar() {
   const tool = useBoard((s) => s.tool);
   const pending = useBoard((s) => s.pending);
@@ -58,7 +58,7 @@ export function GuideBar() {
   const problem = notice && !notice.hole ? problems[notice.problem] : null;
 
   return (
-    <div className="pointer-events-none absolute inset-x-0 top-3 z-10 flex justify-center px-3">
+    <div className="flex shrink-0 justify-center">
       <div
         role="status"
         className={cn(
