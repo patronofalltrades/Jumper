@@ -26,7 +26,7 @@ As a new visitor or learner, I want to watch a short video in the app that shows
 
 These are not one of the two required tests in PLAN.md section 4, so this PR has no red and green screenshots.
 
-254 tests, the type check, lint and the build pass.
+258 tests, the type check, lint and the build pass.
 
 ## Bug found during the work
 
@@ -34,15 +34,17 @@ These are not one of the two required tests in PLAN.md section 4, so this PR has
 - **How it was found:** Claude's browser check showed a video with width 0 that did not play; `curl` showed a 307 redirect to `/login`.
 - **How it was repaired:** `.webm` is now in the list of files that the proxy skips, with a test.
 
-## Not in this PR
+## Fix: the page stops in a browser with no WebGL
 
-- A browser with no WebGL cannot open the landing page: the board that wires itself (#46) stops the page. This was there before this PR. The clip window would play the video, but the page stops first.
+- **What occurred:** in a browser with no WebGL, the landing page showed "This page couldn't load". The board that wires itself (#46) throws when it makes the 3D scene. This was on `main` before this PR. Claude found it in the browser check of the video fallback, and Hanif asked Claude to fix it.
+- **The repair:** `hasWebGL()` in `lib/device.ts` (4 tests). The 3D board shows a note ("Your browser cannot show the 3D board…") in its place. This also covers build mode, the snapshot page and the clip window. On the landing page, **Watch how** plays the video.
 
 ## How to check
 
 1. Open `/` and select **Watch how**. On a normal laptop, the 3D replay plays.
 2. In Chrome DevTools, open the console and run `Object.defineProperty(navigator, "hardwareConcurrency", { get: () => 2 })`, then select **Watch how** again. The video plays.
-3. Open https://jumper-inky-sigma.vercel.app/videos/intro-laptop.webm after the deploy. The video plays without a log-in.
+3. In Chrome, open `chrome://settings/system` and turn off "Use graphics acceleration when available". Open `/`. The page loads with the note in place of the board, and **Watch how** plays the video. Turn the setting on again.
+4. Open https://jumper-inky-sigma.vercel.app/videos/intro-laptop.webm after the deploy. The video plays without a log-in.
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
 

@@ -6,7 +6,7 @@ import { Volt } from "@/components/art/volt";
 import text from "@/content/ui/walkthrough.json";
 import { partPins } from "@/lib/circuit/parts";
 import { videoSrc, videos } from "@/lib/content/videos";
-import { deviceKind, prefersVideo } from "@/lib/device";
+import { deviceKind, hasWebGL, prefersVideo } from "@/lib/device";
 import { BoardContext, createBoardStore } from "@/lib/game/board-store";
 import { startProgress } from "@/lib/game/engine";
 import { clipFrame, type Clip } from "@/lib/game/walkthrough";
@@ -47,11 +47,8 @@ const useReducedMotion = () =>
 function fallbackVideo(id: string | undefined) {
   const video = videos.find((v) => v.id === id);
   if (!video) return null;
-  const canvas = document.createElement("canvas");
-  const gl = canvas.getContext("webgl2") ?? canvas.getContext("webgl");
-  gl?.getExtension("WEBGL_lose_context")?.loseContext();
   const nav = navigator as Navigator & { deviceMemory?: number };
-  if (!prefersVideo({ webgl: Boolean(gl), cores: nav.hardwareConcurrency ?? 8, memory: nav.deviceMemory })) return null;
+  if (!prefersVideo({ webgl: hasWebGL(), cores: nav.hardwareConcurrency ?? 8, memory: nav.deviceMemory })) return null;
   return { ...video, src: videoSrc(video.id, deviceKind(window.innerWidth)) };
 }
 

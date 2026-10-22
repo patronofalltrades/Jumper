@@ -15,3 +15,19 @@ export function deviceKind(width: number): DeviceKind {
 export function prefersVideo({ webgl, cores, memory }: { webgl: boolean; cores: number; memory?: number }): boolean {
   return !webgl || cores <= 2 || (memory !== undefined && memory <= 2);
 }
+
+type Gl = { getExtension?: (name: string) => { loseContext(): void } | null };
+
+/**
+ * True when the browser can draw the 3D board (WebGL). Without it, the 3D board shows a note in its place, so the page
+ * does not stop. The test context is given back at once.
+ */
+export function hasWebGL(canvas: { getContext(kind: string): unknown } = document.createElement("canvas")): boolean {
+  try {
+    const gl = (canvas.getContext("webgl2") ?? canvas.getContext("webgl")) as Gl | null;
+    gl?.getExtension?.("WEBGL_lose_context")?.loseContext();
+    return Boolean(gl);
+  } catch {
+    return false;
+  }
+}
