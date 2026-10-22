@@ -1,7 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { credentialsSchema, emailSchema, isAuthPage, needsLogin, newPasswordSchema, safeNextPath } from "@/lib/auth/rules";
+import { credentialsSchema, emailSchema, isVisitorPage, needsLogin, newPasswordSchema, safeNextPath } from "@/lib/auth/rules";
 
 describe("needsLogin", () => {
+  it("lets visitors open the landing page without a log-in", () => {
+    expect(needsLogin("/")).toBe(false);
+  });
+
   it("lets visitors open the account forms and the email callback", () => {
     expect(needsLogin("/login")).toBe(false);
     expect(needsLogin("/signup")).toBe(false);
@@ -14,7 +18,7 @@ describe("needsLogin", () => {
   });
 
   it("protects every other page", () => {
-    for (const path of ["/", "/lobby", "/p/perch", "/p/perch/1", "/snapshots", "/snapshots/abc", "/dashboard"]) {
+    for (const path of ["/lobby", "/p/perch", "/p/perch/1", "/snapshots", "/snapshots/abc", "/dashboard"]) {
       expect(needsLogin(path)).toBe(true);
     }
   });
@@ -25,14 +29,19 @@ describe("needsLogin", () => {
   });
 });
 
-describe("isAuthPage", () => {
-  it("is true only for the account forms", () => {
-    expect(isAuthPage("/login")).toBe(true);
-    expect(isAuthPage("/signup")).toBe(true);
-    expect(isAuthPage("/forgot-password")).toBe(true);
-    expect(isAuthPage("/reset-password")).toBe(false);
-    expect(isAuthPage("/auth/callback")).toBe(false);
-    expect(isAuthPage("/lobby")).toBe(false);
+describe("isVisitorPage", () => {
+  it("sends a logged-in user from the landing page to the lobby", () => {
+    expect(isVisitorPage("/")).toBe(true);
+  });
+
+  it("is true only for the landing page and the account forms", () => {
+    expect(isVisitorPage("/login")).toBe(true);
+    expect(isVisitorPage("/signup")).toBe(true);
+    expect(isVisitorPage("/forgot-password")).toBe(true);
+    expect(isVisitorPage("/reset-password")).toBe(false);
+    expect(isVisitorPage("/auth/callback")).toBe(false);
+    expect(isVisitorPage("/lobby")).toBe(false);
+    expect(isVisitorPage("/p/perch")).toBe(false);
   });
 });
 

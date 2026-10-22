@@ -60,7 +60,7 @@ You need Node.js 22 (or newer) and a Supabase project. That is it — let's go!
    npm run dev
    ```
 
-5. Open http://localhost:3000. The app sends you to the log-in page. Select **Create an account** and you are in.
+5. Open http://localhost:3000. The landing page shows what Jumper is. Select **Sign up** and you are in. When you are logged in, the app sends you to the lobby.
 
 ### Checks
 

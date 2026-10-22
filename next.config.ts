@@ -11,8 +11,6 @@ const nextConfig: NextConfig = {
       },
     },
   },
-  // The proxy sends visitors without a session to /login first.
-  redirects: async () => [{ source: "/", destination: "/lobby", permanent: false }],
 };
 
 export default nextConfig;
