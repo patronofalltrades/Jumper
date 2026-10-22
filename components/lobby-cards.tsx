@@ -44,12 +44,13 @@ export function ContinueCard({ featured, name }: { featured: Featured; name: str
         <br />
         {shortName(project.title)}
       </h2>
-      <p className="mt-4 text-base text-muted-foreground">
+      {/* The text stays in front of the picture, and a long level name wraps before it gets to the picture. */}
+      <p className="relative z-10 mt-4 text-base text-balance sm:max-w-[15rem] text-muted-foreground">
         Level {level}
         {levelTitle && ` · ${levelTitle}`}
       </p>
-      <p className="mt-1 font-mono text-xs font-medium tracking-wide text-muted-foreground uppercase">{project.board}</p>
-      <PerchArt className="absolute -right-8 -bottom-6 w-56 sm:w-64 transition-transform group-hover:-rotate-3 sm:w-80" />
+      <p className="relative z-10 mt-1 font-mono text-xs font-medium tracking-wide text-muted-foreground uppercase">{project.board}</p>
+      <PerchArt className="absolute -right-8 -bottom-6 w-56 transition-transform group-hover:-rotate-3 sm:w-64" />
       <span className="mt-auto flex size-16 items-center justify-center rounded-full border-b-4 border-primary-deep bg-primary text-primary-foreground transition-[transform,border] group-active:translate-y-0.5 group-active:border-b-2">
         <svg width="26" height="26" viewBox="0 0 24 24" aria-hidden="true">
           <path d="M8 5.5v13l11-6.5z" fill="currentColor" />
