@@ -12,3 +12,14 @@
    - Text in `content/ui/build.json` (`tasks`).
 
    Checks: 248 tests, the type check, lint and the build pass. Browser check on a temporary page (not committed) that opens build mode with the Perch content and placeholder Supabase keys, at 390 × 844 and 1280 × 800, light and dark: no panel on the intro; open on a laptop, a chip on a phone that opens and closes with a tap; Level 1 shows "3 of 7 done" after 3 × "Got it"; a finished Level 2 with the GPIO 2 wire removed shows "7 of 8 done" and that task is now; with the wire back, "8 of 8 done"; the panel does not cover the guide bar, the Check button or the tool bar; no page errors, no sideways scroll. The real routes need a log-in, so they are not checked in a browser in this session.
+
+2. "the text "press got it" should just be a button instead besides the task list. Make it collapsible"
+
+   Claude asked 2 questions. Answers: remove the sentence from the content ("Content"), and make the collapse of the whole panel easier to see ("Whole panel, clearer").
+
+   Claude changed:
+   - `content/projects/perch.json`: Level 1 tasks 1 to 3 no longer say "Read about it, then press Got it." or "Press Got it.". The pop-ups and the task list both use the shorter text. Run `npm run seed` after the merge, so the database gets the new text.
+   - Task list: the task of now gets a "Got it" button in its row when its part is always on the bench (a breadboard, the ESP32-S3). It does the same as the "Got it" of the pop-up.
+   - Task list: the header has a − button (hide the tasks) or a + button (show the tasks), with a tooltip.
+
+   Checks: 248 tests, the type check, lint and the build pass. Browser check on the temporary page at 1280 px (light) and 390 px (dark): no "Got it" in the task text; the list "Got it" shows for tasks 1, 2 and 3 of Level 1 and gives "3 of 7 done"; no "Got it" on a wire task; − closes the list and + opens it. No page errors.

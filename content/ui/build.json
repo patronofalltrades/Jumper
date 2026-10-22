@@ -93,6 +93,8 @@
     "title": "Tasks · {done} of {total} done",
     "chip": "Tasks {done}/{total}",
     "list": "Tasks of this level",
+    "show": "Show the tasks",
+    "hide": "Hide the tasks",
     "state": {
       "done": "Done",
       "now": "Now",

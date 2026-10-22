@@ -2,8 +2,8 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import text from "@/content/ui/build.json";
-import { useBoard } from "@/lib/game/board-store";
-import { taskMarks } from "@/lib/game/engine";
+import { boardStore, useBoard } from "@/lib/game/board-store";
+import { needsAck, taskMarks } from "@/lib/game/engine";
 import { cn } from "@/lib/utils";
 import type { LevelTask } from "./popups";
 
@@ -38,13 +38,17 @@ export function TaskList({ tasks, laptop }: { tasks: LevelTask[]; laptop: boolea
       <button
         type="button"
         aria-expanded={open}
+        title={open ? text.tasks.hide : text.tasks.show}
         onClick={() => setToggled(!open)}
         className="flex min-h-11 shrink-0 items-center gap-2 rounded-2xl px-3 text-left text-sm font-bold outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
         <span className="flex-1">{open ? fill(text.tasks.title, { done, total: tasks.length }) : fill(text.tasks.chip, { done, total: tasks.length })}</span>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" aria-hidden="true" className={cn("transition-transform", open && "rotate-180")}>
-          <path d="m6 9 6 6 6-6" />
-        </svg>
+        {/* A minus closes the list, a plus opens it. */}
+        <span aria-hidden="true" className="grid size-7 place-items-center rounded-lg border border-b-2 border-border bg-card">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round">
+            <path d={open ? "M5 12h14" : "M5 12h14M12 5v14"} />
+          </svg>
+        </span>
       </button>
       {open && (
         <ol ref={list} className="flex min-h-0 flex-col gap-1 overflow-y-auto border-t border-border p-2">
@@ -58,7 +62,17 @@ export function TaskList({ tasks, laptop }: { tasks: LevelTask[]; laptop: boolea
               >
                 <Mark mark={mark} />
                 <span className="sr-only">{text.tasks.state[mark]}:</span>
-                <span className={cn(mark === "done" && "text-muted-foreground", mark === "now" && "font-bold")}>{task.instruction}</span>
+                <span className={cn("flex-1", mark === "done" && "text-muted-foreground", mark === "now" && "font-bold")}>{task.instruction}</span>
+                {/* A part that is always on the bench: "Got it" finishes its task here too, as in its pop-up. */}
+                {mark === "now" && progress.phase === "task" && needsAck(task.target) && (
+                  <button
+                    type="button"
+                    onClick={() => boardStore.getState().ack()}
+                    className="min-h-9 shrink-0 rounded-lg border-b-4 border-primary-deep bg-primary px-3 text-xs font-bold text-primary-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring active:translate-y-0.5 active:border-b-2"
+                  >
+                    {text.play.gotIt}
+                  </button>
+                )}
               </li>
             );
           })}
