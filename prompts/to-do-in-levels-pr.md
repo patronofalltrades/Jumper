@@ -35,7 +35,7 @@ Added: I want to see all the tasks of the level as a list that I can track (done
 
 These are not one of the two required tests in PLAN.md section 4, so this PR has no red and green screenshots.
 
-248 tests, the type check, lint and the build pass.
+264 tests (after the merge of `main`), the type check, lint and the build pass.
 
 Browser check on a temporary page with the Perch content (not committed), at 390 px and 1280 px, light and dark: the counts, the ticks after a wire is removed and put back, the chip on a phone, and no overlap with the guide bar, the Check button or the tool bar. No page errors, no sideways scroll.
 

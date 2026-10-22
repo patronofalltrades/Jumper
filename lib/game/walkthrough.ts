@@ -23,8 +23,11 @@ export type ClipStep = {
   popup?: string;
 };
 
-/** All the parts of the clip, in the order they come in: the board of the levels before, then the parts of the level. */
-export type Clip = { order: Part[]; plan: Plan; steps: ClipStep[] };
+/**
+ * All the parts of the clip, in the order they come in: the board of the levels before, then the parts of the level.
+ * `video` is the id of its recorded video in content/videos.json (issue #49), if it has one.
+ */
+export type Clip = { order: Part[]; plan: Plan; steps: ClipStep[]; video?: string };
 
 export type ClipLevel = { position: number; tasks: { instruction: string; popup_why: string; target: Target; xp: number }[] };
 

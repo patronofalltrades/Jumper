@@ -10,6 +10,8 @@ import { isModuleType, type ModuleType } from "@/lib/circuit/modules";
 import { buildNets, netHoles } from "@/lib/circuit/nets";
 import { checkModule, isModule, partPins, terminalAt, type Part } from "@/lib/circuit/parts";
 import { useTaskSpot } from "@/components/build/popups";
+import text from "@/content/ui/site.json";
+import { hasWebGL } from "@/lib/device";
 import { boardStore, useBoard } from "@/lib/game/board-store";
 import { ModuleGhost, ModuleMesh, terminalTop } from "./modules";
 import { PartMesh, type End } from "./parts";
@@ -34,6 +36,9 @@ const isTouchScreen = () => document.documentElement.dataset.touch === "true";
 
 /** The 3D bench. `children` go inside the canvas: the pop-up that hangs over the target pin. */
 export default function BuildScene({ children }: { children?: ReactNode }) {
+  // Without WebGL the canvas throws, and the whole page stops. Show a note in place of the board.
+  const [webgl] = useState(() => hasWebGL());
+  if (!webgl) return <p className="grid h-full place-items-center p-6 text-center text-sm text-muted-foreground">{text.no3d}</p>;
   return (
     <Canvas
       shadows

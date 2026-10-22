@@ -14,6 +14,21 @@ Jumper started as a class project for **Intro to Code (MBA 296C, UC Berkeley Haa
 
 But Jumper is more than homework. It is a passion project, and it keeps growing long after the class ends.
 
+## Walkthrough videos
+
+Short videos show how to play Jumper and what you build in each Perch level. Each video is a recording of the 3D replay in the app. On a slow phone, or in a browser with no 3D (WebGL), the app plays the video in place of the 3D replay.
+
+| Video | Laptop | Phone |
+| --- | --- | --- |
+| How to play Jumper | [intro-laptop.webm](public/videos/intro-laptop.webm) | [intro-phone.webm](public/videos/intro-phone.webm) |
+| Level 1 · Set up the board | [perch-1-laptop.webm](public/videos/perch-1-laptop.webm) | [perch-1-phone.webm](public/videos/perch-1-phone.webm) |
+| Level 2 · Talk button and status light | [perch-2-laptop.webm](public/videos/perch-2-laptop.webm) | [perch-2-phone.webm](public/videos/perch-2-phone.webm) |
+| Level 3 · Ears | [perch-3-laptop.webm](public/videos/perch-3-laptop.webm) | [perch-3-phone.webm](public/videos/perch-3-phone.webm) |
+| Level 4 · Voice | [perch-4-laptop.webm](public/videos/perch-4-laptop.webm) | [perch-4-phone.webm](public/videos/perch-4-phone.webm) |
+| Level 5 · Face | [perch-5-laptop.webm](public/videos/perch-5-laptop.webm) | [perch-5-phone.webm](public/videos/perch-5-phone.webm) |
+
+The live app also has the files, for example https://jumper-inky-sigma.vercel.app/videos/intro-laptop.webm.
+
 ## Documents
 
 - [Plan](PLAN.md): the pitch, the features and the build sequence
@@ -71,3 +86,14 @@ You need Node.js 22 (or newer) and a Supabase project. That is it — let's go!
 | `npm run lint` | Runs ESLint |
 | `npm run build` | Makes the production build |
 | `npm run seed` | Loads `content/projects/` into the database |
+| `npm run videos` | Records the walkthrough videos again (see below) |
+
+### Record the walkthrough videos again
+
+When the text or the wiring of a level changes, record the videos again. The names, sizes and captions of the videos are in `content/videos.json`.
+
+1. On a new computer, get the Playwright browser one time: `npx playwright install chromium`.
+2. Make sure that `.env.local` has `NEXT_PUBLIC_SUPABASE_URL` and `SUPABASE_SECRET_KEY`. The level clips need a log-in, so the script makes a temporary account and deletes it at the end.
+3. Start the app: `npm run build`, then `npm start`.
+4. In a second terminal, run `npm run videos`. To record only some videos, give their names, for example `npm run videos -- intro perch-3`.
+5. Run `npm test`. The tests make sure that each level has its videos and that all the files together are less than 10 MB.
