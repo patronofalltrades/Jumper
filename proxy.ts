@@ -1,9 +1,10 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import { isAuthPage, needsLogin } from "@/lib/auth/rules";
+import { isVisitorPage, needsLogin } from "@/lib/auth/rules";
 
 // Refreshes the Supabase session cookie on each request, and sends visitors
-// without a session to /login. Pages still check the user on the server.
+// without a session to /login. A logged-in user on the landing page or an account
+// form goes to the lobby. Pages still check the user on the server.
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
 
@@ -27,7 +28,7 @@ export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   if (!loggedIn && needsLogin(pathname)) return redirectTo(request, response, "/login");
-  if (loggedIn && isAuthPage(pathname)) return redirectTo(request, response, "/lobby");
+  if (loggedIn && isVisitorPage(pathname)) return redirectTo(request, response, "/lobby");
   return response;
 }
 

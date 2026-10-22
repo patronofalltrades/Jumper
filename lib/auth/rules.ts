@@ -1,11 +1,12 @@
 import { z } from "zod";
 
-const AUTH_PAGES = ["/login", "/signup", "/forgot-password"];
-const PUBLIC_PATHS = [...AUTH_PAGES, "/auth/callback"];
+// The landing page and the account forms: only for visitors who are not logged in.
+const VISITOR_PAGES = ["/", "/login", "/signup", "/forgot-password"];
+const PUBLIC_PATHS = [...VISITOR_PAGES, "/auth/callback"];
 
-/** True for the account forms, where a logged-in user has nothing to do. */
-export function isAuthPage(pathname: string): boolean {
-  return AUTH_PAGES.includes(pathname);
+/** True for the landing page and the account forms, where a logged-in user has nothing to do. It goes to the lobby. */
+export function isVisitorPage(pathname: string): boolean {
+  return VISITOR_PAGES.includes(pathname);
 }
 
 /** True when a visitor must log in before they open this path. */

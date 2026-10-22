@@ -2,14 +2,14 @@ import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { projectSchema, type Project } from "./schema.ts";
 
-export const PROJECTS_DIR = join(import.meta.dirname, "..", "..", "content", "projects");
-
 // Reads and validates every content/projects/*.json file, in catalog order.
-export function loadProjects(dir = PROJECTS_DIR): Project[] {
-  return readdirSync(dir)
+// The path starts at the repository root, where the seed script, Vitest and Next.js run. The Next.js build cannot
+// use import.meta.dirname, and a fixed path lets it copy only this folder to the server.
+export function loadProjects(): Project[] {
+  return readdirSync(join(process.cwd(), "content", "projects"))
     .filter((f) => f.endsWith(".json"))
     .map((f) => {
-      const parsed = projectSchema.safeParse(JSON.parse(readFileSync(join(dir, f), "utf8")));
+      const parsed = projectSchema.safeParse(JSON.parse(readFileSync(join(process.cwd(), "content", "projects", f), "utf8")));
       if (!parsed.success) throw new Error(`${f}: ${issueText(parsed.error)}`);
       return parsed.data;
     })

@@ -1,0 +1,47 @@
+{
+  "_note": "Text for the landing page (/), in ASD-STE100. The project cards come from content/projects/.",
+  "meta": {
+    "title": "Jumper · Learn hardware on a 3D breadboard",
+    "description": "Connect real boards on a 3D breadboard. Jumper guides you like a game."
+  },
+  "pitch": {
+    "eyebrow": "Hardware engineering, in your pocket",
+    "title": "Wire real boards on a 3D breadboard.",
+    "body": "Jumper is a web app where you learn hardware engineering. You connect real boards and parts on a 3D breadboard, and the app guides you like a game. You do not buy parts. You need only a laptop or a phone."
+  },
+  "volt": "Hi, I am Volt! I help you wire your first board.",
+  "signUp": "Sign up",
+  "logIn": "Log in",
+  "board": {
+    "label": "Perch, wired on the 3D breadboard. Select the board to make an account.",
+    "loading": "Loading the board…",
+    "hint": "Tap the board to start"
+  },
+  "steps": {
+    "title": "How Jumper works",
+    "items": [
+      {
+        "title": "Pick a project",
+        "body": "Each project is a real device. Start with Perch, a desk friend for an AI agent."
+      },
+      {
+        "title": "Wire it with guided pop-ups",
+        "body": "A pop-up tells you what to connect, where, and why. The correct holes glow."
+      },
+      {
+        "title": "See it come alive",
+        "body": "Pass each level. The light blinks, the device talks, and the screen shows a face."
+      }
+    ]
+  },
+  "projects": {
+    "title": "Projects",
+    "available": "Play now",
+    "soon": "Coming soon",
+    "levels": "{count} levels"
+  },
+  "end": {
+    "title": "Your first board is ready.",
+    "body": "Make an account. Your builds stay yours."
+  }
+}
