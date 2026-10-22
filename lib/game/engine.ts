@@ -192,6 +192,29 @@ export function step(bench: Bench, plan: Plan, progress: Progress, event: Engine
   }
 }
 
+/** The state of a task in the task list: done (a tick), now (the task of the pop-up), or to do. */
+export type TaskMark = "done" | "now" | "todo";
+
+/**
+ * The marks of the task list (issue #52). A tick comes from the board as it is now: remove a wire and the tick of its
+ * task goes; put it back and the tick comes back. A task that needs only "Got it" is done when the learner pressed it.
+ * Only the tasks that the learner reached can be done. "Now" is the task of the pop-up, or, after the last task, the
+ * first task that is not done.
+ */
+export function taskMarks(bench: Bench, plan: Plan, parts: Part[], progress: Progress): TaskMark[] {
+  const nets = buildNets(bench, parts);
+  let swaps = progress.swaps;
+  const done = plan.tasks.map((task, i) => {
+    if (i >= progress.index) return false;
+    if (needsAck(task.target)) return true;
+    const state = taskState(bench, parts, nets, plan, i, swaps);
+    if (state.done) swaps = state.swaps;
+    return state.done;
+  });
+  const now = progress.phase === "ready_to_check" ? done.indexOf(false) : progress.index;
+  return done.map((d, i) => (d ? "done" : i === now ? "now" : "todo"));
+}
+
 /** Where the pop-up of a task points, and the holes that glow. */
 export type Spot = {
   /** Holes and terminals that glow. */

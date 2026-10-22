@@ -18,6 +18,7 @@ import { EMPTY_NOTE, useEmptyBoard, useLevelCheck } from "./check";
 import { useFeedback } from "./feedback";
 import { GuideBar, SpotCard, useNoticeTimer } from "./guide";
 import { Hearts, PinnedPopup, PopupLayer, useLaptop, type LevelTask } from "./popups";
+import { TaskList } from "./task-list";
 import { cn } from "@/lib/utils";
 
 export type { LevelTask };
@@ -182,7 +183,13 @@ export function BuildView({ user, project, levelId, position, eyebrow, title, go
 
       <div className="relative min-h-0 flex-1">
         <BuildScene>{laptop && <PinnedPopup tasks={tasks} hidden={conceptOpen || explaining} />}</BuildScene>
-        {building && <GuideBar />}
+        {/* The guide bar, and the task list below it. Only the panels take clicks; the board gets the rest. Above the Check button, the column stops. */}
+        {progress.phase !== "intro" && (
+          <div className={cn("pointer-events-none absolute inset-x-0 top-3 z-10 flex flex-col gap-2 px-3", progress.phase === "ready_to_check" ? "bottom-32" : "bottom-3")}>
+            {building && <GuideBar />}
+            <TaskList tasks={tasks} laptop={laptop} />
+          </div>
+        )}
         {/* The learner closed the Check card to fix the board: the Check button stays at the bottom of the board. */}
         {progress.phase === "ready_to_check" && !explaining && !levelCheck.state.open && (
           <div className="absolute inset-x-3 bottom-4 z-20 flex flex-col items-center gap-2">
