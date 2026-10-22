@@ -35,6 +35,8 @@ These are not one of the two required tests in PLAN.md section 4, so this PR has
 
 242 tests, the type check, lint and the build pass.
 
+Route check before the merge (temporary test account on the real Supabase project, deleted after): the level map, the Watch button on a locked level, the clip at the start of Level 1, the small player above the tool bar, Skip, no clip after the first task is done, "Watch how" in build mode, the end with Volt, and reduced motion. Phone (390 px, dark), laptop (1280 px, light) and phone with reduced motion (light). No page errors, no sideways scroll.
+
 ## Not in this PR
 
 - Recorded video files (a separate issue).

@@ -18,3 +18,7 @@
    - Text in `content/ui/walkthrough.json`.
 
    Checks: 242 tests, the type check, lint and the build pass. Browser check on the landing page (`next start` with placeholder Supabase keys) at 390 px (dark, and light with reduced motion) and 1280 px (light): the clip plays, Pause stops it, the small player stays on top while the page scrolls, Esc closes it, no page errors, no sideways scroll. The level map and build mode need a log-in, so their Watch buttons are not checked in a browser yet.
+
+3. "create a test account to check before we merge"
+
+   Claude made a temporary confirmed account on the real Supabase project with the secret key, and ran the real routes (`next start`) in Chromium: a phone (390 × 844, dark), a laptop (1280 × 800, light), and a phone with reduced motion (light). The level map shows a Watch button on each of the 5 levels; the clip of locked level 3 opens on its first task; Esc closes it and the focus goes back to the button. On Level 1 the clip opens by itself, the small player sits above the tool bar, and Skip closes it. After the first task, a reload does not open it by itself; "Watch how" opens it again, and it ends on the finished board with Volt. With reduced motion there is no Play button, nothing moves by itself, and Next goes step by step. No page errors, no sideways scroll. The test accounts were deleted, and no rows stayed.
