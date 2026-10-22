@@ -1,3 +1,4 @@
+import { createContext, useContext } from "react";
 import { useStore } from "zustand";
 import { createStore } from "zustand/vanilla";
 import { perchBench, type Bench } from "@/lib/circuit/bench";
@@ -199,4 +200,10 @@ export function createBoardStore(bench: Bench = perchBench()) {
 /** The board of the open level. One board at a time, so one store for the app. */
 export const boardStore = createBoardStore();
 
-export const useBoard = <T>(selector: (state: BoardState) => T) => useStore(boardStore, selector);
+/**
+ * The store that `useBoard` reads: the board of the level, or a walkthrough clip that plays over it (issue #48).
+ * A clip covers its canvas, so the tap handlers of the scene, which use `boardStore`, do not get its pointer.
+ */
+export const BoardContext = createContext(boardStore);
+
+export const useBoard = <T>(selector: (state: BoardState) => T) => useStore(useContext(BoardContext), selector);

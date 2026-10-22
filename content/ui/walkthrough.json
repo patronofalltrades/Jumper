@@ -1,0 +1,34 @@
+{
+  "_note": "Text for the walkthrough clips (issue #48), in ASD-STE100. The caption of each level step is the instruction of its task, from content/projects/. Only the intro clip of the landing page has its own captions. {n} is a number, {title} a level title.",
+  "watch": "Watch how",
+  "watchLevel": "Watch",
+  "watchLevelLabel": "Watch how to build level {n}",
+  "levelTitle": "Level {n} · {title}",
+  "step": "Step {n} of {total}",
+  "end": "Level {n} is done. This is your board now!",
+  "loading": "Loading the clip…",
+  "still": "Press Next to see the next step.",
+  "controls": {
+    "play": "Play",
+    "pause": "Pause",
+    "replay": "Replay",
+    "skip": "Skip",
+    "next": "Next",
+    "back": "Back",
+    "small": "Make the clip small",
+    "big": "Make the clip big",
+    "close": "Close the clip"
+  },
+  "intro": {
+    "title": "How to play Jumper",
+    "level": 2,
+    "steps": [
+      { "kind": "task", "task": 1, "caption": "Put a part on the board. The pop-up shows where it goes, and the good holes glow." },
+      { "kind": "task", "task": 2, "caption": "Connect a wire. Tap one hole, then tap a second hole." },
+      { "kind": "popup", "task": 2, "caption": "Read the pop-up. It tells you what your wire does." },
+      { "kind": "check", "caption": "When all the steps are done, press Check. Jumper looks at each wire." }
+    ],
+    "check": { "button": "Check", "passed": "All correct! The level is done." },
+    "end": "That is all. Now you try!"
+  }
+}
