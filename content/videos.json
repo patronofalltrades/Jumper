@@ -1,0 +1,15 @@
+{
+  "_note": "The recorded walkthrough videos (issue #49), in ASD-STE100. Each video is a recording of a 3D replay clip (issue #48). The files are public/videos/<id>-<size>.webm, one for each size. To record them again, run npm run videos (see README.md).",
+  "sizes": {
+    "phone": { "width": 390, "height": 844 },
+    "laptop": { "width": 1280, "height": 800 }
+  },
+  "videos": [
+    { "id": "intro", "title": "How to play Jumper", "caption": "Put a part on the board, connect a wire, read the pop-up, then press Check." },
+    { "id": "perch-1", "project": "perch", "level": 1, "title": "Perch level 1 · Set up the board", "caption": "See the board on two breadboards, and the wires that give the breadboards power." },
+    { "id": "perch-2", "project": "perch", "level": 2, "title": "Perch level 2 · Talk button and status light", "caption": "See the button, the resistor and the small light go on the board, and the wires that connect them." },
+    { "id": "perch-3", "project": "perch", "level": 3, "title": "Perch level 3 · Ears", "caption": "See the tiny microphone go on the board, and the wires that connect it." },
+    { "id": "perch-4", "project": "perch", "level": 4, "title": "Perch level 4 · Voice", "caption": "See the amplifier and the speaker go on the board, and the wires that connect them." },
+    { "id": "perch-5", "project": "perch", "level": 5, "title": "Perch level 5 · Face", "caption": "See the small screen go on the board, and the wires that connect it." }
+  ]
+}

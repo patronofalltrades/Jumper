@@ -5,6 +5,8 @@ import { useEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactN
 import { Volt } from "@/components/art/volt";
 import text from "@/content/ui/walkthrough.json";
 import { partPins } from "@/lib/circuit/parts";
+import { videoSrc, videos } from "@/lib/content/videos";
+import { deviceKind, prefersVideo } from "@/lib/device";
 import { BoardContext, createBoardStore } from "@/lib/game/board-store";
 import { startProgress } from "@/lib/game/engine";
 import { clipFrame, type Clip } from "@/lib/game/walkthrough";
@@ -38,6 +40,21 @@ const useReducedMotion = () =>
     () => false,
   );
 
+/**
+ * The recorded video of the clip (issue #49), when it plays in place of the 3D replay: on a slow device, or when the
+ * browser has no WebGL. The phone file on a phone, the laptop file on a laptop.
+ */
+function fallbackVideo(id: string | undefined) {
+  const video = videos.find((v) => v.id === id);
+  if (!video) return null;
+  const canvas = document.createElement("canvas");
+  const gl = canvas.getContext("webgl2") ?? canvas.getContext("webgl");
+  gl?.getExtension("WEBGL_lose_context")?.loseContext();
+  const nav = navigator as Navigator & { deviceMemory?: number };
+  if (!prefersVideo({ webgl: Boolean(gl), cores: nav.hardwareConcurrency ?? 8, memory: nav.deviceMemory })) return null;
+  return { ...video, src: videoSrc(video.id, deviceKind(window.innerWidth)) };
+}
+
 const icon = (d: string) => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
     <path d={d} />
@@ -61,11 +78,12 @@ export default function ClipPlayer({ clip, title, onClose }: Props) {
   const [phase, setPhase] = useState<"cue" | "done">(clip.steps[0].progress ? "cue" : "done");
   const [playing, setPlaying] = useState(true);
   const [small, setSmall] = useState(false);
+  const [video] = useState(() => fallbackVideo(clip.video));
   const first = useRef<HTMLButtonElement>(null);
   const step = clip.steps[index];
   const last = index === clip.steps.length - 1;
   // With reduced motion, the clip does not play by itself: Back and Next go from one still picture to the next.
-  const running = playing && !reduced && !last;
+  const running = playing && !reduced && !last && !video;
 
   const go = (i: number) => {
     setIndex(i);
@@ -140,6 +158,48 @@ export default function ClipPlayer({ clip, title, onClose }: Props) {
     </div>
   );
 
+  const replay = (
+    <>
+      <BoardContext value={store}>
+        <BuildScene />
+      </BoardContext>
+      {/* The clip is to watch, not to build: this cover takes the clicks, taps and drags on the board. */}
+      <div className="absolute inset-0" aria-hidden="true" />
+      {step.kind === "popup" && step.popup && (
+        <Overlay small={small}>
+          <Volt pose="happy" className="h-12 w-auto shrink-0" />
+          <p className={cn("font-semibold", small ? "line-clamp-3 text-xs" : "text-sm")}>{step.popup}</p>
+        </Overlay>
+      )}
+      {step.kind === "check" && (
+        <Overlay small={small}>
+          <span className="rounded-xl border-b-2 border-primary-deep bg-primary px-4 py-2 text-sm font-extrabold tracking-wide text-primary-foreground uppercase translate-y-0.5">
+            {text.intro.check.button}
+          </span>
+          <p className="text-sm font-bold text-primary">{text.intro.check.passed}</p>
+        </Overlay>
+      )}
+    </>
+  );
+
+  const footer = (
+    <div className={cn("flex flex-col gap-2 border-t border-border", small ? "p-2" : "p-4")}>
+      <div className="flex items-start gap-3">
+        {step.kind === "end" && <Volt pose="cheer" label className={small ? "h-10 w-auto" : "h-16 w-auto"} />}
+        <div className="min-w-0 flex-1">
+          <p className="font-mono text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
+            {fill(text.step, { n: index + 1, total: clip.steps.length })}
+          </p>
+          <p aria-live="polite" className={cn("font-bold", small ? "line-clamp-2 text-sm" : "min-h-[3rem] text-base sm:text-lg")}>
+            {step.caption}
+          </p>
+          {reduced && !small && <p className="mt-1 text-xs text-muted-foreground">{text.still}</p>}
+        </div>
+      </div>
+      {controls}
+    </div>
+  );
+
   return (
     <div
       className={cn("fixed z-50", small ? "right-3 bottom-[calc(env(safe-area-inset-bottom)+9rem)] w-[min(22rem,calc(100vw-1.5rem))] sm:right-6 sm:bottom-6" : "inset-0 grid place-items-center bg-[#13202a]/70 sm:p-6")}
@@ -164,42 +224,15 @@ export default function ClipPlayer({ clip, title, onClose }: Props) {
         </header>
 
         <div className={cn("relative min-h-0 bg-background", small ? "h-44" : "flex-1")}>
-          <BoardContext value={store}>
-            <BuildScene />
-          </BoardContext>
-          {/* The clip is to watch, not to build: this cover takes the clicks, taps and drags on the board. */}
-          <div className="absolute inset-0" aria-hidden="true" />
-          {step.kind === "popup" && step.popup && (
-            <Overlay small={small}>
-              <Volt pose="happy" className="h-12 w-auto shrink-0" />
-              <p className={cn("font-semibold", small ? "line-clamp-3 text-xs" : "text-sm")}>{step.popup}</p>
-            </Overlay>
-          )}
-          {step.kind === "check" && (
-            <Overlay small={small}>
-              <span className="rounded-xl border-b-2 border-primary-deep bg-primary px-4 py-2 text-sm font-extrabold tracking-wide text-primary-foreground uppercase translate-y-0.5">
-                {text.intro.check.button}
-              </span>
-              <p className="text-sm font-bold text-primary">{text.intro.check.passed}</p>
-            </Overlay>
+          {video ? (
+            // With reduced motion, the video does not play by itself.
+            <video src={video.src} aria-label={video.title} controls muted playsInline autoPlay={!reduced} className="size-full object-contain" />
+          ) : (
+            replay
           )}
         </div>
 
-        <div className={cn("flex flex-col gap-2 border-t border-border", small ? "p-2" : "p-4")}>
-          <div className="flex items-start gap-3">
-            {step.kind === "end" && <Volt pose="cheer" label className={small ? "h-10 w-auto" : "h-16 w-auto"} />}
-            <div className="min-w-0 flex-1">
-              <p className="font-mono text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
-                {fill(text.step, { n: index + 1, total: clip.steps.length })}
-              </p>
-              <p aria-live="polite" className={cn("font-bold", small ? "line-clamp-2 text-sm" : "min-h-[3rem] text-base sm:text-lg")}>
-                {step.caption}
-              </p>
-              {reduced && !small && <p className="mt-1 text-xs text-muted-foreground">{text.still}</p>}
-            </div>
-          </div>
-          {controls}
-        </div>
+        {video ? <p className={cn("border-t border-border font-bold", small ? "line-clamp-2 p-2 text-sm" : "p-4 text-base sm:text-lg")}>{video.caption}</p> : footer}
       </section>
     </div>
   );
