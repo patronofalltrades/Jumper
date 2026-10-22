@@ -7,9 +7,12 @@ import { Backdrop } from "@/components/backdrop";
 import { LandingBoard } from "@/components/landing/landing-board";
 import { Logo } from "@/components/logo";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { PlayIcon, WatchButton } from "@/components/walkthrough/watch-button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import text from "@/content/ui/landing.json";
+import watch from "@/content/ui/walkthrough.json";
 import { loadBoards } from "@/lib/content/boards";
+import { loadIntroClip } from "@/lib/content/clips";
 import { loadProjects } from "@/lib/content/load";
 import { wiringOrder } from "@/lib/game/landing";
 import { cn } from "@/lib/utils";
@@ -22,6 +25,7 @@ export default async function LandingPage() {
   const projects = loadProjects();
   const featured = projects.find((p) => p.status === "available");
   const order = featured ? wiringOrder(await loadBoards(featured.slug)) : [];
+  const intro = await loadIntroClip();
 
   return (
     <>
@@ -56,7 +60,16 @@ export default async function LandingPage() {
         </section>
 
         <Panel>
-          <h2 className="text-2xl font-extrabold tracking-tight">{text.steps.title}</h2>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <h2 className="text-2xl font-extrabold tracking-tight">{text.steps.title}</h2>
+            {/* The intro clip shows the game loop: place a part, wire it, read the pop-up, press Check (issue #48). */}
+            {intro && (
+              <WatchButton clip={intro} title={watch.intro.title} label={watch.intro.title} className={cn(buttonVariants({ variant: "outline" }), "min-h-11 px-5 text-base")}>
+                <PlayIcon />
+                {watch.watch}
+              </WatchButton>
+            )}
+          </div>
           <ol className="mt-4 grid gap-3 sm:grid-cols-3">
             {text.steps.items.map((item, i) => (
               <li key={item.title} className="flex gap-3 rounded-2xl bg-muted p-4">
