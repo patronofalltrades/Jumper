@@ -5,8 +5,12 @@ import { Suspense } from "react";
 import { Backdrop } from "@/components/backdrop";
 import { Volt } from "@/components/art/volt";
 import { Dock } from "@/components/dock";
+import { PlayIcon, WatchButton } from "@/components/walkthrough/watch-button";
 import text from "@/content/ui/build.json";
 import mascot from "@/content/ui/mascot.json";
+import watch from "@/content/ui/walkthrough.json";
+import { loadLevelClips } from "@/lib/content/clips";
+import type { Clip } from "@/lib/game/walkthrough";
 import { passedLevels, shortName } from "@/lib/game/featured";
 import { levelStatuses, type LevelStatus } from "@/lib/game/map";
 import { mascotLevel } from "@/lib/game/mascot";
@@ -47,6 +51,7 @@ async function LevelMap({ slug }: { slug: string }) {
 
   const statuses = levelStatuses(project.levels.length, await passedLevels(supabase, project.id));
   const here = mascotLevel(statuses);
+  const clips = await loadLevelClips(project.slug);
 
   return (
     <section className="flex w-full max-w-lg flex-col gap-6 self-start rounded-[28px] bg-card p-5 shadow-panel sm:p-8">
@@ -77,6 +82,7 @@ async function LevelMap({ slug }: { slug: string }) {
             shift={[0, 1, 0, -1][i % 4]}
             last={i === project.levels.length - 1}
             here={i === here}
+            clip={clips.get(level.position)}
           />
         ))}
       </ol>
@@ -84,7 +90,27 @@ async function LevelMap({ slug }: { slug: string }) {
   );
 }
 
-function Node({ href, position, title, tasks, status, shift, last, here }: { href: string; position: number; title: string; tasks: number; status: LevelStatus; shift: number; last: boolean; here: boolean }) {
+function Node({
+  href,
+  position,
+  title,
+  tasks,
+  status,
+  shift,
+  last,
+  here,
+  clip,
+}: {
+  href: string;
+  position: number;
+  title: string;
+  tasks: number;
+  status: LevelStatus;
+  shift: number;
+  last: boolean;
+  here: boolean;
+  clip?: Clip;
+}) {
   const circle = (
     <span
       className={cn(
@@ -126,22 +152,36 @@ function Node({ href, position, title, tasks, status, shift, last, here }: { hre
       <span className="sr-only">{mascot.map.here}</span>
     </span>
   );
-  const row = "group flex min-h-20 items-center gap-4 rounded-2xl p-2 outline-none focus-visible:ring-2 focus-visible:ring-ring";
+  const row = "group flex min-h-20 min-w-0 flex-1 items-center gap-4 rounded-2xl p-2 outline-none focus-visible:ring-2 focus-visible:ring-ring";
   return (
     <li className="flex flex-col" style={{ paddingLeft: `${(shift + 1) * 2.25}rem` }}>
-      {status === "locked" ? (
-        <div className={row} aria-disabled="true">
-          {circle}
-          {label}
-          {volt}
-        </div>
-      ) : (
-        <Link href={href} className={cn(row, "hover:bg-muted")}>
-          {circle}
-          {label}
-          {volt}
-        </Link>
-      )}
+      <div className="flex items-center gap-1">
+        {status === "locked" ? (
+          <div className={row} aria-disabled="true">
+            {circle}
+            {label}
+            {volt}
+          </div>
+        ) : (
+          <Link href={href} className={cn(row, "hover:bg-muted")}>
+            {circle}
+            {label}
+            {volt}
+          </Link>
+        )}
+        {/* Each level has a Watch button, also a locked level, so the learner sees what comes next (issue #48). */}
+        {clip && (
+          <WatchButton
+            clip={clip}
+            title={fill(watch.levelTitle, { n: position, title })}
+            label={fill(watch.watchLevelLabel, { n: position })}
+            className="inline-flex min-h-11 shrink-0 items-center gap-1 rounded-xl border border-b-4 border-border bg-card px-2.5 text-sm font-semibold outline-none focus-visible:ring-2 focus-visible:ring-ring active:translate-y-0.5 active:border-b-2"
+          >
+            <PlayIcon />
+            <span className="max-sm:sr-only">{watch.watchLevel}</span>
+          </WatchButton>
+        )}
+      </div>
       {!last && <span className="ml-10 h-4 w-1 rounded-full bg-border" aria-hidden="true" />}
     </li>
   );

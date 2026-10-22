@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { Suspense } from "react";
 import { BuildView, type LevelTask } from "@/components/build/build-view";
 import { loadBoards, startBoard } from "@/lib/content/boards";
+import { loadLevelClips } from "@/lib/content/clips";
 import { rulesSchema, targetSchema } from "@/lib/content/schema";
 import { passedLevels } from "@/lib/game/featured";
 import { isUnlocked } from "@/lib/game/map";
@@ -62,6 +63,7 @@ async function Level({ slug, position }: { slug: string; position: string }) {
       rules={rules}
       start={startBoard(await loadBoards(slug), data.position)}
       levels={levels}
+      clip={(await loadLevelClips(slug)).get(data.position) ?? null}
     />
   );
 }

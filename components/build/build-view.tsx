@@ -4,12 +4,15 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { SaveSnapshot, type LevelOption } from "@/components/snapshots/save-snapshot";
+import { ClipPlayer, PlayIcon } from "@/components/walkthrough/watch-button";
 import text from "@/content/ui/build.json";
 import snapText from "@/content/ui/snapshots.json";
+import watchText from "@/content/ui/walkthrough.json";
 import type { Part } from "@/lib/circuit/parts";
 import { boardStore, useBoard, WIRE_COLORS, type Tool } from "@/lib/game/board-store";
 import type { Rules } from "@/lib/circuit/check";
 import { needsAck, type Plan } from "@/lib/game/engine";
+import type { Clip } from "@/lib/game/walkthrough";
 import { readSavedLevel, useLevel } from "./autosave";
 import { EMPTY_NOTE, useEmptyBoard, useLevelCheck } from "./check";
 import { useFeedback } from "./feedback";
@@ -71,9 +74,11 @@ type Props = {
   start: Part[];
   /** The levels of the project, for the level select of Save snapshot. */
   levels: LevelOption[];
+  /** The walkthrough clip of the level (issue #48). */
+  clip: Clip | null;
 };
 
-export function BuildView({ user, project, levelId, position, eyebrow, title, goal, tasks, rules, start, levels }: Props) {
+export function BuildView({ user, project, levelId, position, eyebrow, title, goal, tasks, rules, start, levels, clip }: Props) {
   useKeys();
   useNoticeTimer();
   useFeedback();
@@ -85,6 +90,14 @@ export function BuildView({ user, project, levelId, position, eyebrow, title, go
   const explaining = useBoard((s) => s.done !== null);
   const empty = useEmptyBoard();
   const mapHref = `/p/${project}`;
+
+  // The clip opens each time the level opens, until the learner finishes the first task. useLevel opened the board first.
+  const [watching, setWatching] = useState(false);
+  const watchButton = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- the saved progress is in the browser only
+    if (clip && boardStore.getState().progress.tasksDone === 0) setWatching(true);
+  }, [clip]);
 
   // A task that brings a new idea shows its Concept pop-up first, after the "what happened" pop-up of the last task.
   const [conceptRead, setConceptRead] = useState(-1);
@@ -115,6 +128,19 @@ export function BuildView({ user, project, levelId, position, eyebrow, title, go
           <p className="truncate font-mono text-[11px] font-medium tracking-wide text-muted-foreground uppercase">{eyebrow}</p>
           <h1 className="truncate text-lg leading-tight font-extrabold tracking-tight">{title}</h1>
         </div>
+        {clip && (
+          <button
+            ref={watchButton}
+            type="button"
+            onClick={() => setWatching(true)}
+            aria-label={watchText.watch}
+            title={watchText.watch}
+            className="inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-xl border border-b-4 border-border bg-card px-3 text-sm font-semibold active:translate-y-0.5 active:border-b-2"
+          >
+            <PlayIcon />
+            <span className="max-sm:hidden">{watchText.watch}</span>
+          </button>
+        )}
         <SaveSnapshot
           levels={levels}
           read={() => {
@@ -187,6 +213,16 @@ export function BuildView({ user, project, levelId, position, eyebrow, title, go
 
       {!laptop && popups}
       <ToolBar />
+      {clip && watching && (
+        <ClipPlayer
+          clip={clip}
+          title={fill(watchText.levelTitle, { n: position, title })}
+          onClose={() => {
+            setWatching(false);
+            watchButton.current?.focus();
+          }}
+        />
+      )}
     </div>
   );
 }
