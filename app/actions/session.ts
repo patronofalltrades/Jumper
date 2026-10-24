@@ -14,7 +14,8 @@ const counters = z.object({
   xp: z.number().int().nonnegative(),
 });
 
-export type SessionResult = { id?: string; error?: string };
+/** `closed`: the session is not in progress (it is completed), so the app must start a new one (issue #62). */
+export type SessionResult = { id?: string; closed?: boolean; error?: string };
 
 /** Adds a session row with the status in_progress, and gives its id. */
 export async function startSession(level: number): Promise<SessionResult> {
@@ -26,7 +27,7 @@ export async function startSession(level: number): Promise<SessionResult> {
   return { id: data.id };
 }
 
-/** Saves the counters of a session that is in progress: tasks done, mistakes and XP. */
+/** Saves the counters of a session that is in progress: tasks done, mistakes and XP. Gives `closed` when it is not in progress. */
 export async function updateSession(input: z.infer<typeof counters>): Promise<SessionResult> {
   const parsed = counters.safeParse(input);
   if (!parsed.success) return { error: "The progress data is not correct." };
@@ -39,6 +40,8 @@ export async function updateSession(input: z.infer<typeof counters>): Promise<Se
     .eq("status", "in_progress")
     .select("id")
     .maybeSingle();
-  if (error || !data) return { error: "We could not save your progress. Your board is still saved on this device." };
+  if (error) return { error: "We could not save your progress. Your board is still saved on this device." };
+  // No row in progress with this id: the session is closed, for example after a pass. Row-level security hides the rows of other users.
+  if (!data) return { closed: true };
   return { id: data.id };
 }
