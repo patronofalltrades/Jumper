@@ -1,7 +1,8 @@
 import { CanvasTexture } from "three";
-import { BOARD, COLUMNS, columnZ, MAIN_ROWS, RAILS, type Bench } from "@/lib/circuit/bench";
+import uno from "@/content/parts/arduino-uno.json";
+import { BOARD, COLUMNS, columnZ, MAIN_ROWS, RAILS, unoAt, type Bench } from "@/lib/circuit/bench";
 
-// Printed tops for the breadboards and the ESP32-S3, drawn on a canvas in bench units (1 unit = 1 hole pitch).
+// Printed tops for the breadboards, the ESP32-S3 and the Uno, drawn on a canvas in bench units (1 unit = 1 hole pitch).
 // Canvas x is bench x, canvas y is bench z, so the text reads upright from the default camera.
 
 const PX = 40;
@@ -71,7 +72,7 @@ export function drawBreadboard(x0: number): CanvasTexture {
 
 /** The top of the ESP32-S3-DevKitC-1: the PCB, the gold pads and a label beside each pin. */
 export function drawEsp(bench: Bench): CanvasTexture {
-  const { x0, x1, z0, z1 } = bench.esp;
+  const { x0, x1, z0, z1 } = bench.board.outline;
   const { canvas, g, X, Z } = canvasFor(x1 - x0, z1 - z0, x0, z0);
   const font = monoFont();
 
@@ -101,6 +102,73 @@ export function drawEsp(bench: Bench): CanvasTexture {
   g.font = `700 ${0.62 * PX}px ${font}`;
   g.fillText("ESP32-S3-DevKitC-1", 0, 0);
   g.restore();
+
+  return new CanvasTexture(canvas);
+}
+
+/** A socket of the Uno headers: its place on the bench, its name, and the label printed beside it. */
+export type UnoSocket = { x: number; z: number; name: string; label: string };
+
+/** The sockets of each header of the Uno on this bench, with the sockets that Jumper does not use (content/parts/arduino-uno.json). */
+export function unoHeaders(bench: Bench): { z: number; sockets: UnoSocket[] }[] {
+  const { outline } = bench.board;
+  const labels: Record<string, string> = uno.labels;
+  return uno.headers.map((h) => ({
+    z: unoAt(outline, 0, h.v).z,
+    sockets: h.pins.map((name, k) => ({ ...unoAt(outline, h.u + k, h.v), name, label: labels[name] ?? name })),
+  }));
+}
+
+/** The top of the Arduino Uno: the teal PCB, a label beside each socket, the names of the headers, and "UNO". */
+export function drawUno(bench: Bench): CanvasTexture {
+  const { outline } = bench.board;
+  const { x0, x1, z0, z1 } = outline;
+  const { canvas, g, X, Z } = canvasFor(x1 - x0, z1 - z0, x0, z0);
+  const font = monoFont();
+
+  g.fillStyle = "#00878F";
+  g.fillRect(0, 0, canvas.width, canvas.height);
+  g.strokeStyle = "rgba(255,255,255,0.18)";
+  g.lineWidth = 2;
+  g.strokeRect(4, 4, canvas.width - 8, canvas.height - 8);
+
+  // The labels stand across each header, on the side toward the middle of the board, as on a real Uno.
+  const mid = (z0 + z1) / 2;
+  const headers = unoHeaders(bench);
+  g.textBaseline = "middle";
+  g.fillStyle = "#F2F4F5";
+  g.font = `600 ${0.46 * PX}px ${font}`;
+  for (const { z, sockets } of headers) {
+    const inward = z < mid ? 1 : -1;
+    for (const s of sockets) {
+      g.save();
+      g.translate(X(s.x), Z(s.z + inward * 0.75));
+      g.rotate(-Math.PI / 2);
+      g.textAlign = inward > 0 ? "right" : "left";
+      g.fillText(s.label, 0, 0);
+      g.restore();
+    }
+  }
+
+  // The names of the headers, along each header, inside the labels.
+  const caption = (text: string, x: number, z: number) => {
+    g.textAlign = "center";
+    g.fillStyle = "rgba(242,244,245,0.8)";
+    g.font = `700 ${0.5 * PX}px ${font}`;
+    g.fillText(text, X(x), Z(z));
+  };
+  const middle = (sockets: UnoSocket[]) => (sockets[0].x + sockets[sockets.length - 1].x) / 2;
+  caption("DIGITAL (PWM ~)", (middle(headers[0].sockets) + middle(headers[1].sockets)) / 2, headers[0].z + 3.6);
+  caption("POWER", middle(headers[2].sockets), headers[2].z - 3.6);
+  caption("ANALOG IN", middle(headers[3].sockets), headers[3].z - 3.6);
+
+  const logo = unoAt(outline, 15, 13);
+  g.textAlign = "center";
+  g.fillStyle = "#F2F4F5";
+  g.font = `800 ${2.4 * PX}px ${font}`;
+  g.fillText("UNO", X(logo.x), Z(logo.z));
+  g.font = `600 ${0.6 * PX}px ${font}`;
+  g.fillText("Arduino Uno R3", X(logo.x), Z(logo.z + 1.8));
 
   return new CanvasTexture(canvas);
 }

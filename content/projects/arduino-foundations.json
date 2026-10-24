@@ -3,7 +3,435 @@
   "title": "Arduino Foundations",
   "tagline": "Breadboard basics, Ohm's law, LEDs and buttons",
   "board": "Arduino Uno",
-  "status": "coming_soon",
+  "status": "available",
   "position": 2,
-  "levels": []
+  "levels": [
+    {
+      "position": 1,
+      "title": "Power the breadboard",
+      "goal": "Give the breadboard power from the Uno: 5 V on the red + line, and ground on the blue − line.",
+      "rules": {
+        "require": [
+          {
+            "a": "uno.5V",
+            "b": "bbA.+"
+          },
+          {
+            "a": "uno.GND",
+            "b": "bbA.-"
+          }
+        ],
+        "forbid": [
+          {
+            "a": "uno.5V",
+            "b": "uno.GND",
+            "code": "short_power",
+            "message": "Oops! This shorts 5 V to ground. Power goes straight from the 5V pin back to GND, without doing any work, and the Uno gets hot. Undo the wire."
+          },
+          {
+            "a": "uno.3V3",
+            "b": "uno.GND",
+            "code": "short_power",
+            "message": "Oops! This shorts 3.3 V to ground. Power goes straight from the 3.3V pin back to GND, without doing any work, and the Uno gets hot. Undo the wire."
+          },
+          {
+            "a": "uno.5V",
+            "b": "uno.3V3",
+            "code": "power_to_power",
+            "message": "Oops! This wire joins two power pins, 5V and 3.3V. They push against each other, and this can damage the Uno. Undo the wire."
+          },
+          {
+            "a": "uno.5V",
+            "b": "bbA.-",
+            "code": "reversed_power",
+            "message": "Oops! This wire puts 5 V on the blue − line. The blue − line is for ground. Undo the wire, and connect 5V to the red + line."
+          }
+        ]
+      },
+      "xp": 50,
+      "tasks": [
+        {
+          "position": 1,
+          "kind": "place",
+          "instruction": "This is the Arduino Uno, inside the blinking line. It is already on the table, next to the breadboard.",
+          "popup_why": "The Uno is the brain of this project. It is a small computer. Its pins are in the black strips at its two long sides. Each pin has a name, for example 5V, GND or 13.",
+          "concept": "Pin: A small metal hole on the Uno. Each pin has one job, and its name tells you the job. For example, 5V gives power and GND is ground. You push one end of a wire into a pin.",
+          "target": {
+            "kind": "place",
+            "part": "arduino-uno",
+            "id": "uno",
+            "zone": "table-left"
+          },
+          "source_url": "https://docs.arduino.cc/hardware/uno-rev3/",
+          "xp": 10
+        },
+        {
+          "position": 2,
+          "kind": "place",
+          "instruction": "This is the breadboard, inside the blinking line. It is already on the table.",
+          "popup_why": "A breadboard is a board full of holes. Under the holes, metal strips join them in lines of 5. Put two things in the same line of 5, and they touch. The long red and blue lines at the edges are for power.",
+          "concept": "Breadboard: A board with many holes. You push parts and wires into the holes. You do not need glue or solder. Under each line of 5 holes, a metal strip joins the holes, so the parts in that line can talk.",
+          "target": {
+            "kind": "place",
+            "part": "bb400",
+            "id": "bbA",
+            "zone": "table-beside-uno"
+          },
+          "source_url": "https://learn.sparkfun.com/tutorials/how-to-use-a-breadboard/all",
+          "xp": 10
+        },
+        {
+          "position": 3,
+          "kind": "wire",
+          "instruction": "Connect the 5V pin of the Uno to the red + line of the breadboard, next to the Uno.",
+          "popup_why": "You gave power to the red + line! The 5V pin pushes power out. Now the whole red line has power, so parts can take power from any hole on it.",
+          "concept": "Power rails: The two long lines at the edge of a breadboard. The red + line carries power, and the blue − line carries ground. All the holes on one long line are joined, so every part on the breadboard can reach power and ground.",
+          "target": {
+            "kind": "wire",
+            "a": "uno.5V",
+            "b": "bbA.+"
+          },
+          "source_url": "https://learn.sparkfun.com/tutorials/how-to-use-a-breadboard/all",
+          "xp": 10
+        },
+        {
+          "position": 4,
+          "kind": "wire",
+          "instruction": "Connect a GND pin of the Uno to the blue − line, next to the red + line.",
+          "popup_why": "You made the way back! GND is ground, the end of the circle. The Uno has 3 GND pins, and they all join inside the Uno. Now the blue − line is ground.",
+          "concept": "Power and ground: Electricity moves in a circle. It goes out of the power pin (+), through a part, and back to the ground pin (−). If the circle is broken, nothing works.",
+          "target": {
+            "kind": "wire",
+            "a": "uno.GND",
+            "b": "bbA.-"
+          },
+          "source_url": "https://docs.arduino.cc/hardware/uno-rev3/",
+          "xp": 10
+        }
+      ]
+    },
+    {
+      "position": 2,
+      "title": "Light an LED",
+      "goal": "Connect pin 13 of the Uno through a 220 Ω resistor to an LED, and the LED to ground.",
+      "rules": {
+        "require": [
+          {
+            "a": "uno.D13",
+            "b": "r1.1"
+          },
+          {
+            "a": "r1.2",
+            "b": "led1.anode"
+          },
+          {
+            "a": "led1.cathode",
+            "b": "uno.GND"
+          }
+        ],
+        "forbid": [
+          {
+            "a": "uno.5V",
+            "b": "uno.GND",
+            "code": "short_power",
+            "message": "Oops! This shorts 5 V to ground. Power goes straight from the 5V pin back to GND, without doing any work, and the Uno gets hot. Undo the wire."
+          },
+          {
+            "a": "led1.anode",
+            "b": "uno.GND",
+            "code": "reversed_led",
+            "message": "Oops! The LED is the wrong way round. Its long leg (+) is on ground, so it stays dark. Turn the LED around: long leg to the resistor, short leg to the blue − line."
+          },
+          {
+            "a": "uno.D13",
+            "b": "led1.anode",
+            "code": "missing_resistor",
+            "message": "Oops! The LED goes straight to pin 13, without the resistor. Too much current goes in, and the LED can burn out. Put the resistor between pin 13 and the LED."
+          }
+        ]
+      },
+      "xp": 50,
+      "tasks": [
+        {
+          "position": 1,
+          "kind": "place",
+          "instruction": "Put the 220 Ω resistor on the breadboard. Its two legs go in two different lines.",
+          "popup_why": "The resistor is in. A resistor slows down electricity, like a narrow pipe slows down water. Here it keeps the LED safe.",
+          "concept": "Ohm's law: Current = voltage ÷ resistance. The pin gives 5 V. A red LED uses about 2 V, so 3 V is left for the resistor. 3 V ÷ 220 Ω = about 0.014 A (14 mA). That is enough to make the LED shine, and less than the 20 mA that it can take.",
+          "target": {
+            "kind": "place",
+            "part": "resistor-220",
+            "id": "r1",
+            "zone": "bbA"
+          },
+          "source_url": "https://learn.sparkfun.com/tutorials/voltage-current-resistance-and-ohms-law/all",
+          "xp": 10
+        },
+        {
+          "position": 2,
+          "kind": "place",
+          "instruction": "Put the LED on the breadboard. Its two legs go in two different lines.",
+          "popup_why": "The LED is in. Look at its legs: the long leg is + and the short leg is −. Electricity can only go in at the long leg and out at the short leg.",
+          "concept": "LED: A small light. It works only one way round. The long leg goes toward power (+), and the short leg goes toward ground (−).",
+          "target": {
+            "kind": "place",
+            "part": "led",
+            "id": "led1",
+            "zone": "bbA"
+          },
+          "source_url": "https://learn.sparkfun.com/tutorials/light-emitting-diodes-leds/all",
+          "xp": 10
+        },
+        {
+          "position": 3,
+          "kind": "wire",
+          "instruction": "Connect pin 13 (D13) of the Uno to one leg of the resistor.",
+          "popup_why": "Now pin 13 can send power to the resistor. When the Uno turns pin 13 on, 5 V goes out of it.",
+          "concept": null,
+          "target": {
+            "kind": "wire",
+            "a": "uno.D13",
+            "b": "r1.1"
+          },
+          "source_url": "https://docs.arduino.cc/built-in-examples/basics/Blink/",
+          "xp": 10
+        },
+        {
+          "position": 4,
+          "kind": "wire",
+          "instruction": "The other leg of the resistor must touch the long leg (+) of the LED. Put them in the same line of 5, or connect them with a wire.",
+          "popup_why": "Now the power goes from pin 13, through the resistor, into the LED. The resistor lets just enough through, so the LED shines and stays safe.",
+          "concept": null,
+          "target": {
+            "kind": "wire",
+            "a": "r1.2",
+            "b": "led1.anode"
+          },
+          "source_url": "https://learn.sparkfun.com/tutorials/light-emitting-diodes-leds/all",
+          "xp": 10
+        },
+        {
+          "position": 5,
+          "kind": "wire",
+          "instruction": "Connect the short leg (−) of the LED to the blue − line.",
+          "popup_why": "You closed the circle! Power goes out of pin 13, through the resistor and the LED, and back to ground. Now the Uno can turn the LED on and off.",
+          "concept": null,
+          "target": {
+            "kind": "wire",
+            "a": "led1.cathode",
+            "b": "uno.GND"
+          },
+          "source_url": "https://docs.arduino.cc/built-in-examples/basics/Blink/",
+          "xp": 10
+        }
+      ]
+    },
+    {
+      "position": 3,
+      "title": "Read a button",
+      "goal": "Connect pin 2 of the Uno through a button to ground. The Uno feels each press.",
+      "rules": {
+        "require": [
+          {
+            "a": "uno.D2",
+            "b": "btn1.1"
+          },
+          {
+            "a": "btn1.2",
+            "b": "uno.GND"
+          }
+        ],
+        "forbid": [
+          {
+            "a": "uno.5V",
+            "b": "uno.GND",
+            "code": "short_power",
+            "message": "Oops! This shorts 5 V to ground. Power goes straight from the 5V pin back to GND, without doing any work, and the Uno gets hot. Undo the wire."
+          },
+          {
+            "a": "uno.D2",
+            "b": "uno.GND",
+            "code": "button_bypassed",
+            "message": "Oops! This wire goes around the button, straight to ground. The Uno will think that the button is always pressed. Connect pin 2 to one side of the button only."
+          }
+        ]
+      },
+      "xp": 50,
+      "tasks": [
+        {
+          "position": 1,
+          "kind": "place",
+          "instruction": "Put the button across the gap in the middle of the breadboard.",
+          "popup_why": "Your button sits across the middle gap. The legs on each side are in different lines, so they do not touch. When you press the button, it joins them.",
+          "concept": "Button: A part that joins two wires only while you press it. Press: the wires touch. Let go: they come apart.",
+          "target": {
+            "kind": "place",
+            "part": "pushbutton",
+            "id": "btn1",
+            "zone": "bbA-center-gap"
+          },
+          "source_url": "https://learn.sparkfun.com/tutorials/switch-basics/all",
+          "xp": 10
+        },
+        {
+          "position": 2,
+          "kind": "wire",
+          "instruction": "Connect pin 2 (D2) of the Uno to one side of the button.",
+          "popup_why": "Now the Uno can feel the button. It listens on pin 2. Right now it hears HIGH: 'not pressed'.",
+          "concept": "Pull-up resistor: The Uno has a resistor inside that joins pin 2 to 5 V. You turn it on in the sketch with INPUT_PULLUP. When nobody presses the button, the pin reads HIGH (5 V). When you press it, the pin touches ground and reads LOW.",
+          "target": {
+            "kind": "wire",
+            "a": "uno.D2",
+            "b": "btn1.1"
+          },
+          "source_url": "https://docs.arduino.cc/built-in-examples/digital/InputPullupSerial/",
+          "xp": 10
+        },
+        {
+          "position": 3,
+          "kind": "wire",
+          "instruction": "Connect the other side of the button to the blue − line.",
+          "popup_why": "The button is ready! When you press it, pin 2 touches ground, and the Uno hears LOW: 'pressed'. When you let go, the pull-up resistor inside the Uno makes it HIGH again.",
+          "concept": null,
+          "target": {
+            "kind": "wire",
+            "a": "btn1.2",
+            "b": "uno.GND"
+          },
+          "source_url": "https://docs.arduino.cc/learn/microcontrollers/digital-pins/",
+          "xp": 10
+        }
+      ]
+    },
+    {
+      "position": 4,
+      "title": "Button and LED together",
+      "goal": "Put the LED circuit next to the button, on the same breadboard. Then the Uno has an input (the button) and an output (the LED).",
+      "rules": {
+        "require": [
+          {
+            "a": "uno.D2",
+            "b": "btn1.1"
+          },
+          {
+            "a": "btn1.2",
+            "b": "uno.GND"
+          },
+          {
+            "a": "uno.D13",
+            "b": "r1.1"
+          },
+          {
+            "a": "r1.2",
+            "b": "led1.anode"
+          },
+          {
+            "a": "led1.cathode",
+            "b": "uno.GND"
+          }
+        ],
+        "forbid": [
+          {
+            "a": "uno.5V",
+            "b": "uno.GND",
+            "code": "short_power",
+            "message": "Oops! This shorts 5 V to ground. Power goes straight from the 5V pin back to GND, without doing any work, and the Uno gets hot. Undo the wire."
+          },
+          {
+            "a": "uno.D2",
+            "b": "uno.GND",
+            "code": "button_bypassed",
+            "message": "Oops! This wire goes around the button, straight to ground. The Uno will think that the button is always pressed. Connect pin 2 to one side of the button only."
+          },
+          {
+            "a": "led1.anode",
+            "b": "uno.GND",
+            "code": "reversed_led",
+            "message": "Oops! The LED is the wrong way round. Its long leg (+) is on ground, so it stays dark. Turn the LED around: long leg to the resistor, short leg to the blue − line."
+          },
+          {
+            "a": "uno.D13",
+            "b": "led1.anode",
+            "code": "missing_resistor",
+            "message": "Oops! The LED goes straight to pin 13, without the resistor. Too much current goes in, and the LED can burn out. Put the resistor between pin 13 and the LED."
+          }
+        ]
+      },
+      "xp": 50,
+      "tasks": [
+        {
+          "position": 1,
+          "kind": "place",
+          "instruction": "Put the 220 Ω resistor on the breadboard. Its two legs go in two different lines.",
+          "popup_why": "The resistor is in. A resistor slows down electricity, like a narrow pipe slows down water. Here it keeps the LED safe.",
+          "concept": "Input and output: An input tells the Uno something, for example the button. An output is something that the Uno controls, for example the LED. Later, a sketch reads the button and turns the LED on.",
+          "target": {
+            "kind": "place",
+            "part": "resistor-220",
+            "id": "r1",
+            "zone": "bbA"
+          },
+          "source_url": "https://learn.sparkfun.com/tutorials/voltage-current-resistance-and-ohms-law/all",
+          "xp": 10
+        },
+        {
+          "position": 2,
+          "kind": "place",
+          "instruction": "Put the LED on the breadboard. Its two legs go in two different lines.",
+          "popup_why": "The LED is in. Look at its legs: the long leg is + and the short leg is −. Electricity can only go in at the long leg and out at the short leg.",
+          "concept": "LED: A small light. It works only one way round. The long leg goes toward power (+), and the short leg goes toward ground (−).",
+          "target": {
+            "kind": "place",
+            "part": "led",
+            "id": "led1",
+            "zone": "bbA"
+          },
+          "source_url": "https://learn.sparkfun.com/tutorials/light-emitting-diodes-leds/all",
+          "xp": 10
+        },
+        {
+          "position": 3,
+          "kind": "wire",
+          "instruction": "Connect pin 13 (D13) of the Uno to one leg of the resistor.",
+          "popup_why": "Now pin 13 can send power to the resistor. The button stays on pin 2, so each part has its own pin.",
+          "concept": null,
+          "target": {
+            "kind": "wire",
+            "a": "uno.D13",
+            "b": "r1.1"
+          },
+          "source_url": "https://docs.arduino.cc/built-in-examples/basics/Blink/",
+          "xp": 10
+        },
+        {
+          "position": 4,
+          "kind": "wire",
+          "instruction": "The other leg of the resistor must touch the long leg (+) of the LED. Put them in the same line of 5, or connect them with a wire.",
+          "popup_why": "Now the power goes from pin 13, through the resistor, into the LED. The resistor lets just enough through, so the LED shines and stays safe.",
+          "concept": null,
+          "target": {
+            "kind": "wire",
+            "a": "r1.2",
+            "b": "led1.anode"
+          },
+          "source_url": "https://learn.sparkfun.com/tutorials/light-emitting-diodes-leds/all",
+          "xp": 10
+        },
+        {
+          "position": 5,
+          "kind": "wire",
+          "instruction": "Connect the short leg (−) of the LED to the blue − line.",
+          "popup_why": "You closed the circle! Power goes out of pin 13, through the resistor and the LED, and back to ground. Now the Uno can turn the LED on and off.",
+          "concept": null,
+          "target": {
+            "kind": "wire",
+            "a": "led1.cathode",
+            "b": "uno.GND"
+          },
+          "source_url": "https://docs.arduino.cc/built-in-examples/basics/Blink/",
+          "xp": 10
+        }
+      ]
+    }
+  ]
 }

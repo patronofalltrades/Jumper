@@ -1,6 +1,10 @@
 import { existsSync } from "node:fs";
 import { describe, expect, it } from "vitest";
+import { createBench } from "@/lib/circuit/bench";
+import { buildNets, connected } from "@/lib/circuit/nets";
 import { placeConnections } from "@/lib/game/engine";
+import { loadBenchSpec } from "@/lib/content/benches";
+import { loadBoards, startBoard } from "@/lib/content/boards";
 import { loadProjects } from "@/lib/content/load";
 import { taskSchema } from "@/lib/content/schema";
 import dashboard from "@/content/ui/dashboard.json";
@@ -13,7 +17,7 @@ const isInOrder = (xs: { position: number }[]) => xs.every((x, i) => x.position 
 const pair = (c: { a: string; b: string }) => [c.a, c.b].sort().join(" ~ ");
 
 describe("content/projects", () => {
-  it("has the 6 catalog projects, with Perch the only available one", () => {
+  it("has the 6 catalog projects, with Perch and Arduino Foundations available (issue #57)", () => {
     expect(projects.map((p) => p.slug)).toEqual([
       "perch",
       "arduino-foundations",
@@ -22,7 +26,7 @@ describe("content/projects", () => {
       "focus-timer",
       "line-following-robot",
     ]);
-    expect(projects.filter((p) => p.status === "available").map((p) => p.slug)).toEqual(["perch"]);
+    expect(projects.filter((p) => p.status === "available").map((p) => p.slug)).toEqual(["perch", "arduino-foundations"]);
   });
 
   it("gives Perch 5 levels", () => {
@@ -50,11 +54,19 @@ describe("content/projects", () => {
     }
   });
 
-  it("makes each level require exactly the connections that its tasks teach", () => {
+  it("makes each level require the connections that its tasks teach, and others only if the start board has them", async () => {
     for (const l of levels) {
       // A wire task teaches one connection. A part that goes into a terminal (the speaker) teaches one for each lead.
       const taught = l.tasks.flatMap((t) => (t.target.kind === "wire" ? [pair(t.target)] : placeConnections(t.target).map(pair)));
-      expect(l.rules.require.map(pair).sort(), `${l.project} level ${l.position}`).toEqual(taught.sort());
+      const required = l.rules.require.map(pair);
+      for (const c of taught) expect(required, `${l.project} level ${l.position}`).toContain(c);
+      // Arduino Foundations level 4 also requires the button of level 3, which is on its start board.
+      const bench = createBench(await loadBenchSpec(l.project));
+      const start = startBoard(await loadBoards(l.project), l.position);
+      const nets = buildNets(bench, start);
+      for (const r of l.rules.require.filter((r) => !taught.includes(pair(r)))) {
+        expect(connected(bench, start, nets, r.a, r.b), `${l.project} level ${l.position}: ${pair(r)}`).toBe(true);
+      }
     }
   });
 

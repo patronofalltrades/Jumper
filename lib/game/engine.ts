@@ -1,4 +1,4 @@
-import { BOARD, BOARD_B_X, type Bench } from "@/lib/circuit/bench";
+import { breadboardOutline, type Bench } from "@/lib/circuit/bench";
 import { isModuleType } from "@/lib/circuit/modules";
 import { buildNets, endpointHole, netHoles, type Nets } from "@/lib/circuit/nets";
 import { checkHole, checkModule, isTerminal, LEG_NAMES, partPins, terminalAt, type LegType, type Part, type PartType } from "@/lib/circuit/parts";
@@ -38,7 +38,7 @@ export type Progress = {
 
 export type EngineEvent =
   | { type: "start" }
-  /** "Got it" on a task for a part that is already on the bench (a breadboard, the ESP32-S3). */
+  /** "Got it" on a task for a part that is already on the bench (a breadboard, the ESP32-S3, the Uno). */
   | { type: "ack"; parts: Part[] }
   /** "Try again" on a Mistake pop-up. */
   | { type: "dismiss" }
@@ -53,7 +53,7 @@ const LEG_TYPES = Object.keys(LEG_NAMES) as LegType[];
 
 /**
  * The tool that puts the part of a place task on the bench, from its content name: "inmp441" → "inmp441",
- * "resistor-220" → "resistor". Null for a part that is always on the bench, such as a breadboard or the ESP32-S3.
+ * "resistor-220" → "resistor". Null for a part that is always on the bench, such as a breadboard or the main board.
  */
 export function toolFor(part: string): PartType | null {
   if (isModuleType(part)) return part;
@@ -93,8 +93,8 @@ export function placeConnections(target: Target): Connection[] {
 }
 
 /** The breadboard of a zone: "bbA", "bbA-center-gap", "beside-bbA" → "A". Null for a zone that is not one board. */
-function zoneBoard(zone: string): "A" | "B" | null {
-  return (/bb([AB])/.exec(zone)?.[1] as "A" | "B" | undefined) ?? null;
+function zoneBoard(zone: string): string | null {
+  return /bb([A-Z])/.exec(zone)?.[1] ?? null;
 }
 
 type TaskState = { done: true; swaps: string[] } | { done: false; wrongPlace: boolean };
@@ -242,10 +242,9 @@ function nearest(bench: Bench, options: string[], to: { x: number; z: number }) 
   return best;
 }
 
-/** The outline of breadboard A or B. */
-function boardArea(board: "A" | "B") {
-  const x = (board === "A" ? 0 : BOARD_B_X) + BOARD.centerX;
-  return { x0: x - BOARD.width / 2, x1: x + BOARD.width / 2, z0: -BOARD.length / 2, z1: BOARD.length / 2 };
+/** The outline of a breadboard of the bench. */
+function boardArea(bench: Bench, board: string) {
+  return breadboardOutline(bench.breadboards.find((b) => b.id === board)?.x ?? 0);
 }
 
 function pointOf(bench: Bench, parts: Part[], id: string) {
@@ -266,7 +265,7 @@ function centerOf(points: { x: number; z: number }[]) {
  * - A part that is always on the bench: the pop-up points at it, and its outline glows.
  */
 export function taskSpot(bench: Bench, parts: Part[], target: Target, swaps: string[] = []): Spot {
-  const boardCenter = (board: "A" | "B") => centerOf(bench.holes.filter((h) => h.board === board));
+  const boardCenter = (board: string) => centerOf(bench.holes.filter((h) => h.board === board));
 
   if (target.kind === "wire") {
     const nets = buildNets(bench, parts);
@@ -300,10 +299,10 @@ export function taskSpot(bench: Bench, parts: Part[], target: Target, swaps: str
     const points = holes.map((h) => pointOf(bench, parts, h)!).filter(Boolean);
     return { holes, at: points.length ? centerOf(points) : boardCenter("A"), taps: holes, area: null };
   }
-  // Parts that are always on the bench. The ESP32-S3 goes "across-bbA-bbB".
-  const { esp } = bench;
-  if (target.zone.startsWith("across")) return { holes: [], at: { x: (esp.x0 + esp.x1) / 2, z: (esp.z0 + esp.z1) / 2 }, taps: [], area: esp };
+  // Parts that are always on the bench: the main board (the ESP32-S3 or the Uno), and the breadboards.
+  const { outline } = bench.board;
+  if (target.id === bench.board.id) return { holes: [], at: { x: (outline.x0 + outline.x1) / 2, z: (outline.z0 + outline.z1) / 2 }, taps: [], area: outline };
   if (board) return { holes: [], at: boardCenter(board), taps: [], area: null };
   const side = target.zone.endsWith("right") ? "B" : "A";
-  return { holes: [], at: boardCenter(side), taps: [], area: boardArea(side) };
+  return { holes: [], at: boardCenter(side), taps: [], area: boardArea(bench, side) };
 }

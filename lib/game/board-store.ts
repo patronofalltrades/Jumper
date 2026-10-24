@@ -25,7 +25,8 @@ export type Flash = { kind: "snap" | "buzz"; holes: string[]; at: number };
 /** What a level starts with: its tasks, and the board and progress from the browser, if it has them. */
 /** `readOnly`: a saved snapshot. The camera moves and the nets glow, but taps do not change the board. */
 /** `base`: the board that the level opened with, before the learner placed a part. It defaults to `parts`. */
-export type LevelSetup = { plan?: Plan; parts?: Part[]; base?: Part[]; progress?: Progress; readOnly?: boolean };
+/** `bench`: the bench of the project (content/benches/). It defaults to the bench of the store, Perch for the app store. */
+export type LevelSetup = { bench?: Bench; plan?: Plan; parts?: Part[]; base?: Part[]; progress?: Progress; readOnly?: boolean };
 
 export type BoardState = {
   bench: Bench;
@@ -76,11 +77,11 @@ export type BoardState = {
   cancel: () => void;
 };
 
-export function createBoardStore(bench: Bench = perchBench()) {
+export function createBoardStore(defaultBench: Bench = perchBench()) {
   return createStore<BoardState>()((set, get) => {
     /** Sends an event to the task engine. A new task selects its tool; a snap or a buzz flashes the holes of `parts`. */
     const play = (event: EngineEvent, parts: Part[] = []): Partial<BoardState> => {
-      const { plan, progress, tool } = get();
+      const { bench, plan, progress, tool } = get();
       if (!plan) return {};
       const next = step(bench, plan, progress, event);
       const task = next.progress.index !== progress.index || next.progress.phase !== progress.phase ? plan.tasks[next.progress.index] : undefined;
@@ -102,7 +103,7 @@ export function createBoardStore(bench: Bench = perchBench()) {
     const commit = (parts: Part[]) => change(parts, [...get().history, get().parts]);
 
     return {
-      bench,
+      bench: defaultBench,
       level: null,
       parts: [],
       base: [],
@@ -123,6 +124,7 @@ export function createBoardStore(bench: Bench = perchBench()) {
         const progress = setup.progress ?? startProgress();
         const task = progress.phase === "task" ? setup.plan?.tasks[progress.index] : undefined;
         set({
+          bench: setup.bench ?? defaultBench,
           level,
           parts: setup.parts ?? [],
           base: setup.base ?? setup.parts ?? [],
@@ -150,7 +152,7 @@ export function createBoardStore(bench: Bench = perchBench()) {
 
       tapHole: (hole, preview = false) => {
         if (get().readOnly) return;
-        const { parts, tool, pending, wireColor } = get();
+        const { bench, parts, tool, pending, wireColor } = get();
 
         if (tool === "remove") {
           const part = partAt(bench, parts, hole) ?? moduleOver(bench, parts, hole);

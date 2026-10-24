@@ -1,0 +1,107 @@
+{
+  "_note": "A finished board for each level of Arduino Foundations: the parts that the level adds, in task order. start: the levels whose parts a level starts with. Level 3 starts with the powered breadboard of level 1 only, and level 4 adds the LED circuit next to the button of level 3. tests/arduino.test.ts plays each level with these parts.",
+  "levels": {
+    "1": [
+      {
+        "id": "w1",
+        "type": "wire",
+        "a": "uno-5V",
+        "b": "A-L+5",
+        "color": "#D63A2F"
+      },
+      {
+        "id": "w2",
+        "type": "wire",
+        "a": "uno-GND2",
+        "b": "A-L-6",
+        "color": "#25292D"
+      }
+    ],
+    "2": [
+      {
+        "id": "r1",
+        "type": "resistor",
+        "a": "A-c22",
+        "b": "A-c26"
+      },
+      {
+        "id": "led1",
+        "type": "led",
+        "a": "A-e26",
+        "b": "A-e27"
+      },
+      {
+        "id": "w3",
+        "type": "wire",
+        "a": "uno-D13",
+        "b": "A-a22",
+        "color": "#2F6FD6"
+      },
+      {
+        "id": "w4",
+        "type": "wire",
+        "a": "A-a27",
+        "b": "A-L-22",
+        "color": "#25292D"
+      }
+    ],
+    "3": [
+      {
+        "id": "btn1",
+        "type": "pushbutton",
+        "at": "A-e15"
+      },
+      {
+        "id": "w3",
+        "type": "wire",
+        "a": "uno-D2",
+        "b": "A-a15",
+        "color": "#E2AE12"
+      },
+      {
+        "id": "w4",
+        "type": "wire",
+        "a": "A-a17",
+        "b": "A-L-14",
+        "color": "#25292D"
+      }
+    ],
+    "4": [
+      {
+        "id": "r1",
+        "type": "resistor",
+        "a": "A-c22",
+        "b": "A-c26"
+      },
+      {
+        "id": "led1",
+        "type": "led",
+        "a": "A-e26",
+        "b": "A-e27"
+      },
+      {
+        "id": "w5",
+        "type": "wire",
+        "a": "uno-D13",
+        "b": "A-a22",
+        "color": "#2F6FD6"
+      },
+      {
+        "id": "w6",
+        "type": "wire",
+        "a": "A-a27",
+        "b": "A-L-22",
+        "color": "#25292D"
+      }
+    ]
+  },
+  "start": {
+    "3": [
+      1
+    ],
+    "4": [
+      1,
+      3
+    ]
+  }
+}

@@ -18,7 +18,7 @@ export type CheckResult = { passed: true } | { passed: false; code: string; mess
 const SYMMETRIC: PartType[] = ["resistor", "pushbutton"];
 
 /** A ground endpoint: a GND pin, or a − rail. */
-const isGround = (endpoint: string) => /\.GND$/.test(endpoint) || /^bb[AB]\.-$/.test(endpoint);
+const isGround = (endpoint: string) => /\.GND$/.test(endpoint) || /^bb[A-Z]\.-$/.test(endpoint);
 
 function turn(endpoint: string, turned: Set<string>) {
   const [owner, pin] = endpoint.split(".");

@@ -1,0 +1,28 @@
+{
+  "_note": "The Arduino Foundations bench: one 400-hole breadboard (A), and the Arduino Uno on the table to its left. The Uno does not go in the breadboard: wires go from its header pins to the breadboard holes. The Uno lies as in the Uno R3 drawing: the USB end on the left, the digital header (D0 to D13) far from you, and the power header near you. mount x and z: the place of the Uno corner at the USB end and the power header. open_rails: bbA.+ and bbA.- are the rails on the left, near the Uno. view: the point that the camera looks at, and the size of the bench that it shows, in hole pitches.",
+  "board": "arduino-uno",
+  "id": "uno",
+  "name": "Arduino Uno",
+  "breadboards": [
+    { "id": "A", "x": 0 }
+  ],
+  "mount": {
+    "kind": "table",
+    "x": -33,
+    "z": 10.5
+  },
+  "open_rails": {
+    "A": {
+      "+": "L+",
+      "-": "L-"
+    }
+  },
+  "view": {
+    "target": {
+      "x": -9.4,
+      "z": 1.5
+    },
+    "width": 55,
+    "length": 32
+  }
+}

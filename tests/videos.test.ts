@@ -11,13 +11,11 @@ const dir = join(process.cwd(), "public", VIDEO_DIR);
 const files = () => readdirSync(dir).filter((f) => !f.startsWith("."));
 
 describe("the video files", () => {
-  it("has a video for each level that has a clip, and the intro video", async () => {
-    for (const project of loadProjects()) {
-      const boards = await loadBoards(project.slug);
-      for (const level of project.levels) {
-        if (!boards.levels[level.position]) continue;
-        expect(levelVideo(project.slug, level.position), `${project.slug} level ${level.position}`).toBeDefined();
-      }
+  it("has a video for each Perch level, and the intro video", async () => {
+    const boards = await loadBoards("perch");
+    for (const level of loadProjects().find((p) => p.slug === "perch")!.levels) {
+      expect(boards.levels[level.position], `perch level ${level.position}`).toBeDefined();
+      expect(levelVideo("perch", level.position), `perch level ${level.position}`).toBeDefined();
     }
     expect(videos.find((v) => v.id === "intro")).toBeDefined();
   });

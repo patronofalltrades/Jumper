@@ -5,6 +5,7 @@ import { Suspense } from "react";
 import { DeleteSnapshot, EditSnapshot, SnapshotBoard } from "@/components/snapshots/snapshot-page";
 import { StarButton } from "@/components/snapshots/star-button";
 import text from "@/content/ui/snapshots.json";
+import { loadBenchSpec } from "@/lib/content/benches";
 import { isStarred } from "@/lib/snapshots/stars";
 import { countWiring, readWiring } from "@/lib/snapshots/wiring";
 import { createClient } from "@/lib/supabase/server";
@@ -31,20 +32,22 @@ async function Snapshot({ id }: { id: string }) {
   const supabase = await createClient();
   const { data: snap, error } = await supabase
     .from("snapshots")
-    .select("id, title, notes, wiring, passed, mistake_count, created_at, levels(position, title), stars(snapshot_id)")
+    .select("id, title, notes, wiring, passed, mistake_count, created_at, levels(position, title, projects(slug)), stars(snapshot_id)")
     .eq("id", id)
     .maybeSingle();
   if (error) throw error;
   if (!snap) notFound();
 
-  const level = snap.levels as unknown as { position: number; title: string };
+  const level = snap.levels as unknown as { position: number; title: string; projects: { slug: string } | null };
+  // The board goes on the bench of its project: the Uno bench for Arduino Foundations.
+  const bench = await loadBenchSpec(level.projects?.slug ?? "perch");
   const parts = readWiring(snap.wiring);
   const date = new Date(snap.created_at).toLocaleString("en-US", { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" });
 
   return (
     <div className="fixed inset-0 flex flex-col bg-background max-lg:overflow-y-auto lg:flex-row">
       <section className="relative h-[55vh] shrink-0 lg:h-auto lg:flex-1">
-        {parts ? <SnapshotBoard id={snap.id} parts={parts} /> : <p className="grid h-full place-items-center p-4 text-muted-foreground">{t.broken}</p>}
+        {parts ? <SnapshotBoard id={snap.id} parts={parts} bench={bench} /> : <p className="grid h-full place-items-center p-4 text-muted-foreground">{t.broken}</p>}
         <p className="pointer-events-none absolute inset-x-3 bottom-3 rounded-xl bg-card/90 px-3 py-2 text-xs text-muted-foreground shadow-panel">{t.view_only}</p>
       </section>
 

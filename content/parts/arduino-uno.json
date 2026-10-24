@@ -1,0 +1,32 @@
+{
+  "type": "arduino-uno",
+  "title": "Arduino Uno R3",
+  "source_url": "https://docs.arduino.cc/hardware/uno-rev3/",
+  "_note": "Sizes in hole pitches (2.54 mm), from the Uno R3 drawing. u goes along the long side, from the USB end. v goes across, from the power header side. Each header lists its sockets in order, one pitch apart, from the first socket at (u, v). The names in unused are sockets that Jumper does not use: they show, but a wire cannot go in them. Pins with the same name connect on the board, so the 3 GND pins are one net.",
+  "size": { "length": 27, "width": 21 },
+  "headers": [
+    { "u": 7.4, "v": 20, "pins": ["SCL", "SDA", "AREF", "GND", "D13", "D12", "D11", "D10", "D9", "D8"] },
+    { "u": 18, "v": 20, "pins": ["D7", "D6", "D5", "D4", "D3", "D2", "D1", "D0"] },
+    { "u": 10, "v": 1, "pins": ["NC", "IOREF", "RESET", "3V3", "5V", "GND", "GND", "VIN"] },
+    { "u": 20, "v": 1, "pins": ["A0", "A1", "A2", "A3", "A4", "A5"] }
+  ],
+  "unused": ["SCL", "SDA", "AREF", "NC", "IOREF", "RESET"],
+  "labels": {
+    "3V3": "3.3V",
+    "D13": "13",
+    "D12": "12",
+    "D11": "~11",
+    "D10": "~10",
+    "D9": "~9",
+    "D8": "8",
+    "D7": "7",
+    "D6": "~6",
+    "D5": "~5",
+    "D4": "4",
+    "D3": "~3",
+    "D2": "2",
+    "D1": "TX 1",
+    "D0": "RX 0",
+    "NC": ""
+  }
+}

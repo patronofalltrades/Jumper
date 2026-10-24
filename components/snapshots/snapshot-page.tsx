@@ -7,6 +7,7 @@ import { deleteSnapshot, updateSnapshot } from "@/app/actions/snapshot";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import text from "@/content/ui/snapshots.json";
+import { createBench, type BenchSpec } from "@/lib/circuit/bench";
 import type { Part } from "@/lib/circuit/parts";
 import { boardStore } from "@/lib/game/board-store";
 import { fieldErrors, readSnapshotForm, snapshotEditSchema, type FieldErrors } from "@/lib/snapshots/form";
@@ -19,9 +20,9 @@ const BuildScene = dynamic(() => import("@/components/scene/build-scene"), {
 });
 
 /** The saved board in 3D, view only: the camera turns and the nets glow, but taps do not change it. */
-export function SnapshotBoard({ id, parts }: { id: string; parts: Part[] }) {
+export function SnapshotBoard({ id, parts, bench }: { id: string; parts: Part[]; bench: BenchSpec }) {
   // Before paint, and before the scene loads, so the scene never shows the board of another page.
-  useLayoutEffect(() => boardStore.getState().open(`snapshot/${id}`, { parts, readOnly: true }), [id, parts]);
+  useLayoutEffect(() => boardStore.getState().open(`snapshot/${id}`, { bench: createBench(bench), parts, readOnly: true }), [id, parts, bench]);
   return <BuildScene />;
 }
 

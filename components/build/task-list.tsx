@@ -24,8 +24,11 @@ export function TaskList({ tasks, laptop }: { tasks: LevelTask[]; laptop: boolea
   const list = useRef<HTMLOListElement>(null);
   const now = marks.indexOf("now");
 
-  // Keep the task of now in view when the list scrolls.
-  useEffect(() => list.current?.querySelector("[aria-current=step]")?.scrollIntoView({ block: "nearest" }), [now, open]);
+  // Keep the task of now in view when the list scrolls. The braces matter: a new browser gives a Promise from
+  // scrollIntoView, and an effect that gives back a Promise stops the page.
+  useEffect(() => {
+    list.current?.querySelector("[aria-current=step]")?.scrollIntoView({ block: "nearest" });
+  }, [now, open]);
 
   if (!plan) return null;
   const done = marks.filter((m) => m === "done").length;

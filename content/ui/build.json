@@ -46,10 +46,11 @@
     "needs_gap": "This part must go across the center gap, with pins on the two sides. Move pin 1.",
     "on_gap": "This part must stay on one side of the center gap. Move pin 1.",
     "on_part": "The part would go on top of another part. Use a different place.",
-    "esp_line": "A pin of this part would touch a pin of the board. Move the part to lines that have no board pin."
+    "esp_line": "A pin of this part would touch a pin of the board. Move the part to lines that have no board pin.",
+      "socket_leg": "Put the legs of this part in the breadboard. Use a wire to go from the breadboard to a pin of the board."
   },
   "hole": {
-    "pin": "ESP32-S3 pin: {pin}",
+    "pin": "{board} pin: {pin}",
     "main": "Row {row}, column {column}",
     "rail": {
       "+": "Red + line (power)",
@@ -61,6 +62,7 @@
     "connectedRail": "Connected to the {rail}.",
     "empty": "Nothing connects to this line yet.",
     "pinTip": "To use this pin, put a wire in an empty hole in the same line of 5.",
+      "socketTip": "To use this pin, put one end of a wire into it.",
     "railEmpty": "Nothing connects to this rail yet.",
     "part": "{part} pin: {pin}",
     "partTip": "To use this pin, put a wire in an empty hole in the same line of 5.",
@@ -73,7 +75,10 @@
     "RST": "RST (reset)",
     "GPIO43": "TX (GPIO 43)",
     "GPIO44": "RX (GPIO 44)",
-    "gpio": "GPIO {n}"
+    "gpio": "GPIO {n}",
+      "VIN": "VIN (power in)",
+      "digital": "pin {n} (D{n})",
+      "analog": "analog pin A{n}"
   },
   "railName": {
     "+": "red + line",

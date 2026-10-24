@@ -203,7 +203,7 @@ describe("task spot", () => {
     const spot = taskSpot(bench, [], planOf(1).tasks[0].target);
     expect(spot.taps).toEqual([]);
     expect(spot.area).toMatchObject({ x0: expect.any(Number), x1: expect.any(Number) });
-    expect(taskSpot(bench, [], planOf(1).tasks[2].target).area).toEqual(bench.esp);
+    expect(taskSpot(bench, [], planOf(1).tasks[2].target).area).toEqual(bench.board.outline);
   });
 
   it("glows only the holes where pin 1 of a module can go", () => {
@@ -278,7 +278,7 @@ describe("task list", () => {
 
 describe("boards", () => {
   it("has no boards for a project without a board file", async () => {
-    expect(await loadBoards("arduino-foundations")).toEqual({ levels: {} });
+    expect(await loadBoards("desk-weather-station")).toEqual({ levels: {} });
     expect(await loadBoards("../x")).toEqual({ levels: {} });
   });
 

@@ -1,0 +1,16 @@
+{
+  "_note": "The Perch bench: two 400-hole breadboards side by side, A on the left and B on the right. The ESP32-S3-DevKitC-1 sits across them: pin 1 of each header in column first_column, header J3 in row j of A and header J1 in row a of B. open_rails: the rail that bbA.+, bbA.-, bbB.+ and bbB.- name in content/projects (the one that the board does not cover). view: the point that the camera looks at, and the size of the bench that it shows, in hole pitches.",
+  "board": "esp32-s3-devkitc-1",
+  "id": "esp",
+  "name": "ESP32-S3",
+  "breadboards": [
+    { "id": "A", "x": 0 },
+    { "id": "B", "x": 20 }
+  ],
+  "mount": { "kind": "breadboard", "first_column": 5, "headers": { "J3": "A-j", "J1": "B-a" } },
+  "open_rails": {
+    "A": { "+": "L+", "-": "L-" },
+    "B": { "+": "R+", "-": "R-" }
+  },
+  "view": { "target": { "x": 15, "z": 1.5 }, "width": 46, "length": 32 }
+}

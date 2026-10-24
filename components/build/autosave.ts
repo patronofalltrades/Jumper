@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { z } from "zod";
 import { startSession, updateSession } from "@/app/actions/session";
+import type { Bench } from "@/lib/circuit/bench";
 import type { Part } from "@/lib/circuit/parts";
 import { partSchema } from "@/lib/content/schema";
 import { boardStore, type LevelSetup } from "@/lib/game/board-store";
@@ -10,8 +11,8 @@ import type { Plan, Progress } from "@/lib/game/engine";
 
 // The board that the learner is building saves itself in this browser (PLAN.md section 3). A level starts with:
 // 1. its own saved board and progress, if the browser has them;
-// 2. else the finished board of the level before it, saved in this browser;
-// 3. else the ready-made board of the earlier levels, from content/boards/.
+// 2. else the finished board of the level before it, saved in this browser, if the level starts with that board;
+// 3. else the ready-made board of its start levels, from content/boards/.
 // The session row in the database gets the counters: tasks done, mistakes and XP.
 
 const savedSchema = z.object({
@@ -57,19 +58,29 @@ export function readSavedLevel(user: string, project: string, position: number) 
   return saved && { parts: saved.parts as Part[], session: saved.session ?? null, mistakes: saved.progress.mistakes };
 }
 
-type Props = { user: string; project: string; levelId: number; position: number; plan: Plan; start: Part[] };
+type Props = {
+  user: string;
+  project: string;
+  levelId: number;
+  position: number;
+  bench: Bench;
+  plan: Plan;
+  start: Part[];
+  /** True when the level starts with the board of the level before it (lib/content/boards.ts). */
+  carry: boolean;
+};
 
 /** Opens the level in the store, saves the board in the browser, and saves the session row. Gives a save error, if any. */
-export function useLevel({ user, project, levelId, position, plan, start }: Props) {
+export function useLevel({ user, project, levelId, position, bench, plan, start, carry }: Props) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const key = keyOf(user, project, position);
     const own = read(key);
-    const before = read(keyOf(user, project, position - 1));
+    const before = carry ? read(keyOf(user, project, position - 1)) : null;
     const setup: LevelSetup = own
-      ? { plan, parts: own.parts as Part[], base: (own.base ?? start) as Part[], progress: own.progress as Progress }
-      : { plan, parts: before?.progress.phase === "ready_to_check" ? (before.parts as Part[]) : start };
+      ? { bench, plan, parts: own.parts as Part[], base: (own.base ?? start) as Part[], progress: own.progress as Progress }
+      : { bench, plan, parts: before?.progress.phase === "ready_to_check" ? (before.parts as Part[]) : start };
     boardStore.getState().open(`${project}/${position}`, setup);
 
     let session = own?.session;
@@ -124,7 +135,7 @@ export function useLevel({ user, project, levelId, position, plan, start }: Prop
       window.removeEventListener("pagehide", leave);
       leave();
     };
-  }, [user, project, levelId, position, plan, start]);
+  }, [user, project, levelId, position, bench, plan, start, carry]);
 
   return error;
 }

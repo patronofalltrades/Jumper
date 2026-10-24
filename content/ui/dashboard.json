@@ -25,6 +25,7 @@
   "mistakes": {
     "short_power": "Short circuit (power to ground)",
     "reversed_power": "Power pin on ground",
+    "power_to_power": "Two power pins joined",
     "reversed_led": "LED turned around",
     "missing_resistor": "LED with no resistor",
     "button_bypassed": "Wire around the button",
