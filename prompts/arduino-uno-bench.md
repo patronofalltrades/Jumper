@@ -19,3 +19,14 @@
    - A separate commit fixes a crash in build mode that was on `main`: in new Chromium, `scrollIntoView()` gives a Promise, and two effects gave it back to React.
 
    Checks: 288 tests, the type check, lint and the build pass. Browser check on a temporary page (not committed) with the content files and placeholder Supabase keys, at 1280 × 800 and 390 × 844 (dark): Level 1 with the Uno outline and the Pin pop-up, the hover on a GND pin, Levels 2 and 4 finished, and Perch Level 2. The real routes need a log-in, so they are not checked in a browser in this session.
+
+2. "please check real routes via temporary account. You are allowed to create one to use it for checking. Afterwards, delete it"
+
+   The database had Arduino Foundations as `coming_soon` with 0 levels. Claude asked how to load the levels, because the live app uses the same database. Answer: "Seed, check, then undo".
+
+   Claude seeded only Arduino Foundations, made a temporary account, and checked the real routes on a production build of this branch: the lobby, the level map, Level 1 with real mouse clicks (hover on a Uno pin, a wire from 5V to the red + line, a Mistake pop-up for 3V3 to GND), a Check on all 4 levels (Level 2 first with a reversed LED: the reason and one heart lost), a snapshot, and Perch Level 1. Phone size too.
+
+   The first check found a bug in Claude's Uno layout: on a laptop, the power header was under the task panel and the pop-up, so the learner could not reach the 5V pin. Claude turned the Uno to lie as in the Uno R3 drawing (USB end on the left, digital header at the back, power header at the front), and moved the finished boards to columns near the pins. Then all 19 checks passed, with no page errors.
+
+   After the check, Claude deleted the account (0 rows left), set Arduino Foundations back to `coming_soon`, and deleted its levels and tasks. Perch rows were not touched.
+

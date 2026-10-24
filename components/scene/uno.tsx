@@ -3,7 +3,7 @@
 import type { ThreeEvent } from "@react-three/fiber";
 import { useMemo } from "react";
 import type { Color } from "three";
-import type { Bench } from "@/lib/circuit/bench";
+import { unoAt, type Bench } from "@/lib/circuit/bench";
 import { drawUno, unoHeaders } from "./textures";
 import { useFontTexture } from "./use-font-texture";
 
@@ -26,10 +26,10 @@ type Handlers = {
 
 /** A box on the PCB, from (u0, v0) to (u1, v1) on the board, `h` high. u goes along the long side from the USB end. */
 function Box({ bench, u, v, h, color, metal }: { bench: Bench; u: [number, number]; v: [number, number]; h: number; color: string; metal?: boolean }) {
-  const { x0, z0 } = bench.board.outline;
+  const c = unoAt(bench.board.outline, (u[0] + u[1]) / 2, (v[0] + v[1]) / 2);
   return (
-    <mesh position={[x0 + (v[0] + v[1]) / 2, UNO_TOP + h / 2, z0 + (u[0] + u[1]) / 2]} castShadow raycast={() => null}>
-      <boxGeometry args={[v[1] - v[0], h, u[1] - u[0]]} />
+    <mesh position={[c.x, UNO_TOP + h / 2, c.z]} castShadow raycast={() => null}>
+      <boxGeometry args={[u[1] - u[0], h, v[1] - v[0]]} />
       <meshStandardMaterial color={color} metalness={metal ? 0.65 : 0.1} roughness={metal ? 0.3 : 0.6} />
     </mesh>
   );
@@ -70,19 +70,19 @@ export function Uno({ bench, glow, handlers }: { bench: Bench; glow: Map<string,
         </mesh>
       ))}
 
-      {headers.map(({ x, sockets }) => {
-        const zs = sockets.map((s) => s.z);
+      {headers.map(({ z, sockets }) => {
+        const xs = sockets.map((s) => s.x);
         return (
-          <group key={`${x},${zs[0]}`}>
-            <mesh position={[x, UNO_TOP + HEADER_H / 2, (Math.min(...zs) + Math.max(...zs)) / 2]} castShadow>
-              <boxGeometry args={[0.95, HEADER_H, zs.length]} />
+          <group key={`${xs[0]},${z}`}>
+            <mesh position={[(Math.min(...xs) + Math.max(...xs)) / 2, UNO_TOP + HEADER_H / 2, z]} castShadow>
+              <boxGeometry args={[xs.length, HEADER_H, 0.95]} />
               <meshStandardMaterial color="#1A1C1E" roughness={0.7} />
             </mesh>
             {sockets.map((s) => {
               const hole = holeAt.get(`${s.x},${s.z}`);
               const lit = hole ? glow.get(hole) : undefined;
               return (
-                <mesh key={s.z} position={[s.x, UNO_SOCKET_TOP + 0.005, s.z]} raycast={() => null}>
+                <mesh key={s.x} position={[s.x, UNO_SOCKET_TOP + 0.005, s.z]} raycast={() => null}>
                   <boxGeometry args={[0.42, 0.02, 0.42]} />
                   <meshStandardMaterial color={lit ?? (hole ? "#08090A" : "#2A2D30")} emissive={lit ?? "#000000"} emissiveIntensity={lit ? 0.8 : 0} />
                 </mesh>

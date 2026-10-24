@@ -12,7 +12,7 @@ As a learner, I want to open the Arduino Foundations project and wire an Arduino
 
 - **The bench comes from data.** `lib/circuit/bench.ts` reads the breadboards, the main board and the place of the board from `content/benches/<project>.json`. It has no fixed ESP32-S3 values now.
 - **Perch keeps its bench.** The ESP32-S3 across two 400-hole breadboards: all 800 holes, the 44 pins and the 88 holes under the board are equal to `main`. The camera view is the same.
-- **The Uno bench.** The Uno is on the table, to the left of one 400-hole breadboard. It does not go in the breadboard. Wires go from the Uno header pins to the breadboard holes.
+- **The Uno bench.** The Uno is on the table, to the left of one 400-hole breadboard, as in the Uno R3 drawing: the USB end on the left, the digital header at the back, the power header at the front. It does not go in the breadboard. Wires go from the Uno header pins to the breadboard holes.
 - **`content/parts/arduino-uno.json`:** the header pins and their labels: 5V, 3V3, GND (3 pins), VIN, D0–D13 and A0–A5. The 3 GND pins are on one net. Each pin holds one wire end. A resistor or LED leg cannot go into a pin ("Put the legs of this part in the breadboard…").
 - **The 3D Uno**, from code shapes: the teal board with its labels, the headers, the USB socket, the power jack and the chip. A hover on a Uno pin lights up its net, and the hint says, for example, "Arduino Uno pin: GND (ground)".
 - **4 levels** in `content/projects/arduino-foundations.json`, in simple words:
@@ -32,6 +32,16 @@ As a learner, I want to open the Arduino Foundations project and wire an Arduino
 - **What occurred:** in the browser check (Chromium 153), build mode showed "This page couldn't load" after Start. Perch had the same crash.
 - **How Claude found it:** the Next.js error overlay named the task list effect. In the same browser, `scrollIntoView()` gives a Promise. Two effects gave this value back to React (`components/build/task-list.tsx` and the tool row in `components/build/build-view.tsx`), and React stops the page when an effect gives back a Promise ("destroy is not a function").
 - **How we repaired it:** braces around the two effect bodies, so they give back nothing. After the fix, Perch Level 2 and Arduino Level 1 load with no page errors.
+
+## Bug found by Claude in the real-route check (in this branch)
+
+- **What occurred:** on a laptop, the Uno power header (3V3, 5V, GND) was under the task panel and the pinned pop-up. A learner could not reach the 5V pin of Level 1 without moving the camera.
+- **How Claude found it:** in the real-route check with a temporary account, the mouse could not reach the 5V pin.
+- **How we repaired it:** the Uno now lies as in the Uno R3 drawing, so all its pins are to the right of the task panel, and the pop-up sits above the pin. The finished boards use the columns near the pins.
+
+## Real-route check
+
+A production build of this branch, on the real Supabase project, with a temporary account (deleted after the check). Arduino Foundations was seeded for the check only, then set back to `coming_soon`. 19 of 19 checks pass, with no page errors: the lobby card, the map (4 levels, no Watch button), Level 1 with real mouse clicks (hover on 5V, a wire from 5V to the red + line, the Mistake pop-up for 3V3 to GND), a Check on all 4 levels (a reversed LED fails and costs a heart), a snapshot on the Uno bench, and Perch Level 1. Phone size (390 × 844) too.
 
 ## Tests
 

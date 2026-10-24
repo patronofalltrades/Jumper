@@ -213,7 +213,7 @@ describe("mistakes on the Uno bench", () => {
   });
 
   it("fails the level 3 Check with a wire around the button", () => {
-    const parts = [...startBoard(boards, 3), { id: "btn1", type: "pushbutton", at: "A-e6" } as Part, wire("w3", "uno-D2", "A-L-6")];
+    const parts = [...startBoard(boards, 3), { id: "btn1", type: "pushbutton", at: "A-e15" } as Part, wire("w3", "uno-D2", "A-L-14")];
     expect(checkLevel(bench, parts, levelOf(3).rules)).toMatchObject({ passed: false, code: "button_bypassed" });
   });
 });

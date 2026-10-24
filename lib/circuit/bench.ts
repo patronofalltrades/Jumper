@@ -129,10 +129,18 @@ function espOnBreadboards(byId: Map<string, Hole>, mount: { first_column: number
 }
 
 /**
- * The Uno on the table, turned so that its long side goes along z: a pin at (u, v) on the board is at
- * x = mount.x + v, z = mount.z + u. Each pin is a socket: a hole of its own, with its own strip.
+ * The place on the bench of the point (u, v) of the Uno, as in the Uno R3 drawing: u goes along the long side from the
+ * USB end (left), v goes across from the power header (near you). The corner u = 0, v = 0 is at x0 and z1.
+ */
+export const unoAt = (outline: Outline, u: number, v: number) => ({ x: outline.x0 + u, z: outline.z1 - v });
+
+/**
+ * The Uno on the table, as in the Uno R3 drawing: the USB end on the left, the digital header far from you, and the
+ * power header near you. `mount` is the corner at the USB end and the power header. Each pin is a socket: a hole of its
+ * own, with its own strip.
  */
 function unoOnTable(id: string, mount: { x: number; z: number }) {
+  const outline = { x0: mount.x, x1: mount.x + uno.size.length, z0: mount.z - uno.size.width, z1: mount.z };
   const labels: Record<string, string> = uno.labels;
   const unused = new Set(uno.unused);
   const count = new Map<string, number>();
@@ -147,11 +155,10 @@ function unoOnTable(id: string, mount: { x: number; z: number }) {
       const n = (seen.get(name) ?? 0) + 1;
       seen.set(name, n);
       const hole = `${id}-${name}${count.get(name)! > 1 ? n : ""}`;
-      holes.push({ id: hole, board: id, kind: "pin", row: name, n: 0, strip: hole, x: mount.x + h.v, z: mount.z + h.u + k });
+      holes.push({ id: hole, board: id, kind: "pin", row: name, n: 0, strip: hole, ...unoAt(outline, h.u + k, h.v) });
       pins.push({ hole, name, label: labels[name] ?? name, header: String(header), socket: true });
     }),
   );
-  const outline = { x0: mount.x, x1: mount.x + uno.size.width, z0: mount.z, z1: mount.z + uno.size.length };
   return { pins, holes, outline };
 }
 
