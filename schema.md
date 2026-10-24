@@ -121,6 +121,8 @@ A user can star only their own snapshots. The policy checks this, because a fore
 
 The star button on the snapshot list and the snapshot page adds or removes a row (`toggleStar`, issue #40). The list reads `stars(snapshot_id)` with each snapshot, and the Starred view shows the snapshots that have a row.
 
+**Where the sketch is saved (issue #58).** The Arduino sketch of a level has no column. The browser saves it with the board that the learner builds, in the same entry: `{ parts, base, progress, session, sketch: { code, passed } }` (`components/build/autosave.ts`). Thus a reload keeps the sketch, as it keeps the board. `passed` is true when the sketch did the goal after its last change; the level Check waits for it. The level Check still saves one row in `attempts`, and a sketch that does not do the goal saves nothing, so it does not cost a heart. The starter code, the goal and the hints are content in `content/sketches/<project>.json`, not in the `levels` table: the page reads the file, as it reads `content/boards/`.
+
 The lab notebook search, filters and sort (`/snapshots`, issue #42) need no new column. One query reads the snapshots with `ilike` on `title` and `notes`, `level_id` and `passed` for the filters, and `created_at` or `mistake_count` for the sort. Row-level security gives each user only their own snapshots.
 
 ## Functions
@@ -177,3 +179,4 @@ erDiagram
 | Content "readable by everyone" | Readable by logged-in users only | All app pages need a log-in (issue #11). |
 | `created_at` (date) | timestamptz | The dashboard needs the time, not only the date. |
 | Hearts (PLAN.md section 2) | No column. Hearts come from the failed attempts of the session | One source of truth. A failed Check already saves an attempt (issue #25). |
+| — (PLAN.md has no code step) | No column. The sketch of a level is saved in the browser with the board (`sketch: { code, passed }`). The code step content is in `content/sketches/` | PLAN.md section 3 says that the board in progress autosaves in the browser. The sketch is part of that work in progress, so it goes in the same place (Hanif's choice, issue #58). No migration is necessary. |

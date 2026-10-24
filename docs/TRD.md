@@ -73,6 +73,7 @@ Each layer uses a standard tool with a free tier. Claude Code knows these tools 
 | Hosting | Vercel | Free. It makes a preview URL for each pull request and deploys production when a pull request merges to main. | Replit, Render |
 | Tests | Vitest (unit and integration), Playwright (optional end-to-end) | Fast TypeScript tests. Playwright runs a smoke test at phone size. | Jest |
 | CI | GitHub Actions | It runs lint and tests on each pull request. | Vercel checks only |
+| Code editor | CodeMirror 6 (`codemirror`, `@codemirror/lang-cpp`, `@codemirror/state`, `@codemirror/view`, `@codemirror/language`, `@lezer/highlight`) | The learner writes the Arduino sketch of a level in it: C++ colors, line numbers, and a mark on the line of a mistake. It is small, and it works with touch on a phone. Hanif approved it on October 23, 2026 (issue #58). | Monaco Editor, a plain text area |
 | Browser APIs | Web Audio (mic meter), Speech Synthesis (voice), Vibration (phone haptics, where available) | They make the "It's alive" simulation without other services. | A third-party text-to-speech service |
 
 ## 4. App structure
@@ -100,10 +101,12 @@ lib/
   circuit/      parts registry, net builder, checker (pure TypeScript)
   game/         Zustand store, task engine, scores
   stats/        dashboard calculations (pure TypeScript)
+  sketch/       Arduino sketch reader, runner and goal check (pure TypeScript)
   supabase/     browser and server clients
 content/
   parts/        pin layouts for each part (ESP32-S3, INMP441, MAX98357A, ST7789, LED, ...)
   projects/     perch.json (levels, tasks, pop-up text, sources)
+  sketches/     the code step of a level: starter code, goal and hints
 supabase/
   migrations/   SQL for tables and row-level security
   seed.ts       loads content/ into the projects, levels and tasks tables
