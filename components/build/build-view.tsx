@@ -312,8 +312,11 @@ function Swatches({ hidden }: { hidden: boolean }) {
 /** The parts tray: one chip for each module and the speaker. */
 function Tray({ tool }: { tool: Tool }) {
   const row = useRef<HTMLDivElement>(null);
-  // Keep the selected chip in view on a narrow screen.
-  useEffect(() => row.current?.querySelector("[aria-pressed=true]")?.scrollIntoView({ block: "nearest", inline: "nearest" }), [tool]);
+  // Keep the selected chip in view on a narrow screen. The braces matter: a new browser gives a Promise from
+  // scrollIntoView, and an effect that gives back a Promise stops the page.
+  useEffect(() => {
+    row.current?.querySelector("[aria-pressed=true]")?.scrollIntoView({ block: "nearest", inline: "nearest" });
+  }, [tool]);
   return (
     <div ref={row} className="flex h-full items-center gap-1.5 overflow-x-auto sm:justify-center" role="group" aria-label={text.tray.label}>
       {TRAY.map((t) => (
