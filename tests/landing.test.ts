@@ -58,9 +58,9 @@ describe("content/ui/landing.json", () => {
     expect(text.logIn).toBe("Log in");
   });
 
-  it("shows Perch and the Coming soon projects from the catalog", () => {
+  it("shows the available projects and the Coming soon projects from the catalog", () => {
     const projects = loadProjects();
-    expect(projects.filter((p) => p.status === "available").map((p) => p.slug)).toEqual(["perch"]);
-    expect(projects.filter((p) => p.status === "coming_soon")).toHaveLength(5);
+    expect(projects.filter((p) => p.status === "available").map((p) => p.slug)).toEqual(["perch", "arduino-foundations"]);
+    expect(projects.filter((p) => p.status === "coming_soon")).toHaveLength(4);
   });
 });

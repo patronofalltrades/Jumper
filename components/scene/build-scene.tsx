@@ -5,7 +5,7 @@ import { Canvas, useThree, type ThreeEvent } from "@react-three/fiber";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Color, MathUtils, Object3D, Vector3, type InstancedMesh } from "three";
 import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
-import { BOARD, BOARD_B_X, nearestHole, type Bench, type Hole } from "@/lib/circuit/bench";
+import { BOARD, nearestHole, type Bench, type Hole } from "@/lib/circuit/bench";
 import { isModuleType, type ModuleType } from "@/lib/circuit/modules";
 import { buildNets, netHoles } from "@/lib/circuit/nets";
 import { checkModule, isModule, partPins, terminalAt, type Part } from "@/lib/circuit/parts";
@@ -16,16 +16,15 @@ import { boardStore, useBoard } from "@/lib/game/board-store";
 import { ModuleGhost, ModuleMesh, terminalTop } from "./modules";
 import { PartMesh, type End } from "./parts";
 import { drawBreadboard, drawEsp, drawShield, SHIELD } from "./textures";
+import { UNO_SOCKET_TOP, UNO_TOP, Uno } from "./uno";
 import { useFontTexture } from "./use-font-texture";
 
 const HOLE_BASE = new Color("#3B4146");
 /** The flash of a part that snaps in, and of a wrong one. */
 const SNAP = new Color("#3BE07F");
 const BUZZ = new Color("#E5432F");
-/** The bench center, between the two breadboards. */
-const TARGET = new Vector3(BOARD_B_X / 2 + BOARD.centerX - 0.5, 0, 1.5);
-/** Keep the camera target on the bench, so that a pan cannot lose the board. */
-const PAN_LIMIT = { x: [-4, 35], z: [-16, 16] } as const;
+/** The point that the camera looks at: the middle of the bench (content/benches/). */
+const targetOf = (bench: Bench) => new Vector3(bench.view.target.x, 0, bench.view.target.z);
 const PCB_Y = 1.0;
 const PCB_T = 0.16;
 
@@ -38,6 +37,8 @@ const isTouchScreen = () => document.documentElement.dataset.touch === "true";
 export default function BuildScene({ children }: { children?: ReactNode }) {
   // Without WebGL the canvas throws, and the whole page stops. Show a note in place of the board.
   const [webgl] = useState(() => hasWebGL());
+  const bench = useBoard((s) => s.bench);
+  const target = useMemo(() => targetOf(bench), [bench]);
   if (!webgl) return <p className="grid h-full place-items-center p-6 text-center text-sm text-muted-foreground">{text.no3d}</p>;
   return (
     <Canvas
@@ -53,7 +54,7 @@ export default function BuildScene({ children }: { children?: ReactNode }) {
     >
       <hemisphereLight args={["#ffffff", "#8899a6", 0.75 * Math.PI]} />
       <directionalLight
-        position={[TARGET.x - 18, 42, 26]}
+        position={[target.x - 18, 42, 26]}
         intensity={0.75 * Math.PI}
         castShadow
         shadow-mapSize={[2048, 2048]}
@@ -74,47 +75,50 @@ function CameraRig() {
   const camera = useThree((s) => s.camera);
   const size = useThree((s) => s.size);
   const invalidate = useThree((s) => s.invalidate);
+  const bench = useBoard((s) => s.bench);
   const controls = useRef<OrbitControlsImpl>(null);
-  const fittedAspect = useRef(0);
+  const fitted = useRef<{ aspect: number; bench: Bench | null }>({ aspect: 0, bench: null });
+  const target = useMemo(() => targetOf(bench), [bench]);
 
-  // Frame the whole bench at the first size, and again when the shape of the screen changes a lot (a phone turns).
-  // Small changes, such as a phone browser bar that hides, keep the camera where the learner put it.
-  // A phone in portrait sees the bench from closer and more from above.
+  // Frame the whole bench at the first size, and again when the shape of the screen changes a lot (a phone turns),
+  // or when the bench changes. Small changes, such as a phone browser bar that hides, keep the camera where the
+  // learner put it. A phone in portrait sees the bench from closer and more from above.
   useLayoutEffect(() => {
     if (!size.width || !size.height) return;
     const aspect = size.width / size.height;
-    if (fittedAspect.current && Math.abs(aspect / fittedAspect.current - 1) < 0.25) return;
-    fittedAspect.current = aspect;
+    if (fitted.current.bench === bench && fitted.current.aspect && Math.abs(aspect / fitted.current.aspect - 1) < 0.25) return;
+    fitted.current = { aspect, bench };
     const vfov = MathUtils.degToRad(35);
     const hfov = 2 * Math.atan(Math.tan(vfov / 2) * aspect);
-    // Fit the width of both boards (39.4) and most of their length (32.5); the tilt makes the length look shorter.
-    const distance = Math.max(46 / 2 / Math.tan(hfov / 2), 32 / 2 / Math.tan(vfov / 2));
+    // Fit the width of the bench and most of its length; the tilt makes the length look shorter.
+    const distance = Math.max(bench.view.width / 2 / Math.tan(hfov / 2), bench.view.length / 2 / Math.tan(vfov / 2));
     const direction = aspect < 0.9 ? new Vector3(0, 0.9, 0.42) : new Vector3(0, 0.78, 0.62);
-    camera.position.copy(TARGET).add(direction.normalize().multiplyScalar(distance));
-    camera.lookAt(TARGET);
-    controls.current?.target.copy(TARGET);
+    camera.position.copy(target).add(direction.normalize().multiplyScalar(distance));
+    camera.lookAt(target);
+    controls.current?.target.copy(target);
     controls.current?.update();
     invalidate();
-  }, [camera, size, invalidate]);
+  }, [camera, size, invalidate, bench, target]);
 
   return (
     <OrbitControls
       ref={controls}
       makeDefault
-      target={TARGET}
+      target={target}
       enableDamping
       minDistance={12}
       maxDistance={140}
       maxPolarAngle={Math.PI * 0.47}
-      onChange={(e) => e && clampTarget(e.target)}
+      onChange={(e) => e && clampTarget(e.target, bench)}
     />
   );
 }
 
-function clampTarget(controls: OrbitControlsImpl) {
+/** Keep the camera target on the bench, so that a pan cannot lose the board. */
+function clampTarget(controls: OrbitControlsImpl, bench: Bench) {
   const t = controls.target;
-  t.x = MathUtils.clamp(t.x, PAN_LIMIT.x[0], PAN_LIMIT.x[1]);
-  t.z = MathUtils.clamp(t.z, PAN_LIMIT.z[0], PAN_LIMIT.z[1]);
+  t.x = MathUtils.clamp(t.x, bench.area.x0, bench.area.x1);
+  t.z = MathUtils.clamp(t.z, bench.area.z0, bench.area.z1);
   t.y = 0;
 }
 
@@ -163,11 +167,17 @@ function Bench() {
 
   return (
     <group>
-      <Breadboard x0={0} handlers={handlers} />
-      <Breadboard x0={BOARD_B_X} handlers={handlers} />
-      <Holes bench={bench} board="A" glow={glow} />
-      <Holes bench={bench} board="B" glow={glow} />
-      <Esp32S3 bench={bench} glow={glow} />
+      {bench.breadboards.map((b) => (
+        <group key={b.id}>
+          <Breadboard x0={b.x} handlers={handlers} />
+          <Holes bench={bench} board={b.id} glow={glow} />
+        </group>
+      ))}
+      {bench.board.type === "arduino-uno" ? (
+        <Uno bench={bench} glow={glow} handlers={boardPinHandlers(bench)} />
+      ) : (
+        <Esp32S3 bench={bench} glow={glow} />
+      )}
       <Parts bench={bench} removing={tool === "remove"} glow={glow} />
       {isModuleType(tool) && <Ghost tool={tool} />}
       {spot && <Cue taps={spot.taps} area={spot.area} up={blink} probe={probe} />}
@@ -199,10 +209,10 @@ function Breadboard({ x0, handlers }: { x0: number; handlers: Handlers }) {
   );
 }
 
-/** The end of a leg: a breadboard hole, or the top of a screw terminal. */
+/** The end of a leg: a breadboard hole, the top of a pin socket of the Uno, or the top of a screw terminal. */
 function endOf(bench: Bench, parts: Part[], id: string): End | null {
   const hole = bench.byId.get(id);
-  if (hole) return hole;
+  if (hole) return bench.pinAt.get(id)?.socket ? { ...hole, lift: UNO_SOCKET_TOP } : hole;
   const terminal = terminalAt(bench, parts, id);
   return terminal && { id, x: terminal.under.x, z: terminal.under.z, lift: terminalTop(terminal.part.type) };
 }
@@ -219,7 +229,7 @@ function useBlink(on: boolean) {
 }
 
 /** The 400 holes of one breadboard, as one instanced mesh: one draw call. Holes in `glow` light up. */
-function Holes({ bench, board, glow }: { bench: Bench; board: "A" | "B"; glow: Map<string, Color> }) {
+function Holes({ bench, board, glow }: { bench: Bench; board: string; glow: Map<string, Color> }) {
   const mesh = useRef<InstancedMesh>(null);
   const invalidate = useThree((s) => s.invalidate);
   const holes = useMemo(() => bench.holes.filter((h) => h.board === board && !bench.covered.has(h.id)), [bench, board]);
@@ -250,8 +260,34 @@ function Holes({ bench, board, glow }: { bench: Bench; board: "A" | "B"; glow: M
   );
 }
 
+/**
+ * The pointer on the main board points at the nearest pin, so you can see what each pin connects to. A tap on the
+ * ESP32-S3 says to use an empty hole in the same line. A tap on the Uno puts a wire end into the pin.
+ */
+function boardPinHandlers(bench: Bench) {
+  const pinNear = (e: ThreeEvent<PointerEvent | MouseEvent>) => {
+    const hole = nearestHole(bench, e.point.x, e.point.z, 1.2);
+    return hole && bench.pinAt.has(hole.id) ? hole.id : null;
+  };
+  return {
+    onPointerMove: (e: ThreeEvent<PointerEvent>) => {
+      e.stopPropagation();
+      if (e.pointerType === "touch") return;
+      const pin = pinNear(e);
+      if (pin !== boardStore.getState().hover) boardStore.getState().setHover(pin);
+    },
+    onClick: (e: ThreeEvent<MouseEvent>) => {
+      e.stopPropagation();
+      const pin = pinNear(e);
+      if (!isTap(e) || !pin) return;
+      boardStore.getState().setHover(pin);
+      boardStore.getState().tapHole(pin, isTouchScreen());
+    },
+  };
+}
+
 function Esp32S3({ bench, glow }: { bench: Bench; glow: Map<string, Color> }) {
-  const { x0, x1, z0, z1 } = bench.esp;
+  const { x0, x1, z0, z1 } = bench.board.outline;
   const top = useFontTexture(() => drawEsp(bench));
   const shield = useFontTexture(drawShield);
   const cx = (x0 + x1) / 2;
@@ -263,25 +299,7 @@ function Esp32S3({ bench, glow }: { bench: Bench; glow: Map<string, Color> }) {
     }
     return [...byX.entries()].map(([x, holes]) => ({ x, zs: holes.map((h) => h.z) }));
   }, [bench]);
-
-  // The pointer on the board points at the nearest pin, so you can see what each pin connects to.
-  const pinNear = (e: ThreeEvent<PointerEvent | MouseEvent>) => {
-    const hole = nearestHole(bench, e.point.x, e.point.z, 1.2);
-    return hole && bench.pinAt.has(hole.id) ? hole.id : null;
-  };
-  const onMove = (e: ThreeEvent<PointerEvent>) => {
-    e.stopPropagation();
-    if (e.pointerType === "touch") return;
-    const pin = pinNear(e);
-    if (pin !== boardStore.getState().hover) boardStore.getState().setHover(pin);
-  };
-  const onClick = (e: ThreeEvent<MouseEvent>) => {
-    e.stopPropagation();
-    const pin = pinNear(e);
-    if (!isTap(e) || !pin) return;
-    boardStore.getState().setHover(pin);
-    boardStore.getState().tapHole(pin, isTouchScreen());
-  };
+  const { onPointerMove: onMove, onClick } = boardPinHandlers(bench);
 
   return (
     <group>
@@ -464,7 +482,7 @@ function Cue({ taps, area, up, probe }: { taps: string[]; area: { x0: number; x1
   if (pending && isModuleType(tool)) tap = pending;
   else if (pending && taps.length === 2) tap = netHoles(nets, pending).has(taps[0]) || pending === taps[0] ? taps[1] : taps[0];
   const end = tap ? endOf(bench, parts, tap) : null;
-  const on = area === bench.esp ? PCB_Y + PCB_T : 0;
+  const on = area === bench.board.outline ? (bench.board.type === "arduino-uno" ? UNO_TOP : PCB_Y + PCB_T) : 0;
   if (!end && !area) return null;
 
   return (

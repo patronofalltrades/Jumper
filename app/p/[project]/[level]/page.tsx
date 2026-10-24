@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { Suspense } from "react";
 import { BuildView, type LevelTask } from "@/components/build/build-view";
-import { loadBoards, startBoard } from "@/lib/content/boards";
+import { loadBenchSpec } from "@/lib/content/benches";
+import { carriesBoard, loadBoards, startBoard } from "@/lib/content/boards";
 import { loadLevelClips } from "@/lib/content/clips";
 import { rulesSchema, targetSchema } from "@/lib/content/schema";
 import { passedLevels } from "@/lib/game/featured";
@@ -49,6 +50,7 @@ async function Level({ slug, position }: { slug: string; position: string }) {
 
   const tasks: LevelTask[] = data.tasks.map((t) => ({ ...t, target: targetSchema.parse(t.target) }));
   const rules = rulesSchema.parse(data.rules);
+  const boards = await loadBoards(slug);
 
   return (
     <BuildView
@@ -61,7 +63,9 @@ async function Level({ slug, position }: { slug: string; position: string }) {
       goal={data.goal}
       tasks={tasks}
       rules={rules}
-      start={startBoard(await loadBoards(slug), data.position)}
+      bench={await loadBenchSpec(slug)}
+      start={startBoard(boards, data.position)}
+      carry={carriesBoard(boards, data.position)}
       levels={levels}
       clip={(await loadLevelClips(slug)).get(data.position) ?? null}
     />

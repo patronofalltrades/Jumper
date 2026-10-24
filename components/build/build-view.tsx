@@ -8,6 +8,7 @@ import { ClipPlayer, PlayIcon } from "@/components/walkthrough/watch-button";
 import text from "@/content/ui/build.json";
 import snapText from "@/content/ui/snapshots.json";
 import watchText from "@/content/ui/walkthrough.json";
+import { createBench, type BenchSpec } from "@/lib/circuit/bench";
 import type { Part } from "@/lib/circuit/parts";
 import { boardStore, useBoard, WIRE_COLORS, type Tool } from "@/lib/game/board-store";
 import type { Rules } from "@/lib/circuit/check";
@@ -71,20 +72,25 @@ type Props = {
   tasks: LevelTask[];
   /** The require and forbid rules of the level, for the level Check. */
   rules: Rules;
+  /** The bench of the project: its breadboards and its main board (content/benches/). */
+  bench: BenchSpec;
   /** The ready-made board of the earlier levels, for a browser that has no saved board. */
   start: Part[];
+  /** True when the level starts with the board of the level before it, so the learner's own board can go on. */
+  carry: boolean;
   /** The levels of the project, for the level select of Save snapshot. */
   levels: LevelOption[];
   /** The walkthrough clip of the level (issue #48). */
   clip: Clip | null;
 };
 
-export function BuildView({ user, project, levelId, position, eyebrow, title, goal, tasks, rules, start, levels, clip }: Props) {
+export function BuildView({ user, project, levelId, position, eyebrow, title, goal, tasks, rules, bench: spec, start, carry, levels, clip }: Props) {
   useKeys();
   useNoticeTimer();
   useFeedback();
   const plan: Plan = useMemo(() => ({ tasks: tasks.map((t) => ({ target: t.target, xp: t.xp })), forbid: rules.forbid }), [tasks, rules]);
-  const saveError = useLevel({ user, project, levelId, position, plan, start });
+  const bench = useMemo(() => createBench(spec), [spec]);
+  const saveError = useLevel({ user, project, levelId, position, bench, plan, start, carry });
   const levelCheck = useLevelCheck({ user, project, position, rules });
   const laptop = useLaptop();
   const progress = useBoard((s) => s.progress);

@@ -77,12 +77,16 @@ export type PlaceProblem =
   | "needs_gap"
   | "on_gap"
   | "on_part"
-  | "esp_line";
+  | "esp_line"
+  | "socket_leg";
 
 /** LED legs reach at most 3 holes apart. A resistor needs 2 to 10 holes between its legs. */
 const SPAN: Partial<Record<LegType, [number, number]>> = { led: [0.9, 3.2], resistor: [1.9, 10.2] };
 
-/** Why a leg cannot go into this hole, or null if it can. Each hole and each terminal holds one leg or wire end. */
+/**
+ * Why a leg cannot go into this hole, or null if it can. Each hole, terminal and pin socket holds one leg or wire end.
+ * A pin of the main board that is in a breadboard hole (ESP32-S3) fills that hole. A pin socket (Uno) takes a wire.
+ */
 export function checkHole(bench: Bench, parts: Part[], hole: string): PlaceProblem | null {
   if (isTerminal(hole)) {
     if (!terminalAt(bench, parts, hole)) return "no_hole";
@@ -90,7 +94,7 @@ export function checkHole(bench: Bench, parts: Part[], hole: string): PlaceProbl
   }
   if (!bench.byId.has(hole)) return "no_hole";
   if (bench.covered.has(hole)) return "covered";
-  if (bench.pinAt.has(hole)) return "esp_pin";
+  if (bench.pinAt.get(hole)?.socket === false) return "esp_pin";
   const part = partAt(bench, parts, hole);
   if (part) return isModule(part) ? "part_pin" : "taken";
   if (moduleOver(bench, parts, hole)) return "under_part";
@@ -103,16 +107,17 @@ export function checkPlacement(bench: Bench, parts: Part[], type: LegType, a: st
   if (problem) return problem;
   const span = SPAN[type];
   if (!span) return null;
-  // Resistor and LED legs go into the breadboard, not into a screw terminal.
+  // Resistor and LED legs go into the breadboard, not into a screw terminal or a pin socket.
   if (isTerminal(a) || isTerminal(b)) return "no_hole";
+  if (bench.pinAt.has(a) || bench.pinAt.has(b)) return "socket_leg";
   const d = holeDistance(bench.byId.get(a)!, bench.byId.get(b)!);
   if (d < span[0] || d > span[1]) return type === "led" ? "led_span" : "resistor_span";
   return null;
 }
 
 /**
- * The strips (lines of connected holes) that have an ESP32-S3 pin. A module pin in one of these lines would connect to
- * that ESP32-S3 pin, so a module cannot go there.
+ * The strips (lines of connected holes) that have a pin of the main board. A module pin in one of these lines would
+ * connect to that pin, so a module cannot go there.
  */
 const espStrips = (bench: Bench) => new Set(bench.pins.map((p) => bench.byId.get(p.hole)!.strip));
 
@@ -130,7 +135,7 @@ export function checkModule(bench: Bench, parts: Part[], type: ModuleType, at: s
     const problem = checkHole(bench, parts, pin.hole);
     if (problem) return problem === "part_pin" ? "taken" : problem;
   }
-  // The body must not sit on the ESP32-S3 or on another part.
+  // The body must not sit on the main board or on another part.
   for (const h of bodyHoles(bench, type, pins)) {
     if (bench.covered.has(h.id) || bench.pinAt.has(h.id)) return "covered";
     if (partAt(bench, parts, h.id) || moduleOver(bench, parts, h.id)) return "on_part";

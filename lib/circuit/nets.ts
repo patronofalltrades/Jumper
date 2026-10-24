@@ -23,7 +23,7 @@ function unionFind() {
 
 /**
  * Groups the holes into nets. The breadboard strips connect their holes, wires join strips,
- * and the ESP32-S3 pins with the same name (3V3, GND) are connected on the board itself. In the same way, the pins of a
+ * and the pins of the main board with the same name (3V3, GND) are connected on the board itself. In the same way, the pins of a
  * module with the same name connect (the two legs on each side of a pushbutton).
  * Resistors, LEDs, speakers and modules do not join other pins: current goes through them, but they are not a plain connection.
  * A screw terminal is a net node of its own: what goes into it connects to that pin of the module.
@@ -67,8 +67,9 @@ export function netHoles(nets: Nets, hole: string): Set<string> {
 }
 
 /**
- * The hole of an endpoint name, as in content/projects: `esp.GPIO4` (an ESP32-S3 pin), `bbA.+` (a rail that is not
- * under the ESP32-S3), `r1.2` / `led1.anode` (a leg of a part on the bench) or `mic1.WS` (a pin of a module).
+ * The hole of an endpoint name, as in content/projects: `esp.GPIO4` or `uno.D13` (a pin of the main board), `bbA.+`
+ * (a rail that is not under the main board), `r1.2` / `led1.anode` (a leg of a part on the bench) or `mic1.WS` (a pin
+ * of a module).
  * Null if the bench does not have it.
  */
 export function endpointHole(bench: Bench, parts: Part[], endpoint: string): string | null {
@@ -76,11 +77,11 @@ export function endpointHole(bench: Bench, parts: Part[], endpoint: string): str
   const owner = endpoint.slice(0, dot);
   const pin = endpoint.slice(dot + 1);
 
-  if (owner === "esp") return bench.pins.find((p) => p.name === pin)?.hole ?? null;
+  if (owner === bench.board.id) return bench.pins.find((p) => p.name === pin)?.hole ?? null;
 
-  const board = /^bb([AB])$/.exec(owner)?.[1] as "A" | "B" | undefined;
+  const board = /^bb([A-Z])$/.exec(owner)?.[1];
   if (board) {
-    const rail = bench.openRail[board][pin as "+" | "-"];
+    const rail = bench.openRail[board]?.[pin as "+" | "-"];
     return rail ? `${board}-${rail}1` : null;
   }
 
@@ -100,13 +101,13 @@ export type ModulePin = { type: ModuleType; pin: string };
 
 export type HoleInfo = {
   kind: "pin" | "part" | "main" | "rail";
-  /** The ESP32-S3 pin in this hole, for example "GPIO4". */
+  /** The pin of the main board in this hole, for example "GPIO4". */
   pin?: string;
   /** The polarity of a rail hole. */
   rail?: "+" | "-";
   /** The module pin in this hole: the part type and the pin label. */
   part?: ModulePin;
-  /** ESP32-S3 pins on the same net, without the pin in this hole. */
+  /** Pins of the main board on the same net, without the pin in this hole. */
   pins: string[];
   /** Module pins on the same net, without the pin in this hole. */
   partPins: ModulePin[];

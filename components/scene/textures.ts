@@ -1,7 +1,8 @@
 import { CanvasTexture } from "three";
+import uno from "@/content/parts/arduino-uno.json";
 import { BOARD, COLUMNS, columnZ, MAIN_ROWS, RAILS, type Bench } from "@/lib/circuit/bench";
 
-// Printed tops for the breadboards and the ESP32-S3, drawn on a canvas in bench units (1 unit = 1 hole pitch).
+// Printed tops for the breadboards, the ESP32-S3 and the Uno, drawn on a canvas in bench units (1 unit = 1 hole pitch).
 // Canvas x is bench x, canvas y is bench z, so the text reads upright from the default camera.
 
 const PX = 40;
@@ -71,7 +72,7 @@ export function drawBreadboard(x0: number): CanvasTexture {
 
 /** The top of the ESP32-S3-DevKitC-1: the PCB, the gold pads and a label beside each pin. */
 export function drawEsp(bench: Bench): CanvasTexture {
-  const { x0, x1, z0, z1 } = bench.esp;
+  const { x0, x1, z0, z1 } = bench.board.outline;
   const { canvas, g, X, Z } = canvasFor(x1 - x0, z1 - z0, x0, z0);
   const font = monoFont();
 
@@ -100,6 +101,72 @@ export function drawEsp(bench: Bench): CanvasTexture {
   g.fillStyle = "#F2F4F5";
   g.font = `700 ${0.62 * PX}px ${font}`;
   g.fillText("ESP32-S3-DevKitC-1", 0, 0);
+  g.restore();
+
+  return new CanvasTexture(canvas);
+}
+
+/** A socket of the Uno headers: its place on the bench, its name, and the label printed beside it. */
+export type UnoSocket = { x: number; z: number; name: string; label: string };
+
+/** The sockets of each header of the Uno on this bench, with the sockets that Jumper does not use (content/parts/arduino-uno.json). */
+export function unoHeaders(bench: Bench): { x: number; sockets: UnoSocket[] }[] {
+  const { x0, z0 } = bench.board.outline;
+  const labels: Record<string, string> = uno.labels;
+  return uno.headers.map((h) => ({
+    x: x0 + h.v,
+    sockets: h.pins.map((name, k) => ({ x: x0 + h.v, z: z0 + h.u + k, name, label: labels[name] ?? name })),
+  }));
+}
+
+/** The top of the Arduino Uno: the teal PCB, a label beside each socket, the names of the headers, and "UNO". */
+export function drawUno(bench: Bench): CanvasTexture {
+  const { x0, x1, z0, z1 } = bench.board.outline;
+  const { canvas, g, X, Z } = canvasFor(x1 - x0, z1 - z0, x0, z0);
+  const font = monoFont();
+
+  g.fillStyle = "#00878F";
+  g.fillRect(0, 0, canvas.width, canvas.height);
+  g.strokeStyle = "rgba(255,255,255,0.18)";
+  g.lineWidth = 2;
+  g.strokeRect(4, 4, canvas.width - 8, canvas.height - 8);
+
+  const mid = (x0 + x1) / 2;
+  const headers = unoHeaders(bench);
+  g.textBaseline = "middle";
+  for (const { x, sockets } of headers) {
+    const inward = x < mid ? 1 : -1;
+    g.textAlign = inward > 0 ? "left" : "right";
+    g.fillStyle = "#F2F4F5";
+    g.font = `600 ${0.46 * PX}px ${font}`;
+    for (const s of sockets) g.fillText(s.label, X(s.x + inward * 0.75), Z(s.z));
+  }
+
+  // The names of the headers, along each header, inside the labels.
+  const caption = (text: string, x: number, z: number) => {
+    g.save();
+    g.translate(X(x), Z(z));
+    g.rotate(-Math.PI / 2);
+    g.textAlign = "center";
+    g.fillStyle = "rgba(242,244,245,0.8)";
+    g.font = `700 ${0.42 * PX}px ${font}`;
+    g.fillText(text, 0, 0);
+    g.restore();
+  };
+  const middle = (sockets: UnoSocket[]) => (sockets[0].z + sockets[sockets.length - 1].z) / 2;
+  caption("DIGITAL (PWM ~)", headers[0].x - 3.4, (middle(headers[0].sockets) + middle(headers[1].sockets)) / 2);
+  caption("POWER", headers[2].x + 3.4, middle(headers[2].sockets));
+  caption("ANALOG IN", headers[3].x + 3.4, middle(headers[3].sockets));
+
+  g.save();
+  g.translate(X(mid + 1.5), Z(z0 + 8.5));
+  g.rotate(-Math.PI / 2);
+  g.textAlign = "center";
+  g.fillStyle = "#F2F4F5";
+  g.font = `800 ${2.2 * PX}px ${font}`;
+  g.fillText("UNO", 0, 0);
+  g.font = `600 ${0.6 * PX}px ${font}`;
+  g.fillText("Arduino Uno R3", 0, 1.6 * PX);
   g.restore();
 
   return new CanvasTexture(canvas);

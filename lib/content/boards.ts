@@ -7,9 +7,24 @@ export async function loadBoards(slug: string): Promise<Boards> {
   return file ? boardsSchema.parse(file.default) : { levels: {} };
 }
 
-/** The ready-made board at the start of a level: the parts of all the levels before it. */
-export const startBoard = (boards: Boards, position: number) =>
-  Object.entries(boards.levels)
-    .filter(([level]) => Number(level) < position)
+/**
+ * The levels whose parts a level starts with: all the levels before it, or the list in `start`. In Arduino Foundations,
+ * level 3 starts with the board of level 1 only, so that level 4 can put the button and the LED together.
+ */
+export const startLevels = (boards: Boards, position: number) =>
+  boards.start?.[position] ??
+  Object.keys(boards.levels)
+    .map(Number)
+    .filter((level) => level < position);
+
+/** The ready-made board at the start of a level: the parts of its start levels, in level order. */
+export const startBoard = (boards: Boards, position: number) => {
+  const levels = new Set(startLevels(boards, position));
+  return Object.entries(boards.levels)
+    .filter(([level]) => levels.has(Number(level)))
     .sort(([a], [b]) => Number(a) - Number(b))
     .flatMap(([, parts]) => parts);
+};
+
+/** True when a level starts with the board of the level before it. Then the browser can give the learner's own board. */
+export const carriesBoard = (boards: Boards, position: number) => position > 1 && startLevels(boards, position).includes(position - 1);

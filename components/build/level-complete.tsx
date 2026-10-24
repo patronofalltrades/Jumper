@@ -45,10 +45,10 @@ export function LevelComplete({ summary, continueHref, save, preview = false }: 
           {preview && <p className="mb-2 rounded-full bg-muted px-3 py-1 text-xs text-muted-foreground">{text.preview}</p>}
 
           <div className="flex w-full max-w-md flex-1 flex-col items-center justify-center gap-6">
-            {/* Volt cheers next to the device that wakes up. */}
+            {/* Volt cheers next to the device that wakes up. Only Perch has a device picture. */}
             <div className="flex items-end gap-1 sm:gap-3">
               <Volt pose="cheer" label className="w-24 sm:w-32" />
-              <PerchWake className="w-40 sm:w-56" />
+              {save.project === "perch" && <PerchWake className="w-40 sm:w-56" />}
             </div>
 
             <div className="rise-in text-center" style={{ animationDelay: "0.9s" }}>

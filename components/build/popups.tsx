@@ -218,8 +218,8 @@ const rails: Record<string, string> = text.railName;
 /** A plain name for an endpoint of a level rule: "esp.GPIO4" → "GPIO 4", "mic1.WS" → "Mic WS", "led1.anode" → "LED + leg". */
 function endpointName(bench: Bench, parts: Part[], endpoint: string) {
   const [owner, pin] = endpoint.split(".");
-  if (owner === "esp") return pinName(pin);
-  if (/^bb[AB]$/.test(owner)) return rails[pin] ?? pin;
+  if (owner === bench.board.id) return pinName(pin);
+  if (/^bb[A-Z]$/.test(owner)) return rails[pin] ?? pin;
   const part = parts.find((p) => p.id === owner);
   if (!part) return endpoint;
   const label = legs[pin] ?? partPins(bench, part).find((p) => p.name === pin)?.label ?? pin;
@@ -231,7 +231,7 @@ function reasonText(bench: Bench, parts: Part[], failed: Failed) {
   if (failed.message) return failed.message;
   const template = failed.code === "missing_ground" ? text.play.check.missing_ground : text.play.check.wrong_pin;
   // A ground rule names its other end first: "Mic L/R does not connect to ground".
-  const [a, b] = failed.code === "missing_ground" && /\.GND$|^bb[AB]\.-$/.test(failed.connection.a) ? [failed.connection.b, failed.connection.a] : [failed.connection.a, failed.connection.b];
+  const [a, b] = failed.code === "missing_ground" && /\.GND$|^bb[A-Z]\.-$/.test(failed.connection.a) ? [failed.connection.b, failed.connection.a] : [failed.connection.a, failed.connection.b];
   return fill(template, { a: endpointName(bench, parts, a), b: endpointName(bench, parts, b) });
 }
 
