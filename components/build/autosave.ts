@@ -63,6 +63,8 @@ export function readSavedLevel(user: string, project: string, position: number) 
 const starting = new Map<string, Promise<SessionResult>>();
 /** The session id of each level, also in memory: with a full or blocked storage, the id is not lost. */
 const known = new Map<string, string>();
+/** Levels whose passing Check is on its way. A counter save that finds its session closed then must not start a new one. */
+const completing = new Set<string>();
 const sessionOf = (key: string) => known.get(key) ?? read(key)?.session;
 
 /** Adds a session row for the level and saves its id in this browser. Calls close together share one request. */
@@ -80,6 +82,13 @@ function newSession(key: string, levelId: number) {
     starting.set(key, request);
   }
   return request;
+}
+
+/** Call before a passing Check is sent (`on`), and again when it did not complete the session (not `on`). */
+export function markCompleting(user: string, project: string, position: number, on: boolean) {
+  const key = keyOf(user, project, position);
+  if (on) completing.add(key);
+  else completing.delete(key);
 }
 
 /**
@@ -133,6 +142,7 @@ export function useLevel({ user, project, levelId, position, bench, plan, start,
     // The session id is in the browser save, because the level Check can replace it (issue #62).
     const current = () => sessionOf(key);
     if (own?.session) known.set(key, own.session);
+    completing.delete(key);
 
     // `renew`: when the server says the session is closed, start a new one. Not when the learner leaves the page.
     const sync = async (progress: Progress, { renew = true, force = false } = {}) => {
@@ -148,7 +158,7 @@ export function useLevel({ user, project, levelId, position, bench, plan, start,
       const send = (id: string) => updateSession({ id, tasksDone: progress.tasksDone, mistakes: progress.mistakes, xp: progress.xp });
       let result = await send(session);
       if (result.closed) {
-        const fresh = renew && alive ? await freshSession(user, project, position, levelId, session) : undefined;
+        const fresh = renew && alive && !completing.has(key) ? await freshSession(user, project, position, levelId, session) : undefined;
         if (!fresh) return;
         result = await send(fresh);
       }

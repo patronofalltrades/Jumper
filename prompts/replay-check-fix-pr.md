@@ -18,6 +18,8 @@ A learner passes level 1, opens it again, removes the 3V3 wire and presses Check
 - **Server actions.** `recordAttempt` gives `closed: true` for `JS001`. `updateSession` gives `closed: true` when no session is in progress with that id.
 - **`components/build/autosave.ts`.** On `closed`, the app forgets the old session id, starts a new session, saves the id in the browser and gives the hearts back. When a saved board is ready to check, the level asks the server at once if its session is still open, so a replay has its own time from the start.
 - **`components/build/check.ts`.** On `closed`, the Check starts a new session and sends the attempt again, one time. Level complete opens only when the browser check passed and the server completed the session (`opensLevelComplete()` in `lib/game/check-flow.ts`).
+- **Level complete for a replay** (Hanif's wording): the title is "Replay complete!" and the text is "No new XP. You got XP only on your first pass." A pass with 0 XP is a replay (`isReplay()` in `lib/stats/level-summary.ts`, with a test). Text in `content/ui/complete.json`.
+- **No stray session.** `markCompleting()` marks a level before a passing Check is sent. A counter save that finds its session closed then does not start a new one. The Check itself starts the new session of a replay.
 - `schema.md` says what changed. No new table, no new column, no new package.
 
 ## The tests
@@ -53,11 +55,9 @@ ERROR:  a failed Check on a completed session gave {"fails": 0, "completed": tru
 NOTICE:  record_attempt replay test: all checks pass
 ```
 
-_(screenshots: Hanif, from the terminal or from the CI run on this PR)_
-
 ## Checks
 
-- `npm run lint`, `npm run typecheck`, `npx vitest run` (343 tests) and `npm run build`: pass. The build used placeholder Supabase values.
+- `npm run lint`, `npm run typecheck`, `npx vitest run` (344 tests) and `npm run build`: pass. The build used placeholder Supabase values.
 - The SQL test ran on a throwaway local Postgres 16 with the stub `auth` schema. Nothing ran on the live Supabase project.
 - **Not checked:** the Check in a browser with the real project (a replay needs a real session and the new migration).
 
@@ -65,10 +65,6 @@ _(screenshots: Hanif, from the terminal or from the CI run on this PR)_
 
 1. Run `supabase/migrations/20261024000000_replay.sql` in the Supabase SQL Editor **before** the new code goes live. With the old function, the app would not get the `closed` answer, and the replay bug stays.
 2. Replay check on the live app: pass level 1, open it again, remove the 3V3 wire, press Check. Expected: the reason, one heart less, and no Level complete. Then put the wire back and press Check: Level complete with the time of the replay and "0 XP".
-
-## Question for Hanif
-
-With 0 XP, Level complete shows "You got 0 XP!" (`content/ui/complete.json`). Do you want other words for a replay? For example, the title "Replay complete!" and the subtitle "No new XP. You got XP only on your first pass." Claude did not change the text.
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
 

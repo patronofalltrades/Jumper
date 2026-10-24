@@ -8,7 +8,7 @@ import { checkLevel, isEmptyBoard, type CheckResult, type Rules } from "@/lib/ci
 import { endpointHole } from "@/lib/circuit/nets";
 import { boardStore, useBoard } from "@/lib/game/board-store";
 import { opensLevelComplete, withFreshSession } from "@/lib/game/check-flow";
-import { freshSession, readSavedLevel } from "./autosave";
+import { freshSession, markCompleting, readSavedLevel } from "./autosave";
 
 // The level Check (PLAN.md feature 5a). The browser checks the board with the level rules, then the server saves the
 // attempt. A pass opens the Level complete pop-up with the real session. A fail costs a heart and tells the reason.
@@ -48,6 +48,8 @@ export function useLevelCheck({ user, project, levelId, position, rules, needsSk
 
     setState((s) => ({ ...s, open: true, busy: true, error: null }));
     const result = checkLevel(bench, parts, rules);
+    // A counter save that is still on its way must not start a new session when this pass completes the old one.
+    if (result.passed) markCompleting(user, project, position, true);
     const attempt = (id: string) =>
       recordAttempt({
         session: id,
@@ -58,6 +60,8 @@ export function useLevelCheck({ user, project, levelId, position, rules, needsSk
         xp: progress.xp,
       });
     const { result: saved } = await withFreshSession(session, attempt, () => freshSession(user, project, position, levelId, session));
+    const done = opensLevelComplete(result.passed, saved.completed);
+    if (!done) markCompleting(user, project, position, false);
     if (saved.closed) return setState((s) => ({ ...s, busy: false, error: text.play.check.error }));
     if (saved.error || saved.fails === undefined) return setState((s) => ({ ...s, busy: false, error: saved.error ?? text.play.check.error }));
 
@@ -65,7 +69,7 @@ export function useLevelCheck({ user, project, levelId, position, rules, needsSk
     const ends = result.passed ? [] : [result.connection.a, result.connection.b].map((e) => endpointHole(bench, parts, e)).filter((h): h is string => h !== null);
     boardStore.setState({ flash: { kind: result.passed ? "snap" : "buzz", holes: ends, at: Date.now() } });
 
-    if (opensLevelComplete(result.passed, saved.completed)) return router.push(`/p/${project}/${position}/complete`);
+    if (done) return router.push(`/p/${project}/${position}/complete`);
     boardStore.getState().failed(saved.fails);
     setState({ open: true, busy: false, failed: result.passed ? null : result, error: null });
   };
