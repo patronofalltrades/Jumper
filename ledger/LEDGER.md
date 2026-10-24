@@ -124,6 +124,7 @@ This ledger is source material for Hanif's reflection. Hanif writes the reflecti
 | Oct 24 | "please check real routes via temporary account. You are allowed to create one to use it for checking. Afterwards, delete it" | The database had Arduino Foundations as `coming_soon` with 0 levels, so Claude asked first (see Decisions). Claude seeded only Arduino Foundations, made a temporary account, and checked the real routes on a production build of the branch: 19 of 19 checks pass, no page errors. The first check found a layout bug (see Corrections); Claude turned the Uno and checked again. Then Claude deleted the account (0 rows left), set Arduino back to `coming_soon` and deleted its levels and tasks. | [#57](https://github.com/patronofalltrades/Jumper/issues/57) |
 | Oct 24 | "Work on issue 58, Branch is Arduino sketch. Read all documentation before touching the code. Make sure once work is done, create a temporary account to do e2e testing. We will later open a PR and merge to main, create the PR title and body based on your work" | Claude read the docs and issues #57 and #58. #58 needs #57 (the Uno bench), which was on `Feature/ArduinoUnoBench` with no PR. Claude asked; Hanif chose to wait for the #57 merge. No code changed. | [#58](https://github.com/patronofalltrades/Jumper/issues/58) |
 | Oct 24 | "continue with this build" (after #57 merged as PR #59) | Claude fast-forwarded `Feature/ArduinoSketch` to `main` and asked 2 questions (a loop with no delay; where to save the sketch). Built the code step: `lib/sketch` (reader, runner, circuit, goal check) with 49 tests, `content/sketches/arduino-foundations.json`, `content/ui/sketch.json`, the CodeMirror editor and the code panel, the 3D LEDs and the L light, a 3D button that a tap presses while the sketch runs, the Check gate. End-to-end check with a temporary account (deleted): 42 of 42 checks pass. PR text in `prompts/arduino-sketch-pr.md`. | [#58](https://github.com/patronofalltrades/Jumper/issues/58) |
+| Oct 24 | "can you write test plans and run end to end tests for all the available modules, features, and functions of the app?", then "Create issues for the top 5 on Github." | QA audit session (not in this branch). It found 5 bugs, and Hanif's issues #61 to #65 came from it. This branch has the audit entry only for the ledger. | [#62](https://github.com/patronofalltrades/Jumper/issues/62) |
 
 ## Decisions by Hanif
 
@@ -192,6 +193,9 @@ This ledger is source material for Hanif's reflection. Hanif writes the reflecti
 - Oct 24 (#58): Issue #58 needs #57 merged first. Claude asked how to start; Hanif chose "Wait for #57 merge" (not a merge of the #57 branch into this one). Hanif merged #57 (PR #59), then said "continue with this build".
 - Oct 24 (#58): A loop() with no delay(). Issue #58 says that it stops with a message, but the usual button sketch has no delay. Hanif chose "Stop it, starter has delay": the runner stops a loop that does not wait, with the message "loop() runs again and again with no pause…", and the starter code of levels 3 and 4 has `delay(10);` with a comment.
 - Oct 24 (#58): Where the sketch is saved. Hanif chose "Browser, with the board": the sketch goes in the same browser entry as the board and the progress. No new column and no migration. `schema.md` says so.
+- Oct 24 (QA audit, issue #62): A passed replay gives no XP. Only the first pass of a level adds XP. Level complete for a replay then shows 0 XP.
+- Oct 24 (QA audit): After the last task, a removal of a part brings the step pop-ups back. This reverses what #52 left for later. It is not part of #62.
+- Oct 24 (QA audit): The audit and these decisions go in the ledger on each fix branch.
 
 ## Corrections and agent issues
 
@@ -262,6 +266,9 @@ Only things Hanif said or wrote. Add the date and the exact words where possible
 - Oct 22: "the text is cut off on the first image" (the level name on the Continue card)
 - Oct 22: "I wish I had a list of steps that I can track in order for me to know what to do. In this level, I don't have a to-do list which is very confusing for me"
 - Oct 22: Hanif's Jumper folder on the Mac (`~/Jumper`) had no link to GitHub (no `origin`), so `npm run seed` was missing there. Hanif now uses a fresh clone, `~/Jumper-github`.
+- Oct 24: "can you write test plans and run end to end tests for all the available modules, features, and functions of the app?"
+- Oct 24: "Create issues for the top 5 on Github."
+- Oct 24: "Open separate sessions to work on each issues (61-65) on their respective branches. Read documentation before touching any code."
 
 ## Claude notes (not Hanif's voice)
 
