@@ -122,7 +122,9 @@ export default function ClipPlayer({ clip, title, onClose }: Props) {
     html.style.overflow = "hidden";
     return () => void (html.style.overflow = before);
   }, [small]);
-  useEffect(() => first.current?.focus(), [small]);
+  useEffect(() => {
+    first.current?.focus();
+  }, [small]);
 
   const controls = (
     <div className="flex items-center justify-center gap-2">

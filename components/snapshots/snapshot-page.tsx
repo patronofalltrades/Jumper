@@ -22,7 +22,9 @@ const BuildScene = dynamic(() => import("@/components/scene/build-scene"), {
 /** The saved board in 3D, view only: the camera turns and the nets glow, but taps do not change it. */
 export function SnapshotBoard({ id, parts, bench }: { id: string; parts: Part[]; bench: BenchSpec }) {
   // Before paint, and before the scene loads, so the scene never shows the board of another page.
-  useLayoutEffect(() => boardStore.getState().open(`snapshot/${id}`, { bench: createBench(bench), parts, readOnly: true }), [id, parts, bench]);
+  useLayoutEffect(() => {
+    boardStore.getState().open(`snapshot/${id}`, { bench: createBench(bench), parts, readOnly: true });
+  }, [id, parts, bench]);
   return <BuildScene />;
 }
 

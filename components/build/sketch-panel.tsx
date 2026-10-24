@@ -36,7 +36,9 @@ export function SketchPanel({ step, onClose, onDone }: { step: SketchStep; onClo
     sketchStore.getState().stop();
   }, []);
   // Close the panel or leave the page: the sketch stops, and the LEDs go dark.
-  useEffect(() => stop, [stop]);
+  useEffect(() => {
+    return stop;
+  }, [stop]);
 
   const showError = (error: SketchError) => {
     setOutcome({ kind: "error", error });
