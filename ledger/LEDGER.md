@@ -272,6 +272,7 @@ Only things Hanif said or wrote. Add the date and the exact words where possible
 - Oct 24: "can you write test plans and run end to end tests for all the available modules, features, and functions of the app?"
 - Oct 24: "Create issues for the top 5 on Github."
 - Oct 24: "Open separate sessions to work on each issues (61-65) on their respective branches. Read documentation before touching any code."
+- Oct 24: "migration successfully ran" (Hanif ran `20261024000000_replay.sql` in the Supabase SQL Editor, for #62).
 
 ## Claude notes (not Hanif's voice)
 

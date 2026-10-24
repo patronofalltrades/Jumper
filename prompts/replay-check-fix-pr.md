@@ -63,7 +63,7 @@ NOTICE:  record_attempt replay test: all checks pass
 
 ## After the merge (Hanif)
 
-1. Run `supabase/migrations/20261024000000_replay.sql` in the Supabase SQL Editor **before** the new code goes live. With the old function, the app would not get the `closed` answer, and the replay bug stays.
+1. The migration `supabase/migrations/20261024000000_replay.sql` is applied on the Supabase project (Hanif ran it in the SQL Editor: "migration successfully ran").
 2. Replay check on the live app: pass level 1, open it again, remove the 3V3 wire, press Check. Expected: the reason, one heart less, and no Level complete. Then put the wire back and press Check: Level complete with the time of the replay and "0 XP".
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
