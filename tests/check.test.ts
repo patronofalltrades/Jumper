@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { perchBench } from "@/lib/circuit/bench";
-import { checkLevel, isEmptyBoard, placedParts } from "@/lib/circuit/check";
+import { checkLevel, isEmptyBoard, joinRules, placedParts } from "@/lib/circuit/check";
 import type { Part } from "@/lib/circuit/parts";
 import { loadBoards, startBoard } from "@/lib/content/boards";
 import { loadProjects } from "@/lib/content/load";
@@ -79,5 +79,40 @@ describe("empty board", () => {
 
   it("is still empty when the learner removed a part of the start board and placed nothing", () => {
     expect(isEmptyBoard(start.slice(1), start)).toBe(true);
+  });
+});
+
+// Issue #65: Check on a level tests the rules of the levels before it too.
+describe("joined rules", () => {
+  const upTo = (position: number) => joinRules(perch.levels, Array.from({ length: position }, (_, i) => i + 1));
+
+  for (const level of perch.levels) {
+    it(`passes the finished board of level ${level.position} with the rules of levels 1 to ${level.position}`, () => {
+      expect(checkLevel(bench, finished(level.position), upTo(level.position))).toEqual({ passed: true });
+    });
+  }
+
+  it("fails level 2 when the 3V3 wire of level 1 is gone", () => {
+    const board = finished(2).filter((p) => p.id !== "w1");
+    expect(checkLevel(bench, board, rulesOf(2))).toEqual({ passed: true }); // the old check missed it
+    expect(checkLevel(bench, board, upTo(2))).toMatchObject({ passed: false, code: "wrong_pin", connection: { a: "esp.3V3", b: "bbA.+" } });
+  });
+
+  it("fails level 2 when the ground wire of level 1 is gone, with the missing ground reason", () => {
+    const board = finished(2).filter((p) => p.id !== "w2");
+    expect(checkLevel(bench, board, upTo(2))).toMatchObject({ passed: false, code: "missing_ground" });
+  });
+
+  it("counts a connection once when two levels name it, in either order", () => {
+    const a = { require: [{ a: "x.1", b: "y.2" }], forbid: [{ a: "p", b: "q", code: "c", message: "m" }] };
+    const b = { require: [{ a: "y.2", b: "x.1" }, { a: "z.1", b: "y.2" }], forbid: [{ a: "q", b: "p", code: "c", message: "m" }] };
+    const joined = joinRules([{ position: 1, rules: a }, { position: 2, rules: b }], [1, 2]);
+    expect(joined.require).toHaveLength(2);
+    expect(joined.forbid).toHaveLength(1);
+  });
+
+  it("joins only the listed levels", () => {
+    const joined = joinRules(perch.levels, [1, 3]);
+    expect(joined.require).toHaveLength(rulesOf(1).require.length + rulesOf(3).require.length);
   });
 });

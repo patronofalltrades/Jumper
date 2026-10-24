@@ -17,6 +17,27 @@ export type CheckResult = { passed: true } | { passed: false; code: string; mess
 /** The two sides of a resistor or a button are the same. The learner can use either side as "1". */
 const SYMMETRIC: PartType[] = ["resistor", "pushbutton"];
 
+/**
+ * The rules of the levels in `positions`, joined (issue #65). Check on a level tests the connections of the levels
+ * before it too, because the board carries over. A connection that two levels both name (same two ends, either order)
+ * counts once. A forbid rule keeps its code and message.
+ */
+export function joinRules(levels: { position: number; rules: Rules }[], positions: number[]): Rules {
+  const key = (c: Connection) => [c.a, c.b].sort().join("|");
+  const joined: Rules = { require: [], forbid: [] };
+  const seen = { require: new Set<string>(), forbid: new Set<string>() };
+  for (const level of levels.filter((l) => positions.includes(l.position)).sort((x, y) => x.position - y.position)) {
+    for (const kind of ["require", "forbid"] as const) {
+      for (const c of level.rules[kind]) {
+        if (seen[kind].has(key(c))) continue;
+        seen[kind].add(key(c));
+        (joined[kind] as Connection[]).push(c);
+      }
+    }
+  }
+  return joined;
+}
+
 /** A ground endpoint: a GND pin, or a − rail. */
 const isGround = (endpoint: string) => /\.GND$/.test(endpoint) || /^bb[A-Z]\.-$/.test(endpoint);
 
