@@ -11,6 +11,7 @@
     { "u": 20, "v": 1, "pins": ["A0", "A1", "A2", "A3", "A4", "A5"] }
   ],
   "unused": ["SCL", "SDA", "AREF", "NC", "IOREF", "RESET"],
+  "led_l": { "_note": "The small LED marked L, on pin 13 inside the board (issue #58). A sketch that sets pin 13 HIGH turns it on. u and v: its center.", "u": 5.6, "v": 17.6 },
   "labels": {
     "3V3": "3.3V",
     "D13": "13",

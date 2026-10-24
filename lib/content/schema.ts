@@ -93,3 +93,24 @@ export const benchSchema = z.object({
   open_rails: z.record(z.string().regex(/^[A-Z]$/), z.object({ "+": rail, "-": rail })),
   view: z.object({ target: z.object({ x: z.number(), z: z.number() }), width: z.number().positive(), length: z.number().positive() }),
 });
+
+/** The goal of a code step (lib/sketch/goal.ts). `led`: a part id on the board, or `uno.L` for the L light of the Uno. */
+export const goalSchema = z.discriminatedUnion("kind", [
+  z.object({ kind: z.literal("blink"), led: z.string().min(1), led_name: z.string().min(1), on_ms: z.number().int().positive(), off_ms: z.number().int().positive() }),
+  z.object({ kind: z.literal("button"), led: z.string().min(1), led_name: z.string().min(1), button: z.string().min(1) }),
+]);
+
+/** The code step of a level: after its wiring tasks, the learner writes a sketch that does the goal (issue #58). */
+export const sketchStepSchema = z.object({
+  task: z.string().min(1),
+  goal_text: z.string().min(1),
+  goal: goalSchema,
+  starter: z.array(z.string()).min(1),
+  hints: z.array(z.string().min(1)),
+  source_url: z.url(),
+});
+
+/** content/sketches/<project>.json: the code step of each level that has one, by level position. */
+export const sketchesSchema = z.object({ levels: z.record(position, sketchStepSchema) });
+
+export type SketchStep = z.infer<typeof sketchStepSchema>;

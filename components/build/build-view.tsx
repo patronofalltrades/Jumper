@@ -13,12 +13,15 @@ import type { Part } from "@/lib/circuit/parts";
 import { boardStore, useBoard, WIRE_COLORS, type Tool } from "@/lib/game/board-store";
 import type { Rules } from "@/lib/circuit/check";
 import { needsAck, type Plan } from "@/lib/game/engine";
+import type { SketchStep } from "@/lib/content/schema";
+import sketchText from "@/content/ui/sketch.json";
 import type { Clip } from "@/lib/game/walkthrough";
 import { readSavedLevel, useLevel } from "./autosave";
-import { EMPTY_NOTE, useEmptyBoard, useLevelCheck } from "./check";
+import { EMPTY_NOTE, useEmptyBoard, useLevelCheck, useSketchLock } from "./check";
 import { useFeedback } from "./feedback";
 import { GuideBar, SpotCard, useNoticeTimer } from "./guide";
 import { Hearts, PinnedPopup, PopupLayer, useLaptop, type LevelTask } from "./popups";
+import { SketchPanel } from "./sketch-panel";
 import { TaskList } from "./task-list";
 import { cn } from "@/lib/utils";
 
@@ -82,16 +85,23 @@ type Props = {
   levels: LevelOption[];
   /** The walkthrough clip of the level (issue #48). */
   clip: Clip | null;
+  /** The code step after the wiring tasks, if the level has one (issue #58). */
+  sketch: SketchStep | null;
 };
 
-export function BuildView({ user, project, levelId, position, eyebrow, title, goal, tasks, rules, bench: spec, start, carry, levels, clip }: Props) {
+export function BuildView({ user, project, levelId, position, eyebrow, title, goal, tasks, rules, bench: spec, start, carry, levels, clip, sketch }: Props) {
   useKeys();
   useNoticeTimer();
   useFeedback();
   const plan: Plan = useMemo(() => ({ tasks: tasks.map((t) => ({ target: t.target, xp: t.xp })), forbid: rules.forbid }), [tasks, rules]);
   const bench = useMemo(() => createBench(spec), [spec]);
   const saveError = useLevel({ user, project, levelId, position, bench, plan, start, carry });
-  const levelCheck = useLevelCheck({ user, project, position, rules });
+  const levelCheck = useLevelCheck({ user, project, position, rules, needsSketch: !!sketch });
+  const locked = useSketchLock(!!sketch);
+  const codePassed = useBoard((s) => s.codePassed);
+  // The code panel: beside the board on a laptop, under it on a phone. The board stays in view, so the learner sees the LEDs.
+  const [codeOpen, setCodeOpen] = useState(false);
+  const openCode = () => setCodeOpen(true);
   const laptop = useLaptop();
   const progress = useBoard((s) => s.progress);
   const explaining = useBoard((s) => s.done !== null);
@@ -118,7 +128,7 @@ export function BuildView({ user, project, levelId, position, eyebrow, title, go
       level={{ eyebrow, title, goal, tasks }}
       conceptOpen={conceptOpen}
       onConceptDone={() => setConceptRead(progress.index)}
-      check={{ check: levelCheck.state, onCheck: () => void levelCheck.check(), onClose: levelCheck.close }}
+      check={{ check: levelCheck.state, onCheck: () => void levelCheck.check(), onClose: levelCheck.close, sketch: sketch && { passed: codePassed, open: openCode } }}
     />
   );
 
@@ -187,45 +197,68 @@ export function BuildView({ user, project, levelId, position, eyebrow, title, go
         </div>
       </header>
 
-      <div className="relative min-h-0 flex-1">
-        <BuildScene>{laptop && <PinnedPopup tasks={tasks} hidden={conceptOpen || explaining} />}</BuildScene>
-        {/* The guide bar, and the task list below it. Only the panels take clicks; the board gets the rest. Above the Check button, the column stops. */}
-        {progress.phase !== "intro" && (
-          <div className={cn("pointer-events-none absolute inset-x-0 top-3 z-10 flex flex-col gap-2 px-3", progress.phase === "ready_to_check" ? "bottom-32" : "bottom-3")}>
-            {building && <GuideBar />}
-            <TaskList tasks={tasks} laptop={laptop} />
+      <div className={cn("flex min-h-0 flex-1", codeOpen && "max-sm:flex-col")}>
+        <div className="relative min-h-0 min-w-0 flex-1">
+          <BuildScene>{laptop && <PinnedPopup tasks={tasks} hidden={conceptOpen || explaining} />}</BuildScene>
+          {/* The guide bar, and the task list below it. Only the panels take clicks; the board gets the rest. Above the Check button, the column stops. */}
+          {progress.phase !== "intro" && (
+            <div className={cn("pointer-events-none absolute inset-x-0 top-3 z-10 flex flex-col gap-2 px-3", progress.phase === "ready_to_check" ? "bottom-32" : "bottom-3")}>
+              {building && <GuideBar />}
+              <TaskList tasks={tasks} laptop={laptop} code={sketch && { instruction: sketch.task, open: openCode }} small={codeOpen} />
+            </div>
+          )}
+          {/* The learner closed the Check card to fix the board: the Check button stays at the bottom of the board. */}
+          {progress.phase === "ready_to_check" && !explaining && !levelCheck.state.open && !codeOpen && (
+            <div className="absolute inset-x-3 bottom-4 z-20 flex flex-col items-center gap-2">
+              {empty && (
+                <p id={EMPTY_NOTE} className="max-w-xs rounded-xl bg-card px-3 py-2 text-center text-sm font-semibold shadow-panel">
+                  {text.play.check.empty}
+                </p>
+              )}
+              {locked && (
+                <button
+                  type="button"
+                  onClick={openCode}
+                  className="min-h-12 rounded-xl border-b-4 border-primary-deep bg-primary px-8 text-base font-extrabold tracking-wide text-primary-foreground uppercase shadow-panel outline-none focus-visible:ring-2 focus-visible:ring-ring active:translate-y-0.5 active:border-b-2"
+                >
+                  {sketchText.panel.open}
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => void levelCheck.check()}
+                disabled={empty || locked}
+                aria-describedby={empty ? EMPTY_NOTE : undefined}
+                className="min-h-12 rounded-xl border-b-4 border-primary-deep bg-primary px-8 text-base font-extrabold tracking-wide text-primary-foreground uppercase shadow-panel outline-none focus-visible:ring-2 focus-visible:ring-ring active:translate-y-0.5 active:border-b-2 disabled:border-border disabled:bg-muted disabled:text-muted-foreground"
+              >
+                {text.play.check.button}
+              </button>
+            </div>
+          )}
+          <SpotCard />
+          {laptop && !codeOpen && popups}
+          {saveError && (
+            <p role="alert" className="absolute inset-x-3 top-20 z-30 sm:inset-x-auto sm:top-3 sm:right-3 sm:max-w-xs rounded-xl border border-destructive bg-card px-3 py-2 text-sm font-semibold text-destructive shadow-panel">
+              {saveError}
+            </p>
+          )}
+        </div>
+        {codeOpen && sketch && (
+          <div className="min-h-0 border-border max-sm:h-[60%] max-sm:border-t sm:w-[min(460px,45%)] sm:border-l">
+            <SketchPanel
+              step={sketch}
+              onClose={() => setCodeOpen(false)}
+              onDone={() => {
+                setCodeOpen(false);
+                void levelCheck.check();
+              }}
+            />
           </div>
-        )}
-        {/* The learner closed the Check card to fix the board: the Check button stays at the bottom of the board. */}
-        {progress.phase === "ready_to_check" && !explaining && !levelCheck.state.open && (
-          <div className="absolute inset-x-3 bottom-4 z-20 flex flex-col items-center gap-2">
-            {empty && (
-              <p id={EMPTY_NOTE} className="max-w-xs rounded-xl bg-card px-3 py-2 text-center text-sm font-semibold shadow-panel">
-                {text.play.check.empty}
-              </p>
-            )}
-            <button
-              type="button"
-              onClick={() => void levelCheck.check()}
-              disabled={empty}
-              aria-describedby={empty ? EMPTY_NOTE : undefined}
-              className="min-h-12 rounded-xl border-b-4 border-primary-deep bg-primary px-8 text-base font-extrabold tracking-wide text-primary-foreground uppercase shadow-panel outline-none focus-visible:ring-2 focus-visible:ring-ring active:translate-y-0.5 active:border-b-2 disabled:border-border disabled:bg-muted disabled:text-muted-foreground"
-            >
-              {text.play.check.button}
-            </button>
-          </div>
-        )}
-        <SpotCard />
-        {laptop && popups}
-        {saveError && (
-          <p role="alert" className="absolute inset-x-3 top-20 z-30 sm:inset-x-auto sm:top-3 sm:right-3 sm:max-w-xs rounded-xl border border-destructive bg-card px-3 py-2 text-sm font-semibold text-destructive shadow-panel">
-            {saveError}
-          </p>
         )}
       </div>
 
-      {!laptop && popups}
-      <ToolBar />
+      {!laptop && !codeOpen && popups}
+      {!(codeOpen && !laptop) && <ToolBar />}
       {clip && watching && (
         <ClipPlayer
           clip={clip}
@@ -344,7 +377,8 @@ function Tray({ tool }: { tool: Tool }) {
 function useKeys() {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.target instanceof HTMLElement && e.target.closest("input, textarea")) return;
+      // Typing in a field or in the sketch editor (a contenteditable) is not a shortcut.
+      if (e.target instanceof HTMLElement && e.target.closest("input, textarea, [contenteditable=true]")) return;
       const { undo, cancel } = boardStore.getState();
       const tool = TOOLS.find((t) => t.key === e.key);
       if (e.key === "Escape") cancel();

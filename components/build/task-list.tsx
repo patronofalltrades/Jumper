@@ -2,8 +2,9 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import text from "@/content/ui/build.json";
+import sketchText from "@/content/ui/sketch.json";
 import { boardStore, useBoard } from "@/lib/game/board-store";
-import { needsAck, taskMarks } from "@/lib/game/engine";
+import { needsAck, taskMarks, type TaskMark } from "@/lib/game/engine";
 import { cn } from "@/lib/utils";
 import type { LevelTask } from "./popups";
 
@@ -12,15 +13,27 @@ import type { LevelTask } from "./popups";
 
 const fill = (template: string, values: Record<string, string | number>) => template.replace(/\{(\w+)\}/g, (_, k: string) => String(values[k]));
 
-export function TaskList({ tasks, laptop }: { tasks: LevelTask[]; laptop: boolean }) {
+/** The code step after the wiring tasks (issue #58): its line in the list, and the button that opens the code panel. */
+export type CodeRow = { instruction: string; open: () => void };
+
+/** `small`: the code panel is open, so the list starts as a chip and the Uno (with its L light) stays in view. */
+export function TaskList({ tasks, laptop, code, small = false }: { tasks: LevelTask[]; laptop: boolean; code: CodeRow | null; small?: boolean }) {
   const bench = useBoard((s) => s.bench);
   const parts = useBoard((s) => s.parts);
   const plan = useBoard((s) => s.plan);
   const progress = useBoard((s) => s.progress);
-  const marks = useMemo(() => (plan ? taskMarks(bench, plan, parts, progress) : []), [bench, plan, parts, progress]);
+  const codePassed = useBoard((s) => s.codePassed);
+  const wiring = useMemo(() => (plan ? taskMarks(bench, plan, parts, progress) : []), [bench, plan, parts, progress]);
+  // The code step is done when the sketch did the goal. It is "now" when the wiring tasks are done.
+  const codeMark: TaskMark = codePassed ? "done" : progress.phase === "ready_to_check" && !wiring.includes("now") ? "now" : "todo";
+  const marks = code ? [...wiring, codeMark] : wiring;
+  const rows = [
+    ...tasks.map((t) => ({ key: String(t.position), instruction: t.instruction, task: t as LevelTask | null })),
+    ...(code ? [{ key: "code", instruction: code.instruction, task: null }] : []),
+  ];
   // Null until the learner taps the header: then the panel follows the screen size.
   const [toggled, setToggled] = useState<boolean | null>(null);
-  const open = toggled ?? laptop;
+  const open = toggled ?? (laptop && !small);
   const list = useRef<HTMLOListElement>(null);
   const now = marks.indexOf("now");
 
@@ -45,7 +58,7 @@ export function TaskList({ tasks, laptop }: { tasks: LevelTask[]; laptop: boolea
         onClick={() => setToggled(!open)}
         className="flex min-h-11 shrink-0 items-center gap-2 rounded-2xl px-3 text-left text-sm font-bold outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
-        <span className="flex-1">{open ? fill(text.tasks.title, { done, total: tasks.length }) : fill(text.tasks.chip, { done, total: tasks.length })}</span>
+        <span className="flex-1">{open ? fill(text.tasks.title, { done, total: rows.length }) : fill(text.tasks.chip, { done, total: rows.length })}</span>
         {/* A minus closes the list, a plus opens it. */}
         <span aria-hidden="true" className="grid size-7 place-items-center rounded-lg border border-b-2 border-border bg-card">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round">
@@ -55,25 +68,35 @@ export function TaskList({ tasks, laptop }: { tasks: LevelTask[]; laptop: boolea
       </button>
       {open && (
         <ol ref={list} className="flex min-h-0 flex-col gap-1 overflow-y-auto border-t border-border p-2">
-          {tasks.map((task, i) => {
+          {rows.map(({ key, instruction, task }, i) => {
             const mark = marks[i];
             return (
               <li
-                key={task.position}
+                key={key}
                 aria-current={mark === "now" ? "step" : undefined}
                 className={cn("flex items-start gap-2 rounded-xl px-2 py-1.5 text-sm leading-snug", mark === "now" && "bg-muted")}
               >
                 <Mark mark={mark} />
                 <span className="sr-only">{text.tasks.state[mark]}:</span>
-                <span className={cn("flex-1", mark === "done" && "text-muted-foreground", mark === "now" && "font-bold")}>{task.instruction}</span>
+                <span className={cn("flex-1", mark === "done" && "text-muted-foreground", mark === "now" && "font-bold")}>{instruction}</span>
                 {/* A part that is always on the bench: "Got it" finishes its task here too, as in its pop-up. */}
-                {mark === "now" && progress.phase === "task" && needsAck(task.target) && (
+                {task && mark === "now" && progress.phase === "task" && needsAck(task.target) && (
                   <button
                     type="button"
                     onClick={() => boardStore.getState().ack()}
                     className="min-h-9 shrink-0 rounded-lg border-b-4 border-primary-deep bg-primary px-3 text-xs font-bold text-primary-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring active:translate-y-0.5 active:border-b-2"
                   >
                     {text.play.gotIt}
+                  </button>
+                )}
+                {/* The code step: open the code panel to write the sketch, or to see it again after it did the goal. */}
+                {!task && code && mark !== "todo" && (
+                  <button
+                    type="button"
+                    onClick={code.open}
+                    className="min-h-9 shrink-0 rounded-lg border-b-4 border-primary-deep bg-primary px-3 text-xs font-bold text-primary-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring active:translate-y-0.5 active:border-b-2"
+                  >
+                    {mark === "now" ? sketchText.panel.open : sketchText.panel.reopen}
                   </button>
                 )}
               </li>

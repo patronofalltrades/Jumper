@@ -3,7 +3,10 @@
 import type { ThreeEvent } from "@react-three/fiber";
 import { useMemo } from "react";
 import type { Color } from "three";
+import uno from "@/content/parts/arduino-uno.json";
 import { unoAt, type Bench } from "@/lib/circuit/bench";
+import { useSketch } from "@/lib/game/sketch-store";
+import { BOARD_LED } from "@/lib/sketch/circuit";
 import { drawUno, unoHeaders } from "./textures";
 import { useFontTexture } from "./use-font-texture";
 
@@ -32,6 +35,21 @@ function Box({ bench, u, v, h, color, metal }: { bench: Bench; u: [number, numbe
       <boxGeometry args={[u[1] - u[0], h, v[1] - v[0]]} />
       <meshStandardMaterial color={color} metalness={metal ? 0.65 : 0.1} roughness={metal ? 0.3 : 0.6} />
     </mesh>
+  );
+}
+
+/** The small LED marked L, on pin 13 (issue #58). It glows orange while a sketch sets pin 13 HIGH. */
+function BoardLed({ bench }: { bench: Bench }) {
+  const on = useSketch((s) => s.lit.has(BOARD_LED));
+  const c = unoAt(bench.board.outline, uno.led_l.u, uno.led_l.v);
+  return (
+    <group>
+      <mesh position={[c.x, UNO_TOP + 0.12, c.z]} raycast={() => null}>
+        <boxGeometry args={[0.8, 0.24, 0.5]} />
+        <meshStandardMaterial color={on ? "#FFB347" : "#E8D9A8"} emissive={on ? "#FF8A00" : "#000000"} emissiveIntensity={on ? 2.4 : 0} roughness={0.3} />
+      </mesh>
+      <pointLight position={[c.x, UNO_TOP + 1.2, c.z]} color="#FF9A1F" intensity={on ? 6 : 0} distance={6} decay={2} />
+    </group>
   );
 }
 
@@ -99,6 +117,7 @@ export function Uno({ bench, glow, handlers }: { bench: Bench; glow: Map<string,
       <Box bench={bench} u={[9.2, 10.8]} v={[10.4, 11.4]} h={0.3} color="#B3BAC0" metal />
       <Box bench={bench} u={[1.4, 3]} v={[18.2, 19.8]} h={0.3} color="#B3BAC0" metal />
       <Box bench={bench} u={[1.75, 2.65]} v={[18.55, 19.45]} h={0.45} color="#2A2D30" />
+      <BoardLed bench={bench} />
     </group>
   );
 }

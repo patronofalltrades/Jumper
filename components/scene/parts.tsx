@@ -27,7 +27,8 @@ function Leg({ points }: { points: Vector3[] }) {
 /** Red glow on a part that the Remove tool points at. */
 const removeTint = (hot: boolean) => (hot ? { emissive: "#c9412f", emissiveIntensity: 0.6 } : {});
 
-export function PartMesh({ part, a, b, hot }: { part: LegPart; a: End; b: End; hot: boolean }) {
+/** `on`: a running sketch lights the LED (issue #58). */
+export function PartMesh({ part, a, b, hot, on = false }: { part: LegPart; a: End; b: End; hot: boolean; on?: boolean }) {
   const shape = useMemo(() => {
     const dir = new Vector3(b.x - a.x, 0, b.z - a.z);
     const length = dir.length();
@@ -39,7 +40,7 @@ export function PartMesh({ part, a, b, hot }: { part: LegPart; a: End; b: End; h
   if (part.type === "wire") return <Wire a={a} b={b} color={part.color ?? "#D63A2F"} hot={hot} length={shape.length} />;
   if (part.type === "resistor") return <Resistor a={a} b={b} hot={hot} {...shape} />;
   if (part.type === "speaker") return <Speaker a={a} b={b} hot={hot} {...shape} />;
-  return <Led a={a} b={b} hot={hot} {...shape} />;
+  return <Led a={a} b={b} hot={hot} on={on} {...shape} />;
 }
 
 function Wire({ a, b, color, hot, length }: { a: End; b: End; color: string; hot: boolean; length: number }) {
@@ -106,8 +107,8 @@ function Resistor({ a, b, hot, dir, length, mid, q }: Shape) {
   );
 }
 
-/** A red 5 mm LED. The + leg (anode, in hole a) is longer and bent, and a red + badge marks it. */
-function Led({ a, b, hot, dir, mid }: Shape) {
+/** A red 5 mm LED. The + leg (anode, in hole a) is longer and bent, and a red + badge marks it. It glows when `on`. */
+function Led({ a, b, hot, on, dir, mid }: Shape & { on: boolean }) {
   const baseY = 1.15;
   const legs = useMemo(() => {
     const ma = mid.clone().addScaledVector(dir, -0.17).setY(baseY);
@@ -118,7 +119,14 @@ function Led({ a, b, hot, dir, mid }: Shape) {
       [at(b, 0.02), at(b, 0.6), mb],
     ];
   }, [a, b, dir, mid]);
-  const lens = { color: "#E2392A", emissive: hot ? "#c9412f" : "#FF2A12", emissiveIntensity: hot ? 0.6 : 0.05, roughness: 0.25, transparent: true, opacity: 0.88 };
+  const lens = {
+    color: on ? "#FF6A4D" : "#E2392A",
+    emissive: hot ? "#c9412f" : "#FF2A12",
+    emissiveIntensity: hot ? 0.6 : on ? 2.6 : 0.05,
+    roughness: 0.25,
+    transparent: true,
+    opacity: on ? 0.96 : 0.88,
+  };
   const plus = at(a, 0.95).addScaledVector(dir, -0.45);
   return (
     <group>
@@ -137,6 +145,8 @@ function Led({ a, b, hot, dir, mid }: Shape) {
         <sphereGeometry args={[0.4, 24, 12, 0, Math.PI * 2, 0, Math.PI / 2]} />
         <meshStandardMaterial {...lens} />
       </mesh>
+      {/* The light stays in the scene when it is off: a light that comes and goes makes three.js build its shaders again. */}
+      <pointLight position={[mid.x, baseY + 1.6, mid.z]} color="#FF3B1F" intensity={on ? 8 : 0} distance={7} decay={2} />
       <mesh position={plus} rotation={[-Math.PI / 2, 0, 0]}>
         <circleGeometry args={[0.28, 24]} />
         <meshBasicMaterial color="#C8302A" />

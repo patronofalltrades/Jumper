@@ -26,7 +26,8 @@ export type Flash = { kind: "snap" | "buzz"; holes: string[]; at: number };
 /** `readOnly`: a saved snapshot. The camera moves and the nets glow, but taps do not change the board. */
 /** `base`: the board that the level opened with, before the learner placed a part. It defaults to `parts`. */
 /** `bench`: the bench of the project (content/benches/). It defaults to the bench of the store, Perch for the app store. */
-export type LevelSetup = { bench?: Bench; plan?: Plan; parts?: Part[]; base?: Part[]; progress?: Progress; readOnly?: boolean };
+/** `code`, `codePassed`: the sketch of a level with a code step (issue #58), and whether it did the goal. */
+export type LevelSetup = { bench?: Bench; plan?: Plan; parts?: Part[]; base?: Part[]; progress?: Progress; readOnly?: boolean; code?: string | null; codePassed?: boolean };
 
 export type BoardState = {
   bench: Bench;
@@ -52,6 +53,10 @@ export type BoardState = {
   done: number | null;
   flash: Flash | null;
   readOnly: boolean;
+  /** The sketch of the code step, as the learner wrote it. Null: the starter code of the level (issue #58). */
+  code: string | null;
+  /** True when the sketch did the goal of the level, after its last change. The level Check needs it. */
+  codePassed: boolean;
 
   /** Opens the board of a level. A different level starts from `setup`, or an empty bench; the same level keeps its state. */
   open: (level: string, setup?: LevelSetup) => void;
@@ -75,6 +80,10 @@ export type BoardState = {
   removePart: (id: string) => void;
   undo: () => void;
   cancel: () => void;
+  /** A change to the sketch. The sketch must do the goal again. */
+  setCode: (code: string | null) => void;
+  /** The sketch did the goal. */
+  passCode: () => void;
 };
 
 export function createBoardStore(defaultBench: Bench = perchBench()) {
@@ -118,6 +127,8 @@ export function createBoardStore(defaultBench: Bench = perchBench()) {
       done: null,
       flash: null,
       readOnly: false,
+      code: null,
+      codePassed: false,
 
       open: (level, setup = {}) => {
         if (level === get().level) return;
@@ -138,6 +149,8 @@ export function createBoardStore(defaultBench: Bench = perchBench()) {
           done: null,
           flash: null,
           readOnly: setup.readOnly ?? false,
+          code: setup.code ?? null,
+          codePassed: setup.codePassed ?? false,
         });
       },
       start: () => set(play({ type: "start" })),
@@ -149,6 +162,8 @@ export function createBoardStore(defaultBench: Bench = perchBench()) {
       setWireColor: (wireColor) => set({ wireColor, tool: "wire", pending: null, notice: null }),
       setHover: (hover) => set({ hover }),
       cancel: () => set({ pending: null, notice: null }),
+      setCode: (code) => set({ code, codePassed: false }),
+      passCode: () => set({ codePassed: true }),
 
       tapHole: (hole, preview = false) => {
         if (get().readOnly) return;

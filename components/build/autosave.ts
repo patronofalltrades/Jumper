@@ -30,6 +30,8 @@ const savedSchema = z.object({
     fails: z.number().int().nonnegative().default(0),
   }),
   session: z.string().optional(),
+  /** The sketch of the code step (issue #58), and whether it did the goal. */
+  sketch: z.object({ code: z.string(), passed: z.boolean() }).optional(),
 });
 type Saved = z.infer<typeof savedSchema>;
 
@@ -70,6 +72,12 @@ type Props = {
   carry: boolean;
 };
 
+/** What the browser saves for the open level: the board, the progress and the sketch. */
+function saved(): Omit<Saved, "session"> {
+  const { parts, base, progress, code, codePassed } = boardStore.getState();
+  return { parts, base, progress, ...(code !== null && { sketch: { code, passed: codePassed } }) };
+}
+
 /** Opens the level in the store, saves the board in the browser, and saves the session row. Gives a save error, if any. */
 export function useLevel({ user, project, levelId, position, bench, plan, start, carry }: Props) {
   const [error, setError] = useState<string | null>(null);
@@ -79,7 +87,7 @@ export function useLevel({ user, project, levelId, position, bench, plan, start,
     const own = read(key);
     const before = carry ? read(keyOf(user, project, position - 1)) : null;
     const setup: LevelSetup = own
-      ? { bench, plan, parts: own.parts as Part[], base: (own.base ?? start) as Part[], progress: own.progress as Progress }
+      ? { bench, plan, parts: own.parts as Part[], base: (own.base ?? start) as Part[], progress: own.progress as Progress, code: own.sketch?.code, codePassed: own.sketch?.passed }
       : { bench, plan, parts: before?.progress.phase === "ready_to_check" ? (before.parts as Part[]) : start };
     boardStore.getState().open(`${project}/${position}`, setup);
 
@@ -97,8 +105,7 @@ export function useLevel({ user, project, levelId, position, bench, plan, start,
           return undefined;
         }
         session = result.id;
-        const { parts, base, progress } = boardStore.getState();
-        write(key, { parts, base, progress, session });
+        write(key, { ...saved(), session });
         return session;
       }));
 
@@ -113,16 +120,16 @@ export function useLevel({ user, project, levelId, position, bench, plan, start,
     };
 
     const save = () => {
-      const { parts, base, progress, level } = boardStore.getState();
+      const { progress, level } = boardStore.getState();
       if (level !== `${project}/${position}`) return;
-      write(key, { parts, base, progress, session });
+      write(key, { ...saved(), session });
       // Wait for a pause, so that fast work sends one request.
       clearTimeout(timer);
       timer = setTimeout(() => void sync(progress), 800);
     };
 
     const stop = boardStore.subscribe((s, prev) => {
-      if (s.parts !== prev.parts || s.progress !== prev.progress) save();
+      if (s.parts !== prev.parts || s.progress !== prev.progress || s.code !== prev.code || s.codePassed !== prev.codePassed) save();
     });
     // Send the last counters when the learner leaves the page.
     const leave = () => {

@@ -13,6 +13,7 @@ import { useTaskSpot } from "@/components/build/popups";
 import text from "@/content/ui/site.json";
 import { hasWebGL } from "@/lib/device";
 import { boardStore, useBoard } from "@/lib/game/board-store";
+import { sketchStore, useSketch } from "@/lib/game/sketch-store";
 import { ModuleGhost, ModuleMesh, terminalTop } from "./modules";
 import { PartMesh, type End } from "./parts";
 import { drawBreadboard, drawEsp, drawShield, SHIELD } from "./textures";
@@ -361,11 +362,18 @@ function Esp32S3({ bench, glow }: { bench: Bench; glow: Map<string, Color> }) {
   );
 }
 
+/** A press on a button while a sketch runs (issue #58). */
+const pressButton = (id: string) => (down: boolean) => sketchStore.getState().press(id, down);
+
 function Parts({ bench, removing, glow }: { bench: Bench; removing: boolean; glow: Map<string, Color> }) {
   const parts = useBoard((s) => s.parts);
+  const running = useSketch((s) => s.running);
+  const lit = useSketch((s) => s.lit);
+  const pressed = useSketch((s) => s.pressed);
+  const presses = useMemo(() => new Map(parts.map((p) => [p.id, pressButton(p.id)])), [parts]);
   const [target, setTarget] = useState<string | null>(null);
   const invalidate = useThree((s) => s.invalidate);
-  useEffect(() => invalidate(), [parts, target, removing, invalidate]);
+  useEffect(() => invalidate(), [parts, target, removing, lit, pressed, invalidate]);
 
   return (
     <group>
@@ -392,10 +400,12 @@ function Parts({ bench, removing, glow }: { bench: Bench; removing: boolean; glo
               at={p.at}
               glow={glow}
               removeHot={removing && target === p.id}
+              pressed={pressed.has(p.id)}
+              onPress={running && p.type === "pushbutton" && !removing ? presses.get(p.id) : undefined}
               {...(removing ? {} : { ...pinHandlers(partPins(bench, p).flatMap((pin) => (pin.terminal ? [] : [pin.hole]))), terminalHandlers })}
             />
           ) : (
-            <PartMesh part={p} a={endOf(bench, parts, p.a)!} b={endOf(bench, parts, p.b)!} hot={removing && target === p.id} />
+            <PartMesh part={p} a={endOf(bench, parts, p.a)!} b={endOf(bench, parts, p.b)!} hot={removing && target === p.id} on={lit.has(p.id)} />
           )}
         </group>
       ))}
