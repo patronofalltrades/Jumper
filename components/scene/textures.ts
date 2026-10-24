@@ -161,6 +161,9 @@ export function drawUno(bench: Bench): CanvasTexture {
   caption("DIGITAL (PWM ~)", (middle(headers[0].sockets) + middle(headers[1].sockets)) / 2, headers[0].z + 3.6);
   caption("POWER", middle(headers[2].sockets), headers[2].z - 3.6);
   caption("ANALOG IN", middle(headers[3].sockets), headers[3].z - 3.6);
+  // The L light on pin 13: its name beside it (issue #58).
+  const led = unoAt(outline, uno.led_l.u, uno.led_l.v);
+  caption("L", led.x + 1.1, led.z);
 
   const logo = unoAt(outline, 15, 13);
   g.textAlign = "center";

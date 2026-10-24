@@ -6,6 +6,7 @@ import { useCallback, useMemo, useRef, useSyncExternalStore, type ReactNode } fr
 import { Vector3, type Camera, type Object3D } from "three";
 import { Volt } from "@/components/art/volt";
 import text from "@/content/ui/build.json";
+import sketchText from "@/content/ui/sketch.json";
 import type { Bench } from "@/lib/circuit/bench";
 import { terminalAt, partPins, type Part } from "@/lib/circuit/parts";
 import type { Task } from "@/lib/content/schema";
@@ -193,8 +194,12 @@ function MistakeBody({ mistake }: { mistake: Mistake }) {
 }
 
 type LevelInfo = { eyebrow: string; title: string; goal: string; tasks: LevelTask[] };
-/** The level Check card: its state, and what its buttons do. */
-type CheckProps = { check: LevelCheck; onCheck: () => void; onClose: () => void };
+/**
+ * The level Check card: its state, and what its buttons do. `sketch`: the code step of the level, if it has one
+ * (issue #58). Until the sketch does the goal, the card opens the code panel, and the Check is off.
+ */
+export type SketchGate = { passed: boolean; open: () => void };
+type CheckProps = { check: LevelCheck; onCheck: () => void; onClose: () => void; sketch: SketchGate | null };
 
 function IntroBody({ eyebrow, title, goal, tasks }: LevelInfo) {
   return (
@@ -242,15 +247,29 @@ function heartsText(fails: number) {
 }
 
 /** The end of the tasks: Check the level. After a fail: the reason, the hearts, and "Fix the board". */
-function CheckBody({ check, onCheck, onClose }: { check: LevelCheck; onCheck: () => void; onClose: () => void }) {
+function CheckBody({ check, onCheck, onClose, sketch }: CheckProps) {
   const { xp, mistakes, fails } = useBoard((s) => s.progress);
   const bench = useBoard((s) => s.bench);
   const parts = useBoard((s) => s.parts);
   const empty = useEmptyBoard();
-  const button = (
+  const locked = !!sketch && !sketch.passed;
+  // A level with a code step that is not done: the main button opens the code panel, in place of Check.
+  const button = locked ? (
+    <PressButton onClick={sketch.open}>{sketchText.panel.open}</PressButton>
+  ) : (
     <PressButton onClick={onCheck} disabled={check.busy || empty} aria-describedby={empty ? EMPTY_NOTE : undefined} className="disabled:opacity-60">
       {check.busy ? text.play.check.checking : text.play.check.button}
     </PressButton>
+  );
+  const sketchNote = sketch && (
+    <div className="flex items-center gap-2 rounded-xl bg-muted px-3 py-2 text-sm leading-snug font-semibold">
+      <p className="flex-1">{locked ? sketchText.check.locked : sketchText.check.done}</p>
+      {!locked && (
+        <button type="button" onClick={sketch.open} className="shrink-0 rounded-lg px-1 text-primary underline underline-offset-2 outline-none focus-visible:ring-2 focus-visible:ring-ring">
+          {sketchText.panel.reopen}
+        </button>
+      )}
+    </div>
   );
   const emptyNote = empty && (
     <p id={EMPTY_NOTE} className="text-sm font-semibold text-muted-foreground">
@@ -269,6 +288,7 @@ function CheckBody({ check, onCheck, onClose }: { check: LevelCheck; onCheck: ()
         <p className="text-[15px] leading-snug font-semibold">{reasonText(bench, parts, check.failed)}</p>
         <p className="text-sm text-muted-foreground">{heartsText(fails)}</p>
         {check.error && <p role="alert" className="text-sm font-semibold text-destructive">{check.error}</p>}
+        {locked && sketchNote}
         {emptyNote}
         <div className="flex justify-end gap-2">
           <PressButton tone="plain" onClick={onClose}>
@@ -283,10 +303,10 @@ function CheckBody({ check, onCheck, onClose }: { check: LevelCheck; onCheck: ()
   return (
     <>
       <div className="flex items-center justify-between gap-2">
-        <h2 className="text-2xl leading-tight font-extrabold tracking-tight">{text.play.ready.title}</h2>
+        <h2 className="text-2xl leading-tight font-extrabold tracking-tight">{locked ? sketchText.check.title : text.play.ready.title}</h2>
         <Hearts fails={fails} />
       </div>
-      <p className="text-sm text-muted-foreground">{text.play.ready.text}</p>
+      <p className="text-sm text-muted-foreground">{locked ? sketchText.check.text : text.play.ready.text}</p>
       <dl className="grid grid-cols-2 gap-2">
         {[
           [text.play.ready.xp, xp],
@@ -299,6 +319,7 @@ function CheckBody({ check, onCheck, onClose }: { check: LevelCheck; onCheck: ()
         ))}
       </dl>
       {check.error && <p role="alert" className="text-sm font-semibold text-destructive">{check.error}</p>}
+      {sketchNote}
       {emptyNote}
       {/* The learner can close the card to fix the board, for example after removing parts. The Check button stays on the board. */}
       <div className="flex justify-end gap-2">

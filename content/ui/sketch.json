@@ -1,0 +1,87 @@
+{
+  "_note": "Text for the code step of build mode (issue #58), in ASD-STE100. lib/sketch fills in {line}, {name}, {sign}, {found}, {want}, {pin}, {what}, {suggest}, {led}, {on}, {off}, {want_on} and {want_off}. Each error starts with \"Line {line}: \", so the learner knows which line to fix. Use short words: the learner may never have seen code.",
+  "line": "Line {line}: {message}",
+  "errors": {
+    "unknown_sign": "Jumper does not know the sign {sign}. Check this line for a typing mistake.",
+    "unsupported_sign": "Jumper does not use the sign {sign} yet. To compare two values, use == or !=.",
+    "unsupported_text": "Jumper does not use text in quotes yet. Remove the quotes and the text between them.",
+    "unsupported_word": "Jumper does not run {name} yet. You can use int, const int, pinMode, digitalWrite, digitalRead, delay, if and else.",
+    "own_function": "Jumper does not run functions that you make yet. Use only setup() and loop().",
+    "unknown_function": "Jumper does not know the function {name}. You can use pinMode, digitalWrite, digitalRead and delay.",
+    "missing_semicolon": "Put a ; at the end of this line.",
+    "expected": "Put {want} here.",
+    "missing_close_brace": "This { has no }. Each { needs a } to close it.",
+    "extra_brace": "This } has no { before it. Remove it.",
+    "bad_value": "Jumper needs a value here, for example 13, HIGH, LOW or the name of a variable. It found {found}.",
+    "bad_statement": "Jumper does not understand {found} here.",
+    "unknown_name": "Jumper does not know {name}. Check the spelling. If it is a variable, make it first, for example: int {name} = 0;",
+    "unknown_name_case": "Jumper does not know {name}. Did you mean {suggest}? Big and small letters must be the same.",
+    "arg_count": "{name} needs {what}.",
+    "bad_mode": "The mode of pinMode must be INPUT, OUTPUT or INPUT_PULLUP.",
+    "not_a_value": "{name} does not give a value. Put it on its own line.",
+    "use_double_equals": "Use == to compare two values. One = puts a value into a variable.",
+    "const_change": "{name} is a const int, so you cannot change it.",
+    "fixed_name": "You cannot change {name}. It is a fixed name of the Arduino.",
+    "redeclare": "{name} is already made. Make each variable only one time.",
+    "const_needs_value": "A const int needs a value, for example: const int {name} = 13;",
+    "outside_function": "This line is outside setup() and loop(). Put it inside the { } of setup() or loop().",
+    "duplicate_function": "There are two {name}() functions. Keep only one.",
+    "no_setup": "Your sketch needs void setup() { }. It runs one time, at the start.",
+    "no_loop": "Your sketch needs void loop() { }. It runs again and again, after setup().",
+    "bad_pin": "The Uno has no pin {pin}. Use a pin from 0 to 13.",
+    "no_delay": "loop() runs again and again with no pause, so Jumper stopped the sketch. Add delay(10); at the end of loop()."
+  },
+  "functions": {
+    "pinMode": "two values: the pin and the mode",
+    "digitalWrite": "two values: the pin and HIGH or LOW",
+    "digitalRead": "one value: the pin",
+    "delay": "one value: the time in milliseconds"
+  },
+  "want": {
+    "(": "a (",
+    ")": "a )",
+    "{": "a {",
+    "=": "an =",
+    "name": "a name",
+    "function": "a function name, setup or loop"
+  },
+  "notes": {
+    "write_not_output": "Line {line}: Pin {pin} is not an OUTPUT, so it cannot light the LED. Add pinMode({pin}, OUTPUT); to setup().",
+    "read_floating": "Line {line}: Pin {pin} is an INPUT with no pull-up resistor, so it reads LOW even when nobody presses the button. Use INPUT_PULLUP in pinMode."
+  },
+  "goal": {
+    "pass": "Your sketch does the goal!",
+    "stays_off": "{led} stays off. It must turn on for {want_on} ms.",
+    "stays_on": "{led} stays on. It must turn off for {want_off} ms.",
+    "timing": "{led} is on for {on} ms and off for {off} ms. It must be on for {want_on} ms and off for {want_off} ms.",
+    "button_off": "{led} stays off when you press the button. It must turn on while you press it.",
+    "button_on": "{led} stays on when nobody presses the button. It must turn off when you let go.",
+    "button_inverted": "{led} does the opposite: it is on when nobody presses the button, and off when you press it. Swap HIGH and LOW.",
+    "button_unsteady": "{led} does not follow the button each time. It must be on while you press the button, and off when you let go."
+  },
+  "panel": {
+    "title": "Sketch",
+    "open": "Write the sketch",
+    "reopen": "See the sketch",
+    "close": "Close",
+    "run": "Run",
+    "stop": "Stop",
+    "reset": "Start again",
+    "resetConfirm": "Remove your code and start again with the first code?",
+    "hints": "Hints",
+    "editor": "Sketch code",
+    "running": "The sketch runs on the board.",
+    "runningButton": "The sketch runs on the board. Press the button on the board, or hold the button below.",
+    "press": "Hold to press the button",
+    "stopped": "The sketch stopped.",
+    "passNext": "Now close the sketch and press Check.",
+    "failTitle": "Not yet",
+    "noHeart": "A sketch that does not work does not cost a heart. Fix it and press Run again."
+  },
+  "check": {
+    "title": "Now write the sketch",
+    "text": "The wires are ready. Now tell the Uno what to do. Write the sketch, then press Run.",
+    "locked": "First, run a sketch that does the goal. Then press Check.",
+    "done": "Your sketch does the goal. Press Check to test your wires."
+  }
+}

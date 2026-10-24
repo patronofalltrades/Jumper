@@ -1,0 +1,88 @@
+{
+  "_note": "The code step of the Arduino Foundations levels (issue #58), by level position. It comes after the wiring tasks. task: the line in the task list. goal: what lib/sketch/goal.ts tests: \"blink\" (the LED is on for on_ms, then off for off_ms, again and again) or \"button\" (the LED is on only while the button is pressed). led: a part id on the board, or uno.L for the small LED marked L on the Uno (it is on pin 13). led_name: the name of the LED in the reason of a fail. starter: the first code, one string for each line. Write the text in ASD-STE100.",
+  "levels": {
+    "2": {
+      "task": "Write the sketch: make the LED blink once each second.",
+      "goal_text": "Make the LED on pin 13 blink: on for 500 ms, then off for 500 ms, again and again. That is one blink each second.",
+      "goal": { "kind": "blink", "led": "led1", "led_name": "The LED", "on_ms": 500, "off_ms": 500 },
+      "starter": [
+        "// Blink: the LED on pin 13 turns on and off, once each second.",
+        "const int ledPin = 13;",
+        "",
+        "void setup() {",
+        "  // Make pin 13 an output, so it can give power to the LED.",
+        "  pinMode(ledPin, OUTPUT);",
+        "}",
+        "",
+        "void loop() {",
+        "  digitalWrite(ledPin, HIGH); // The LED turns on.",
+        "  delay(1000);                // Wait 1000 ms (1 second).",
+        "  // To do: turn the LED off, then wait again.",
+        "}"
+      ],
+      "hints": [
+        "digitalWrite(ledPin, LOW); turns the LED off.",
+        "One blink each second: 500 ms on and 500 ms off. 500 + 500 = 1000 ms.",
+        "loop() runs again and again. After the last line, it starts again at the top."
+      ],
+      "source_url": "https://docs.arduino.cc/built-in-examples/basics/Blink/"
+    },
+    "3": {
+      "task": "Write the sketch: turn on the L light of the Uno while you press the button.",
+      "goal_text": "The Uno has a small LED marked L. It is on pin 13. Make it turn on while you press the button, and turn off when you let go.",
+      "goal": { "kind": "button", "led": "uno.L", "led_name": "The L light", "button": "btn1" },
+      "starter": [
+        "// Button: the L light on the Uno turns on while you press the button.",
+        "const int buttonPin = 2;",
+        "const int ledPin = 13; // The small LED marked L on the Uno.",
+        "",
+        "void setup() {",
+        "  pinMode(ledPin, OUTPUT);",
+        "  // To do: make buttonPin an input, with the pull-up resistor inside the Uno.",
+        "}",
+        "",
+        "void loop() {",
+        "  int state = digitalRead(buttonPin);",
+        "  // A pressed button joins pin 2 to ground, so the pin reads LOW.",
+        "  if (state == LOW) {",
+        "    // To do: turn the light on.",
+        "  } else {",
+        "    digitalWrite(ledPin, LOW);",
+        "  }",
+        "  delay(10); // A short pause, so the Uno does not run with no pause.",
+        "}"
+      ],
+      "hints": [
+        "pinMode(buttonPin, INPUT_PULLUP); turns on the pull-up resistor inside the Uno. Then the pin reads HIGH when nobody presses the button.",
+        "digitalWrite(ledPin, HIGH); turns the light on.",
+        "While the sketch runs, press the button on the board to test it."
+      ],
+      "source_url": "https://docs.arduino.cc/built-in-examples/digital/InputPullupSerial/"
+    },
+    "4": {
+      "task": "Write the sketch: turn on the LED on the breadboard while you press the button.",
+      "goal_text": "Make the LED on the breadboard turn on while you press the button, and turn off when you let go. Now you write all of the sketch.",
+      "goal": { "kind": "button", "led": "led1", "led_name": "The LED", "button": "btn1" },
+      "starter": [
+        "// Button and LED: the LED on the breadboard turns on while you press the button.",
+        "const int buttonPin = 2;",
+        "const int ledPin = 13;",
+        "",
+        "void setup() {",
+        "  // To do: make ledPin an output, and buttonPin an input with the pull-up resistor.",
+        "}",
+        "",
+        "void loop() {",
+        "  // To do: read the button. If it reads LOW (pressed), turn the LED on. Else, turn it off.",
+        "  delay(10);",
+        "}"
+      ],
+      "hints": [
+        "In setup(): pinMode(ledPin, OUTPUT); and pinMode(buttonPin, INPUT_PULLUP);",
+        "In loop(): if (digitalRead(buttonPin) == LOW) { … } else { … }",
+        "Look at your level 3 sketch. This sketch is almost the same."
+      ],
+      "source_url": "https://docs.arduino.cc/built-in-examples/digital/Button/"
+    }
+  }
+}

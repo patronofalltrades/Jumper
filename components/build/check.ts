@@ -22,7 +22,8 @@ export type LevelCheck = {
   error: string | null;
 };
 
-type Props = { user: string; project: string; position: number; rules: Rules };
+/** `needsSketch`: the level has a code step, so the Check waits until the sketch does the goal (issue #58). */
+type Props = { user: string; project: string; position: number; rules: Rules; needsSketch: boolean };
 
 /** True when the learner placed no part in this level. The Check button is then off, with a note (issue #27). */
 export const useEmptyBoard = () => useBoard((s) => isEmptyBoard(s.parts, s.base));
@@ -30,13 +31,16 @@ export const useEmptyBoard = () => useBoard((s) => isEmptyBoard(s.parts, s.base)
 /** The id of the note under a Check button that is off. The button points to it with aria-describedby. */
 export const EMPTY_NOTE = "check-empty-note";
 
-export function useLevelCheck({ user, project, position, rules }: Props) {
+/** True when the level has a code step and the sketch did not do the goal yet. The Check is off; it costs no heart. */
+export const useSketchLock = (needsSketch: boolean) => useBoard((s) => needsSketch && !s.codePassed);
+
+export function useLevelCheck({ user, project, position, rules, needsSketch }: Props) {
   const router = useRouter();
   const [state, setState] = useState<LevelCheck>({ open: true, busy: false, failed: null, error: null });
 
   const check = async () => {
-    const { bench, parts, base, progress } = boardStore.getState();
-    if (progress.phase !== "ready_to_check" || state.busy || isEmptyBoard(parts, base)) return;
+    const { bench, parts, base, progress, codePassed } = boardStore.getState();
+    if (progress.phase !== "ready_to_check" || state.busy || isEmptyBoard(parts, base) || (needsSketch && !codePassed)) return;
     const session = readSavedLevel(user, project, position)?.session;
     if (!session) return setState({ open: true, busy: false, failed: null, error: text.play.check.noSession });
 

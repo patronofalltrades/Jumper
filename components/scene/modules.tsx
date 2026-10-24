@@ -36,9 +36,13 @@ type Props = {
   onClick?: (e: ThreeEvent<MouseEvent>) => void;
   /** Pointer handlers for a screw of the terminal, from its id ("amp1.OUT+"). */
   terminalHandlers?: (terminal: string) => Handlers;
+  /** A button: held down now, by the learner, while a sketch runs (issue #58). */
+  pressed?: boolean;
+  /** A button while a sketch runs: a press on its cap pushes it down, and letting go lets it up. */
+  onPress?: (down: boolean) => void;
 };
 
-export function ModuleMesh({ bench, id, type, at, glow, removeHot, onPointerMove, onClick, terminalHandlers }: Props) {
+export function ModuleMesh({ bench, id, type, at, glow, removeHot, onPointerMove, onClick, terminalHandlers, pressed = false, onPress }: Props) {
   const fp = FOOTPRINTS[type];
   const layout = useMemo(() => {
     const pins = footprintHoles(bench, type, at) ?? [];
@@ -92,12 +96,7 @@ export function ModuleMesh({ bench, id, type, at, glow, removeHot, onPointerMove
           </group>
         );
       })}
-      {type === "pushbutton" && (
-        <mesh position={[(x0 + x1) / 2, y + PCB_T + 0.3, (z0 + z1) / 2]} castShadow raycast={() => null}>
-          <cylinderGeometry args={[0.75, 0.75, 0.6, 24]} />
-          <meshStandardMaterial color="#1F2225" roughness={0.5} {...tint} />
-        </mesh>
-      )}
+      {type === "pushbutton" && <ButtonCap x={(x0 + x1) / 2} z={(z0 + z1) / 2} y={y + PCB_T} pressed={pressed} onPress={onPress} tint={tint} />}
       {type === "inmp441" && (
         <mesh position={[(x0 + x1) / 2, y + PCB_T + 0.12, z0 + 0.6]} castShadow raycast={() => null}>
           <cylinderGeometry args={[0.3, 0.3, 0.24, 20]} />
@@ -113,6 +112,51 @@ export function ModuleMesh({ bench, id, type, at, glow, removeHot, onPointerMove
         />
       )}
       {type === "st7789-154" && <Display x0={x0} x1={x1} z={z0} y={y + PCB_T} />}
+    </group>
+  );
+}
+
+/**
+ * The round cap of a button. While a sketch runs, it takes the pointer: press it to push the button down, let go
+ * (anywhere) to let it up. A pushed cap sits lower and has a green ring.
+ */
+function ButtonCap({ x, z, y, pressed, onPress, tint }: { x: number; z: number; y: number; pressed: boolean; onPress?: (down: boolean) => void; tint: object }) {
+  useEffect(() => {
+    if (!onPress) return;
+    const up = () => onPress(false);
+    window.addEventListener("pointerup", up);
+    window.addEventListener("pointercancel", up);
+    return () => {
+      window.removeEventListener("pointerup", up);
+      window.removeEventListener("pointercancel", up);
+    };
+  }, [onPress]);
+  return (
+    <group>
+      {/* A new mesh when the cap starts to take the pointer: a mesh made with raycast={() => null} does not get its own raycast back. */}
+      <mesh
+        key={onPress ? "press" : "still"}
+        position={[x, y + (pressed ? 0.15 : 0.3), z]}
+        castShadow
+        raycast={onPress ? undefined : () => null}
+        onPointerDown={
+          onPress &&
+          ((e) => {
+            e.stopPropagation();
+            onPress(true);
+          })
+        }
+        onClick={onPress && ((e) => e.stopPropagation())}
+      >
+        <cylinderGeometry args={[0.75, 0.75, pressed ? 0.3 : 0.6, 24]} />
+        <meshStandardMaterial color={pressed ? "#2B3A33" : "#1F2225"} roughness={0.5} {...tint} />
+      </mesh>
+      {onPress && (
+        <mesh position={[x, y + 0.02, z]} rotation={[-Math.PI / 2, 0, 0]} raycast={() => null}>
+          <ringGeometry args={[0.85, 1.05, 32]} />
+          <meshBasicMaterial color={pressed ? "#3BE07F" : "#e3a008"} />
+        </mesh>
+      )}
     </group>
   );
 }

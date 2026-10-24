@@ -14,6 +14,13 @@
   --probe: #e3a008;
   --danger: #c9412f;
   --shadow: 0 10px 30px rgba(19, 32, 42, 0.12);
+  /* Code colors of the sketch editor (issue #58). */
+  --code-keyword: #8a3ffc;
+  --code-function: #1f62c4;
+  --code-number: #b0590a;
+  --code-constant: #1f7a55;
+  --code-comment: #6b7c87;
+  --code-error: rgba(201, 65, 47, 0.14);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -30,6 +37,12 @@
     --probe: #f2b705;
     --danger: #e26a5b;
     --shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+    --code-keyword: #c49bff;
+    --code-function: #7fb2ff;
+    --code-number: #f0a660;
+    --code-constant: #5fd3a0;
+    --code-comment: #8ea1ad;
+    --code-error: rgba(226, 106, 91, 0.22);
     color-scheme: dark;
   }
 }
