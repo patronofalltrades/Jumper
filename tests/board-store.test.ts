@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { loadBoards, startBoard } from "@/lib/content/boards";
 import { loadProjects } from "@/lib/content/load";
 import { createBoardStore } from "@/lib/game/board-store";
+import { levelKey } from "@/lib/game/level-key";
 
 const tap = (store: ReturnType<typeof createBoardStore>, ...holes: string[]) => holes.forEach((h) => store.getState().tapHole(h));
 
@@ -208,6 +209,37 @@ describe("board store: build mode", () => {
     tap(store, "amp1.OUT+", "amp1.OUT-");
     expect(store.getState().parts.map((p) => p.id)).toEqual(["amp1", "spk1"]);
     store.getState().removePart("amp1");
+    expect(store.getState().parts).toEqual([]);
+  });
+});
+
+describe("board store, two users on one tab (issue #64)", () => {
+  const wire = { id: "w1", type: "wire" as const, a: "A-a3", b: "A-a9", color: "#D63A2F" };
+
+  it("gives user B an empty board when user A built on the same level", () => {
+    const store = createBoardStore();
+    store.getState().open(levelKey("user-a", "perch", 1), { parts: [] });
+    tap(store, "A-a3", "A-a9");
+    expect(store.getState().parts).toHaveLength(1);
+    store.getState().open(levelKey("user-b", "perch", 1), { parts: [] });
+    expect(store.getState().parts).toEqual([]);
+  });
+
+  it("keeps the board when the same user comes back to the level", () => {
+    const store = createBoardStore();
+    store.getState().open(levelKey("user-a", "perch", 1), { parts: [] });
+    tap(store, "A-a3", "A-a9");
+    store.getState().open(levelKey("user-a", "perch", 1), { parts: [] });
+    expect(store.getState().parts).toHaveLength(1);
+  });
+
+  it("reset empties the board, so the next open starts from its setup", () => {
+    const store = createBoardStore();
+    store.getState().open(levelKey("user-a", "perch", 1), { parts: [wire] });
+    store.getState().reset();
+    expect(store.getState().level).toBeNull();
+    expect(store.getState().parts).toEqual([]);
+    store.getState().open(levelKey("user-a", "perch", 1), { parts: [] });
     expect(store.getState().parts).toEqual([]);
   });
 });
