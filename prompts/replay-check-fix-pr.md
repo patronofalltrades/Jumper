@@ -59,7 +59,7 @@ NOTICE:  record_attempt replay test: all checks pass
 
 - `npm run lint`, `npm run typecheck`, `npx vitest run` (344 tests) and `npm run build`: pass. The build used placeholder Supabase values.
 - The SQL test ran on a throwaway local Postgres 16 with the stub `auth` schema. Nothing ran on the live Supabase project.
-- **Not checked:** the Check in a browser with the real project (a replay needs a real session and the new migration).
+- **Browser check** on a local production build of this branch, with the real Supabase project (migration applied) and a temporary account, deleted after (0 rows left): 24 of 24 checks pass. First pass of level 1: 130 XP. Broken replay (3V3 wire removed): a new session, the reason, 1 heart lost, an attempt saved, no Level complete. Replay pass: its own session, 0 XP, "Replay complete!", the time of the replay. A counter change on a replay: no "could not save" error. First pass of level 2: XP. Phone size (390 × 844): the broken replay fails. No page errors. Not checked: the Vercel app (not deployed yet).
 
 ## After the merge (Hanif)
 
