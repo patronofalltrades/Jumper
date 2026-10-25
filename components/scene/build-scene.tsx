@@ -373,7 +373,9 @@ function Parts({ bench, removing, glow }: { bench: Bench; removing: boolean; glo
   const presses = useMemo(() => new Map(parts.map((p) => [p.id, pressButton(p.id)])), [parts]);
   const [target, setTarget] = useState<string | null>(null);
   const invalidate = useThree((s) => s.invalidate);
-  useEffect(() => invalidate(), [parts, target, removing, lit, pressed, invalidate]);
+  useEffect(() => {
+    invalidate();
+  }, [parts, target, removing, lit, pressed, invalidate]);
 
   return (
     <group>

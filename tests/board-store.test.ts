@@ -243,3 +243,79 @@ describe("board store, two users on one tab (issue #64)", () => {
     expect(store.getState().parts).toEqual([]);
   });
 });
+
+describe("board store: undo, remove and put back (issue #63)", () => {
+  const level1 = () => {
+    const perch = loadProjects().find((p) => p.slug === "perch")!;
+    const level = perch.levels[0];
+    const store = createBoardStore();
+    store.getState().open("perch/1", {
+      plan: { tasks: level.tasks.map((t) => ({ target: t.target, xp: t.xp })), forbid: level.rules.forbid },
+      parts: startBoard(perchBoards, 1),
+    });
+    store.getState().start();
+    for (let i = 0; i < 3; i++) store.getState().ack();
+    return store;
+  };
+  const [w1, w2, w3, w4] = perchBoards.levels[1].filter((p) => p.type === "wire").map((p) => p as { a: string; b: string });
+  const wire = (store: ReturnType<typeof createBoardStore>, w: { a: string; b: string }) => tap(store, w.a, w.b);
+
+  it("B1: Undo a correct wire, then put the same wire back: no mistake, no new XP", () => {
+    const store = level1();
+    wire(store, w1);
+    wire(store, w2);
+    const { xp, tasksDone } = store.getState().progress;
+    store.getState().undo();
+    wire(store, w2);
+    expect(store.getState().progress).toMatchObject({ phase: "task", mistakes: 0, xp, tasksDone });
+    expect(store.getState().flash?.kind).toBe("snap");
+  });
+
+  it("B2: Remove a correct wire with the Remove tool, then put it back: no mistake", () => {
+    const store = level1();
+    wire(store, w1);
+    wire(store, w2);
+    store.getState().setTool("remove");
+    tap(store, w1.a);
+    store.getState().setTool("wire");
+    wire(store, w1);
+    expect(store.getState().progress).toMatchObject({ phase: "task", mistakes: 0 });
+  });
+
+  it("B3: Remove a correct wire, then Undo: no mistake", () => {
+    const store = level1();
+    wire(store, w1);
+    wire(store, w2);
+    store.getState().removePart("w1");
+    store.getState().undo();
+    expect(store.getState().progress).toMatchObject({ phase: "task", mistakes: 0 });
+  });
+
+  it("B4: after Undo, the task goes back to the undone task, and the XP stays", () => {
+    const store = level1();
+    wire(store, w1);
+    const after1 = store.getState().progress;
+    wire(store, w2);
+    store.getState().undo();
+    expect(store.getState().progress).toMatchObject({ index: after1.index, tasksDone: after1.tasksDone + 1 });
+    expect(store.getState().tool).toBe("wire");
+  });
+
+  it("B5: Undo all the parts after the last task: the level goes back to the first task that is not done", () => {
+    const store = level1();
+    for (const w of [w1, w2, w3, w4]) wire(store, w);
+    expect(store.getState().progress.phase).toBe("ready_to_check");
+    for (let i = 0; i < 4; i++) store.getState().undo();
+    expect(store.getState().history).toEqual([]);
+    expect(store.getState().progress).toMatchObject({ phase: "task", index: 3, mistakes: 0 });
+  });
+
+  it("shows the 'what happened' pop-up only for a task done the first time", () => {
+    const store = level1();
+    wire(store, w1);
+    store.getState().seen();
+    store.getState().undo();
+    wire(store, w1);
+    expect(store.getState().done).toBeNull();
+  });
+});

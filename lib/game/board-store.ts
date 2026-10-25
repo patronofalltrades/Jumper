@@ -31,7 +31,7 @@ export type LevelSetup = { bench?: Bench; plan?: Plan; parts?: Part[]; base?: Pa
 
 export type BoardState = {
   bench: Bench;
-  /** The level that this board belongs to, for example "perch/1". */
+  /** The level that this board belongs to, for example "<user>:perch/1" (`levelKey`). */
   level: string | null;
   parts: Part[];
   /** The board that the level opened with. The level Check is off until the learner places a part (issue #27). */
@@ -99,7 +99,7 @@ export function createBoardStore(defaultBench: Bench = perchBench()) {
       const finished = event.type === "change" && next.progress.tasksDone > progress.tasksDone;
       return {
         progress: next.progress,
-        ...(finished && { done: progress.index }),
+        ...(finished && { done: progress.reached }),
         tool: (next.progress.phase === "task" && task && taskTool(task.target)) || tool,
         ...(next.effect && { flash: { kind: next.effect, holes: parts.flatMap((p) => partPins(bench, p).map((pin) => pin.hole)), at: Date.now() } }),
       };

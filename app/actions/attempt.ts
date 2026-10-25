@@ -17,7 +17,11 @@ const attempt = z
   })
   .refine((a) => a.passed === (a.mistakeType === null));
 
-export type AttemptResult = { completed?: boolean; fails?: number; error?: string };
+/** `closed`: the session is not in progress (a replay of a passed level). The app starts a new session (issue #62). */
+export type AttemptResult = { completed?: boolean; fails?: number; closed?: boolean; error?: string };
+
+/** The SQL error code that record_attempt raises for a session that is not in progress. */
+const SESSION_CLOSED = "JS001";
 
 /** Saves one Check. Gives the failed Checks of the session so far, and whether the session is completed. */
 export async function recordAttempt(input: z.infer<typeof attempt>): Promise<AttemptResult> {
@@ -33,6 +37,7 @@ export async function recordAttempt(input: z.infer<typeof attempt>): Promise<Att
     p_mistakes: mistakes,
     p_task_xp: xp,
   });
+  if (error?.code === SESSION_CLOSED) return { closed: true };
   if (error) return { error: "We could not save your Check. Try again." };
   return data as { completed: boolean; fails: number };
 }

@@ -96,7 +96,7 @@ export function BuildView({ user, project, levelId, position, eyebrow, title, go
   const plan: Plan = useMemo(() => ({ tasks: tasks.map((t) => ({ target: t.target, xp: t.xp })), forbid: rules.forbid }), [tasks, rules]);
   const bench = useMemo(() => createBench(spec), [spec]);
   const saveError = useLevel({ user, project, levelId, position, bench, plan, start, carry });
-  const levelCheck = useLevelCheck({ user, project, position, rules, needsSketch: !!sketch });
+  const levelCheck = useLevelCheck({ user, project, levelId, position, rules, needsSketch: !!sketch });
   const locked = useSketchLock(!!sketch);
   const codePassed = useBoard((s) => s.codePassed);
   // The code panel: beside the board on a laptop, under it on a phone. The board stays in view, so the learner sees the LEDs.
