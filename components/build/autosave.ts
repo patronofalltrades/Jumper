@@ -23,13 +23,15 @@ const savedSchema = z.object({
   progress: z.object({
     phase: z.enum(["intro", "task", "mistake", "ready_to_check"]),
     index: z.number().int().nonnegative(),
+    /** A board saved before issue #63 does not have it: the learner had got to the task of the pop-up. */
+    reached: z.number().int().nonnegative().optional(),
     tasksDone: z.number().int().nonnegative(),
     mistakes: z.number().int().nonnegative(),
     xp: z.number().int().nonnegative(),
     mistake: z.object({ code: z.string(), message: z.string().optional(), parts: z.array(z.string()) }).nullable(),
     swaps: z.array(z.string()),
     fails: z.number().int().nonnegative().default(0),
-  }),
+  }).transform((p) => ({ ...p, reached: p.reached ?? p.index })),
   session: z.string().optional(),
   /** The level was passed in this browser. When it opens again, it is a replay, and a replay gives no XP (issue #62). */
   done: z.boolean().optional(),

@@ -8,6 +8,8 @@ import { checkHole, checkModule, isTerminal, LEG_NAMES, partPins, terminalAt, ty
 //
 //   intro → task ⇄ mistake
 //   task → task (next task) → … → ready_to_check
+// The engine reads the board as it is now. A part that goes takes the learner back to the first task that the board
+// does not do (ready_to_check → task); a part that comes back is not a mistake when it does such a task (issue #63).
 // In ready_to_check the learner presses Check (lib/circuit/check.ts). A fail costs a heart; a pass ends the level.
 
 export type Connection = { a: string; b: string };
@@ -24,8 +26,10 @@ export type Mistake = { code: string; message?: string; parts: string[] };
 
 export type Progress = {
   phase: Phase;
-  /** The task to do now. Equal to the task count when all tasks are done. */
+  /** The task to do now: the first task that the board does not do, or `reached`. Equal to the task count when all tasks are done. */
   index: number;
+  /** The highest task index that the learner got to. The tasks below it were done once; tasksDone and xp count them once. */
+  reached: number;
   tasksDone: number;
   mistakes: number;
   xp: number;
@@ -47,7 +51,7 @@ export type EngineEvent =
 /** A correct change snaps in. A wrong one buzzes. */
 export type Effect = "snap" | "buzz" | null;
 
-export const startProgress = (): Progress => ({ phase: "intro", index: 0, tasksDone: 0, mistakes: 0, xp: 0, mistake: null, swaps: [], fails: 0 });
+export const startProgress = (): Progress => ({ phase: "intro", index: 0, reached: 0, tasksDone: 0, mistakes: 0, xp: 0, mistake: null, swaps: [], fails: 0 });
 
 const LEG_TYPES = Object.keys(LEG_NAMES) as LegType[];
 
@@ -125,10 +129,26 @@ function taskState(bench: Bench, parts: Part[], nets: Nets, plan: Plan, index: n
   return ok ? { done: true, swaps } : { done: false, wrongPlace: true };
 }
 
-/** Finishes the task at `progress.index`, and the tasks after it that the bench already does. */
+/**
+ * The tasks below `reached` that the parts do now, and the side choices that go with them. A task that needs only
+ * "Got it" stays done. The tasks from `reached` on are not done: the learner did not get to them.
+ */
+function doneTasks(bench: Bench, plan: Plan, parts: Part[], reached: number, swaps: string[]) {
+  const nets = buildNets(bench, parts);
+  const done = plan.tasks.map((task, i) => {
+    if (i >= reached) return false;
+    if (needsAck(task.target)) return true;
+    const state = taskState(bench, parts, nets, plan, i, swaps);
+    if (state.done) swaps = state.swaps;
+    return state.done;
+  });
+  return { done, swaps, gap: done.findIndex((d, i) => i < reached && !d) };
+}
+
+/** Finishes the task at `progress.reached` for the first time, and the tasks after it that the bench already does. */
 function advance(bench: Bench, plan: Plan, parts: Part[], progress: Progress, swaps: string[]): Progress {
   const nets = buildNets(bench, parts);
-  let { index, tasksDone, xp } = progress;
+  let { reached: index, tasksDone, xp } = progress;
   for (;;) {
     tasksDone += 1;
     xp += plan.tasks[index].xp;
@@ -139,7 +159,7 @@ function advance(bench: Bench, plan: Plan, parts: Part[], progress: Progress, sw
     swaps = next.swaps;
   }
   const phase = index >= plan.tasks.length ? "ready_to_check" : "task";
-  return { ...progress, phase, index, tasksDone, xp, swaps, mistake: null };
+  return { ...progress, phase, index, reached: index, tasksDone, xp, swaps, mistake: null };
 }
 
 const ids = (parts: Part[]) => new Set(parts.map((p) => p.id));
@@ -154,22 +174,30 @@ export function step(bench: Bench, plan: Plan, progress: Progress, event: Engine
       return progress.phase === "intro" ? { progress: { ...progress, phase: plan.tasks.length ? "task" : "ready_to_check" }, effect: null } : same;
 
     case "ack":
-      if (!active || !needsAck(plan.tasks[progress.index].target)) return same;
+      if (!active || progress.index !== progress.reached || !needsAck(plan.tasks[progress.index].target)) return same;
       return { progress: advance(bench, plan, event.parts, progress, progress.swaps), effect: "snap" };
 
     case "dismiss":
       return progress.phase === "mistake" ? { progress: { ...progress, phase: "task", mistake: null }, effect: null } : same;
 
     case "change": {
-      if (!active) return same;
+      if (!active && progress.phase !== "ready_to_check") return same;
       const before = ids(event.before);
       const added = event.after.filter((p) => !before.has(p.id)).map((p) => p.id);
+      const { reached } = progress;
 
-      // A removal or an undo: if the wrong parts are gone, the mistake is over.
+      // What the board does now. `gap` is the first task below `reached` that it does not do: the task to go back to.
+      const now = doneTasks(bench, plan, event.after, reached, progress.swaps);
+      const index = now.gap === -1 ? reached : now.gap;
+
+      // A removal or an undo: if the wrong parts are gone, the mistake is over. A part that goes can undo a task.
       if (!added.length) {
         const after = ids(event.after);
-        const fixed = progress.mistake && progress.mistake.parts.every((id) => !after.has(id));
-        return fixed ? { progress: { ...progress, phase: "task", mistake: null }, effect: null } : same;
+        const fixed = !!progress.mistake && progress.mistake.parts.every((id) => !after.has(id));
+        const phase = fixed || (progress.phase === "ready_to_check" && index < plan.tasks.length) ? "task" : progress.phase;
+        const mistake = fixed ? null : progress.mistake;
+        if (index === progress.index && phase === progress.phase && mistake === progress.mistake) return same;
+        return { progress: { ...progress, phase, index, mistake, swaps: now.swaps }, effect: null };
       }
 
       const netsBefore = buildNets(bench, event.before);
@@ -178,16 +206,21 @@ export function step(bench: Bench, plan: Plan, progress: Progress, event: Engine
         (f) => linked(bench, event.after, netsAfter, f, progress.swaps) && !linked(bench, event.before, netsBefore, f, progress.swaps),
       );
       const wrong = (mistake: Mistake) => ({
-        progress: { ...progress, phase: "mistake" as const, mistakes: progress.mistakes + 1, mistake },
+        progress: { ...progress, phase: "mistake" as const, index, mistakes: progress.mistakes + 1, mistake },
         effect: "buzz" as const,
       });
       if (broken) return wrong({ code: broken.code, message: broken.message, parts: added });
 
-      const state = taskState(bench, event.after, netsAfter, plan, progress.index, progress.swaps);
-      if (state.done) return { progress: advance(bench, plan, event.after, progress, state.swaps), effect: "snap" };
+      // A part that does a task that the board did not do before is not a mistake, even if the task is an earlier one.
+      const wasDone = doneTasks(bench, plan, event.before, reached, progress.swaps).done;
+      const redone = now.done.some((d, i) => d && !wasDone[i]);
+      const state = index < plan.tasks.length ? taskState(bench, event.after, netsAfter, plan, index, now.swaps) : null;
+      if (now.gap === -1 && state?.done) return { progress: advance(bench, plan, event.after, { ...progress, index }, state.swaps), effect: "snap" };
+      if (redone) return { progress: { ...progress, phase: index < plan.tasks.length ? "task" : "ready_to_check", index, mistake: null, swaps: now.swaps }, effect: "snap" };
+      if (progress.phase === "ready_to_check") return same;
 
       const addedWire = event.after.some((p) => added.includes(p.id) && p.type === "wire");
-      return wrong({ code: state.wrongPlace ? "wrong_place" : addedWire ? "wrong_wire" : "wrong_part", parts: added });
+      return wrong({ code: state && !state.done && state.wrongPlace ? "wrong_place" : addedWire ? "wrong_wire" : "wrong_part", parts: added });
     }
   }
 }
@@ -198,19 +231,11 @@ export type TaskMark = "done" | "now" | "todo";
 /**
  * The marks of the task list (issue #52). A tick comes from the board as it is now: remove a wire and the tick of its
  * task goes; put it back and the tick comes back. A task that needs only "Got it" is done when the learner pressed it.
- * Only the tasks that the learner reached can be done. "Now" is the task of the pop-up, or, after the last task, the
+ * Only the tasks that the learner reached (below `progress.reached`) can be done. "Now" is the task of the pop-up, or, after the last task, the
  * first task that is not done.
  */
 export function taskMarks(bench: Bench, plan: Plan, parts: Part[], progress: Progress): TaskMark[] {
-  const nets = buildNets(bench, parts);
-  let swaps = progress.swaps;
-  const done = plan.tasks.map((task, i) => {
-    if (i >= progress.index) return false;
-    if (needsAck(task.target)) return true;
-    const state = taskState(bench, parts, nets, plan, i, swaps);
-    if (state.done) swaps = state.swaps;
-    return state.done;
-  });
+  const { done } = doneTasks(bench, plan, parts, progress.reached, progress.swaps);
   const now = progress.phase === "ready_to_check" ? done.indexOf(false) : progress.index;
   return done.map((d, i) => (d ? "done" : i === now ? "now" : "todo"));
 }
