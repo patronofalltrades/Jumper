@@ -3,7 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
-import { logOut } from "@/app/actions/auth";
+import { LogOutForm } from "@/components/auth/log-out-form";
 import { BoardArt } from "@/components/art/board-art";
 import { Backdrop } from "@/components/backdrop";
 import { CardRow } from "@/components/card-row";
@@ -59,11 +59,11 @@ async function Lobby({ tab }: { tab: Tab }) {
           <Link href="/profile" aria-label="Profile" className="shrink-0 rounded-full ring-white/30 hover:ring-2">
             <Image src={avatarSrc(profile?.avatar)} alt="" width={36} height={36} className="size-9 rounded-full" />
           </Link>
-          <form action={logOut}>
+          <LogOutForm>
             <button type="submit" className="rounded-full px-3 py-1.5 text-sm font-semibold text-white/80 hover:bg-white/10 hover:text-white">
               Log out
             </button>
-          </form>
+          </LogOutForm>
         </div>
       </header>
 

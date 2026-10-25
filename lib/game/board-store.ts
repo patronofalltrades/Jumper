@@ -31,7 +31,7 @@ export type LevelSetup = { bench?: Bench; plan?: Plan; parts?: Part[]; base?: Pa
 
 export type BoardState = {
   bench: Bench;
-  /** The level that this board belongs to, for example "perch/1". */
+  /** The level that this board belongs to, for example "<user>:perch/1" (`levelKey`). */
   level: string | null;
   parts: Part[];
   /** The board that the level opened with. The level Check is off until the learner places a part (issue #27). */
@@ -60,6 +60,8 @@ export type BoardState = {
 
   /** Opens the board of a level. A different level starts from `setup`, or an empty bench; the same level keeps its state. */
   open: (level: string, setup?: LevelSetup) => void;
+  /** Empties the board, for example when the user logs out. The next `open` starts from its setup (issue #64). */
+  reset: () => void;
   /** Start in the intro, "Got it" on a part that is always on the bench, "Try again" on a mistake. */
   start: () => void;
   ack: () => void;
@@ -111,14 +113,14 @@ export function createBoardStore(defaultBench: Bench = perchBench()) {
     };
     const commit = (parts: Part[]) => change(parts, [...get().history, get().parts]);
 
-    return {
+    const empty = () => ({
       bench: defaultBench,
       level: null,
       parts: [],
       base: [],
       history: [],
-      tool: "wire",
-      wireColor: WIRE_COLORS[0].hex,
+      tool: "wire" as Tool,
+      wireColor: WIRE_COLORS[0].hex as string,
       pending: null,
       hover: null,
       notice: null,
@@ -129,6 +131,10 @@ export function createBoardStore(defaultBench: Bench = perchBench()) {
       readOnly: false,
       code: null,
       codePassed: false,
+    });
+
+    return {
+      ...empty(),
 
       open: (level, setup = {}) => {
         if (level === get().level) return;
@@ -153,6 +159,7 @@ export function createBoardStore(defaultBench: Bench = perchBench()) {
           codePassed: setup.codePassed ?? false,
         });
       },
+      reset: () => set(empty()),
       start: () => set(play({ type: "start" })),
       ack: () => set(play({ type: "ack", parts: get().parts })),
       dismiss: () => set(play({ type: "dismiss" })),

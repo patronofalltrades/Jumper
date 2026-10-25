@@ -9,6 +9,7 @@ import { partSchema } from "@/lib/content/schema";
 import { boardStore, type LevelSetup } from "@/lib/game/board-store";
 import { replayProgress } from "@/lib/game/check-flow";
 import type { Plan, Progress } from "@/lib/game/engine";
+import { levelKey } from "@/lib/game/level-key";
 
 // The board that the learner is building saves itself in this browser (PLAN.md section 3). A level starts with:
 // 1. its own saved board and progress, if the browser has them;
@@ -157,7 +158,8 @@ export function useLevel({ user, project, levelId, position, bench, plan, start,
     const setup: LevelSetup = own
       ? { bench, plan, parts: own.parts as Part[], base: (own.base ?? start) as Part[], progress: replayProgress(own.progress, own.done) as Progress, code: own.sketch?.code, codePassed: own.sketch?.passed }
       : { bench, plan, parts: before?.progress.phase === "ready_to_check" ? (before.parts as Part[]) : start };
-    boardStore.getState().open(`${project}/${position}`, setup);
+    const open = levelKey(user, project, position);
+    boardStore.getState().open(open, setup);
 
     let alive = true;
     let timer: ReturnType<typeof setTimeout> | undefined;
@@ -191,7 +193,7 @@ export function useLevel({ user, project, levelId, position, bench, plan, start,
 
     const save = () => {
       const { progress, level } = boardStore.getState();
-      if (level !== `${project}/${position}`) return;
+      if (level !== open) return;
       put(key, current());
       // Wait for a pause, so that fast work sends one request.
       clearTimeout(timer);
