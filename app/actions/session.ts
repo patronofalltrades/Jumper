@@ -1,6 +1,7 @@
 "use server";
 
 import { z } from "zod";
+import { replayStart } from "@/lib/game/check-flow";
 import { createClient } from "@/lib/supabase/server";
 
 // Build mode saves one session row for each sitting on a level (TRD 8.1 and 9). Row-level security keeps each row to
@@ -17,12 +18,15 @@ const counters = z.object({
 /** `closed`: the session is not in progress (it is completed), so the app must start a new one (issue #62). */
 export type SessionResult = { id?: string; closed?: boolean; error?: string };
 
-/** Adds a session row with the status in_progress, and gives its id. */
-export async function startSession(level: number): Promise<SessionResult> {
+/**
+ * Adds a session row with the status in_progress, and gives its id. A replay can give the time when the learner opened
+ * the level (`openedAt`), so that the time on Level complete is the time of the replay (issue #62).
+ */
+export async function startSession(level: number, openedAt?: string): Promise<SessionResult> {
   const parsed = levelId.safeParse(level);
   if (!parsed.success) return { error: "This level does not exist." };
   const supabase = await createClient();
-  const { data, error } = await supabase.from("sessions").insert({ level_id: parsed.data }).select("id").single();
+  const { data, error } = await supabase.from("sessions").insert({ level_id: parsed.data, started_at: replayStart(openedAt, Date.now()) }).select("id").single();
   if (error) return { error: "We could not save your progress. Your board is still saved on this device." };
   return { id: data.id };
 }

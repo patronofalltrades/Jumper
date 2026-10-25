@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { opensLevelComplete, withFreshSession } from "@/lib/game/check-flow";
+import { opensLevelComplete, replayProgress, replayStart, withFreshSession } from "@/lib/game/check-flow";
 
 describe("Level complete opens", () => {
   it("only when the browser check passed and the server completed the session", () => {
@@ -43,5 +43,29 @@ describe("withFreshSession", () => {
     const out = await withFreshSession("old", send, async () => undefined);
     expect(send).toHaveBeenCalledTimes(1);
     expect(out).toEqual({ result: { closed: true }, session: "old" });
+  });
+});
+
+describe("replayStart", () => {
+  const now = Date.parse("2026-10-25T12:00:00.000Z");
+  it("keeps the time when the level was opened", () => {
+    expect(replayStart("2026-10-25T11:58:00.000Z", now)).toBe("2026-10-25T11:58:00.000Z");
+  });
+  it("drops a time that is not valid, in the future, or more than a day old", () => {
+    expect(replayStart(undefined, now)).toBeUndefined();
+    expect(replayStart("yesterday", now)).toBeUndefined();
+    expect(replayStart("2026-10-25T12:05:00.000Z", now)).toBeUndefined();
+    expect(replayStart("2026-10-24T11:59:00.000Z", now)).toBeUndefined();
+  });
+});
+
+describe("replayProgress", () => {
+  const progress = { xp: 70, tasksDone: 7 };
+  it("gives a passed level 0 XP, because a replay gives no XP", () => {
+    expect(replayProgress(progress, true)).toEqual({ xp: 0, tasksDone: 7 });
+  });
+  it("does not change a level that was not passed", () => {
+    expect(replayProgress(progress, false)).toBe(progress);
+    expect(replayProgress(progress, undefined)).toBe(progress);
   });
 });

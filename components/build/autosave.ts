@@ -7,6 +7,7 @@ import type { Bench } from "@/lib/circuit/bench";
 import type { Part } from "@/lib/circuit/parts";
 import { partSchema } from "@/lib/content/schema";
 import { boardStore, type LevelSetup } from "@/lib/game/board-store";
+import { replayProgress } from "@/lib/game/check-flow";
 import type { Plan, Progress } from "@/lib/game/engine";
 
 // The board that the learner is building saves itself in this browser (PLAN.md section 3). A level starts with:
@@ -30,6 +31,8 @@ const savedSchema = z.object({
     fails: z.number().int().nonnegative().default(0),
   }),
   session: z.string().optional(),
+  /** The level was passed in this browser. When it opens again, it is a replay, and a replay gives no XP (issue #62). */
+  done: z.boolean().optional(),
   /** The sketch of the code step (issue #58), and whether it did the goal. */
   sketch: z.object({ code: z.string(), passed: z.boolean() }).optional(),
 });
@@ -65,23 +68,38 @@ const starting = new Map<string, Promise<SessionResult>>();
 const known = new Map<string, string>();
 /** Levels whose passing Check is on its way. A counter save that finds its session closed then must not start a new one. */
 const completing = new Set<string>();
+/** Levels that were passed in this browser, and when the learner opened each level this time (issue #62). */
+const passed = new Set<string>();
+const opened = new Map<string, string>();
 const sessionOf = (key: string) => known.get(key) ?? read(key)?.session;
 
 /** Adds a session row for the level and saves its id in this browser. Calls close together share one request. */
-function newSession(key: string, levelId: number) {
+function newSession(key: string, levelId: number, openedAt?: string) {
   let request = starting.get(key);
   if (!request) {
-    request = startSession(levelId).then((result) => {
+    request = startSession(levelId, openedAt).then((result) => {
       starting.delete(key);
       if (result.id) {
         known.set(key, result.id);
-        write(key, { ...saved(), session: result.id });
+        put(key, result.id);
       }
       return result;
     });
     starting.set(key, request);
   }
   return request;
+}
+
+/** Writes the board, the progress and the session id of the open level in this browser. */
+function put(key: string, session: string | undefined) {
+  write(key, { ...saved(), session, ...(passed.has(key) && { done: true }) });
+}
+
+/** Call when the Check passed: the level was passed in this browser, so it is a replay the next time. */
+export function rememberPass(user: string, project: string, position: number) {
+  const key = keyOf(user, project, position);
+  passed.add(key);
+  put(key, sessionOf(key));
 }
 
 /** Call before a passing Check is sent (`on`), and again when it did not complete the session (not `on`). */
@@ -100,7 +118,7 @@ export async function freshSession(user: string, project: string, position: numb
   const key = keyOf(user, project, position);
   const now = sessionOf(key);
   if (now && now !== stale) return now;
-  const result = await newSession(key, levelId);
+  const result = await newSession(key, levelId, opened.get(key));
   if (result.id) boardStore.getState().failed(0);
   return result.id;
 }
@@ -130,22 +148,25 @@ export function useLevel({ user, project, levelId, position, bench, plan, start,
   useEffect(() => {
     const key = keyOf(user, project, position);
     const own = read(key);
+    if (own?.done) passed.add(key);
+    else passed.delete(key);
+    opened.set(key, new Date().toISOString());
     const before = carry ? read(keyOf(user, project, position - 1)) : null;
     const setup: LevelSetup = own
-      ? { bench, plan, parts: own.parts as Part[], base: (own.base ?? start) as Part[], progress: own.progress as Progress, code: own.sketch?.code, codePassed: own.sketch?.passed }
+      ? { bench, plan, parts: own.parts as Part[], base: (own.base ?? start) as Part[], progress: replayProgress(own.progress, own.done) as Progress, code: own.sketch?.code, codePassed: own.sketch?.passed }
       : { bench, plan, parts: before?.progress.phase === "ready_to_check" ? (before.parts as Part[]) : start };
     boardStore.getState().open(`${project}/${position}`, setup);
 
     let alive = true;
     let timer: ReturnType<typeof setTimeout> | undefined;
-    let sent = own ? `${own.progress.tasksDone}/${own.progress.mistakes}/${own.progress.xp}` : "";
+    let sent = own ? `${own.progress.tasksDone}/${own.progress.mistakes}/${replayProgress(own.progress, own.done).xp}` : "";
     // The session id is in the browser save, because the level Check can replace it (issue #62).
     const current = () => sessionOf(key);
     if (own?.session) known.set(key, own.session);
     completing.delete(key);
 
     // `renew`: when the server says the session is closed, start a new one. Not when the learner leaves the page.
-    const sync = async (progress: Progress, { renew = true, force = false } = {}) => {
+    const sync = async (progress: Progress, { renew = true } = {}) => {
       if (progress.phase === "intro") return;
       let session = current();
       if (!session) {
@@ -154,7 +175,7 @@ export function useLevel({ user, project, levelId, position, bench, plan, start,
         session = started.id;
       }
       const counters = `${progress.tasksDone}/${progress.mistakes}/${progress.xp}`;
-      if (counters === sent && !force) return;
+      if (counters === sent) return;
       const send = (id: string) => updateSession({ id, tasksDone: progress.tasksDone, mistakes: progress.mistakes, xp: progress.xp });
       let result = await send(session);
       if (result.closed) {
@@ -169,7 +190,7 @@ export function useLevel({ user, project, levelId, position, bench, plan, start,
     const save = () => {
       const { progress, level } = boardStore.getState();
       if (level !== `${project}/${position}`) return;
-      write(key, { ...saved(), session: current() });
+      put(key, current());
       // Wait for a pause, so that fast work sends one request.
       clearTimeout(timer);
       timer = setTimeout(() => void sync(progress), 800);
@@ -184,9 +205,6 @@ export function useLevel({ user, project, levelId, position, bench, plan, start,
       void sync(boardStore.getState().progress, { renew: false });
     };
     window.addEventListener("pagehide", leave);
-    // A saved board that is ready to check may belong to a session that the server completed. Find out now, so that a
-    // replay has its own session, and its own time, from the start (issue #62).
-    if (own?.session && own.progress.phase === "ready_to_check") void sync(own.progress, { force: true });
     return () => {
       alive = false;
       stop();

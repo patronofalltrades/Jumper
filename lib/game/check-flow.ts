@@ -21,3 +21,17 @@ export async function withFreshSession<R extends Closable>(
   if (!fresh) return { result: first, session };
   return { result: await send(fresh), session: fresh };
 }
+
+const DAY = 24 * 60 * 60 * 1000;
+
+/**
+ * The time to give a replay session as its start: when the learner opened the level. Only a valid time that is not in the
+ * future and not more than a day old. Else undefined, and the session starts now.
+ */
+export function replayStart(openedAt: string | undefined, now: number): string | undefined {
+  const at = openedAt ? Date.parse(openedAt) : NaN;
+  return Number.isFinite(at) && at <= now && at >= now - DAY ? openedAt : undefined;
+}
+
+/** A level that was passed gives no XP when it is played again, so its XP counter starts at 0. */
+export const replayProgress = <P extends { xp: number }>(progress: P, passed: boolean | undefined): P => (passed ? { ...progress, xp: 0 } : progress);
