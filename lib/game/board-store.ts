@@ -97,7 +97,7 @@ export function createBoardStore(defaultBench: Bench = perchBench()) {
       const finished = event.type === "change" && next.progress.tasksDone > progress.tasksDone;
       return {
         progress: next.progress,
-        ...(finished && { done: progress.index }),
+        ...(finished && { done: progress.reached }),
         tool: (next.progress.phase === "task" && task && taskTool(task.target)) || tool,
         ...(next.effect && { flash: { kind: next.effect, holes: parts.flatMap((p) => partPins(bench, p).map((pin) => pin.hole)), at: Date.now() } }),
       };
