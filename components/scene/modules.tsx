@@ -206,7 +206,9 @@ function Display({ x0, x1, z, y }: { x0: number; x1: number; z: number; y: numbe
 export function ModuleGhost({ bench, type, at, ok }: { bench: Bench; type: ModuleType; at: string; ok: boolean }) {
   const pins = useMemo(() => footprintHoles(bench, type, at), [bench, type, at]);
   const invalidate = useThree((s) => s.invalidate);
-  useEffect(() => invalidate(), [pins, ok, invalidate]);
+  useEffect(() => {
+    invalidate();
+  }, [pins, ok, invalidate]);
   if (!pins) return null;
   const { x0, x1, z0, z1 } = bodyOutline(bench, type, pins);
   const color = ok ? "#2E9D5B" : "#C9412F";
