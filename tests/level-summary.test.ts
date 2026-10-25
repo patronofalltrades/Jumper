@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { accuracy, accuracyTier, formatDuration, titleTier } from "@/lib/stats/level-summary";
+import { accuracy, accuracyTier, formatDuration, isReplay, titleTier } from "@/lib/stats/level-summary";
 
 describe("accuracy", () => {
   it("is 100 when no task had a mistake", () => {
@@ -48,5 +48,12 @@ describe("formatDuration", () => {
   it("shows 0:00 for a negative or missing time", () => {
     expect(formatDuration(-1)).toBe("0:00");
     expect(formatDuration(Number.NaN)).toBe("0:00");
+  });
+});
+
+describe("isReplay", () => {
+  it("is true when a pass gave no XP: only the first pass of a level gives XP (issue #62)", () => {
+    expect(isReplay(0)).toBe(true);
+    expect(isReplay(70)).toBe(false);
   });
 });

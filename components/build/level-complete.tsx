@@ -9,7 +9,7 @@ import { readSavedLevel } from "@/components/build/autosave";
 import { SaveSnapshot, type LevelOption } from "@/components/snapshots/save-snapshot";
 import { Button } from "@/components/ui/button";
 import text from "@/content/ui/complete.json";
-import { accuracy, accuracyTier, formatDuration, titleTier } from "@/lib/stats/level-summary";
+import { accuracy, accuracyTier, formatDuration, isReplay, titleTier } from "@/lib/stats/level-summary";
 import { cn } from "@/lib/utils";
 
 export type LevelSummary = {
@@ -52,8 +52,8 @@ export function LevelComplete({ summary, continueHref, save, preview = false }: 
             </div>
 
             <div className="rise-in text-center" style={{ animationDelay: "0.9s" }}>
-              <Dialog.Title className="text-3xl font-extrabold text-probe sm:text-4xl">{text.title[titleTier(summary.mistakes)]}</Dialog.Title>
-              <Dialog.Description className="mt-2 text-lg">{text.subtitle.replace("{xp}", String(summary.xp))}</Dialog.Description>
+              <Dialog.Title className="text-3xl font-extrabold text-probe sm:text-4xl">{isReplay(summary.xp) ? text.title.replay : text.title[titleTier(summary.mistakes)]}</Dialog.Title>
+              <Dialog.Description className="mt-2 text-lg">{isReplay(summary.xp) ? text.subtitleReplay : text.subtitle.replace("{xp}", String(summary.xp))}</Dialog.Description>
             </div>
 
             <div className="grid w-full grid-cols-3 gap-2 sm:gap-3">

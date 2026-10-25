@@ -3,9 +3,11 @@
   "title": {
     "clean": "Clean build!",
     "solid": "Solid build!",
-    "complete": "Level complete!"
+    "complete": "Level complete!",
+    "replay": "Replay complete!"
   },
   "subtitle": "You got {xp} XP!",
+  "subtitleReplay": "No new XP. You got XP only on your first pass.",
   "cards": {
     "xp": "TOTAL XP",
     "accuracy": {

@@ -2,7 +2,8 @@
 
 This file lists each table in the Jumper database, its columns and its relations. It also compares the built schema with section 3 of [PLAN.md](PLAN.md).
 
-- SQL: [supabase/migrations/20261018000000_data_model.sql](supabase/migrations/20261018000000_data_model.sql) (tables), [supabase/migrations/20261018100000_level_check.sql](supabase/migrations/20261018100000_level_check.sql) (the `record_attempt` function) and [supabase/migrations/20261019000000_profile.sql](supabase/migrations/20261019000000_profile.sql) (the profile character, and the profile columns that a user can change)
+- SQL test of `record_attempt`: [supabase/tests/record_attempt_replay.sql](supabase/tests/record_attempt_replay.sql). It runs on a throwaway local Postgres, with the stub in [supabase/tests/local-setup.sql](supabase/tests/local-setup.sql). Never run it on the live project.
+- SQL: [supabase/migrations/20261018000000_data_model.sql](supabase/migrations/20261018000000_data_model.sql) (tables), [supabase/migrations/20261018100000_level_check.sql](supabase/migrations/20261018100000_level_check.sql) (the `record_attempt` function), [supabase/migrations/20261019000000_profile.sql](supabase/migrations/20261019000000_profile.sql) (the profile character, and the profile columns that a user can change) and [supabase/migrations/20261024000000_replay.sql](supabase/migrations/20261024000000_replay.sql) (`record_attempt` for a level that is played again)
 - Content that fills the content tables: [content/projects/](content/projects/), loaded by [supabase/seed.ts](supabase/seed.ts) (`npm run seed`)
 - Source of truth for the design: [TRD section 7](docs/TRD.md#7-database-schema)
 
@@ -130,10 +131,13 @@ The lab notebook search, filters and sort (`/snapshots`, issue #42) need no new 
 **record_attempt**(session, passed, mistake_type, tasks_done, mistakes, task_xp) → `{ completed, fails }`. The level Check calls it (issue #25). It runs as its owner (`security definer`), because users cannot write `profiles.xp` (feature 17). It finds only the session of the user who calls it (`user_id = auth.uid()`), and it writes only that session, its attempt and the profile of that user.
 
 - A failed Check: it adds one row to `attempts`, with the mistake type.
-- A passed Check, in one transaction: it adds the attempt, sets the session to `completed` with `ended_at`, and sets `xp_earned` to the task XP + the level XP + 10 XP when the session has no mistakes and no failed Check. Then it adds `xp_earned` to `profiles.xp`.
+- A passed Check, in one transaction: it adds the attempt and sets the session to `completed` with `ended_at`. The session gets `xp_earned` = the task XP + the level XP + 10 XP when the session has no mistakes and no failed Check. Then it adds `xp_earned` to `profiles.xp`.
+- Only the first pass of a level gives XP (issue #62). When the user has another completed session on the same level, a pass completes the session with `xp_earned` = 0 and does not change `profiles.xp`. The function locks the profile row first, so two passes at the same time cannot both be the first.
 - A pass needs all the tasks of the level done. The task XP cannot be more than the sum of the task XP of the level.
-- A second Check on a completed session changes nothing.
-- `fails` is the number of failed Checks in the session. The app shows hearts from it: 3 − fails, and at 0 hearts the next fail gives 3 new hearts.
+- A Check on a session that is not in progress (`completed` or `abandoned`) raises the error `session closed` with the code `JS001`. It adds no attempt and changes nothing. Before issue #62, a completed session gave `completed: true`, also for a failed Check. The app starts a new session when it gets this code: a level that is played again has its own session.
+- `fails` is the number of failed Checks in the session. The app shows hearts from it: 3 − fails, and at 0 hearts the next fail gives 3 new hearts. A new session starts with 0 failed Checks.
+
+**updateSession** (a server action, not a SQL function) saves the counters of a session only while its status is `in_progress`. When no row agrees, it gives `closed: true`, and the app starts a new session.
 
 ## Relations
 

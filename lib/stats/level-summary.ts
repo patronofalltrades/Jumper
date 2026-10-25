@@ -9,6 +9,9 @@ export function accuracy(tasksDone: number, mistakes: number): number {
   return Math.round((tasksDone / (tasksDone + Math.max(0, mistakes))) * 100);
 }
 
+/** A pass that gave no XP is a replay: only the first pass of a level gives XP (issue #62). */
+export const isReplay = (xp: number) => xp <= 0;
+
 /** No mistakes: clean. 1 or 2: solid. 3 or more: complete. */
 export function titleTier(mistakes: number): TitleTier {
   if (mistakes <= 0) return "clean";

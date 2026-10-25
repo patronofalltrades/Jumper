@@ -52,6 +52,11 @@ function learner(position: number, start: Part[] = startBoard(boards, position),
         ackAll();
       }
     },
+    /** Replaces the whole board, as Undo does. */
+    set(after: Part[]) {
+      send({ type: "change", before: board, after });
+      board = after;
+    },
     remove(id: string) {
       const after = board.filter((p) => p.id !== id);
       send({ type: "change", before: board, after });
@@ -273,6 +278,72 @@ describe("task list", () => {
     l.put({ id: "r1", type: "resistor", a: "A-a2", b: "A-a4" });
     expect(l.progress.phase).toBe("mistake");
     expect(marks(l)).toEqual(["now", "todo", "todo", "todo", "todo", "todo", "todo", "todo"]);
+  });
+});
+
+describe("going back (issue #63)", () => {
+  const [w1, w2, w3, w4] = boards.levels[1].filter((p) => p.type === "wire");
+  const marks = (l: ReturnType<typeof learner>) => taskMarks(bench, l.plan, l.board, l.progress);
+
+  it("puts an undone wire back with a snap, no mistake, and no new XP", () => {
+    const l = learner(1);
+    l.start();
+    l.put(w1, w2);
+    const { xp, tasksDone } = l.progress;
+    l.set([w1]);
+    l.put(w2);
+    expect(l.effects.at(-1)).toBe("snap");
+    expect(l.progress).toMatchObject({ phase: "task", mistakes: 0, xp, tasksDone, index: 5 });
+  });
+
+  it("moves the task back when a wire goes, and the task list agrees with the pop-up", () => {
+    const l = learner(1);
+    l.start();
+    l.put(w1, w2);
+    l.remove("w1");
+    expect(l.progress).toMatchObject({ phase: "task", index: 3, tasksDone: 5 });
+    expect(marks(l)).toEqual(["done", "done", "done", "now", "done", "todo", "todo"]);
+    l.put(w1);
+    expect(l.progress).toMatchObject({ phase: "task", index: 5, mistakes: 0, tasksDone: 5 });
+  });
+
+  it("puts a removed wire back without a mistake", () => {
+    const l = learner(1);
+    l.start();
+    l.put(w1, w2);
+    l.remove("w2");
+    l.put(w2);
+    expect(l.progress).toMatchObject({ phase: "task", index: 5, mistakes: 0, tasksDone: 5 });
+  });
+
+  it("goes back from ready_to_check to the first task that is not done, and forward again when the board is full", () => {
+    const l = learner(1);
+    l.start();
+    l.put(w1, w2, w3, w4);
+    expect(l.progress.phase).toBe("ready_to_check");
+    l.remove("w2");
+    expect(l.progress).toMatchObject({ phase: "task", index: 4, mistakes: 0 });
+    l.put(w2);
+    expect(l.progress).toMatchObject({ phase: "ready_to_check", index: 7, mistakes: 0, tasksDone: 7 });
+    expect(l.effects.at(-1)).toBe("snap");
+  });
+
+  it("still buzzes a wrong wire when the learner has gone back", () => {
+    const l = learner(1);
+    l.start();
+    l.put(w1, w2);
+    l.remove("w1");
+    l.put(wire("w9", "A-a1", "A-a5"));
+    expect(l.progress).toMatchObject({ phase: "mistake", mistakes: 1 });
+  });
+
+  it("treats a progress with reached equal to the index (an old save) like a new one", () => {
+    const l = learner(1);
+    l.start();
+    l.put(w1, w2);
+    expect(l.progress).toMatchObject({ index: 5, reached: 5 });
+    l.remove("w2");
+    expect(l.progress).toMatchObject({ index: 4, reached: 5 });
   });
 });
 

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
-import { logOut } from "@/app/actions/auth";
+import { LogOutForm } from "@/components/auth/log-out-form";
 import { changePassword, updateProfile } from "@/app/actions/profile";
 import { Backdrop } from "@/components/backdrop";
 import { Dock } from "@/components/dock";
@@ -72,11 +72,11 @@ async function Profile() {
       <section className="rounded-2xl bg-card p-5 shadow-panel">
         <PasswordForm action={changePassword} />
       </section>
-      <form action={logOut}>
+      <LogOutForm>
         <Button type="submit" variant="outline" className="min-h-11">
           {text.log_out}
         </Button>
-      </form>
+      </LogOutForm>
     </>
   );
 }
