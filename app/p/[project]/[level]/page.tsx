@@ -3,12 +3,13 @@ import { notFound, redirect } from "next/navigation";
 import { Suspense } from "react";
 import { BuildView, type LevelTask } from "@/components/build/build-view";
 import { loadBenchSpec } from "@/lib/content/benches";
-import { carriesBoard, loadBoards, startBoard } from "@/lib/content/boards";
+import { carriesBoard, loadBoards, startBoard, startLevels } from "@/lib/content/boards";
 import { loadLevelClips } from "@/lib/content/clips";
 import { loadSketchStep } from "@/lib/content/sketches";
 import { rulesSchema, targetSchema } from "@/lib/content/schema";
 import { passedLevels } from "@/lib/game/featured";
 import { isUnlocked } from "@/lib/game/map";
+import { joinRules } from "@/lib/circuit/check";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = { title: "Level · Jumper" };
@@ -46,12 +47,16 @@ async function Level({ slug, position }: { slug: string; position: string }) {
   // A level opens when the level before it passed (issue #19).
   if (!isUnlocked(data.position, await passedLevels(supabase, project.id))) redirect(`/p/${slug}`);
 
-  const { data: levels, error: levelsError } = await supabase.from("levels").select("id, position, title").eq("project_id", project.id).order("position");
+  const { data: levels, error: levelsError } = await supabase.from("levels").select("id, position, title, rules").eq("project_id", project.id).order("position");
   if (levelsError) throw levelsError;
 
   const tasks: LevelTask[] = data.tasks.map((t) => ({ ...t, target: targetSchema.parse(t.target) }));
-  const rules = rulesSchema.parse(data.rules);
   const boards = await loadBoards(slug);
+  // Check tests the rules of the levels whose parts this board carries, and of this level (issue #65).
+  const rules = joinRules(
+    levels.map((l) => ({ position: l.position, rules: rulesSchema.parse(l.rules) })),
+    [...startLevels(boards, data.position), data.position],
+  );
 
   return (
     <BuildView
@@ -67,7 +72,7 @@ async function Level({ slug, position }: { slug: string; position: string }) {
       bench={await loadBenchSpec(slug)}
       start={startBoard(boards, data.position)}
       carry={carriesBoard(boards, data.position)}
-      levels={levels}
+      levels={levels.map(({ id, position, title }) => ({ id, position, title }))}
       clip={(await loadLevelClips(slug)).get(data.position) ?? null}
       sketch={await loadSketchStep(slug, data.position)}
     />

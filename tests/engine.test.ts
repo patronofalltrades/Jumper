@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { perchBench } from "@/lib/circuit/bench";
-import { buildNets, connected } from "@/lib/circuit/nets";
+import { checkLevel, joinRules } from "@/lib/circuit/check";
+import { buildNets, connected, endpointHole } from "@/lib/circuit/nets";
 import type { Part } from "@/lib/circuit/parts";
 import { loadBoards, startBoard } from "@/lib/content/boards";
 import { loadProjects } from "@/lib/content/load";
@@ -16,8 +17,7 @@ const planOf = (position: number): Plan => {
 const wire = (id: string, a: string, b: string): Part => ({ id, type: "wire", a, b });
 
 /** A learner on one level: start, "Got it" on the parts that are always there, then put each part down. */
-function learner(position: number, start: Part[] = startBoard(boards, position)) {
-  const plan = planOf(position);
+function learner(position: number, start: Part[] = startBoard(boards, position), plan: Plan = planOf(position)) {
   let progress: Progress = startProgress();
   let board = start;
   const effects: Effect[] = [];
@@ -356,5 +356,35 @@ describe("boards", () => {
   it("starts a level with the boards of the levels before it", () => {
     expect(startBoard(boards, 1)).toEqual([]);
     expect(startBoard(boards, 3).map((p) => p.id)).toEqual([...boards.levels[1], ...boards.levels[2]].map((p) => p.id));
+  });
+});
+
+// Issue #65: Check and the buzz use the rules of the earlier levels too.
+describe("joined rules of the earlier levels", () => {
+  const upTo = (position: number) => joinRules(perch.levels, Array.from({ length: position }, (_, i) => i + 1));
+
+  for (const level of perch.levels) {
+    it(`level ${level.position}: the finished board passes the rules of levels 1 to ${level.position}`, () => {
+      expect(checkLevel(bench, startBoard(boards, level.position + 1), upTo(level.position))).toEqual({ passed: true });
+    });
+  }
+
+  it("level 2 with the 3V3 wire of level 1 removed does not pass Check", () => {
+    const l = learner(2);
+    l.start();
+    l.remove("w1");
+    l.put(...boards.levels[2]);
+    expect(checkLevel(bench, l.board, upTo(2))).toMatchObject({ passed: false, code: "wrong_pin", connection: { a: "esp.3V3", b: "bbA.+" } });
+  });
+
+  it("buzzes in level 3 for a wire that breaks a rule of level 2", () => {
+    const plan: Plan = { tasks: planOf(3).tasks, forbid: upTo(3).forbid };
+    const l = learner(3, startBoard(boards, 3), plan);
+    l.start();
+    const board = l.board;
+    // GPIO 1 to GND goes around the button (a forbid rule of level 2 only).
+    l.put(wire("short", endpointHole(bench, board, "esp.GPIO1")!, endpointHole(bench, board, "esp.GND")!));
+    expect(l.effects.at(-1)).toBe("buzz");
+    expect(l.progress.phase).toBe("mistake");
   });
 });

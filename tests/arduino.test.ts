@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { createBench, perchBench } from "@/lib/circuit/bench";
-import { checkLevel } from "@/lib/circuit/check";
+import { checkLevel, joinRules } from "@/lib/circuit/check";
 import { buildNets, describeHole, endpointHole, netHoles } from "@/lib/circuit/nets";
 import { checkPlacement, type Part } from "@/lib/circuit/parts";
 import { loadBenchSpec } from "@/lib/content/benches";
-import { carriesBoard, loadBoards, startBoard } from "@/lib/content/boards";
+import { carriesBoard, loadBoards, startBoard, startLevels } from "@/lib/content/boards";
 import { loadLevelClips } from "@/lib/content/clips";
 import { loadProjects } from "@/lib/content/load";
 import { benchSchema } from "@/lib/content/schema";
@@ -162,6 +162,14 @@ describe("each Arduino Foundations level, played with its finished board", () =>
       expect(l.progress).toMatchObject({ phase: "ready_to_check", tasksDone: level.tasks.length, mistakes: 0 });
       expect(taskMarks(bench, l.plan, l.board, l.progress).every((m) => m === "done")).toBe(true);
       expect(checkLevel(bench, l.board, level.rules)).toEqual({ passed: true });
+    });
+  }
+
+  // Issue #65: Check joins the rules of the levels that the board starts with. Level 3 does not carry level 2.
+  for (const level of project.levels) {
+    it(`level ${level.position}: the finished board passes the joined rules of its start levels`, () => {
+      const rules = joinRules(project.levels, [...startLevels(boards, level.position), level.position]);
+      expect(checkLevel(bench, [...startBoard(boards, level.position), ...boards.levels[level.position]], rules)).toEqual({ passed: true });
     });
   }
 
