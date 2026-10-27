@@ -41,3 +41,28 @@
 - D3 to D6: the SQL test `supabase/tests/delete_my_account.sql` on a throwaway local Postgres (red on the old schema, green with the migration).
 - E1, E2 to E4 messages, D1, D2, D8, D9 on screen: the browser check with the server actions stubbed (screenshots in `prompts/account-controls-screens/`).
 - E5, E6, D10: need the live Supabase project. Hanif checks them after the migration (steps in the PR text).
+
+## Results
+
+### Red (before the code, commit `26a4b7c`)
+
+- `npx vitest run tests/account.test.ts`: `FAIL tests/account.test.ts`, `Error: Cannot find package '@/lib/profile/account'`. The suite did not load, so no test ran.
+- SQL test on a local Postgres 16, schema without the new migration: `ERROR: function public.delete_my_account() does not exist` (the first call, the `anon` check, in line 15 of the test block).
+
+### Green
+
+- `npx vitest run tests/account.test.ts`: 8 of 8 tests pass. The whole suite: 29 files, 408 tests pass (400 before).
+- SQL test with the migration: `SQL TEST PASSED`. It checks: `anon` is refused; a call with no user deletes 0 rows; after the call of A, A has 0 rows in `auth.users`, `profiles`, `sessions`, `attempts`, `snapshots` and `stars`; B has the same 1 row in each table and the same XP; `anon` has no `execute` right and `authenticated` has it.
+- `npm run typecheck`, `npm run lint` and `npm run build`: pass, no warning.
+- Change in the red test after the red commit: the key `text.email.errors` became `text.change_email.errors`, because `email` in `content/ui/profile.json` is already the label of the email line.
+
+### Browser check (scratch page with stubbed actions, not committed)
+
+Chromium, 390 × 844 (touch) and 1280 × 800, light and dark. The scratch page rendered the real `EmailForm` and `DeleteAccount` with stub actions. Screenshots are in `prompts/account-controls-screens/`.
+
+- Change email: an empty field gives "Enter your new email."; `nope` gives "Enter a valid email address."; the same email in other letters gives "That is already your email."; a new email gives "Check your inbox. Your email changes after you click the link." All 4 sizes and themes.
+- Delete dialog: the Delete button is off at the start and for `delete`; it is on for `DELETE`. All 4 sizes and themes.
+- A failed delete: the dialog shows "We could not delete your account. Try again." and nothing else changes.
+- A good delete (1280 × 800, light): the keys `jumper:u1:*` are gone; `jumper:u2:perch/1` and `theme` stay; the URL is `/?deleted=1`; the landing page shows "Your account is deleted."
+
+Not checked in a browser: the real email link and the real delete (they need the live Supabase project and the migration).

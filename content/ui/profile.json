@@ -23,10 +23,36 @@
     "saving": "Changing…",
     "done": "Your password is changed."
   },
+  "change_email": {
+    "heading": "Change email",
+    "new": "New email",
+    "save": "Send link",
+    "saving": "Sending…",
+    "done": "Check your inbox. Your email changes after you click the link.",
+    "failed": "We could not send the link. Try again in a minute.",
+    "errors": {
+      "empty": "Enter your new email.",
+      "invalid": "Enter a valid email address.",
+      "same": "That is already your email."
+    }
+  },
   "log_out": "Log out",
   "errors": {
     "name_empty": "Enter a display name.",
     "name_long": "Use 40 characters or fewer.",
     "avatar": "Select a character."
+  },
+  "delete_account": {
+    "heading": "Delete my account",
+    "text": "This removes your account, your XP, your builds and your lab notebook. You cannot undo it.",
+    "open": "Delete my account",
+    "title": "Delete your account?",
+    "warning": "Your account and all your data will go. This cannot be undone.",
+    "confirm_label": "Type {word} to confirm",
+    "word": "DELETE",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "deleting": "Deleting…",
+    "failed": "We could not delete your account. Try again."
   }
 }

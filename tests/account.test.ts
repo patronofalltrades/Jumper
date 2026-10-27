@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import text from "@/content/ui/profile.json";
 import { canDelete, clearUserSaves, newEmailSchema } from "@/lib/profile/account";
 
-const errors = text.email.errors;
+const errors = text.change_email.errors;
 const message = (input: unknown, current = "a@test.local") => {
   const parsed = newEmailSchema(current).safeParse({ email: input });
   return parsed.success ? undefined : parsed.error.issues[0].message;
