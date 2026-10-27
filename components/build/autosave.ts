@@ -9,7 +9,8 @@ import { partSchema } from "@/lib/content/schema";
 import { boardStore, type LevelSetup } from "@/lib/game/board-store";
 import { replayProgress } from "@/lib/game/check-flow";
 import type { Plan, Progress } from "@/lib/game/engine";
-import { levelKey } from "@/lib/game/level-key";
+import { levelKey, saveKey } from "@/lib/game/level-key";
+import { isOtherTabSave } from "@/lib/game/tab-save";
 
 // The board that the learner is building saves itself in this browser (PLAN.md section 3). A level starts with:
 // 1. its own saved board and progress, if the browser has them;
@@ -41,7 +42,7 @@ const savedSchema = z.object({
 });
 type Saved = z.infer<typeof savedSchema>;
 
-const keyOf = (user: string, project: string, position: number) => `jumper:${user}:${project}/${position}`;
+const keyOf = saveKey;
 
 function read(key: string): Saved | null {
   try {
@@ -74,6 +75,8 @@ const completing = new Set<string>();
 /** Levels that were passed in this browser, and when the learner opened each level this time (issue #62). */
 const passed = new Set<string>();
 const opened = new Map<string, string>();
+/** Levels that another tab saved after this tab opened them (issue #73). This tab saves nothing for them until a reload. */
+const taken = new Set<string>();
 const sessionOf = (key: string) => known.get(key) ?? read(key)?.session;
 
 /** Adds a session row for the level and saves its id in this browser. Calls close together share one request. */
@@ -95,6 +98,7 @@ function newSession(key: string, levelId: number, openedAt?: string) {
 
 /** Writes the board, the progress and the session id of the open level in this browser. */
 function put(key: string, session: string | undefined) {
+  if (taken.has(key)) return;
   write(key, { ...saved(), session, ...(passed.has(key) && { done: true }) });
 }
 
@@ -144,12 +148,19 @@ function saved(): Omit<Saved, "session"> {
   return { parts, base, progress, ...(code !== null && { sketch: { code, passed: codePassed } }) };
 }
 
-/** Opens the level in the store, saves the board in the browser, and saves the session row. Gives a save error, if any. */
+/**
+ * Opens the level in the store, saves the board in the browser, and saves the session row. Gives a save error, if any,
+ * and `otherTab`: true when another tab saved this level, so this tab stopped saving (issue #73).
+ */
 export function useLevel({ user, project, levelId, position, bench, plan, start, carry }: Props) {
   const [error, setError] = useState<string | null>(null);
+  const [otherTab, setOtherTab] = useState(false);
 
   useEffect(() => {
     const key = keyOf(user, project, position);
+    taken.delete(key);
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- a new level starts with no note
+    setOtherTab(false);
     const own = read(key);
     if (own?.done) passed.add(key);
     else passed.delete(key);
@@ -171,7 +182,7 @@ export function useLevel({ user, project, levelId, position, bench, plan, start,
 
     // `renew`: when the server says the session is closed, start a new one. Not when the learner leaves the page.
     const sync = async (progress: Progress, { renew = true } = {}) => {
-      if (progress.phase === "intro") return;
+      if (progress.phase === "intro" || taken.has(key)) return;
       let session = current();
       if (!session) {
         const started = await newSession(key, levelId);
@@ -209,13 +220,22 @@ export function useLevel({ user, project, levelId, position, bench, plan, start,
       void sync(boardStore.getState().progress, { renew: false });
     };
     window.addEventListener("pagehide", leave);
+    // The other tab saved this level: keep its newer board, show the note, and stop saving here.
+    const onStorage = (e: StorageEvent) => {
+      if (e.storageArea !== localStorage || !isOtherTabSave(e, key)) return;
+      taken.add(key);
+      clearTimeout(timer);
+      setOtherTab(true);
+    };
+    window.addEventListener("storage", onStorage);
     return () => {
       alive = false;
       stop();
       window.removeEventListener("pagehide", leave);
+      window.removeEventListener("storage", onStorage);
       leave();
     };
   }, [user, project, levelId, position, bench, plan, start, carry]);
 
-  return error;
+  return { error, otherTab };
 }

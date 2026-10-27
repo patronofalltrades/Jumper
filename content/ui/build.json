@@ -138,6 +138,7 @@
       "map": "Level map"
     },
     "saveError": "We could not save your progress. Your board is still saved on this device.",
+    "otherTab": "This level is open in another tab. This tab stops saving. Reload this page to see the newest board.",
     "check": {
       "button": "Check",
       "checking": "Checking…",

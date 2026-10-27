@@ -95,7 +95,7 @@ export function BuildView({ user, project, levelId, position, eyebrow, title, go
   useFeedback();
   const plan: Plan = useMemo(() => ({ tasks: tasks.map((t) => ({ target: t.target, xp: t.xp })), forbid: rules.forbid }), [tasks, rules]);
   const bench = useMemo(() => createBench(spec), [spec]);
-  const saveError = useLevel({ user, project, levelId, position, bench, plan, start, carry });
+  const { error: saveError, otherTab } = useLevel({ user, project, levelId, position, bench, plan, start, carry });
   const levelCheck = useLevelCheck({ user, project, levelId, position, rules, needsSketch: !!sketch });
   const locked = useSketchLock(!!sketch);
   const codePassed = useBoard((s) => s.codePassed);
@@ -237,6 +237,11 @@ export function BuildView({ user, project, levelId, position, eyebrow, title, go
           )}
           <SpotCard />
           {laptop && !codeOpen && popups}
+          {otherTab && (
+            <p role="status" className="absolute inset-x-3 top-20 z-30 rounded-xl border border-border bg-card px-3 py-2 text-sm font-semibold shadow-panel sm:inset-x-auto sm:top-3 sm:left-3 sm:max-w-xs">
+              {text.play.otherTab}
+            </p>
+          )}
           {saveError && (
             <p role="alert" className="absolute inset-x-3 top-20 z-30 sm:inset-x-auto sm:top-3 sm:right-3 sm:max-w-xs rounded-xl border border-destructive bg-card px-3 py-2 text-sm font-semibold text-destructive shadow-panel">
               {saveError}
