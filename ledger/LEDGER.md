@@ -212,6 +212,7 @@ This ledger is source material for Hanif's reflection. Hanif writes the reflecti
 - Oct 25 (#62): Hanif asked Claude to fix both QA findings in the same branch ("can you close and fix them in the same branch?"). For the first finding Claude took its own recommendation: start the replay session at the first Check, not when the level opens.
 - Oct 24 (#65): Which earlier levels Check joins. Claude asked: Arduino Foundations level 3 starts with the board of level 1 only, so joining levels 1 to 3 would make level 3 impossible. Hanif chose "Use start levels": Check joins the rules of the levels that the board starts with, and the open level. For Perch this is levels 1 to N.
 - Oct 27: Hanif chose three low-risk bugs for one night (#71 docs, #72 early part, #73 two tabs), each on its own branch and session. Rules: no migration, no content change, no change to the saved-board format.
+- Oct 27 (#71): Another Claude session sent a different `ledger/story-brief.md`. Hanif chose "keep mine": the version Claude built from the ledger and recounted from git stays. Row 13 (Docs) of Plan vs. Reality has no PR number until the PR exists; Hanif said to follow Claude's suggestion, so the number is added after the PR is opened.
 
 ## Corrections and agent issues
 
