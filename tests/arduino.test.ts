@@ -258,6 +258,11 @@ describe("walkthrough clips", () => {
     expect([...perch.values()].map((c) => c.video)).toEqual([1, 2, 3, 4, 5].map((n) => `perch-${n}`));
   });
 
+  it("gives each clip the bench of its project, so the clip window draws the Uno and not the Perch board", async () => {
+    for (const [n, clip] of await loadLevelClips("arduino-foundations")) expect(clip.bench, `level ${n}`).toEqual(await loadBenchSpec("arduino-foundations"));
+    for (const [n, clip] of await loadLevelClips("perch")) expect(clip.bench, `perch ${n}`).toEqual(await loadBenchSpec("perch"));
+  });
+
   it("starts level 2 and 3 from the board of level 1, and level 4 from level 1 and the button of level 3, and shows the wiring only", async () => {
     const clips = await loadLevelClips("arduino-foundations");
     const start = (n: number) => clips.get(n)!.steps[0].before;

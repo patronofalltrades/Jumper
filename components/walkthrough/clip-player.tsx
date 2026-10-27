@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { Volt } from "@/components/art/volt";
 import text from "@/content/ui/walkthrough.json";
+import { createBench, perchBench } from "@/lib/circuit/bench";
 import { partPins } from "@/lib/circuit/parts";
 import { videoSrc, videos } from "@/lib/content/videos";
 import { deviceKind, hasWebGL, prefersVideo } from "@/lib/device";
@@ -71,6 +72,8 @@ type Props = { clip: Clip; title: string; onClose: () => void };
 export default function ClipPlayer({ clip, title, onClose }: Props) {
   const reduced = useReducedMotion();
   const store = useMemo(() => createBoardStore(), []);
+  // The bench of the project: the Uno for Arduino Foundations. A clip with no bench uses the Perch bench.
+  const bench = useMemo(() => (clip.bench ? createBench(clip.bench) : perchBench()), [clip.bench]);
   const [index, setIndex] = useState(0);
   const [phase, setPhase] = useState<"cue" | "done">(clip.steps[0].progress ? "cue" : "done");
   const [playing, setPlaying] = useState(true);
@@ -89,17 +92,16 @@ export default function ClipPlayer({ clip, title, onClose }: Props) {
 
   // The board of the step: first where the part goes (the holes glow), then the part in place with a green flash.
   useEffect(() => {
-    const { bench } = store.getState();
     const frame = clipFrame(step, phase, reduced);
     const added = frame.cue ? [] : clip.order.slice(step.before, step.after);
-    store.getState().open("clip", { readOnly: true });
+    store.getState().open("clip", { readOnly: true, bench });
     store.setState({
       parts: clip.order.slice(0, frame.count),
       plan: frame.cue ? clip.plan : null,
       progress: frame.cue && step.progress ? step.progress : startProgress(),
       flash: added.length ? { kind: "snap", holes: added.flatMap((p) => partPins(bench, p).map((pin) => pin.hole)), at: Date.now() } : null,
     });
-  }, [store, clip, step, phase, reduced]);
+  }, [store, bench, clip, step, phase, reduced]);
 
   useEffect(() => {
     if (!running) return;

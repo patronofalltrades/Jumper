@@ -24,3 +24,17 @@ FAIL tests/videos.test.ts > the video files > has a video for each Perch level a
 FAIL tests/videos.test.ts > videoSrc and levelVideo > finds the video of a level, and nothing for a level without one
 ```
 Example: `arduino-foundations level 1: expected undefined to be defined`. S1, S5 and S7 (the video entries) fail before the content change. S2, S3, S4 and S6 are protected by the existing tests of #48 and #49, which pass.
+
+**Found while recording (not in the first scenarios).** The first recording stopped: the clip window used the Perch bench for every clip, so the Arduino clip crashed (`Cannot read properties of null (reading 'x')`, the `uno-5V` hole is not on the Perch bench). S8 was added: each clip carries the bench of its project. Red: `tests/arduino.test.ts` "gives each clip the bench of its project" failed (1 failed | 29 passed). Fix: `Clip.bench` in `lib/game/walkthrough.ts`, set by `loadLevelClips`, used by `components/walkthrough/clip-player.tsx` (Perch bench if it is empty).
+
+The first `npm run videos` also left a temporary account, because the browser did not start after the account was made. Hanif allowed the delete and a `CHROMIUM_PATH` setting; the script now starts the browser first, and makes the account inside the `try`.
+
+**Green.** `npx vitest run`: 28 files, 403 tests pass. `npm run typecheck`, `npm run lint` and `npm run build` pass. 8 files in `public/videos/` (152 to 313 KB each; the tests check each is under 1 MB).
+
+**Browser check** (production build, Chromium 1243, temporary account with the secret key; 12 of 12 checks pass; screenshots in `prompts/arduino-walkthrough-screens/`):
+- 390 × 844 and 1280 × 800: 4 Watch buttons on the Arduino Foundations map, levels 2 to 4 locked. No sideways scroll.
+- A locked level (level 3): the Watch button opens the 3D clip, and it plays to "Level 3".
+- Level 1 opens its clip by itself at the start.
+- No WebGL (`--disable-3d-apis`): the video `arduino-foundations-2-phone.webm` plays (`currentTime` 3.1 s, no error).
+- Perch still has 5 Watch buttons. No page errors.
+- Clean-up: 0 `jumper-videos-` accounts left after each run.
