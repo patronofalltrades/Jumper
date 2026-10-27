@@ -87,6 +87,7 @@ You need Node.js 22 (or newer) and a Supabase project. That is it — let's go!
 | `npm run build` | Makes the production build |
 | `npm run seed` | Loads `content/projects/` into the database |
 | `npm run videos` | Records the walkthrough videos again (see below) |
+| `npm run e2e` | Runs the browser checks on a production build (see below). Not in CI |
 
 ### Record the walkthrough videos again
 
@@ -97,3 +98,13 @@ When the text or the wiring of a level changes, record the videos again. The nam
 3. Start the app: `npm run build`, then `npm start`.
 4. In a second terminal, run `npm run videos`. To record only some videos, give their names, for example `npm run videos -- intro perch-3`.
 5. Run `npm test`. The tests make sure that each level has its videos and that all the files together are less than 10 MB.
+
+### Browser checks
+
+`npm run e2e` runs 5 flows in a real browser (Playwright) on a production build: the level map with Volt, a touch on the 3D button while a sketch runs, the walkthrough video in dark mode, the Log out button of the profile page, and dark mode in the code step. Each flow runs at 390 × 844 (a phone, touch on) and at 1280 × 800 (a laptop), and in light and dark mode where it applies. The tests are in `e2e/`. Each test says in plain words what it checks. The scenarios are in `prompts/browser-checks.md`, and the screenshots are in `prompts/browser-checks-screens/`.
+
+The checks need a log-in, so each test makes a temporary account on your Supabase project and deletes it at the end, also when the test fails. This is why the checks are not in CI: they need `SUPABASE_SECRET_KEY`. After each run, the suite checks that no temporary account (`jumper-e2e-…@example.com`) and no row of such an account is left.
+
+1. On a new computer, get the Playwright browser one time: `npx playwright install chromium`. If you have a Chromium already, set `CHROMIUM_PATH` to its file.
+2. Make sure that `.env.local` has `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` and `SUPABASE_SECRET_KEY`. The projects and levels must be in the database (`npm run seed`).
+3. Run `npm run e2e`. It builds the app (`npm run build`), starts it on port 3100 (`npm start`), runs the tests, and stops the app. To run one flow, give a part of its file name, for example `npm run e2e -- flow2`. To use an app that already runs, set `BASE_URL`.
