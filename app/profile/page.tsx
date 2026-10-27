@@ -3,10 +3,11 @@ import Image from "next/image";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { LogOutForm } from "@/components/auth/log-out-form";
-import { changePassword, updateProfile } from "@/app/actions/profile";
+import { changeEmail, changePassword, deleteAccount, updateProfile } from "@/app/actions/profile";
 import { Backdrop } from "@/components/backdrop";
 import { Dock } from "@/components/dock";
-import { AccountForm, PasswordForm } from "@/components/profile/profile-forms";
+import { DeleteAccount } from "@/components/profile/delete-account";
+import { AccountForm, EmailForm, PasswordForm } from "@/components/profile/profile-forms";
 import { Button } from "@/components/ui/button";
 import text from "@/content/ui/profile.json";
 import { avatarSrc } from "@/lib/profile/form";
@@ -15,7 +16,7 @@ import { createClient } from "@/lib/supabase/server";
 export const metadata: Metadata = { title: "Profile · Jumper" };
 
 // The profile page (PLAN.md feature 17): email, XP and the date the learner joined; the display name and the
-// character; a new password; log out.
+// character; a new email; a new password; log out; delete the account.
 export default function ProfilePage() {
   return (
     <>
@@ -70,6 +71,9 @@ async function Profile() {
         <AccountForm action={updateProfile} name={name} avatar={profile?.avatar ?? ""} />
       </section>
       <section className="rounded-2xl bg-card p-5 shadow-panel">
+        <EmailForm action={changeEmail} />
+      </section>
+      <section className="rounded-2xl bg-card p-5 shadow-panel">
         <PasswordForm action={changePassword} />
       </section>
       <LogOutForm>
@@ -77,6 +81,7 @@ async function Profile() {
           {text.log_out}
         </Button>
       </LogOutForm>
+      <DeleteAccount action={deleteAccount} user={auth.claims.sub} />
     </>
   );
 }
