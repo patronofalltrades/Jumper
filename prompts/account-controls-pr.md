@@ -35,7 +35,9 @@ Scenarios (Given / When / Then) are in `prompts/account-controls.md`.
 | D7 the saves of this user are removed, other users' keys stay (also `u1` does not remove `u10`) | `tests/account.test.ts` | Red, then green. |
 | D3 the rows of the caller go (6 tables), D4 another user's rows and XP stay, D5 `anon` is refused, D6 no user = 0 rows deleted, grants | `supabase/tests/delete_my_account.sql` on a local Postgres 16 | Red: `function public.delete_my_account() does not exist`. Green: `SQL TEST PASSED`. |
 | E1 to E4, D1, D2, D8, D9 on screen | Browser check, stubbed actions, 390 × 844 and 1280 × 800, light and dark | Pass. Screenshots in `prompts/account-controls-screens/`. |
-| E5 the email changes only after the click, E6 the link opens `/profile` logged in, D10 the same email can sign up again | Live Supabase project | **Not checked.** Hanif checks them after the migration (below). |
+| D3 to D5, D10 on the live project (2 temporary users: rows go, the other user stays, `anon` refused, same email signs up again) | Live Supabase, after Hanif ran the migration | Pass. Users deleted after (0 left). |
+| D1, D2, D7 to D9, E2 to E4 through the real app (production build, live Supabase, temporary user) | Chromium, 1280 × 800 | Pass. Screenshots `live-*.png` in `prompts/account-controls-screens/`. |
+| E1 the real email is sent, E5 the email changes only after the click, E6 the link opens `/profile` logged in | Live Supabase | **Not checked** (a send mails a real address). Hanif checks them by hand (below). |
 
 Totals: 29 test files, 408 tests pass (8 new). Type check, lint and build pass.
 
@@ -45,7 +47,7 @@ The red tests are in the first commit of this branch. The test of the email form
 
 ## Before you merge
 
-Run this in the Supabase **SQL Editor** on the live project **before you merge** (the live app calls the function after the deploy):
+Run this in the Supabase **SQL Editor** on the live project **before you merge** (Hanif has run it already; Claude checked it on the live project, see Testing) (the live app calls the function after the deploy):
 
 ```sql
 create function public.delete_my_account() returns void

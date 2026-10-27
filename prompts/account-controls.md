@@ -66,3 +66,11 @@ Chromium, 390 × 844 (touch) and 1280 × 800, light and dark. The scratch page r
 - A good delete (1280 × 800, light): the keys `jumper:u1:*` are gone; `jumper:u2:perch/1` and `theme` stay; the URL is `/?deleted=1`; the landing page shows "Your account is deleted."
 
 Not checked in a browser: the real email link and the real delete (they need the live Supabase project and the migration).
+
+### Live check (after Hanif ran the migration in the SQL Editor)
+
+Hanif said the SQL ran and asked Claude to check with a throwaway ("successfully run the SQL command. Use your throwaway to check"). Claude read that as a temporary account on the live project, as in #62, and made 2 temporary users with `email_confirm` (no email sent) and deleted them at the end (0 `qa78-` users left in each run). Scripts were in the scratchpad and are not committed.
+
+- Through the API (2 users, each with a session, an attempt, a snapshot and a star): `anon` is refused (`permission denied for function delete_my_account`) and A still exists; A calls the function and gets 0 rows in `auth.users`, `profiles`, `sessions`, `attempts`, `snapshots` and `stars`; B is unchanged (1 row in each); the same email makes a new account (D3 to D5, D10).
+- Through the real app (production build, local server, live Supabase): log in, open `/profile`; the empty, wrong and same-email (other letters) messages show and nothing is sent; Delete is off, then on after `DELETE`; after Delete the page is `/?deleted=1` with "Your account is deleted."; the browser has no `jumper:<user>:` key (`jumper:other:perch/1` stays); `/lobby` goes to `/login`; the user and profile rows are gone; the same email signs up again (D1, D2, D7 to D10). Screenshots: `live-profile-email-same.png`, `live-landing-deleted.png`.
+- Not checked: E1/E5/E6, the real confirmation email and its link. A send would mail a real address, so Claude did not send one. Hanif checks it by hand (steps in the PR text).
