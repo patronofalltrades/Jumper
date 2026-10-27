@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { perchBench } from "@/lib/circuit/bench";
+import { createBench, perchBench } from "@/lib/circuit/bench";
 import { checkLevel, joinRules } from "@/lib/circuit/check";
 import { buildNets, connected, endpointHole } from "@/lib/circuit/nets";
 import type { Part } from "@/lib/circuit/parts";
+import { loadBenchSpec } from "@/lib/content/benches";
 import { loadBoards, startBoard } from "@/lib/content/boards";
 import { loadProjects } from "@/lib/content/load";
 import { needsAck, startProgress, step, taskMarks, taskSpot, toolFor, type Effect, type Plan, type Progress } from "@/lib/game/engine";
@@ -344,6 +345,133 @@ describe("going back (issue #63)", () => {
     expect(l.progress).toMatchObject({ index: 5, reached: 5 });
     l.remove("w2");
     expect(l.progress).toMatchObject({ index: 4, reached: 5 });
+  });
+});
+
+// Issue #72: a correct part that does a later task snaps in quietly. Its task finishes when the learner gets to it.
+describe("a correct part placed early (issue #72)", () => {
+  const [mic, vdd, gnd, lr, ws, sck, sd] = boards.levels[3];
+  const marks = (l: ReturnType<typeof learner>) => taskMarks(bench, l.plan, l.board, l.progress);
+  /** Level 3 with the mic and the 3 power wires done: the pop-up asks for WS → GPIO 4. */
+  function atWs() {
+    const l = learner(3);
+    l.start();
+    l.put(mic, vdd, gnd, lr);
+    return l;
+  }
+
+  it("S1: snaps a wire of a later task with no mistake, and the pop-up stays on the task of now", () => {
+    const l = atWs();
+    const before = l.progress;
+    expect(before).toMatchObject({ phase: "task", index: 4, mistakes: 0 });
+    l.put(sd);
+    expect(l.effects.at(-1)).toBe("snap");
+    expect(l.progress).toEqual(before);
+    expect(marks(l)[6]).toBe("todo");
+    expect(marks(l)[4]).toBe("now");
+  });
+
+  it("S2: finishes the early task by itself when the learner gets there, and counts it once", () => {
+    const l = atWs();
+    l.put(sd, ws);
+    expect(l.progress).toMatchObject({ phase: "task", index: 5, tasksDone: 5, xp: 50, mistakes: 0 });
+    l.put(sck);
+    expect(l.progress).toMatchObject({ phase: "ready_to_check", index: 7, tasksDone: 7, xp: 70, mistakes: 0 });
+    expect(l.effects.every((e) => e === "snap" || e === null)).toBe(true);
+    expect(marks(l).every((m) => m === "done")).toBe(true);
+  });
+
+  it("S3: Remove or Undo of the early wire gives no mistake and no task, and the wire snaps again when put back", () => {
+    const l = atWs();
+    l.put(sd);
+    const before = l.progress;
+    l.remove("w14");
+    expect(l.progress).toEqual(before);
+    l.put(sd);
+    l.set(l.board.filter((p) => p.id !== "w14"));
+    expect(l.progress).toEqual(before);
+    l.put(sd, ws, sck);
+    expect(l.progress).toMatchObject({ phase: "ready_to_check", tasksDone: 7, xp: 70, mistakes: 0 });
+    // Remove after the task is done: the task goes back, and there is still no mistake.
+    l.remove("w14");
+    expect(l.progress).toMatchObject({ phase: "task", index: 6, mistakes: 0, tasksDone: 7 });
+  });
+
+  it("S4: still buzzes when the early wire makes a forbidden connection", () => {
+    const plan: Plan = { ...planOf(3), forbid: [...planOf(3).forbid, { a: "mic1.SD", b: "esp.GPIO6", code: "no_sd", message: "No SD." }] };
+    const l = learner(3, startBoard(boards, 3), plan);
+    l.start();
+    l.put(mic, vdd, gnd, lr, sd);
+    expect(l.effects.at(-1)).toBe("buzz");
+    expect(l.progress).toMatchObject({ phase: "mistake", mistakes: 1, mistake: { code: "no_sd" } });
+  });
+
+  it("S5: still buzzes a wire that does no task, and a module of no task", () => {
+    const l = atWs();
+    l.put(wire("x1", "B-a15", "B-a20"));
+    expect(l.progress).toMatchObject({ phase: "mistake", mistakes: 1, mistake: { code: "wrong_wire" } });
+    const m = atWs();
+    m.put({ id: "mic9", type: "inmp441", at: "B-e10" });
+    expect(m.progress.mistake?.code).toBe("wrong_part");
+  });
+
+  it("S6: an early wire with a Got it task between: the engine stops on Got it, and finishes the early task after it", () => {
+    const t = planOf(1).tasks;
+    const plan: Plan = { tasks: [t[3], t[0], t[4]], forbid: planOf(1).forbid };
+    const l = learner(1, [], plan);
+    l.start();
+    expect(l.progress.index).toBe(0);
+    l.put(boards.levels[1][1]);
+    expect(l.effects.at(-1)).toBe("snap");
+    expect(l.progress).toMatchObject({ index: 0, mistakes: 0, tasksDone: 0 });
+    l.put(boards.levels[1][0]);
+    // Task 1 is done, the next one is Got it, and the learner presses it.
+    expect(l.progress).toMatchObject({ phase: "ready_to_check", tasksDone: 3, mistakes: 0 });
+  });
+
+  it("S7: an early wire on the other side of the button is not a mistake, and the swap comes when the learner gets there", () => {
+    const l = learner(2);
+    l.start();
+    l.put({ id: "btn1", type: "pushbutton", at: "A-e27" });
+    expect(l.progress.index).toBe(1);
+    // GND to the physical side 1 (column 27) is task 3 for a button that is turned round.
+    l.put(wire("w6", "A-a27", "A-L-23"));
+    expect(l.effects.at(-1)).toBe("snap");
+    expect(l.progress).toMatchObject({ phase: "task", index: 1, mistakes: 0, swaps: [] });
+    l.put(wire("w5", "A-f8", "A-a29"));
+    expect(l.progress).toMatchObject({ phase: "task", index: 3, mistakes: 0, swaps: ["btn1"], tasksDone: 3 });
+  });
+
+  it("S8: Arduino Foundations: an early wire to the resistor snaps, and the LED finishes the tasks after it", async () => {
+    const arduino = createBench(await loadBenchSpec("arduino-foundations"));
+    const project = loadProjects().find((p) => p.slug === "arduino-foundations")!;
+    const level = project.levels.find((x) => x.position === 2)!;
+    const plan: Plan = { tasks: level.tasks.map((x) => ({ target: x.target, xp: x.xp })), forbid: level.rules.forbid };
+    const [r1, led1, w3, w4] = (await loadBoards("arduino-foundations")).levels[2];
+    let progress: Progress = { ...startProgress(), phase: "task" };
+    let board: Part[] = [];
+    const put = (p: Part) => {
+      const next = step(arduino, plan, progress, { type: "change", before: board, after: [...board, p] });
+      progress = next.progress;
+      board = [...board, p];
+      return next.effect;
+    };
+    put(r1);
+    expect(progress.index).toBe(1);
+    expect(put(w3)).toBe("snap");
+    expect(progress).toMatchObject({ phase: "task", index: 1, mistakes: 0, tasksDone: 1 });
+    put(led1);
+    expect(progress).toMatchObject({ phase: "task", index: 4, tasksDone: 4, mistakes: 0 });
+    put(w4);
+    expect(progress).toMatchObject({ phase: "ready_to_check", tasksDone: 5, xp: 50, mistakes: 0 });
+  });
+
+  it("S9: works for an old save, where reached equals index", () => {
+    const l = atWs();
+    const old: Progress = { ...l.progress, reached: l.progress.index };
+    const next = step(bench, l.plan, old, { type: "change", before: l.board, after: [...l.board, sd] });
+    expect(next.effect).toBe("snap");
+    expect(next.progress).toEqual(old);
   });
 });
 
