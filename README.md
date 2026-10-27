@@ -16,7 +16,7 @@ But Jumper is more than homework. It is a passion project, and it keeps growing 
 
 ## Walkthrough videos
 
-Short videos show how to play Jumper and what you build in each Perch level. Each video is a recording of the 3D replay in the app. On a slow phone, or in a browser with no 3D (WebGL), the app plays the video in place of the 3D replay.
+Short videos show how to play Jumper and what you build in each Perch and Arduino Foundations level. Each video is a recording of the 3D replay in the app. On a slow phone, or in a browser with no 3D (WebGL), the app plays the video in place of the 3D replay.
 
 | Video | Laptop | Phone |
 | --- | --- | --- |
