@@ -10,6 +10,7 @@ import { checkHole, checkModule, isTerminal, LEG_NAMES, partPins, terminalAt, ty
 //   task → task (next task) → … → ready_to_check
 // The engine reads the board as it is now. A part that goes takes the learner back to the first task that the board
 // does not do (ready_to_check → task); a part that comes back is not a mistake when it does such a task (issue #63).
+// A correct part that does a task after the task of now snaps in quietly; the task finishes when the learner gets to it (issue #72).
 // In ready_to_check the learner presses Check (lib/circuit/check.ts). A fail costs a heart; a pass ends the level.
 
 export type Connection = { a: string; b: string };
@@ -103,13 +104,17 @@ function zoneBoard(zone: string): string | null {
 
 type TaskState = { done: true; swaps: string[] } | { done: false; wrongPlace: boolean };
 
-/** Is this task done on this bench? For a wire task, it can choose which side of a button or resistor to use. */
-function taskState(bench: Bench, parts: Part[], nets: Nets, plan: Plan, index: number, swaps: string[]): TaskState {
+/**
+ * Is this task done on this bench? For a wire task, it can choose which side of a button or resistor to use.
+ * The side of a part is fixed by the tasks before `locked` (default: this task). An early part passes `reached`, so the
+ * tasks that the learner did not reach do not fix a side yet.
+ */
+function taskState(bench: Bench, parts: Part[], nets: Nets, plan: Plan, index: number, swaps: string[], locked = index): TaskState {
   const target = plan.tasks[index].target;
 
   if (target.kind === "wire") {
     // A side choice is free until an earlier wire task used the part.
-    const used = new Set(plan.tasks.slice(0, index).flatMap((t) => (t.target.kind === "wire" ? [t.target.a, t.target.b] : [])).map((e) => e.split(".")[0]));
+    const used = new Set(plan.tasks.slice(0, locked).flatMap((t) => (t.target.kind === "wire" ? [t.target.a, t.target.b] : [])).map((e) => e.split(".")[0]));
     const free = [target.a, target.b]
       .map((e) => e.split(".")[0])
       .filter((owner) => !used.has(owner) && parts.some((p) => p.id === owner && SYMMETRIC.includes(p.type)));
@@ -218,6 +223,14 @@ export function step(bench: Bench, plan: Plan, progress: Progress, event: Engine
       if (now.gap === -1 && state?.done) return { progress: advance(bench, plan, event.after, { ...progress, index }, state.swaps), effect: "snap" };
       if (redone) return { progress: { ...progress, phase: index < plan.tasks.length ? "task" : "ready_to_check", index, mistake: null, swaps: now.swaps }, effect: "snap" };
       if (progress.phase === "ready_to_check") return same;
+
+      // A part that does a task after the task of now (issue #72): it snaps in, with no Mistake. The task finishes when
+      // the learner gets to it (`advance`). The part does not set a side choice now: the learner has not reached its task.
+      const early = plan.tasks.some((task, i) => {
+        if (i < reached || i === index || needsAck(task.target)) return false;
+        return taskState(bench, event.after, netsAfter, plan, i, now.swaps, reached).done && !taskState(bench, event.before, netsBefore, plan, i, now.swaps, reached).done;
+      });
+      if (early) return { progress: { ...progress, index }, effect: "snap" };
 
       const addedWire = event.after.some((p) => added.includes(p.id) && p.type === "wire");
       return wrong({ code: state && !state.done && state.wrongPlace ? "wrong_place" : addedWire ? "wrong_wire" : "wrong_part", parts: added });
