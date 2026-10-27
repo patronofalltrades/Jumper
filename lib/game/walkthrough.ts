@@ -1,4 +1,4 @@
-import type { Bench } from "@/lib/circuit/bench";
+import type { Bench, BenchSpec } from "@/lib/circuit/bench";
 import type { Part } from "@/lib/circuit/parts";
 import { startBoard } from "@/lib/content/boards";
 import type { Boards } from "@/lib/content/schema";
@@ -25,9 +25,10 @@ export type ClipStep = {
 
 /**
  * All the parts of the clip, in the order they come in: the board of the levels before, then the parts of the level.
- * `video` is the id of its recorded video in content/videos.json (issue #49), if it has one.
+ * `video` is the id of its recorded video in content/videos.json (issue #49), if it has one. `bench` is the bench of
+ * the project (content/benches/), so the clip window draws the right board; without it, the window uses the Perch bench.
  */
-export type Clip = { order: Part[]; plan: Plan; steps: ClipStep[]; video?: string };
+export type Clip = { order: Part[]; plan: Plan; steps: ClipStep[]; video?: string; bench?: BenchSpec };
 
 export type ClipLevel = { position: number; tasks: { instruction: string; popup_why: string; target: Target; xp: number }[] };
 
