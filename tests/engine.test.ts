@@ -275,9 +275,9 @@ describe("task list", () => {
   it("does not tick a task that the learner did not reach yet", () => {
     const l = learner(2);
     l.start();
-    // The resistor of task 4 is on the board, but the learner is on task 1: a mistake, not a tick.
+    // The resistor of task 4 is on the board, but the learner is on task 1: a quiet snap, not a tick (issue #72).
     l.put({ id: "r1", type: "resistor", a: "A-a2", b: "A-a4" });
-    expect(l.progress.phase).toBe("mistake");
+    expect(l.progress).toMatchObject({ phase: "task", index: 0, mistakes: 0 });
     expect(marks(l)).toEqual(["now", "todo", "todo", "todo", "todo", "todo", "todo", "todo"]);
   });
 });
@@ -447,9 +447,10 @@ describe("a correct part placed early (issue #72)", () => {
     const project = loadProjects().find((p) => p.slug === "arduino-foundations")!;
     const level = project.levels.find((x) => x.position === 2)!;
     const plan: Plan = { tasks: level.tasks.map((x) => ({ target: x.target, xp: x.xp })), forbid: level.rules.forbid };
-    const [r1, led1, w3, w4] = (await loadBoards("arduino-foundations")).levels[2];
+    const content = await loadBoards("arduino-foundations");
+    const [r1, led1, w3, w4] = content.levels[2];
     let progress: Progress = { ...startProgress(), phase: "task" };
-    let board: Part[] = [];
+    let board: Part[] = startBoard(content, 2);
     const put = (p: Part) => {
       const next = step(arduino, plan, progress, { type: "change", before: board, after: [...board, p] });
       progress = next.progress;
