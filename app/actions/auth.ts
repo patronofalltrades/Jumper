@@ -1,7 +1,7 @@
 "use server";
 
-import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { callbackUrl } from "@/lib/auth/callback-url";
 import { credentialsSchema, emailSchema, newPasswordSchema } from "@/lib/auth/rules";
 import { createClient } from "@/lib/supabase/server";
 
@@ -11,12 +11,6 @@ export type AuthState = {
   fieldErrors?: { email?: string[]; password?: string[]; confirm?: string[] };
   notice?: string;
 };
-
-// Email links come back through /auth/callback, which swaps the code for a session.
-async function callbackUrl(next?: string) {
-  const origin = (await headers()).get("origin");
-  return `${origin}/auth/callback${next ? `?next=${encodeURIComponent(next)}` : ""}`;
-}
 
 function parse(formData: FormData) {
   return credentialsSchema.safeParse({
