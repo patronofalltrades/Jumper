@@ -4,9 +4,9 @@ Welcome to **Jumper**, the friendliest way to learn hardware engineering! Jumper
 
 Here is the best part: the parts are the real deal. The ESP32-S3-DevKitC-1 board, the INMP441 mic, the MAX98357A amplifier, the ST7789 screen — they are exactly the components you would hold in your hand. So every skill you learn in Jumper is a skill you can carry straight onto a real bench.
 
-The first project you can play is **Perch**: a cute desk device that gives an AI agent a home, complete with ears, a voice and a face. You bring Perch to life across 5 levels. In every level, a friendly pop-up tells you exactly what to do, where to do it, and why it matters. Every task you finish earns you XP. The other projects are waiting in the wings with a cheerful "Coming soon" badge.
+Two projects are ready to play: **Perch** and **Arduino Foundations**. **Perch** is a cute desk device that gives an AI agent a home, complete with ears, a voice and a face. You bring Perch to life across 5 levels. In Arduino Foundations, you wire an Arduino Uno to a breadboard in 4 levels, and then you write the code for it. In every level, a friendly pop-up tells you exactly what to do, where to do it, and why it matters. Every task you finish earns you XP. The other projects are waiting in the wings with a cheerful "Coming soon" badge.
 
-**Live app:** not deployed yet — but it is on the way!
+**Live app:** https://jumper-inky-sigma.vercel.app/
 
 ## About this project
 
