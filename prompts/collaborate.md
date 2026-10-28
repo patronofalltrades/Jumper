@@ -37,3 +37,10 @@ SQL, `supabase/tests/collaborate.sql` (throwaway local Postgres):
   - Notes: the owner and the joined collaborator read and add notes; each person deletes only their own; a user with no access reads and adds none.
   - After the owner removes the collaborator (or the collaborator leaves), the collaborator sees no snapshot and no note.
   - `delete_my_account()` still works for the owner and for the collaborator.
+
+## Answers to open questions (Hanif)
+
+- Confirm email on the live project: I do not know (Hanif checks before applying the migration).
+- Notes: own notes only.
+- Profile `xp` and `created_at` visible to a joined collaborator: fine for now.
+- Merge order: Share (#87) first, then this branch.
