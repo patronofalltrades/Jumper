@@ -70,6 +70,32 @@ export function AccountForm({ action, name, avatar }: { action: Action; name: st
   );
 }
 
+export function EmailForm({ action }: { action: Action }) {
+  const [state, formAction, pending] = useActionState(action, {});
+
+  return (
+    <form action={formAction} className="flex flex-col gap-4" noValidate>
+      <h2 className="text-xl font-extrabold tracking-tight">{text.change_email.heading}</h2>
+      <div className="flex flex-col gap-1.5">
+        <Label htmlFor="email">{text.change_email.new}</Label>
+        <Input
+          id="email"
+          name="email"
+          type="email"
+          autoComplete="email"
+          aria-invalid={Boolean(state.fieldErrors?.email)}
+          aria-describedby="email-error"
+        />
+        <FieldError id="email-error" messages={state.fieldErrors?.email} />
+      </div>
+      <Messages state={state} />
+      <Button type="submit" disabled={pending} className="min-h-11 self-start">
+        {pending ? text.change_email.saving : text.change_email.save}
+      </Button>
+    </form>
+  );
+}
+
 export function PasswordForm({ action }: { action: Action }) {
   const [state, formAction, pending] = useActionState(action, {});
 

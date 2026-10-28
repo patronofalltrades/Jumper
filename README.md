@@ -16,16 +16,20 @@ But Jumper is more than homework. It is a passion project, and it keeps growing 
 
 ## Walkthrough videos
 
-Short videos show how to play Jumper and what you build in each Perch level. Each video is a recording of the 3D replay in the app. On a slow phone, or in a browser with no 3D (WebGL), the app plays the video in place of the 3D replay.
+Short videos show how to play Jumper and what you build in each Perch and Arduino Foundations level. Each video is a recording of the 3D replay in the app. On a slow phone, or in a browser with no 3D (WebGL), the app plays the video in place of the 3D replay.
 
 | Video | Laptop | Phone |
 | --- | --- | --- |
 | How to play Jumper | [intro-laptop.webm](public/videos/intro-laptop.webm) | [intro-phone.webm](public/videos/intro-phone.webm) |
-| Level 1 · Set up the board | [perch-1-laptop.webm](public/videos/perch-1-laptop.webm) | [perch-1-phone.webm](public/videos/perch-1-phone.webm) |
-| Level 2 · Talk button and status light | [perch-2-laptop.webm](public/videos/perch-2-laptop.webm) | [perch-2-phone.webm](public/videos/perch-2-phone.webm) |
-| Level 3 · Ears | [perch-3-laptop.webm](public/videos/perch-3-laptop.webm) | [perch-3-phone.webm](public/videos/perch-3-phone.webm) |
-| Level 4 · Voice | [perch-4-laptop.webm](public/videos/perch-4-laptop.webm) | [perch-4-phone.webm](public/videos/perch-4-phone.webm) |
-| Level 5 · Face | [perch-5-laptop.webm](public/videos/perch-5-laptop.webm) | [perch-5-phone.webm](public/videos/perch-5-phone.webm) |
+| Perch level 1 · Set up the board | [perch-1-laptop.webm](public/videos/perch-1-laptop.webm) | [perch-1-phone.webm](public/videos/perch-1-phone.webm) |
+| Perch level 2 · Talk button and status light | [perch-2-laptop.webm](public/videos/perch-2-laptop.webm) | [perch-2-phone.webm](public/videos/perch-2-phone.webm) |
+| Perch level 3 · Ears | [perch-3-laptop.webm](public/videos/perch-3-laptop.webm) | [perch-3-phone.webm](public/videos/perch-3-phone.webm) |
+| Perch level 4 · Voice | [perch-4-laptop.webm](public/videos/perch-4-laptop.webm) | [perch-4-phone.webm](public/videos/perch-4-phone.webm) |
+| Perch level 5 · Face | [perch-5-laptop.webm](public/videos/perch-5-laptop.webm) | [perch-5-phone.webm](public/videos/perch-5-phone.webm) |
+| Arduino Foundations level 1 · Power the breadboard | [arduino-foundations-1-laptop.webm](public/videos/arduino-foundations-1-laptop.webm) | [arduino-foundations-1-phone.webm](public/videos/arduino-foundations-1-phone.webm) |
+| Arduino Foundations level 2 · Light an LED | [arduino-foundations-2-laptop.webm](public/videos/arduino-foundations-2-laptop.webm) | [arduino-foundations-2-phone.webm](public/videos/arduino-foundations-2-phone.webm) |
+| Arduino Foundations level 3 · Read a button | [arduino-foundations-3-laptop.webm](public/videos/arduino-foundations-3-laptop.webm) | [arduino-foundations-3-phone.webm](public/videos/arduino-foundations-3-phone.webm) |
+| Arduino Foundations level 4 · Button and LED together | [arduino-foundations-4-laptop.webm](public/videos/arduino-foundations-4-laptop.webm) | [arduino-foundations-4-phone.webm](public/videos/arduino-foundations-4-phone.webm) |
 
 The live app also has the files, for example https://jumper-inky-sigma.vercel.app/videos/intro-laptop.webm.
 
@@ -96,7 +100,7 @@ When the text or the wiring of a level changes, record the videos again. The nam
 1. On a new computer, get the Playwright browser one time: `npx playwright install chromium`.
 2. Make sure that `.env.local` has `NEXT_PUBLIC_SUPABASE_URL` and `SUPABASE_SECRET_KEY`. The level clips need a log-in, so the script makes a temporary account and deletes it at the end.
 3. Start the app: `npm run build`, then `npm start`.
-4. In a second terminal, run `npm run videos`. To record only some videos, give their names, for example `npm run videos -- intro perch-3`.
+4. In a second terminal, run `npm run videos`. To record only some videos, give their names, for example `npm run videos -- intro perch-3`. If Playwright has no browser on the machine, set `CHROMIUM_PATH` to a Chromium that is already there.
 5. Run `npm test`. The tests make sure that each level has its videos and that all the files together are less than 10 MB.
 
 ### Browser checks

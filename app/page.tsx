@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import type { ReactNode } from "react";
+import { Suspense, type ReactNode } from "react";
 import { BoardArt } from "@/components/art/board-art";
 import { Volt } from "@/components/art/volt";
 import { Backdrop } from "@/components/backdrop";
@@ -21,7 +21,7 @@ export const metadata: Metadata = { title: text.meta.title, description: text.me
 
 // The landing page for visitors who are not logged in (issue #46). The proxy sends a logged-in user to the lobby.
 // The catalog comes from content/projects/, not the database: the content tables are only for logged-in users.
-export default async function LandingPage() {
+export default async function LandingPage({ searchParams }: PageProps<"/">) {
   const projects = loadProjects();
   const featured = projects.find((p) => p.status === "available");
   const order = featured ? wiringOrder(await loadBoards(featured.slug)) : [];
@@ -31,6 +31,7 @@ export default async function LandingPage() {
     <>
       <Backdrop />
       <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-4 px-4 py-5 sm:gap-6 sm:px-8 sm:py-8">
+        <Suspense>{searchParams.then(({ deleted }) => deleted === "1" && <DeletedNotice />)}</Suspense>
         <header className="flex items-center justify-between gap-3">
           <Logo onDark />
           <nav aria-label="Account" className="flex items-center gap-2">
@@ -130,6 +131,15 @@ export default async function LandingPage() {
         </Panel>
       </main>
     </>
+  );
+}
+
+// The profile page sends a learner here after "Delete my account" (issue #78).
+function DeletedNotice() {
+  return (
+    <p role="status" className="rounded-2xl bg-card px-5 py-3 font-semibold text-foreground shadow-panel">
+      {text.account_deleted}
+    </p>
   );
 }
 

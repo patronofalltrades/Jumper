@@ -11,6 +11,7 @@ const buttonVariants = cva(
       variant: {
         default: "border-primary-deep bg-primary text-primary-foreground",
         outline: "border-border bg-card text-foreground",
+        destructive: "border-black/25 bg-destructive text-white dark:text-black",
         link: "border-0 px-0 text-primary underline underline-offset-4 active:translate-y-0",
       },
     },
