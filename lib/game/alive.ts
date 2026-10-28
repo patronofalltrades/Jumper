@@ -64,3 +64,5 @@ export const aliveText = alive.text;
 export const voiceLine = alive.voiceLine;
 export const showMs = alive.showSeconds * 1000;
 export const aliveProject = alive.project;
+/** How long a short emotion shows: happy, surprised. Excited shows twice as long. */
+export const momentMs = alive.momentSeconds * 1000;

@@ -1,6 +1,6 @@
 import { useStore } from "zustand";
 import { createStore } from "zustand/vanilla";
-import { effectsFor, isSleepy, pickEmotion, type Effect, type Emotion, type Trigger } from "./alive";
+import { effectsFor, isSleepy, momentMs, pickEmotion, type Effect, type Emotion, type Trigger } from "./alive";
 
 // What shows on the 3D board after a level passes (issue #86): the effects, the face and the meter. The 3D scene and the
 // stage panel read it; the stage writes it. It is not saved: the effects last until the learner continues.
@@ -65,7 +65,7 @@ export const aliveStore = createStore<Alive>()((set, get) => ({
     set({ lastInput: Date.now(), sleepy: false });
     if (talk === undefined) return;
     set({ talkDown: talk });
-    if (talk) get().fire("talk_pressed", 1500);
+    if (talk) get().fire("talk_pressed", momentMs);
   },
   end: () => {
     clearTimers();

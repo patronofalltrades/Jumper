@@ -3,6 +3,7 @@
   "project": "perch",
   "showSeconds": 8,
   "sleepSeconds": 30,
+  "momentSeconds": 1.5,
   "lastLevel": 5,
   "levels": {
     "2": ["led"],

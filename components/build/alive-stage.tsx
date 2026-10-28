@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { aliveText, effectsFor, fallbackLevel, meterLevel, passTriggers, showMs, voiceLine } from "@/lib/game/alive";
+import { aliveText, effectsFor, fallbackLevel, meterLevel, momentMs, passTriggers, showMs, voiceLine } from "@/lib/game/alive";
 import { aliveSleepy, aliveStore, useAlive } from "@/lib/game/alive-store";
 import { speak, startMic } from "./alive-audio";
 
@@ -75,10 +75,10 @@ function Stage({ position }: { position: number }) {
 
     if (list.includes("face")) {
       const [pass, ...rest] = passTriggers(position);
-      fire(pass, 1500);
-      // The last level: happy first, then the stars.
+      fire(pass, momentMs);
+      // The last level: happy first, then the stars for a little time, then Perch is idle and the Talk button works.
       for (const trigger of rest) {
-        const later = setTimeout(() => fire(trigger, 0), 1500);
+        const later = setTimeout(() => fire(trigger, momentMs * 2), momentMs);
         stops.push(() => clearTimeout(later));
       }
       const sleep = setInterval(() => set({ sleepy: aliveSleepy(aliveStore.getState(), Date.now()) }), 1000);
@@ -104,10 +104,12 @@ function Stage({ position }: { position: number }) {
     return () => clearTimeout(timer);
   }, [lastInput]);
 
+  // The hint of the level that passed. The hints of the earlier levels play too, but one line leaves the board in view.
+  const hint = aliveText.hint[[...effects].at(-1)!];
   return (
-    <div className="absolute inset-x-3 bottom-4 z-30 flex flex-col items-center gap-2" onPointerDown={() => aliveStore.getState().input()}>
+    <div className="pointer-events-none absolute inset-0 z-30" onPointerDown={() => aliveStore.getState().input()}>
       {effects.has("mic") && mic !== "off" && (
-        <div className="w-full max-w-sm rounded-xl border border-border bg-card px-3 py-2 shadow-panel">
+        <div className="pointer-events-auto absolute inset-x-3 top-3 mx-auto max-w-sm rounded-xl border border-border bg-card px-3 py-2 shadow-panel">
           <p className="text-xs font-bold tracking-wide uppercase">{aliveText.meter.label}</p>
           <div ref={bar} className="mt-1 h-3 overflow-hidden rounded-full bg-muted" aria-hidden="true">
             <div className="h-full origin-left rounded-full bg-primary" style={{ transform: "scaleX(var(--level, 0))" }} />
@@ -115,14 +117,14 @@ function Stage({ position }: { position: number }) {
           <p className="mt-1 text-xs text-muted-foreground">{mic === "live" ? aliveText.meter.live : aliveText.meter.fallback}</p>
         </div>
       )}
-      <ul className="max-w-sm rounded-xl bg-card px-3 py-2 text-sm font-semibold shadow-panel" aria-live="polite">
-        {[...effects].map((e) => (
-          <li key={e}>{aliveText.hint[e]}</li>
-        ))}
-      </ul>
-      <Button autoFocus onClick={done} className="h-12 px-8 text-base tracking-wide uppercase">
-        {aliveText.continue}
-      </Button>
+      <div className="pointer-events-auto absolute inset-x-3 bottom-4 flex flex-col items-center gap-2">
+        <p className="max-w-sm rounded-xl bg-card px-3 py-2 text-center text-sm font-semibold shadow-panel" aria-live="polite">
+          {hint}
+        </p>
+        <Button autoFocus onClick={done} className="h-12 px-8 text-base tracking-wide uppercase">
+          {aliveText.continue}
+        </Button>
+      </div>
     </div>
   );
 }
