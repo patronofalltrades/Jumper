@@ -33,12 +33,39 @@ function Stage({ position }: { position: number }) {
     stage?.onDone();
   };
 
-  // The light, the microphone, the voice and the face start once.
+  // The microphone starts when the learner taps the button, so the browser question comes from a clear action.
+  const stopMic = useRef<(() => void) | null>(null);
+  const live = useRef(true);
+  useEffect(() => {
+    live.current = true;
+    return () => {
+      live.current = false;
+      stopMic.current?.();
+    };
+  }, []);
+  const turnOnMic = async () => {
+    const { set } = aliveStore.getState();
+    const stop = await startMic((rms) => set({ volume: meterLevel(rms) }));
+    if (!live.current) return stop?.();
+    if (stop) {
+      stopMic.current = stop;
+      return set({ mic: "live" });
+    }
+    // The browser refused the microphone: an animated meter shows (PLAN.md cut fallback).
+    set({ mic: "fallback", volume: 0.5 });
+    if (reducedMotion()) return;
+    let frame = requestAnimationFrame(function tick() {
+      set({ volume: fallbackLevel(performance.now()) });
+      frame = requestAnimationFrame(tick);
+    });
+    stopMic.current = () => cancelAnimationFrame(frame);
+  };
+
+  // The light, the voice and the face start once.
   useEffect(() => {
     const { set, fire } = aliveStore.getState();
     const still = reducedMotion();
     const stops: (() => void)[] = [];
-    let live = true;
     const list = effectsFor(position);
 
     if (list.includes("led")) {
@@ -48,24 +75,6 @@ function Stage({ position }: { position: number }) {
         const blink = setInterval(() => set({ ledOn: !aliveStore.getState().ledOn }), 500);
         stops.push(() => clearInterval(blink));
       }
-    }
-
-    if (list.includes("mic")) {
-      void startMic((rms) => set({ volume: meterLevel(rms) })).then((stop) => {
-        if (!live) return stop?.();
-        if (stop) {
-          stops.push(stop);
-          return set({ mic: "live" });
-        }
-        // The browser refused the microphone: an animated meter shows (PLAN.md cut fallback).
-        set({ mic: "fallback", volume: 0.5 });
-        if (still) return;
-        let frame = requestAnimationFrame(function tick() {
-          set({ volume: fallbackLevel(performance.now()) });
-          frame = requestAnimationFrame(tick);
-        });
-        stops.push(() => cancelAnimationFrame(frame));
-      });
     }
 
     if (list.includes("voice")) {
@@ -86,7 +95,6 @@ function Stage({ position }: { position: number }) {
     }
 
     return () => {
-      live = false;
       stops.forEach((stop) => stop());
     };
   }, [position]);
@@ -108,13 +116,18 @@ function Stage({ position }: { position: number }) {
   const hint = aliveText.hint[[...effects].at(-1)!];
   return (
     <div className="pointer-events-none absolute inset-0 z-30" onPointerDown={() => aliveStore.getState().input()}>
-      {effects.has("mic") && mic !== "off" && (
+      {effects.has("mic") && (
         <div className="pointer-events-auto absolute inset-x-3 top-3 mx-auto max-w-sm rounded-xl border border-border bg-card px-3 py-2 shadow-panel">
           <p className="text-xs font-bold tracking-wide uppercase">{aliveText.meter.label}</p>
           <div ref={bar} className="mt-1 h-3 overflow-hidden rounded-full bg-muted" aria-hidden="true">
             <div className="h-full origin-left rounded-full bg-primary" style={{ transform: "scaleX(var(--level, 0))" }} />
           </div>
-          <p className="mt-1 text-xs text-muted-foreground">{mic === "live" ? aliveText.meter.live : aliveText.meter.fallback}</p>
+          <p className="mt-1 text-xs text-muted-foreground">{mic === "live" ? aliveText.meter.live : mic === "fallback" ? aliveText.meter.fallback : aliveText.meter.off}</p>
+          {mic === "off" && (
+            <Button className="mt-2 h-9" onClick={() => void turnOnMic()}>
+              {aliveText.meter.button}
+            </Button>
+          )}
         </div>
       )}
       <div className="pointer-events-auto absolute inset-x-3 bottom-4 flex flex-col items-center gap-2">

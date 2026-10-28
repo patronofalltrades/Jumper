@@ -22,6 +22,8 @@
     },
     "meter": {
       "label": "Microphone level",
+      "button": "Turn on the microphone",
+      "off": "The microphone is off. Tap the button and say yes in the browser window.",
       "live": "Your microphone is on. The sound stays in your browser.",
       "fallback": "The browser did not give the microphone. This meter is a demo."
     },
