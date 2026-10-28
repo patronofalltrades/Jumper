@@ -284,6 +284,8 @@ begin
   reset role;
   assert (select count(*) from public.collaborators where owner_id = o) = 0, 'invites of O left';
   assert (select count(*) from public.snapshot_notes where snapshot_id in (s1, s2)) = 0, 'notes on snapshots of O left';
+
+  raise notice 'collaborate test: all checks pass';
 end $$;
 
 rollback;
