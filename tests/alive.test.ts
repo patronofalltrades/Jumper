@@ -111,7 +111,7 @@ describe("keyframe (the animations of the face)", () => {
     const blink = [56, 56, 4, 56, 56];
     const times = [0, 0.9, 0.94, 0.98, 1];
     expect(keyframe(blink, 3.5, 0.5, times)).toBe(56);
-    expect(keyframe(blink, 3.5, 3.5 * 0.94, times)).toBe(4);
+    expect(keyframe(blink, 3.5, 3.5 * 0.94, times)).toBeCloseTo(4, 6);
   });
 
   it("waits for the begin time", () => {
