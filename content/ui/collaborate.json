@@ -41,7 +41,8 @@
     "shared_empty_title": "Nothing shared yet",
     "shared_empty": "When a friend shares a project with you and saves a snapshot, it shows here.",
     "leave": "Leave project",
-    "leave_label": "Leave {project} of {name}"
+    "leave_label": "Leave {project} of {name}",
+    "someone": "A friend"
   },
   "notes": {
     "heading": "Notes",
@@ -58,7 +59,9 @@
     "errors": {
       "empty": "Write a note.",
       "long": "The note is too long. Use 1000 characters or fewer."
-    }
+    },
+    "former": "Former collaborator",
+    "someone": "A collaborator"
   },
   "page": {
     "shared_by": "Shared by {name}. You can look at this board and write notes. You cannot change it."
