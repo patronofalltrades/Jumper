@@ -108,6 +108,7 @@ Row-level security protects these tables. Each user can select, insert, update a
 | wiring | jsonb | The board: `{ "version": 1, "parts": [...] }`. The parts and wires use the same format as `content/boards/` (issue #23) |
 | passed | boolean | |
 | mistake_count | int | |
+| shared | boolean | Default `false`. When `true`, anyone with the link `/s/<id>` can see the snapshot (issue #87) |
 | created_at | timestamptz | |
 | updated_at | timestamptz | A trigger sets it at each edit |
 
@@ -141,6 +142,8 @@ The lab notebook search, filters and sort (`/snapshots`, issue #42) need no new 
 **delete_my_account**() → nothing. The "Delete my account" button of the profile page calls it (issue #78). It runs as its owner (`security definer`, with an empty `search_path`), because users cannot write to `auth.users`. It runs one statement: it deletes the row in `auth.users` where `id = auth.uid()`. It cannot delete the row of another user. The existing `on delete cascade` rules then remove the rows of `profiles`, `sessions`, `attempts`, `snapshots` and `stars`. The function does not delete from `profiles` directly, because users have no delete right on `profiles` (feature 17). A call with no user in the token deletes nothing. `anon` and `public` have no `execute` right; only `authenticated` has it. The app calls it with the user's own session, and never uses `SUPABASE_SECRET_KEY` for it. The same email can sign up again after the delete.
 
 **updateSession** (a server action, not a SQL function) saves the counters of a session only while its status is `in_progress`. When no row agrees, it gives `closed: true`, and the app starts a new session.
+
+**get_shared_snapshot**(p_id uuid) → 0 or 1 row. The public page `/s/<id>` calls it (issue #87). It runs as its owner (`security definer`, with an empty `search_path`), because a visitor with no log-in has no right to read any table, and row-level security does not change. It gives a row only when `snapshots.shared` is `true`. When `shared` is `false`, when the snapshot is deleted, or when the id is unknown, it gives no row. The row has: `id`, `title`, `notes`, `wiring`, `passed`, `mistake_count`, `created_at`, `level_position`, `level_title`, `project_slug` and `owner_name` (the display name from `profiles`). It never gives the email or the user id. `public` has no `execute` right; `anon` and `authenticated` have it. The owner turns `shared` on or off with the existing "Owner only" policy of `snapshots`. A deleted account deletes its snapshots, so its links stop at once.
 
 ## Relations
 
@@ -182,6 +185,7 @@ erDiagram
 | `snapshots.id`, `sessions.id`, `attempts.id` (text) | uuid | The database makes random IDs. |
 | — | `snapshots.session_id` (uuid, nullable) | A snapshot can link to the session that made it (TRD section 7). |
 | `wiring` as in TRD 6.3 (`boards`, `parts`, `wires`) | `{ version, parts }`, with wires as parts (`type: "wire"`) | The bench and `content/boards/` use this format. Thus the snapshot page opens the board with no conversion (issue #23). |
+| — | `snapshots.shared` (boolean, default false) and the function `get_shared_snapshot` | PLAN.md "Future work" lists Share as "Coming soon". It is built now (issue #87): a public read-only link. The function lets a visitor read one shared snapshot, with no open table. |
 | `stars` | Same columns | Plus the rule that a user stars only their own snapshots. |
 | Content "readable by everyone" | Readable by logged-in users only | All app pages need a log-in (issue #11). |
 | `created_at` (date) | timestamptz | The dashboard needs the time, not only the date. |

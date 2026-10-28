@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { DeleteSnapshot, EditSnapshot, SnapshotBoard } from "@/components/snapshots/snapshot-page";
+import { ShareSheet } from "@/components/snapshots/share-sheet";
 import { StarButton } from "@/components/snapshots/star-button";
 import text from "@/content/ui/snapshots.json";
 import { loadBenchSpec } from "@/lib/content/benches";
@@ -32,7 +33,7 @@ async function Snapshot({ id }: { id: string }) {
   const supabase = await createClient();
   const { data: snap, error } = await supabase
     .from("snapshots")
-    .select("id, title, notes, wiring, passed, mistake_count, created_at, levels(position, title, projects(slug)), stars(snapshot_id)")
+    .select("id, title, notes, wiring, shared, passed, mistake_count, created_at, levels(position, title, projects(slug)), stars(snapshot_id)")
     .eq("id", id)
     .maybeSingle();
   if (error) throw error;
@@ -59,7 +60,10 @@ async function Snapshot({ id }: { id: string }) {
           >
             ← {t.back}
           </Link>
-          <StarButton id={snap.id} starred={isStarred(snap.stars)} />
+          <div className="flex items-center gap-2">
+            <ShareSheet id={snap.id} title={snap.title} shared={snap.shared} />
+            <StarButton id={snap.id} starred={isStarred(snap.stars)} />
+          </div>
         </div>
         <div>
           <p className="font-mono text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
