@@ -11,18 +11,19 @@ import { introVideo, levelVideo } from "./videos";
 
 /**
  * The clip of each level of a project, by level position. A level has a clip when it has a board and a recorded
- * video in content/videos.json. The Arduino Foundations levels have no video yet, so they have no clip (issue #57).
+ * video in content/videos.json.
  */
 export async function loadLevelClips(slug: string): Promise<Map<number, Clip>> {
   const project = loadProjects().find((p) => p.slug === slug);
   const boards = await loadBoards(slug);
-  const bench = createBench(await loadBenchSpec(slug));
+  const spec = await loadBenchSpec(slug);
+  const bench = createBench(spec);
   const clips = new Map<number, Clip>();
   for (const level of project?.levels ?? []) {
     const video = levelVideo(slug, level.position);
     if (!boards.levels[level.position] || !video) continue;
     const clip = levelClip(bench, boards, level, text.end.replace("{n}", String(level.position)));
-    clips.set(level.position, { ...clip, video: video.id });
+    clips.set(level.position, { ...clip, video: video.id, bench: spec });
   }
   return clips;
 }

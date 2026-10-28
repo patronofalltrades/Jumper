@@ -44,3 +44,7 @@ next-env.d.ts
 # env files: commit only the example
 .env*
 !.env.example
+
+# playwright
+/test-results/
+/playwright-report/

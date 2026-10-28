@@ -11,11 +11,13 @@ const dir = join(process.cwd(), "public", VIDEO_DIR);
 const files = () => readdirSync(dir).filter((f) => !f.startsWith("."));
 
 describe("the video files", () => {
-  it("has a video for each Perch level, and the intro video", async () => {
-    const boards = await loadBoards("perch");
-    for (const level of loadProjects().find((p) => p.slug === "perch")!.levels) {
-      expect(boards.levels[level.position], `perch level ${level.position}`).toBeDefined();
-      expect(levelVideo("perch", level.position), `perch level ${level.position}`).toBeDefined();
+  it("has a video for each Perch level and each Arduino Foundations level, and the intro video", async () => {
+    for (const slug of ["perch", "arduino-foundations"]) {
+      const boards = await loadBoards(slug);
+      for (const level of loadProjects().find((p) => p.slug === slug)!.levels) {
+        expect(boards.levels[level.position], `${slug} level ${level.position}`).toBeDefined();
+        expect(levelVideo(slug, level.position), `${slug} level ${level.position}`).toBeDefined();
+      }
     }
     expect(videos.find((v) => v.id === "intro")).toBeDefined();
   });
@@ -40,6 +42,10 @@ describe("the video files", () => {
     for (const f of files()) expect(names, f).toContain(f);
   });
 
+  it("keeps each Arduino Foundations file under 1 MB", () => {
+    for (const f of files().filter((f) => f.startsWith("arduino-foundations-"))) expect(statSync(join(dir, f)).size, f).toBeLessThan(1024 * 1024);
+  });
+
   it("keeps the files small: less than 10 MB in total", () => {
     const total = files().reduce((sum, f) => sum + statSync(join(dir, f)).size, 0);
     expect(total).toBeLessThan(10 * 1024 * 1024);
@@ -50,12 +56,14 @@ describe("videoSrc and levelVideo", () => {
   it("gives the path of the file for a size", () => {
     expect(videoSrc("perch-3", "phone")).toBe("/videos/perch-3-phone.webm");
     expect(videoSrc("intro", "laptop")).toBe("/videos/intro-laptop.webm");
+    expect(videoSrc("arduino-foundations-2", "phone")).toBe("/videos/arduino-foundations-2-phone.webm");
   });
 
   it("finds the video of a level, and nothing for a level without one", () => {
     expect(levelVideo("perch", 3)?.id).toBe("perch-3");
     expect(levelVideo("perch", 9)).toBeUndefined();
-    expect(levelVideo("arduino-foundations", 1)).toBeUndefined();
+    expect(levelVideo("arduino-foundations", 1)?.id).toBe("arduino-foundations-1");
+    expect(levelVideo("arduino-foundations", 5)).toBeUndefined();
   });
 
   it("uses the sizes of content/videos.json", () => {

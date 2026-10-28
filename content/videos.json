@@ -10,6 +10,10 @@
     { "id": "perch-2", "project": "perch", "level": 2, "title": "Perch level 2 · Talk button and status light", "caption": "See the button, the resistor and the small light go on the board, and the wires that connect them." },
     { "id": "perch-3", "project": "perch", "level": 3, "title": "Perch level 3 · Ears", "caption": "See the tiny microphone go on the board, and the wires that connect it." },
     { "id": "perch-4", "project": "perch", "level": 4, "title": "Perch level 4 · Voice", "caption": "See the amplifier and the speaker go on the board, and the wires that connect them." },
-    { "id": "perch-5", "project": "perch", "level": 5, "title": "Perch level 5 · Face", "caption": "See the small screen go on the board, and the wires that connect it." }
+    { "id": "perch-5", "project": "perch", "level": 5, "title": "Perch level 5 · Face", "caption": "See the small screen go on the board, and the wires that connect it." },
+    { "id": "arduino-foundations-1", "project": "arduino-foundations", "level": 1, "title": "Arduino Foundations level 1 · Power the breadboard", "caption": "See the Uno and the breadboard, and the two wires that give the breadboard power." },
+    { "id": "arduino-foundations-2", "project": "arduino-foundations", "level": 2, "title": "Arduino Foundations level 2 · Light an LED", "caption": "See the resistor and the LED go on the board, and the wires that connect them to the Uno." },
+    { "id": "arduino-foundations-3", "project": "arduino-foundations", "level": 3, "title": "Arduino Foundations level 3 · Read a button", "caption": "See the button go on the board, and the two wires that connect it to the Uno." },
+    { "id": "arduino-foundations-4", "project": "arduino-foundations", "level": 4, "title": "Arduino Foundations level 4 · Button and LED together", "caption": "See the LED circuit go on the board next to the button, and the wires that connect it." }
   ]
 }

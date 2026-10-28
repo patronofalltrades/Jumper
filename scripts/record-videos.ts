@@ -1,5 +1,6 @@
 // Records the walkthrough clips (issue #48) to the video files in public/videos/ (issue #49).
 // Run the app first (npm run build, then npm start), then: npm run videos. To record only some videos: npm run videos -- intro perch-3
+// To use a Chromium that is already on the machine, set CHROMIUM_PATH.
 // The level clips need a log-in. The script makes a temporary account with SUPABASE_SECRET_KEY, and deletes it at the end.
 // The video names, the sizes and the captions are in content/videos.json.
 import { execFileSync } from "node:child_process";
@@ -91,13 +92,16 @@ async function record(browser: Browser, video: Video, size: string, state: Brows
 }
 
 const admin = createClient(url, secret, { auth: { persistSession: false } });
+// CHROMIUM_PATH is the path of a Chromium that is already on the machine. Without it, Playwright uses its own browser.
+// The browser starts first, so a start that fails does not leave a temporary account.
+const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH });
 const email = `jumper-videos-${randomUUID()}@example.com`;
 const password = randomUUID();
-const { data, error } = await admin.auth.admin.createUser({ email, password, email_confirm: true });
-if (error) throw new Error(`Test account: ${error.message}`);
-
-const browser = await chromium.launch();
+let userId: string | undefined;
 try {
+  const { data, error } = await admin.auth.admin.createUser({ email, password, email_confirm: true });
+  if (error) throw new Error(`Test account: ${error.message}`);
+  userId = data.user.id;
   mkdirSync(out, { recursive: true });
   const login = await browser.newContext();
   const page = await login.newPage();
@@ -114,6 +118,6 @@ try {
 } finally {
   await browser.close();
   // Deleting the account deletes its profile and all its rows (cascade).
-  await admin.auth.admin.deleteUser(data.user.id);
+  if (userId) await admin.auth.admin.deleteUser(userId);
   rmSync(tmp, { recursive: true, force: true });
 }
