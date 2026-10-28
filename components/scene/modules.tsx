@@ -1,10 +1,12 @@
 "use client";
 
-import { useThree, type ThreeEvent } from "@react-three/fiber";
-import { useEffect, useMemo } from "react";
-import type { Color } from "three";
+import { useFrame, useThree, type ThreeEvent } from "@react-three/fiber";
+import { useEffect, useMemo, useRef } from "react";
+import { CanvasTexture, SRGBColorSpace, type Color, type MeshBasicMaterial } from "three";
 import type { Bench } from "@/lib/circuit/bench";
 import { bodyOutline, footprintHoles, FOOTPRINTS, type ModuleType } from "@/lib/circuit/modules";
+import { aliveEmotion, aliveStore, useAlive } from "@/lib/game/alive-store";
+import { drawFace } from "./face";
 import { drawModule } from "./textures";
 import { useFontTexture } from "./use-font-texture";
 
@@ -188,6 +190,7 @@ function Terminal({ pins, y, glow, handlers }: { pins: { id: string; x: number; 
 function Display({ x0, x1, z, y }: { x0: number; x1: number; z: number; y: number }) {
   const size = 4.4;
   const cx = (x0 + x1) / 2;
+  const face = useAlive((s) => s.effects.has("face"));
   return (
     <group position={[cx, y, z + 0.2]}>
       <mesh position={[0, size / 2 + 0.2, 0]} castShadow raycast={() => null}>
@@ -196,10 +199,36 @@ function Display({ x0, x1, z, y }: { x0: number; x1: number; z: number; y: numbe
       </mesh>
       <mesh position={[0, size / 2 + 0.2, 0.16]} raycast={() => null}>
         <planeGeometry args={[size, size]} />
-        <meshStandardMaterial color="#0B0F14" roughness={0.2} metalness={0.1} />
+        {face ? <FaceMaterial /> : <meshStandardMaterial color="#0B0F14" roughness={0.2} metalness={0.1} />}
       </mesh>
     </group>
   );
+}
+
+const still = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/** The face of Perch (issue #86): a canvas that the render loop draws again at each frame, as the face moves. */
+function FaceMaterial() {
+  const { canvas, texture } = useMemo(() => {
+    const canvas = document.createElement("canvas");
+    canvas.width = canvas.height = 240;
+    const texture = new CanvasTexture(canvas);
+    texture.colorSpace = SRGBColorSpace;
+    return { canvas, texture };
+  }, []);
+  useEffect(() => {
+    return () => texture.dispose();
+  }, [texture]);
+  const material = useRef<MeshBasicMaterial>(null);
+  useFrame((state) => {
+    const alive = aliveStore.getState();
+    // With reduced motion, the face does not blink or move: one fixed moment of each animation.
+    drawFace(canvas.getContext("2d")!, aliveEmotion(alive), still() ? 0.6 : state.clock.elapsedTime, alive.volume);
+    if (material.current?.map) material.current.map.needsUpdate = true;
+    state.invalidate();
+  });
+  // A screen gives light: the face keeps its colors under the lights of the scene.
+  return <meshBasicMaterial ref={material} map={texture} toneMapped={false} />;
 }
 
 /** Where a module will go: a see-through body and a ring at each pin. Green if it fits, red if not. */

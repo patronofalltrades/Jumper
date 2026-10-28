@@ -63,3 +63,4 @@ export function keyframe(values: number[], dur: number, t: number, keyTimes?: nu
 export const aliveText = alive.text;
 export const voiceLine = alive.voiceLine;
 export const showMs = alive.showSeconds * 1000;
+export const aliveProject = alive.project;
