@@ -140,7 +140,7 @@
             "a": "led1.anode",
             "b": "uno.GND",
             "code": "reversed_led",
-            "message": "Oops! The LED is the wrong way round, so it stays dark. Its long leg (+) must go to the resistor, and its short leg (−) must go to the blue − line. Turn the LED around."
+            "message": "Oops! The LED is the wrong way round, so it stays dark. The short leg (−) is the shorter of its two legs. On the board it has a blue − mark. On a real LED, it is on the flat side. Do not put the short leg in the line of the resistor: put it in an empty line, and connect that line to the blue − line. Put the long leg (+) in the line of the resistor. Turn the LED around."
           },
           {
             "a": "led1.anode",
@@ -353,7 +353,7 @@
             "a": "led1.anode",
             "b": "uno.GND",
             "code": "reversed_led",
-            "message": "Oops! The LED is the wrong way round, so it stays dark. Its long leg (+) must go to the resistor, and its short leg (−) must go to the blue − line. Turn the LED around."
+            "message": "Oops! The LED is the wrong way round, so it stays dark. The short leg (−) is the shorter of its two legs. On the board it has a blue − mark. On a real LED, it is on the flat side. Do not put the short leg in the line of the resistor: put it in an empty line, and connect that line to the blue − line. Put the long leg (+) in the line of the resistor. Turn the LED around."
           },
           {
             "a": "led1.anode",

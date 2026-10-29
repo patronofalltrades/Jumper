@@ -9,3 +9,12 @@
    "can we break our rules for this one and open issues and PRs automatically? Use best practices from prior branch and PR naming and commenting"
 
 Claude's work for #102 (not Hanif's words): an engine run in Vitest of Perch level 2 found that the LED place task accepts the LED in any direction, and that the error shows 3 tasks later. Red tests first (`tests/led-direction.test.ts`), then the check in `lib/game/engine.ts`, the `led_shorted` rule and the texts in `content/`, and a − badge on the 3D LED. See the ledger for the details.
+
+3. Hanif's answers to the questions on PR #108 (his words):
+
+   "1. OK
+   2. OK
+   3. OK
+   4. It should explain what a short leg is and where to put it"
+
+Claude's change for answer 4 (not Hanif's words): the `reversed_led` text explains the short leg and where it goes.
