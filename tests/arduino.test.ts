@@ -269,7 +269,7 @@ describe("walkthrough clips", () => {
     expect([start(1), start(2), start(3), start(4)]).toEqual([0, 2, 2, 5]);
     for (const [n, clip] of clips) {
       expect(clip.steps.at(-1)).toMatchObject({ kind: "end", after: clip.order.length });
-      expect(clip.steps.every((s) => s.kind === "end" || s.progress !== null), `level ${n}`).toBe(true);
+      expect(clip.steps.every((s) => s.kind === "end" || s.kind === "board" || s.progress !== null), `level ${n}`).toBe(true);
     }
   });
 });

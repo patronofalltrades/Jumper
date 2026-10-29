@@ -17,6 +17,15 @@ describe("board store", () => {
     expect(store.getState().pending).toBeNull();
   });
 
+  it("draws no part faded on a level board, and the faded parts of a clip (issue #103)", () => {
+    const store = createBoardStore();
+    const parts = [{ id: "w1", type: "wire" as const, a: "A-a3", b: "A-a9", color: "#D63A2F" }];
+    store.getState().open("perch/2", { parts });
+    expect(store.getState().faded).toEqual([]);
+    store.getState().open("clip", { parts, readOnly: true, faded: ["w1"] });
+    expect(store.getState().faded).toEqual(["w1"]);
+  });
+
   it("keeps the board that the level opened with, so a new part shows as placed by the learner", () => {
     const store = createBoardStore();
     const start = [{ id: "w1", type: "wire" as const, a: "A-a3", b: "A-a9", color: "#D63A2F" }];

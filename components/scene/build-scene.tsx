@@ -3,7 +3,7 @@
 import { Line, OrbitControls } from "@react-three/drei";
 import { Canvas, useThree, type ThreeEvent } from "@react-three/fiber";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { Color, MathUtils, Object3D, Vector3, type Camera, type InstancedMesh } from "three";
+import { Color, MathUtils, Object3D, Vector3, type Camera, type Group, type InstancedMesh, type Material, type Mesh } from "three";
 import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
 import { BOARD, nearestHole, type Bench, type Hole } from "@/lib/circuit/bench";
 import { isModuleType, type ModuleType } from "@/lib/circuit/modules";
@@ -424,8 +424,29 @@ const pressButton = (id: string) => (down: boolean) => {
   if (aliveStore.getState().stage) aliveStore.getState().input(down);
 };
 
+/** How much of a faded part shows: the parts of the levels before, in a walkthrough clip (issue #103). */
+const FADED_OPACITY = 0.3;
+
+/** Draws its part faded when `on`. The materials of the part change in place, after each render, so a prop that
+ *  React three fiber sets again (for example the lens of an LED) is faded again. */
+function Fade({ on, children }: { on: boolean; children: ReactNode }) {
+  const ref = useRef<Group>(null);
+  useLayoutEffect(() => {
+    if (!on) return;
+    ref.current?.traverse((o) => {
+      const m = (o as Mesh).material as Material | Material[] | undefined;
+      for (const material of Array.isArray(m) ? m : m ? [m] : []) {
+        if (!material.transparent) material.needsUpdate = true;
+        Object.assign(material, { transparent: true, opacity: FADED_OPACITY, depthWrite: false });
+      }
+    });
+  });
+  return <group ref={ref}>{children}</group>;
+}
+
 function Parts({ bench, removing, glow }: { bench: Bench; removing: boolean; glow: Map<string, Color> }) {
   const parts = useBoard((s) => s.parts);
+  const faded = useBoard((s) => s.faded);
   const running = useSketch((s) => s.running);
   const lit = useSketch((s) => s.lit);
   const pressed = useSketch((s) => s.pressed);
@@ -456,21 +477,23 @@ function Parts({ bench, removing, glow }: { bench: Bench; removing: boolean; glo
               : undefined
           }
         >
-          {isModule(p) ? (
-            <ModuleMesh
-              bench={bench}
-              id={p.id}
-              type={p.type}
-              at={p.at}
-              glow={glow}
-              removeHot={removing && target === p.id}
-              pressed={pressed.has(p.id) || talkDown}
-              onPress={(running || awake) && p.type === "pushbutton" && !removing ? presses.get(p.id) : undefined}
-              {...(removing ? {} : { ...pinHandlers(partPins(bench, p).flatMap((pin) => (pin.terminal ? [] : [pin.hole]))), terminalHandlers })}
-            />
-          ) : (
-            <PartMesh part={p} a={endOf(bench, parts, p.a)!} b={endOf(bench, parts, p.b)!} hot={removing && target === p.id} on={lit.has(p.id) || (blink && p.type === "led")} />
-          )}
+          <Fade on={faded.includes(p.id)}>
+            {isModule(p) ? (
+              <ModuleMesh
+                bench={bench}
+                id={p.id}
+                type={p.type}
+                at={p.at}
+                glow={glow}
+                removeHot={removing && target === p.id}
+                pressed={pressed.has(p.id) || talkDown}
+                onPress={(running || awake) && p.type === "pushbutton" && !removing ? presses.get(p.id) : undefined}
+                {...(removing ? {} : { ...pinHandlers(partPins(bench, p).flatMap((pin) => (pin.terminal ? [] : [pin.hole]))), terminalHandlers })}
+              />
+            ) : (
+              <PartMesh part={p} a={endOf(bench, parts, p.a)!} b={endOf(bench, parts, p.b)!} hot={removing && target === p.id} on={lit.has(p.id) || (blink && p.type === "led")} />
+            )}
+          </Fade>
         </group>
       ))}
     </group>

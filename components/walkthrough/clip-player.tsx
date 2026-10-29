@@ -22,7 +22,7 @@ const BuildScene = dynamic(() => import("@/components/scene/build-scene"), {
   loading: () => <p className="grid h-full place-items-center text-sm text-muted-foreground">{text.loading}</p>,
 });
 
-/** How long the clip shows where the part goes, then the part in place. A pop-up or a Check step stays longer. */
+/** How long the clip shows where the part goes, then the part in place. The first board, a pop-up or a Check step stays longer. */
 const CUE_MS = 1400;
 const DONE_MS = 2200;
 const READ_MS = 4500;
@@ -94,7 +94,7 @@ export default function ClipPlayer({ clip, title, onClose }: Props) {
   useEffect(() => {
     const frame = clipFrame(step, phase, reduced);
     const added = frame.cue ? [] : clip.order.slice(step.before, step.after);
-    store.getState().open("clip", { readOnly: true, bench });
+    store.getState().open("clip", { readOnly: true, bench, faded: clip.faded });
     store.setState({
       parts: clip.order.slice(0, frame.count),
       plan: frame.cue ? clip.plan : null,
@@ -105,7 +105,7 @@ export default function ClipPlayer({ clip, title, onClose }: Props) {
 
   useEffect(() => {
     if (!running) return;
-    const wait = phase === "cue" ? CUE_MS : step.kind === "popup" || step.kind === "check" ? READ_MS : DONE_MS;
+    const wait = phase === "cue" ? CUE_MS : step.kind === "board" || step.kind === "popup" || step.kind === "check" ? READ_MS : DONE_MS;
     const timer = setTimeout(() => (phase === "cue" ? setPhase("done") : go(index + 1)), wait);
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- `go` is new on each render; the step is the input
