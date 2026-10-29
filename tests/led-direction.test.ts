@@ -172,7 +172,7 @@ describe("Arduino Foundations levels 2 and 4: the direction of the LED", () => {
       expect(l.effect).toBe("buzz");
       expect(l.progress).toMatchObject({ phase: "mistake", index: 1, mistake: { code: "reversed_led", parts: ["led1"] } });
       const text = l.progress.mistake?.message ?? "";
-      expect(text).toContain("Put the long leg (+) in row a, column 26.");
+      expect(text).toContain("Put the long leg (+) in row a, column 26 of breadboard A.");
       expect(text).toContain("the free leg of the resistor (row c, column 26)");
       expect(text).toContain("Put the short leg (−) in row a, column 27.");
       expect(text).not.toMatch(/[{}]/);
