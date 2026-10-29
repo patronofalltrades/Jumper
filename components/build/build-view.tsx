@@ -230,7 +230,7 @@ export function BuildView({ user, project, levelId, position, eyebrow, title, go
               {building && <GuideBar />}
               <TaskList tasks={tasks} laptop={laptop} code={sketch && { instruction: sketch.task, open: openCode }} small={codeOpen} />
               {/* After the first failed Check, every connection of the level, right or wrong (issue #92). */}
-              {progress.fails > 0 && <ConnectionList rules={rules} />}
+              {progress.fails > 0 && <ConnectionList rules={rules} laptop={laptop} small={codeOpen} />}
             </div>
           )}
           {/* The learner closed the Check card to fix the board: the Check button stays at the bottom of the board. */}

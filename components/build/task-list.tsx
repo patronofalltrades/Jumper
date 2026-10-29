@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import text from "@/content/ui/build.json";
 import sketchText from "@/content/ui/sketch.json";
 import { boardStore, useBoard } from "@/lib/game/board-store";
 import { needsAck, taskMarks, type TaskMark } from "@/lib/game/engine";
 import { cn } from "@/lib/utils";
+import { PanelHeader, usePanelOpen } from "./panel-header";
 import type { LevelTask } from "./popups";
 
 // The task list (issue #52): every task of the level, with a tick for each task that the board does now.
@@ -31,9 +32,7 @@ export function TaskList({ tasks, laptop, code, small = false }: { tasks: LevelT
     ...tasks.map((t) => ({ key: String(t.position), instruction: t.instruction, task: t as LevelTask | null })),
     ...(code ? [{ key: "code", instruction: code.instruction, task: null }] : []),
   ];
-  // Null until the learner taps the header: then the panel follows the screen size.
-  const [toggled, setToggled] = useState<boolean | null>(null);
-  const open = toggled ?? (laptop && !small);
+  const [open, toggle] = usePanelOpen(laptop && !small);
   const list = useRef<HTMLOListElement>(null);
   const now = marks.indexOf("now");
 
@@ -51,21 +50,13 @@ export function TaskList({ tasks, laptop, code, small = false }: { tasks: LevelT
       aria-label={text.tasks.list}
       className={cn("pointer-events-auto flex min-h-0 flex-col self-start rounded-2xl border border-border bg-card shadow-panel", open && "w-full sm:w-72")}
     >
-      <button
-        type="button"
-        aria-expanded={open}
-        title={open ? text.tasks.hide : text.tasks.show}
-        onClick={() => setToggled(!open)}
-        className="flex min-h-11 shrink-0 items-center gap-2 rounded-2xl px-3 text-left text-sm font-bold outline-none focus-visible:ring-2 focus-visible:ring-ring"
-      >
-        <span className="flex-1">{open ? fill(text.tasks.title, { done, total: rows.length }) : fill(text.tasks.chip, { done, total: rows.length })}</span>
-        {/* A minus closes the list, a plus opens it. */}
-        <span aria-hidden="true" className="grid size-7 place-items-center rounded-lg border border-b-2 border-border bg-card">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round">
-            <path d={open ? "M5 12h14" : "M5 12h14M12 5v14"} />
-          </svg>
-        </span>
-      </button>
+      <PanelHeader
+        open={open}
+        onToggle={toggle}
+        label={fill(open ? text.tasks.title : text.tasks.chip, { done, total: rows.length })}
+        show={text.tasks.show}
+        hide={text.tasks.hide}
+      />
       {open && (
         <ol ref={list} className="flex min-h-0 flex-col gap-1 overflow-y-auto border-t border-border p-2">
           {rows.map(({ key, instruction, task }, i) => {

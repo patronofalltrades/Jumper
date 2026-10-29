@@ -8,30 +8,43 @@ import type { Part } from "@/lib/circuit/parts";
 import { useBoard } from "@/lib/game/board-store";
 import { cn } from "@/lib/utils";
 import { endpointName, strayRow } from "./names";
+import { PanelHeader, usePanelOpen } from "./panel-header";
 
 // The connection list (issue #92): each connection of the level, right or wrong, for the best way round of the
 // resistors and buttons. It shows after a failed Check, and it updates each time the board changes. Its look is the task list.
 
 const fill = (template: string, values: Record<string, string | number>) => template.replace(/\{(\w+)\}/g, (_, k: string) => String(values[k]));
 
-/** The list under the task list, after a failed Check. `rules` are the rules of the level (joined with the earlier levels). */
-export function ConnectionList({ rules }: { rules: Rules }) {
+/**
+ * The list under the task list, after a failed Check. `rules` are the rules of the level (joined with the earlier levels).
+ * Its header opens and closes it, as the task list (issue #112): open on a laptop, closed on a phone or when the code panel is open (`small`).
+ */
+export function ConnectionList({ rules, laptop, small = false }: { rules: Rules; laptop: boolean; small?: boolean }) {
   const bench = useBoard((s) => s.bench);
   const parts = useBoard((s) => s.parts);
   const states = useMemo(() => connectionStates(bench, parts, rules), [bench, parts, rules]);
   const done = states.filter((s) => s.ok).length;
+  const [open, toggle] = usePanelOpen(laptop && !small);
 
   return (
     <section
       aria-label={text.connections.list}
-      className="pointer-events-auto flex min-h-0 w-full flex-col self-start rounded-2xl border border-border bg-card shadow-panel sm:w-72"
+      className={cn("pointer-events-auto flex min-h-0 flex-col self-start rounded-2xl border border-border bg-card shadow-panel", open && "w-full sm:w-72")}
     >
-      <p className="flex min-h-11 items-center px-3 text-sm font-bold">{fill(text.connections.title, { done, total: states.length })}</p>
+      <PanelHeader
+        open={open}
+        onToggle={toggle}
+        label={fill(open ? text.connections.title : text.connections.chip, { done, total: states.length })}
+        show={text.connections.show}
+        hide={text.connections.hide}
+      />
+      {open && (
       <ol className="flex max-h-[40vh] min-h-0 flex-col gap-1 overflow-y-auto border-t border-border p-2">
         {states.map((state) => (
           <Row key={`${state.kind}:${state.connection.a}:${state.connection.b}`} state={state} bench={bench} parts={parts} />
         ))}
       </ol>
+      )}
     </section>
   );
 }
