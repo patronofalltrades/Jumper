@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import text from "@/content/ui/snapshots.json";
 import { createClient } from "@/lib/supabase/server";
 import { fieldErrors, snapshotEditSchema, snapshotFormSchema, type FieldErrors } from "@/lib/snapshots/form";
 import { wiringSchema } from "@/lib/snapshots/wiring";
@@ -52,6 +53,16 @@ export async function updateSnapshot(input: z.infer<typeof edit>): Promise<Snaps
   const supabase = await createClient();
   const { data, error } = await supabase.from("snapshots").update({ title, notes }).eq("id", id).select("id").maybeSingle();
   if (error || !data) return { error: "We could not save the changes. Try again." };
+  return { id: data.id };
+}
+
+/** Turns the public link of a snapshot on or off (issue #87). Row-level security lets only the owner change the row. */
+export async function setShared(input: { id: string; shared: boolean }): Promise<SnapshotResult> {
+  const parsed = z.object({ id: z.uuid(), shared: z.boolean() }).safeParse(input);
+  if (!parsed.success) return { error: "This snapshot does not exist." };
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("snapshots").update({ shared: parsed.data.shared }).eq("id", parsed.data.id).select("id").maybeSingle();
+  if (error || !data) return { error: text.share.failed };
   return { id: data.id };
 }
 
