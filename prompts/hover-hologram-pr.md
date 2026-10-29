@@ -21,7 +21,7 @@ No text in `content/` changed: the hologram has no words.
 - Red: `npx vitest run tests/hologram.test.ts` on `37f0b0d` (a stub `hologram.ts` with the types only): 16 failed, 1 passed (17 tests). For example "perch level 2: the ghost is in the guide holes ..." failed (`expected null not to be null`), and the store tests failed with `setHologram is not a function`.
 - Green: `tests/hologram.test.ts` 18 passed. `npx vitest run`: 574 passed in 41 files.
 - Typecheck (`next typegen && tsc --noEmit`): exit 0. Lint (`eslint .`): exit 0.
-- One real change that makes the test fail: in `hologramGhost`, use the holes of the finished board for a resistor or LED in place of the `taskSpot` taps; then the ghost and the guide arrow do not agree when a finished hole is taken, and "a learner who copies the hologram" fails.
+- One real change that makes the test fail: in `hologramGhost`, draw the two legs of a resistor or LED ghost the other way round (`a: taps[1], b: taps[0]`). Then the LED ghost has its long leg (+) on the wrong side, and 5 tests fail (Perch levels 2 and 4, Arduino Foundations levels 2 and 4, and the Perch resistor test). This was tried and reverted.
 - Browser, local only: a temporary public route (removed before the commit) with placeholder Supabase values showed Perch level 2 in Chromium. At 1280 x 800: the see-through button, LED and wire ghosts on the task rows, and a dashed ghost wire with two rings for the wrong row "GPIO 1 → Button side 1". At 390 x 844 with touch: a tap set the hologram, and it went away after about 3 seconds. Keyboard focus showed it, and closing the task list cleared it. No Supabase project was used.
 
 ## Not checked
