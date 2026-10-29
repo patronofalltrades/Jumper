@@ -5,7 +5,8 @@ import type { Part, PartType } from "./parts.ts";
 // The level check (TRD 6.2): the level passes when every `require` connection is true and no `forbid` connection is
 // true. It compares connections, not holes, so any layout that makes the same circuit passes.
 
-export type Connection = { a: string; b: string };
+/** `from`: the level that names the connection last (set by joinRules). It is not in a level's own rules. */
+export type Connection = { a: string; b: string; from?: number };
 export type Rules = { require: Connection[]; forbid: (Connection & { code: string; message: string })[] };
 
 /**
@@ -21,17 +22,23 @@ const SYMMETRIC: PartType[] = ["resistor", "pushbutton"];
  * The rules of the levels in `positions`, joined (issue #65). Check on a level tests the connections of the levels
  * before it too, because the board carries over. A connection that two levels both name (same two ends, either order)
  * counts once. A forbid rule keeps its code and message.
+ * Each joined connection gets `from`: the latest level that names it (issue #89, "From level N:").
  */
 export function joinRules(levels: { position: number; rules: Rules }[], positions: number[]): Rules {
   const key = (c: Connection) => [c.a, c.b].sort().join("|");
   const joined: Rules = { require: [], forbid: [] };
-  const seen = { require: new Set<string>(), forbid: new Set<string>() };
+  const seen = { require: new Map<string, Connection>(), forbid: new Map<string, Connection>() };
   for (const level of levels.filter((l) => positions.includes(l.position)).sort((x, y) => x.position - y.position)) {
     for (const kind of ["require", "forbid"] as const) {
       for (const c of level.rules[kind]) {
-        if (seen[kind].has(key(c))) continue;
-        seen[kind].add(key(c));
-        (joined[kind] as Connection[]).push(c);
+        const earlier = seen[kind].get(key(c));
+        if (earlier) {
+          earlier.from = level.position;
+          continue;
+        }
+        const entry = { ...c, from: level.position };
+        seen[kind].set(key(c), entry);
+        (joined[kind] as Connection[]).push(entry);
       }
     }
   }
@@ -85,8 +92,8 @@ export function checkLevel(bench: Bench, parts: Part[], rules: Rules): CheckResu
   const [f] = broken;
   const [m] = missing;
   return f
-    ? { passed: false, code: f.code, message: f.message, connection: { a: f.a, b: f.b } }
-    : { passed: false, code: isGround(m.a) || isGround(m.b) ? "missing_ground" : "wrong_pin", connection: { a: m.a, b: m.b } };
+    ? { passed: false, code: f.code, message: f.message, connection: { a: f.a, b: f.b, from: f.from } }
+    : { passed: false, code: isGround(m.a) || isGround(m.b) ? "missing_ground" : "wrong_pin", connection: { a: m.a, b: m.b, from: m.from } };
 }
 
 /** The state of one connection of a level: a `require` is right when it is on the board, a `forbid` when it is not. */

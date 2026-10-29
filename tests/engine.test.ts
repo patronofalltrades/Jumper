@@ -329,6 +329,27 @@ describe("going back (issue #63)", () => {
     expect(l.effects.at(-1)).toBe("snap");
   });
 
+  it("redo: a task opens again from ready_to_check, with no XP and no Mistake, and goes back to ready_to_check when it is made", () => {
+    const l = learner(1);
+    l.start();
+    l.put(w1, w2, w3, w4);
+    const xp = l.progress.xp;
+    l.send({ type: "redo", task: 4 });
+    expect(l.progress).toMatchObject({ phase: "task", index: 4, mistakes: 0, tasksDone: 7, xp });
+    l.remove("w2");
+    l.put(w2);
+    expect(l.progress).toMatchObject({ phase: "ready_to_check", index: 7, mistakes: 0, tasksDone: 7, xp });
+    expect(l.effects.at(-1)).toBe("snap");
+  });
+
+  it("redo does nothing when the level is not ready to check", () => {
+    const l = learner(1);
+    l.start();
+    const before = l.progress;
+    l.send({ type: "redo", task: 0 });
+    expect(l.progress).toBe(before);
+  });
+
   it("still buzzes a wrong wire when the learner has gone back", () => {
     const l = learner(1);
     l.start();
