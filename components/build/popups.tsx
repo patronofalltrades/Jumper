@@ -12,6 +12,7 @@ import { terminalAt, partPins, type Part } from "@/lib/circuit/parts";
 import type { Task } from "@/lib/content/schema";
 import { boardStore, useBoard } from "@/lib/game/board-store";
 import { needsAck, taskSpot, type Mistake } from "@/lib/game/engine";
+import { taskOfFailure } from "@/lib/game/fail-task";
 import { HEARTS, heartsLeft } from "@/lib/game/hearts";
 import { mascotPose } from "@/lib/game/mascot";
 import { cn } from "@/lib/utils";
@@ -199,7 +200,8 @@ type LevelInfo = { eyebrow: string; title: string; goal: string; tasks: LevelTas
  * (issue #58). Until the sketch does the goal, the card opens the code panel, and the Check is off.
  */
 export type SketchGate = { passed: boolean; open: () => void };
-type CheckProps = { check: LevelCheck; onCheck: () => void; onClose: () => void; sketch: SketchGate | null };
+/** `onRedo`: "Redo this step" on a fail that has a task of this level. It gets the index of the task. */
+type CheckProps = { check: LevelCheck; onCheck: () => void; onClose: () => void; onRedo: (task: number) => void; sketch: SketchGate | null };
 
 function IntroBody({ eyebrow, title, goal, tasks }: LevelInfo) {
   return (
@@ -247,11 +249,14 @@ function heartsText(fails: number) {
 }
 
 /** The end of the tasks: Check the level. After a fail: the reason, the hearts, and "Fix the board". */
-function CheckBody({ check, onCheck, onClose, sketch }: CheckProps) {
+function CheckBody({ check, onCheck, onClose, onRedo, sketch, tasks }: CheckProps & { tasks: LevelTask[] }) {
   const { xp, mistakes, fails } = useBoard((s) => s.progress);
   const bench = useBoard((s) => s.bench);
   const parts = useBoard((s) => s.parts);
+  const plan = useBoard((s) => s.plan);
   const empty = useEmptyBoard();
+  // The task that makes the failed connection, if this level has one. A forbid rule, or a rule of an earlier level, has none.
+  const redoIndex = check.failed && plan ? taskOfFailure(plan.tasks, check.failed) : null;
   const locked = !!sketch && !sketch.passed;
   // A level with a code step that is not done: the main button opens the code panel, in place of Check.
   const button = locked ? (
@@ -286,14 +291,22 @@ function CheckBody({ check, onCheck, onClose, sketch }: CheckProps) {
         </div>
         <h2 className="text-2xl leading-tight font-extrabold tracking-tight">{text.play.check.failTitle}</h2>
         <p className="text-[15px] leading-snug font-semibold">{reasonText(bench, parts, check.failed)}</p>
+        {redoIndex !== null && (
+          <p className="text-sm leading-snug font-semibold">{fill(text.play.check.redoTask, { n: tasks[redoIndex].position, task: tasks[redoIndex].instruction })}</p>
+        )}
         <p className="text-sm text-muted-foreground">{heartsText(fails)}</p>
         {check.error && <p role="alert" className="text-sm font-semibold text-destructive">{check.error}</p>}
         {locked && sketchNote}
         {emptyNote}
-        <div className="flex justify-end gap-2">
+        <div className="flex flex-wrap justify-end gap-2">
           <PressButton tone="plain" onClick={onClose}>
             {text.play.check.fix}
           </PressButton>
+          {redoIndex !== null && (
+            <PressButton tone="plain" onClick={() => onRedo(redoIndex)}>
+              {text.play.check.redo}
+            </PressButton>
+          )}
           {button}
         </div>
       </>
@@ -378,7 +391,7 @@ export function PopupLayer({ level, conceptOpen, onConceptDone, check }: { level
   if (progress.phase === "intro") body = <IntroBody {...level} />;
   else if (done !== null && level.tasks[done]) body = <DoneBody task={level.tasks[done]} />;
   else if (progress.phase === "ready_to_check" && check.check.open) {
-    body = <CheckBody {...check} />;
+    body = <CheckBody {...check} tasks={level.tasks} />;
     mistake = !!check.check.failed;
   }
   else if (progress.phase === "task" && conceptOpen && task?.concept) body = <ConceptBody concept={task.concept} onDone={onConceptDone} />;

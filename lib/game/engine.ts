@@ -47,6 +47,8 @@ export type EngineEvent =
   | { type: "ack"; parts: Part[] }
   /** "Try again" on a Mistake pop-up. */
   | { type: "dismiss" }
+  /** "Redo this step" on a failed Check: the task `task` opens again (lib/game/fail-task.ts). */
+  | { type: "redo"; task: number }
   | { type: "change"; before: Part[]; after: Part[] };
 
 /** A correct change snaps in. A wrong one buzzes. */
@@ -184,6 +186,12 @@ export function step(bench: Bench, plan: Plan, progress: Progress, event: Engine
 
     case "dismiss":
       return progress.phase === "mistake" ? { progress: { ...progress, phase: "task", mistake: null }, effect: null } : same;
+
+    // The task opens again from ready_to_check. Its XP and tick stay: a task counts once. When the learner makes it again,
+    // the "change" case below takes the level back to ready_to_check.
+    case "redo":
+      if (progress.phase !== "ready_to_check" || event.task < 0 || event.task >= plan.tasks.length) return same;
+      return { progress: { ...progress, phase: "task", index: event.task, mistake: null }, effect: null };
 
     case "change": {
       if (!active && progress.phase !== "ready_to_check") return same;

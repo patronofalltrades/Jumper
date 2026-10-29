@@ -75,5 +75,5 @@ export function useLevelCheck({ user, project, levelId, position, rules, needsSk
     setState({ open: true, busy: false, failed: result.passed ? null : result, error: null });
   };
 
-  return { state, check, close: () => setState((s) => ({ ...s, open: false })) };
+  return { state, check, close: () => setState((s) => ({ ...s, open: false })), reset: () => setState({ open: true, busy: false, failed: null, error: null }) };
 }

@@ -128,7 +128,17 @@ export function BuildView({ user, project, levelId, position, eyebrow, title, go
       level={{ eyebrow, title, goal, tasks }}
       conceptOpen={conceptOpen}
       onConceptDone={() => setConceptRead(progress.index)}
-      check={{ check: levelCheck.state, onCheck: () => void levelCheck.check(), onClose: levelCheck.close, sketch: sketch && { passed: codePassed, open: openCode } }}
+      check={{
+        check: levelCheck.state,
+        onCheck: () => void levelCheck.check(),
+        onClose: levelCheck.close,
+        // "Redo this step": the Check card closes, and the task opens again with its guidance (issue #91).
+        onRedo: (task) => {
+          levelCheck.reset();
+          boardStore.getState().redo(task);
+        },
+        sketch: sketch && { passed: codePassed, open: openCode },
+      }}
     />
   );
 
