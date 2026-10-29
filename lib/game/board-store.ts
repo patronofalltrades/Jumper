@@ -7,6 +7,8 @@ import { isModuleType } from "@/lib/circuit/modules";
 import { checkHole, checkModule, checkPlacement, isModule, moduleOver, nextPartId, partAt, partPins, type LegPart, type Part, type PartType, type PlaceProblem } from "@/lib/circuit/parts";
 import type { Problem } from "@/lib/circuit/problem";
 import { startProgress, step, taskTool, type EngineEvent, type Plan, type Progress } from "./engine";
+import type { HologramTarget } from "./hologram";
+import { putBackParts } from "./put-back";
 
 export type Tool = PartType | "remove";
 
@@ -68,6 +70,8 @@ export type BoardState = {
   code: string | null;
   /** True when the sketch did the goal of the level, after its last change. The level Check needs it. */
   codePassed: boolean;
+  /** The task or connection row under the pointer: the scene shows its ghost (issue #113). It never changes the board. */
+  hologram: HologramTarget | null;
 
   /** Opens the board of a level. A different level starts from `setup`, or an empty bench; the same level keeps its state. */
   open: (level: string, setup?: LevelSetup) => void;
@@ -86,6 +90,8 @@ export type BoardState = {
   setTool: (tool: Tool) => void;
   setWireColor: (hex: string) => void;
   setHover: (hole: string | null) => void;
+  /** Shows the ghost of a task or connection row, or hides it (null). */
+  setHologram: (hologram: HologramTarget | null) => void;
   /**
    * A click or tap on a hole: start a part, finish it, or remove what is in the hole.
    * With a module tool, a click puts the module there. With `preview` (a phone, which has no hover), the first tap
@@ -96,6 +102,8 @@ export type BoardState = {
   /** "Clear": removes the parts that the learner put in this level, in one step. The `base` parts stay; Undo puts all back (issue #114). */
   clear: () => void;
   undo: () => void;
+  /** "Put back the level {n} build" (issue #111): adds the parts of `start` that can go back, as one step that Undo takes back. */
+  putBack: (start: Part[]) => { back: Part[]; blocked: Part[] };
   cancel: () => void;
   /** A change to the sketch. The sketch must do the goal again. */
   setCode: (code: string | null) => void;
@@ -123,12 +131,12 @@ export function createBoardStore(defaultBench: Bench = perchBench()) {
     };
 
     /** A new board: the engine checks the change. */
-    const change = (parts: Part[], history: Part[][]) => {
+    const change = (parts: Part[], history: Part[][], restore = false) => {
       const before = get().parts;
       const added = parts.filter((p) => !before.some((b) => b.id === p.id));
-      set({ parts, history, pending: null, notice: null, ...play({ type: "change", before, after: parts }, added) });
+      set({ parts, history, pending: null, notice: null, ...play({ type: "change", before, after: parts, restore }, added) });
     };
-    const commit = (parts: Part[]) => change(parts, [...get().history, get().parts]);
+    const commit = (parts: Part[], restore = false) => change(parts, [...get().history, get().parts], restore);
 
     const empty = () => ({
       bench: defaultBench,
@@ -151,6 +159,7 @@ export function createBoardStore(defaultBench: Bench = perchBench()) {
       faded: [],
       code: null,
       codePassed: false,
+      hologram: null,
     });
 
     return {
@@ -180,6 +189,7 @@ export function createBoardStore(defaultBench: Bench = perchBench()) {
           faded: setup.faded ?? [],
           code: setup.code ?? null,
           codePassed: setup.codePassed ?? false,
+          hologram: null,
         });
       },
       reset: () => set(empty()),
@@ -192,6 +202,7 @@ export function createBoardStore(defaultBench: Bench = perchBench()) {
       setTool: (tool) => set({ tool, pending: null, notice: null }),
       setWireColor: (wireColor) => set({ wireColor, tool: "wire", pending: null, notice: null }),
       setHover: (hover) => set({ hover }),
+      setHologram: (hologram) => set({ hologram }),
       cancel: () => set({ pending: null, notice: null }),
       setCode: (code) => set({ code, codePassed: false }),
       passCode: () => set({ codePassed: true }),
@@ -248,6 +259,13 @@ export function createBoardStore(defaultBench: Bench = perchBench()) {
         const { history } = get();
         if (!history.length) return set({ notice: { problem: "nothing_to_undo" } });
         change(history[history.length - 1], history.slice(0, -1));
+      },
+
+      putBack: (start) => {
+        const { bench, parts, readOnly } = get();
+        const result = readOnly ? { back: [], blocked: [] } : putBackParts(bench, parts, start);
+        if (result.back.length) commit([...parts, ...result.back], true);
+        return result;
       },
     };
   });
