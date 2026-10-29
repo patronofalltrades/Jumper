@@ -21,3 +21,9 @@
    - Workflow: "Yes, issues and PRs"
 
 Claude's work for #114 (not Hanif's words): this issue is item 5. Red tests first for the `clear` store action, then the action and the button row. See the ledger for the details.
+
+3. Hanif's answers to the "Questions for Hanif" on PR #118 (his words):
+
+   "1 yes, 2 no note, 3 OK, 4 OK, 5 OK"
+
+Claude's work (not Hanif's words): all five answers keep the code as it is. No code change.
