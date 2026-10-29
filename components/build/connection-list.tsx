@@ -17,14 +17,14 @@ const fill = (template: string, values: Record<string, string | number>) => temp
 
 /**
  * The list under the task list, after a failed Check. `rules` are the rules of the level (joined with the earlier levels).
- * Its header opens and closes it, as the task list (issue #112): open on a laptop, closed on a phone.
+ * Its header opens and closes it, as the task list (issue #112): open on a laptop, closed on a phone or when the code panel is open (`small`).
  */
-export function ConnectionList({ rules, laptop }: { rules: Rules; laptop: boolean }) {
+export function ConnectionList({ rules, laptop, small = false }: { rules: Rules; laptop: boolean; small?: boolean }) {
   const bench = useBoard((s) => s.bench);
   const parts = useBoard((s) => s.parts);
   const states = useMemo(() => connectionStates(bench, parts, rules), [bench, parts, rules]);
   const done = states.filter((s) => s.ok).length;
-  const [open, toggle] = usePanelOpen(laptop);
+  const [open, toggle] = usePanelOpen(laptop && !small);
 
   return (
     <section
@@ -34,7 +34,7 @@ export function ConnectionList({ rules, laptop }: { rules: Rules; laptop: boolea
       <PanelHeader
         open={open}
         onToggle={toggle}
-        label={fill(text.connections.title, { done, total: states.length })}
+        label={fill(open ? text.connections.title : text.connections.chip, { done, total: states.length })}
         show={text.connections.show}
         hide={text.connections.hide}
       />

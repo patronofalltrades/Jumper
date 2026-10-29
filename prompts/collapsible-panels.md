@@ -21,3 +21,9 @@
    - Workflow: "Yes, issues and PRs"
 
 Claude's work for #112 (not Hanif's words): a red test first, then a shared header button for the task list and the connection list. See the ledger for the details.
+
+3. Hanif's answers to the 4 "Questions for Hanif" on PR #116 (his words, in the tracking session):
+
+   "1 no, 2 short text, 3 yes, 4 not now"
+
+Claude's work (not Hanif's words): (1) the guide bar stays open; (2) the closed connection list shows the short chip "Connections 12/13"; (3) the connection list starts closed when the code panel is open; (4) no Testing Library or jsdom now.
