@@ -11,3 +11,12 @@
 Claude's investigation (not Hanif's words): an engine run in Vitest of Perch level 2 found the facts written in the issues (#100 to #104). This issue is the part "The clip shown already has wires and is not from a clean slate".
 
 Claude's work for #103 (not Hanif's words): red tests first for the first step of the clip and the faded parts, then the change. See the ledger for the details.
+
+Hanif's answers to the questions on PR #109 (his words):
+
+   "1. Do a follow up issue
+   2. yes
+   3. It is fine
+   4. We will run it"
+
+Claude's change for the answers (not Hanif's words): follow-up issue #110 for answer 1; no code change for answers 2 to 4.
