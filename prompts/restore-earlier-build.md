@@ -21,3 +21,9 @@
    - Workflow: "Yes, issues and PRs"
 
 Claude's work for #111 (not Hanif's words): items 2.1 and 2.2 of the request. The start rule does not change (the learner's own earlier board when there is one). A new tool bar button puts back the ready-made parts of the earlier levels. Red test first, then the change. See the ledger for the details.
+
+3. Hanif's answer to the questions on PR #117 (his words):
+
+   "Keep "Put back" as the label; the other answers are OK."
+
+   Claude's notes (not Hanif's words): no code change. The visible label stays "Put back"; the moved-part rule, the level number in the label and the 5-second note stay as they are. Question 4 (a follow-up issue for a hand-placed ready-made part) is open: Claude asked Hanif if "OK" means "yes, open the issue".
