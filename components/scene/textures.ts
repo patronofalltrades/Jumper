@@ -24,9 +24,9 @@ function canvasFor(width: number, depth: number, x0: number, z0: number) {
 
 /**
  * The top of one 400-hole breadboard whose row a is at bench x = `x0`. `letter` (A, B) goes large over the center gap,
- * at the end near the learner (issue #100); null draws no letter.
+ * at the end near the learner (issue #100).
  */
-export function drawBreadboard(x0: number, letter: string | null): CanvasTexture {
+export function drawBreadboard(x0: number, letter: string): CanvasTexture {
   const left = x0 + BOARD.centerX - BOARD.width / 2;
   const top = -BOARD.length / 2;
   const { canvas, g, X, Z } = canvasFor(BOARD.width, BOARD.length, left, top);
@@ -70,11 +70,9 @@ export function drawBreadboard(x0: number, letter: string | null): CanvasTexture
   g.fillText("−", X(x0 + RAILS["L-"]), Z(columnZ(0)));
   g.fillText("−", X(x0 + RAILS["R-"]), Z(columnZ(0)));
 
-  if (letter) {
-    g.fillStyle = "#4D565D";
-    g.font = `800 ${1.5 * PX}px ${font}`;
-    g.fillText(letter, X(x0 + 5.5), Z(columnZ(0) - 0.05));
-  }
+  g.fillStyle = "#4D565D";
+  g.font = `800 ${1.5 * PX}px ${font}`;
+  g.fillText(letter, X(x0 + 5.5), Z(columnZ(0) - 0.05));
 
   return new CanvasTexture(canvas);
 }

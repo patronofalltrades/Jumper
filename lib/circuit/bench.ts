@@ -212,12 +212,6 @@ export function createBench(spec: BenchSpec): Bench {
 /** The Perch bench: A on the left, B on the right, J3 of the ESP32-S3 in row j of A and J1 in row a of B. */
 export const perchBench = () => createBench(perch as unknown as BenchSpec);
 
-/**
- * The letter of a breadboard for the learner (issue #100), or null on a bench with one breadboard: there the text
- * says only "the breadboard", and a lone "A" would make the learner look for a "B".
- */
-export const breadboardLetter = (bench: Bench, board: string) => (bench.breadboards.length > 1 ? board : null);
-
 /** The nearest hole to a point on the bench, if one is closer than `radius` (default: half a pitch). */
 export function nearestHole(bench: Bench, x: number, z: number, radius = 0.5): Hole | null {
   let best: Hole | null = null;

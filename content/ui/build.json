@@ -51,8 +51,7 @@
   },
   "hole": {
     "pin": "{board} pin: {pin}",
-    "main": "Row {row}, column {column}",
-    "mainOn": "Breadboard {board} · row {row}, column {column}",
+    "main": "Breadboard {board} · row {row}, column {column}",
     "rail": {
       "+": "Red + line (power)",
       "-": "Blue − line (ground)"

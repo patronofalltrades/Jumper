@@ -88,7 +88,7 @@
         {
           "position": 4,
           "kind": "wire",
-          "instruction": "Connect the 3V3 pin to the red + line of breadboard A.",
+          "instruction": "Connect the 3V3 pin to the red + line on the left side of breadboard A.",
           "popup_why": "You gave power to the red + line! The 3V3 pin pushes power out. Now the whole red line has power, so parts can take power from any hole on it.",
           "concept": "Power and ground: Electricity moves in a circle. It goes out of the power pin (+), through a part, and back to the ground pin (−). If the circle is broken, nothing works.",
           "target": {
@@ -116,7 +116,7 @@
         {
           "position": 6,
           "kind": "wire",
-          "instruction": "Connect the red + line of breadboard A to the red + line of breadboard B.",
+          "instruction": "Connect the red + line on the left side of breadboard A to the red + line on the right side of breadboard B.",
           "popup_why": "Now breadboard B has power too. The two breadboards are not joined inside, so this wire is a bridge that carries power across.",
           "concept": null,
           "target": {
@@ -382,7 +382,7 @@
         {
           "position": 2,
           "kind": "wire",
-          "instruction": "Connect VDD of the mic to the red + line.",
+          "instruction": "Connect VDD of the mic to the red + line on the right side of breadboard B.",
           "popup_why": "The mic has power now. VDD is the power pin of the mic.",
           "concept": null,
           "target": {
@@ -551,7 +551,7 @@
         {
           "position": 2,
           "kind": "wire",
-          "instruction": "Connect Vin of the amp to the red + line.",
+          "instruction": "Connect Vin of the amp to the red + line on the left side of breadboard A.",
           "popup_why": "The amp has power now. Vin is the power pin of the amp.",
           "concept": null,
           "target": {
@@ -723,7 +723,7 @@
         {
           "position": 2,
           "kind": "wire",
-          "instruction": "Connect VCC of the screen to the red + line.",
+          "instruction": "Connect VCC of the screen to the red + line on the right side of breadboard B.",
           "popup_why": "The screen has power now. VCC is the power pin of the screen.",
           "concept": null,
           "target": {

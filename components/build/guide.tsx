@@ -2,7 +2,7 @@
 
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import text from "@/content/ui/build.json";
-import { breadboardLetter, type Bench } from "@/lib/circuit/bench";
+import { type Bench } from "@/lib/circuit/bench";
 import { isModuleType } from "@/lib/circuit/modules";
 import { buildNets, describeHole, type ModulePin } from "@/lib/circuit/nets";
 import { isTerminal, type Part } from "@/lib/circuit/parts";
@@ -185,7 +185,6 @@ export function SpotCard() {
 export function holeLines(bench: Bench, parts: Part[], nets: ReturnType<typeof buildNets>, hole: string): string[] {
   const info = describeHole(bench, parts, nets, hole);
   const h = bench.byId.get(hole);
-  const letter = h && breadboardLetter(bench, h.board);
   const lines =
     info.kind === "pin"
       ? [fill(text.hole.pin, { board: bench.board.name, pin: pinName(info.pin!) }), bench.pinAt.get(hole)?.socket ? text.hole.socketTip : text.hole.pinTip]
@@ -193,7 +192,7 @@ export function holeLines(bench: Bench, parts: Part[], nets: ReturnType<typeof b
         ? [fill(text.hole.part, { part: partNames[info.part!.type], pin: info.part!.pin }), isTerminal(hole) ? text.hole.terminalTip : text.hole.partTip]
         : info.kind === "rail"
         ? [text.hole.rail[info.rail!], text.hole.railLine]
-        : [fill(letter ? text.hole.mainOn : text.hole.main, { board: letter ?? "", row: h!.row, column: h!.n }), text.hole.line];
+        : [fill(text.hole.main, { board: h!.board, row: h!.row, column: h!.n }), text.hole.line];
   const connectedPins = [...info.pins.map(pinName), ...info.partPins.map(modulePinName)];
   if (connectedPins.length) lines.push(fill(text.hole.connectedPins, { pin: joinNames(connectedPins) }));
   else if (info.rails.length) lines.push(fill(text.hole.connectedRail, { rail: joinNames(info.rails.map((r) => text.railName[r])) }));
