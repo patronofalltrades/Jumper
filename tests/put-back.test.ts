@@ -89,9 +89,9 @@ describe("the engine and a put-back change", () => {
   it("takes a finished level back to ready_to_check, with no new XP", () => {
     const { plan, board, progress } = play(2);
     expect(progress.phase).toBe("ready_to_check");
-    const removed = step(bench, plan, progress, { type: "change", before: board, after: without(board, "w1") }).progress;
+    const removed = step(bench, plan, progress, { type: "change", before: board, after: without(board, "w2") }).progress;
     expect(removed.phase).toBe("task");
-    const back = step(bench, plan, removed, { type: "change", before: without(board, "w1"), after: board, restore: true }).progress;
+    const back = step(bench, plan, removed, { type: "change", before: without(board, "w2"), after: board, restore: true }).progress;
     expect(back).toMatchObject({ phase: "ready_to_check", mistakes: 0, xp: progress.xp, tasksDone: progress.tasksDone });
   });
 });
