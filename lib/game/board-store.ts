@@ -2,6 +2,7 @@ import { createContext, useContext } from "react";
 import { useStore } from "zustand";
 import { createStore } from "zustand/vanilla";
 import { perchBench, type Bench } from "@/lib/circuit/bench";
+import { placedParts } from "@/lib/circuit/check";
 import { isModuleType } from "@/lib/circuit/modules";
 import { checkHole, checkModule, checkPlacement, isModule, moduleOver, nextPartId, partAt, partPins, type LegPart, type Part, type PartType, type PlaceProblem } from "@/lib/circuit/parts";
 import type { Problem } from "@/lib/circuit/problem";
@@ -98,6 +99,8 @@ export type BoardState = {
    */
   tapHole: (hole: string, preview?: boolean) => void;
   removePart: (id: string) => void;
+  /** "Clear": removes the parts that the learner put in this level, in one step. The `base` parts stay; Undo puts all back (issue #114). */
+  clear: () => void;
   undo: () => void;
   /** "Put back the level {n} build" (issue #111): adds the parts of `start` that can go back, as one step that Undo takes back. */
   putBack: (start: Part[]) => { back: Part[]; blocked: Part[] };
@@ -243,6 +246,13 @@ export function createBoardStore(defaultBench: Bench = perchBench()) {
         if (get().readOnly) return;
         const gone = (p: Part) => p.id === id || (!isModule(p) && (p.a.startsWith(`${id}.`) || p.b.startsWith(`${id}.`)));
         commit(get().parts.filter((p) => !gone(p)));
+      },
+
+      clear: () => {
+        const { readOnly, parts, base } = get();
+        const placed = placedParts(parts, base);
+        if (readOnly || !placed.length) return;
+        commit(parts.filter((p) => !placed.includes(p)));
       },
 
       undo: () => {
