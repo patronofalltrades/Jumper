@@ -9,3 +9,12 @@
    "can we break our rules for this one and open issues and PRs automatically? Use best practices from prior branch and PR naming and commenting"
 
 Claude's investigation (not Hanif's words): an engine run in Vitest of Perch level 2 found the facts written in the issues (#100 to #104). For #104: a board with the resistor and the LED in the lines of GPIO37, GPIO35 and GPIO0 passed the Check. Claude's work for #104: a red test first, then a `stray_pin` reason in `checkLevel`. See the ledger for the details.
+
+3. Hanif's answer comment on PR #106, to the "Questions for Hanif" (his words):
+
+   > 1. Yes
+   > 2 Yes, but make it simple and easy to understand
+   > 3. Yes
+   > 4. Yes
+
+Claude's change (not Hanif's words): the fail card and the connection list row now name only the part, in plain lower-case words, and the pin ("The resistor touches GPIO 37 on the board …", "The resistor must not touch GPIO 37"). Answers 1, 3 and 4 needed no change.
