@@ -109,6 +109,8 @@
   "connections": {
     "title": "Connections · {done} of {total} right",
     "list": "Connections of this level",
+    "show": "Show the connections",
+    "hide": "Hide the connections",
     "require": "{a} → {b}",
     "forbid": "{a} → {b} (must not connect)",
     "stray": "The {part} must not touch {pin}",
