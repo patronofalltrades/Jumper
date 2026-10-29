@@ -3,19 +3,22 @@
 import { Line, OrbitControls } from "@react-three/drei";
 import { Canvas, useThree, type ThreeEvent } from "@react-three/fiber";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { Color, MathUtils, Object3D, Vector3, type InstancedMesh } from "three";
+import { Color, MathUtils, Object3D, Vector3, type Camera, type InstancedMesh } from "three";
 import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
 import { BOARD, nearestHole, type Bench, type Hole } from "@/lib/circuit/bench";
 import { isModuleType, type ModuleType } from "@/lib/circuit/modules";
 import { buildNets, netHoles } from "@/lib/circuit/nets";
+import { problemHoles, type Problem } from "@/lib/circuit/problem";
 import { checkModule, isModule, partPins, terminalAt, type Part } from "@/lib/circuit/parts";
 import { useTaskSpot } from "@/components/build/popups";
 import text from "@/content/ui/site.json";
 import { hasWebGL } from "@/lib/device";
 import { boardStore, useBoard } from "@/lib/game/board-store";
+import { focusDistance } from "@/lib/game/focus";
 import { sketchStore, useSketch } from "@/lib/game/sketch-store";
 import { ModuleGhost, ModuleMesh, terminalTop } from "./modules";
 import { PartMesh, type End } from "./parts";
+import { ProblemMarks } from "./problem-marks";
 import { drawBreadboard, drawEsp, drawShield, SHIELD } from "./textures";
 import { UNO_SOCKET_TOP, UNO_TOP, Uno } from "./uno";
 import { useFontTexture } from "./use-font-texture";
@@ -78,6 +81,9 @@ function CameraRig() {
   const invalidate = useThree((s) => s.invalidate);
   const bench = useBoard((s) => s.bench);
   const controls = useRef<OrbitControlsImpl>(null);
+  // "Show me" (issue #90): the camera moves to the problem. A problem from before this mount does not move it again.
+  const focus = useBoard((s) => s.focus);
+  const shown = useRef(focus);
   const fitted = useRef<{ aspect: number; bench: Bench | null }>({ aspect: 0, bench: null });
   const target = useMemo(() => targetOf(bench), [bench]);
 
@@ -101,6 +107,18 @@ function CameraRig() {
     invalidate();
   }, [camera, size, invalidate, bench, target]);
 
+  useEffect(() => {
+    if (!focus || focus === shown.current) return;
+    shown.current = focus;
+    const { bench: now, parts, problem } = boardStore.getState();
+    const [from, to] = problemEnds(now, parts, problem);
+    if (!from || !to || !controls.current) return;
+    const middle = new Vector3((from.x + to.x) / 2, 0, (from.z + to.z) / 2);
+    const span = Math.hypot(to.x - from.x, to.z - from.z);
+    const distance = focusDistance(span, size.width / size.height, controls.current.minDistance, controls.current.maxDistance);
+    return flyTo(controls.current, camera, invalidate, middle, distance);
+  }, [focus, camera, size, invalidate]);
+
   return (
     <OrbitControls
       ref={controls}
@@ -123,6 +141,39 @@ function clampTarget(controls: OrbitControlsImpl, bench: Bench) {
   t.y = 0;
 }
 
+/** The two ends of the problem of a failed Check on the bench. The marks show them, and Show me moves to them. */
+function problemEnds(bench: Bench, parts: Part[], problem: Problem | null): End[] {
+  if (!problem) return [];
+  return problemHoles(bench, parts, problem).map((h) => endOf(bench, parts, h)).filter((e): e is End => e !== null);
+}
+
+/** The time of the camera move of Show me. */
+const FLY_MS = 600;
+
+/**
+ * Moves the camera to `target` and keeps its direction, so the view stays on the same side of the bench. The move eases
+ * out over FLY_MS. With reduced motion it jumps. Returns a function that stops the move.
+ */
+function flyTo(controls: OrbitControlsImpl, camera: Camera, invalidate: () => void, target: Vector3, distance: number) {
+  const fromTarget = controls.target.clone();
+  const fromCamera = camera.position.clone();
+  const toCamera = target.clone().addScaledVector(fromCamera.clone().sub(fromTarget).normalize(), distance);
+  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const start = performance.now();
+  let frame = 0;
+  const step = (now: number) => {
+    const t = reduced ? 1 : Math.min(1, (now - start) / FLY_MS);
+    const eased = 1 - (1 - t) ** 3;
+    controls.target.lerpVectors(fromTarget, target, eased);
+    camera.position.lerpVectors(fromCamera, toCamera, eased);
+    controls.update();
+    invalidate();
+    if (t < 1) frame = requestAnimationFrame(step);
+  };
+  step(start);
+  return () => cancelAnimationFrame(frame);
+}
+
 function Bench() {
   const bench = useBoard((s) => s.bench);
   const parts = useBoard((s) => s.parts);
@@ -130,12 +181,14 @@ function Bench() {
   const pending = useBoard((s) => s.pending);
   const tool = useBoard((s) => s.tool);
   const flash = useBoard((s) => s.flash);
+  const problem = useBoard((s) => s.problem);
   const probe = useProbeColor();
   const spot = useTaskSpot();
   const blink = useBlink(!!spot && (spot.holes.length > 0 || !!spot.area));
 
   // Nets change only when a part changes, not on each frame.
   const nets = useMemo(() => buildNets(bench, parts), [bench, parts]);
+  const marks = useMemo(() => problemEnds(bench, parts, problem), [bench, parts, problem]);
   // What glows, and in which color. A flash is first, then the net under the pointer (pale), then the task target,
   // which blinks so that it looks different from the pointer.
   const glow = useMemo(() => {
@@ -180,6 +233,7 @@ function Bench() {
         <Esp32S3 bench={bench} glow={glow} />
       )}
       <Parts bench={bench} removing={tool === "remove"} glow={glow} />
+      <ProblemMarks ends={marks} />
       {isModuleType(tool) && <Ghost tool={tool} />}
       {spot && <Cue taps={spot.taps} area={spot.area} up={blink} probe={probe} />}
       {pending && !isModuleType(tool) && endOf(bench, parts, pending) && (
