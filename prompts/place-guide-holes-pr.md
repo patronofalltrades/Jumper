@@ -23,7 +23,7 @@ The test in plain English: a learner who taps only the arrow holes, task after t
 A real change that makes the test fail: put back `if (board) return { holes: [], at: boardCenter(board), taps: [], area: null };` for resistor and LED tasks, and the tap-only learner has no hole to tap on Perch level 2.
 ## Not checked
 - The LED task, the clip cue and a phone size in a browser. Only the resistor task was seen in Chromium.
-- The fallback in real play: in all levels the holes of the finished board are free when a learner follows the arrows, so the fallback runs only in the unit tests.
+- The fallback in real play. When a learner follows the arrows, the holes of the finished board are probably free in every level, so the fallback is checked only by the two unit tests.
 - Red and green screenshots (Assignment rule 3), if this counts as a required test. The red and green output is above.
 - The live Vercel app.
 - Merge with the sibling PRs: #102 changes `step` and `taskState` in `lib/game/engine.ts` (other lines), and all the PRs of this batch add rows to `PLAN.md` and `ledger/LEDGER.md`. Small conflicts are possible there.
