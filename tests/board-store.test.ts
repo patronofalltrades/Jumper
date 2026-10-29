@@ -328,3 +328,59 @@ describe("board store: undo, remove and put back (issue #63)", () => {
     expect(store.getState().done).toBeNull();
   });
 });
+
+describe("board store: Clear (issue #114)", () => {
+  const wire = { id: "w1", type: "wire" as const, a: "A-a3", b: "A-a9", color: "#D63A2F" };
+
+  it("removes the parts that the learner put, and keeps the parts that the level started with", () => {
+    const store = createBoardStore();
+    store.getState().open("perch/2", { parts: [wire] });
+    tap(store, "A-a20", "A-a25");
+    store.getState().setTool("led");
+    tap(store, "B-b10", "B-b11");
+    expect(store.getState().parts).toHaveLength(3);
+    store.getState().clear();
+    expect(store.getState().parts).toEqual([wire]);
+  });
+
+  it("is one step: one Undo puts back all the parts", () => {
+    const store = createBoardStore();
+    store.getState().open("perch/2", { parts: [wire] });
+    tap(store, "A-a20", "A-a25");
+    tap(store, "A-a30", "A-a35");
+    const built = store.getState().parts;
+    const steps = store.getState().history.length;
+    store.getState().clear();
+    expect(store.getState().history).toHaveLength(steps + 1);
+    store.getState().undo();
+    expect(store.getState().parts).toEqual(built);
+  });
+
+  it("does nothing on a board with no part from the learner, and on a read-only board", () => {
+    const store = createBoardStore();
+    store.getState().open("perch/2", { parts: [wire] });
+    store.getState().clear();
+    expect(store.getState().history).toEqual([]);
+    store.getState().open("snapshot/1", { parts: [wire], base: [], readOnly: true });
+    store.getState().clear();
+    expect(store.getState().parts).toEqual([wire]);
+  });
+
+  it("is a removal for the engine: the tasks go back, the XP, the counts and the mistakes stay", () => {
+    const perch = loadProjects().find((p) => p.slug === "perch")!;
+    const level = perch.levels[0];
+    const store = createBoardStore();
+    store.getState().open("perch/1", {
+      plan: { tasks: level.tasks.map((t) => ({ target: t.target, xp: t.xp })), forbid: level.rules.forbid },
+      parts: startBoard(perchBoards, 1),
+    });
+    store.getState().start();
+    for (let i = 0; i < 3; i++) store.getState().ack();
+    for (const w of perchBoards.levels[1].filter((p) => p.type === "wire") as { a: string; b: string }[]) tap(store, w.a, w.b);
+    const done = store.getState().progress;
+    expect(done.phase).toBe("ready_to_check");
+    store.getState().clear();
+    expect(store.getState().parts).toEqual(startBoard(perchBoards, 1));
+    expect(store.getState().progress).toMatchObject({ phase: "task", index: 3, xp: done.xp, tasksDone: done.tasksDone, mistakes: done.mistakes, mistake: null });
+  });
+});
