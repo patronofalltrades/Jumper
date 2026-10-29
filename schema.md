@@ -4,13 +4,14 @@ This file lists each table in the Jumper database, its columns and its relations
 
 - SQL test of `record_attempt`: [supabase/tests/record_attempt_replay.sql](supabase/tests/record_attempt_replay.sql). It runs on a throwaway local Postgres, with the stub in [supabase/tests/local-setup.sql](supabase/tests/local-setup.sql). Never run it on the live project.
 - SQL test of `delete_my_account`: [supabase/tests/delete_my_account.sql](supabase/tests/delete_my_account.sql). It runs on the same local Postgres, as in the steps in the file. Never run it on the live project.
-- SQL: [supabase/migrations/20261018000000_data_model.sql](supabase/migrations/20261018000000_data_model.sql) (tables), [supabase/migrations/20261018100000_level_check.sql](supabase/migrations/20261018100000_level_check.sql) (the `record_attempt` function), [supabase/migrations/20261019000000_profile.sql](supabase/migrations/20261019000000_profile.sql) (the profile character, and the profile columns that a user can change) [supabase/migrations/20261024000000_replay.sql](supabase/migrations/20261024000000_replay.sql) (`record_attempt` for a level that is played again) and [supabase/migrations/20261028000000_delete_account.sql](supabase/migrations/20261028000000_delete_account.sql) (the `delete_my_account` function)
+- SQL test of Collaborate: [supabase/tests/collaborate.sql](supabase/tests/collaborate.sql). It runs on the same local Postgres. Never run it on the live project.
+- SQL: [supabase/migrations/20261018000000_data_model.sql](supabase/migrations/20261018000000_data_model.sql) (tables), [supabase/migrations/20261018100000_level_check.sql](supabase/migrations/20261018100000_level_check.sql) (the `record_attempt` function), [supabase/migrations/20261019000000_profile.sql](supabase/migrations/20261019000000_profile.sql) (the profile character, and the profile columns that a user can change) [supabase/migrations/20261024000000_replay.sql](supabase/migrations/20261024000000_replay.sql) (`record_attempt` for a level that is played again) and [supabase/migrations/20261028000000_delete_account.sql](supabase/migrations/20261028000000_delete_account.sql) (the `delete_my_account` function) and [supabase/migrations/20261029100000_collaborate.sql](supabase/migrations/20261029100000_collaborate.sql) (the `collaborators` and `snapshot_notes` tables, and the `can_see_profile` function)
 - Content that fills the content tables: [content/projects/](content/projects/), loaded by [supabase/seed.ts](supabase/seed.ts) (`npm run seed`)
 - Source of truth for the design: [TRD section 7](docs/TRD.md#7-database-schema)
 
 ## Tables
 
-The database has eight tables. Three tables contain shared content. Five tables contain the data of each user.
+The database has ten tables. Three tables contain shared content. Seven tables contain the data of each user.
 
 ### Content tables
 
@@ -57,7 +58,7 @@ All logged-in users can read these tables. The app cannot write to them. Only th
 
 ### User tables
 
-Row-level security protects these tables. Each user can select, insert, update and delete only their own rows (`user_id = auth.uid()`; for profiles, `id = auth.uid()`). For profiles there is one more limit: a user can only read their row and change `display_name` and `avatar`. Only the sign-up trigger adds a profile, and only `record_attempt` changes `xp`.
+Row-level security protects these tables. Each user can select, insert, update and delete only their own rows (`user_id = auth.uid()`; for profiles, `id = auth.uid()`). For profiles there is one more limit: a user can only read their row and change `display_name` and `avatar`. Only the sign-up trigger adds a profile, and only `record_attempt` changes `xp`. Collaborate (issue #88) adds exceptions to this rule. They are listed in the sections of `collaborators` and `snapshot_notes`: a joined collaborator can read some snapshots and some profiles of the owner, and nothing more.
 
 **profiles**: one row for each account. A trigger adds the row when a user signs up. The migration also adds rows for accounts that existed before it.
 
@@ -126,6 +127,39 @@ The star button on the snapshot list and the snapshot page adds or removes a row
 
 **Where the sketch is saved (issue #58).** The Arduino sketch of a level has no column. The browser saves it with the board that the learner builds, in the same entry: `{ parts, base, progress, session, sketch: { code, passed } }` (`components/build/autosave.ts`). Thus a reload keeps the sketch, as it keeps the board. `passed` is true when the sketch did the goal after its last change; the level Check waits for it. The level Check still saves one row in `attempts`, and a sketch that does not do the goal saves nothing, so it does not cost a heart. The starter code, the goal and the hints are content in `content/sketches/<project>.json`, not in the `levels` table: the page reads the file, as it reads `content/boards/`.
 
+**collaborators** (issue #88): the invites of an owner to a project, and the friends who joined.
+
+| Column | Type | Notes |
+| --- | --- | --- |
+| id | uuid | Primary key |
+| owner_id | uuid | Foreign key → profiles.id. The user who invites. Default `auth.uid()` |
+| project_id | int | Foreign key → projects.id |
+| invitee_email | text | The email that the owner wrote, in small letters. It is not a user, so the app never tells the owner whether the email has an account |
+| collaborator_id | uuid, nullable | Foreign key → profiles.id. Empty until the invitee presses Accept |
+| status | text | `invited` or `joined`. `joined` only with a `collaborator_id` |
+| created_at | timestamptz | |
+
+Unique on (`owner_id`, `project_id`, `invitee_email`). The rules (row-level security):
+
+- The owner, the invitee (the email in the token, `auth.jwt() ->> 'email'`, is the `invitee_email`) and the collaborator read a row.
+- Only the owner adds a row. A new row is `invited`, has no collaborator, and is not for the email of the owner. Only `project_id` and `invitee_email` can be written.
+- Only the invitee accepts. The update puts the id of the invitee in `collaborator_id` and sets `joined`. Only these two columns can be written.
+- The owner deletes a row to remove a collaborator. The collaborator deletes the row to leave. The invitee deletes the row to decline. A delete ends the access at once.
+
+**snapshot_notes** (issue #88): a note under a snapshot.
+
+| Column | Type | Notes |
+| --- | --- | --- |
+| id | uuid | Primary key |
+| snapshot_id | uuid | Foreign key → snapshots.id. Cascade delete |
+| user_id | uuid | Foreign key → profiles.id. The author. Default `auth.uid()` |
+| body | text | 1 to 1000 characters, not only spaces |
+| created_at | timestamptz | |
+
+The rules: a user reads the notes of the snapshots that the user can read, and adds a note only on such a snapshot, as themselves. A user deletes only their own notes. A note cannot be edited. When the owner removes a collaborator, the notes of the collaborator stay, and the owner still reads them.
+
+**What a joined collaborator can read.** A new select policy on `snapshots` gives a joined collaborator the snapshots where `user_id` is the owner and the level belongs to the project of the invite. The only policy for update and delete is still "Owner only", so a collaborator cannot change or delete these snapshots. The policy of `stars` needs an own snapshot, so a collaborator cannot star them. A new select policy on `profiles` (the function `can_see_profile`) gives a person the profile of the owner of an invite or of a project that they joined, of their own collaborators, and of the other collaborators of a project that they joined. The profile columns `xp` and `created_at` come with the row. The app shows only the name and the character.
+
 The lab notebook search, filters and sort (`/snapshots`, issue #42) need no new column. One query reads the snapshots with `ilike` on `title` and `notes`, `level_id` and `passed` for the filters, and `created_at` or `mistake_count` for the sort. Row-level security gives each user only their own snapshots.
 
 ## Functions
@@ -140,6 +174,8 @@ The lab notebook search, filters and sort (`/snapshots`, issue #42) need no new 
 - `fails` is the number of failed Checks in the session. The app shows hearts from it: 3 − fails, and at 0 hearts the next fail gives 3 new hearts. A new session starts with 0 failed Checks.
 
 **delete_my_account**() → nothing. The "Delete my account" button of the profile page calls it (issue #78). It runs as its owner (`security definer`, with an empty `search_path`), because users cannot write to `auth.users`. It runs one statement: it deletes the row in `auth.users` where `id = auth.uid()`. It cannot delete the row of another user. The existing `on delete cascade` rules then remove the rows of `profiles`, `sessions`, `attempts`, `snapshots` and `stars`. The function does not delete from `profiles` directly, because users have no delete right on `profiles` (feature 17). A call with no user in the token deletes nothing. `anon` and `public` have no `execute` right; only `authenticated` has it. The app calls it with the user's own session, and never uses `SUPABASE_SECRET_KEY` for it. The same email can sign up again after the delete.
+
+**can_see_profile**(profile) → boolean. The select policy "Collaborators read names" on `profiles` calls it (issue #88). It runs as its owner (`security definer`, with an empty `search_path`), so it can read `collaborators` through no policy of its own. `anon` and `public` have no `execute` right; only `authenticated` has it.
 
 **updateSession** (a server action, not a SQL function) saves the counters of a session only while its status is `in_progress`. When no row agrees, it gives `closed: true`, and the app starts a new session.
 
@@ -161,12 +197,18 @@ erDiagram
     sessions |o--o{ snapshots : "saved from"
     profiles ||--o{ stars : gives
     snapshots ||--o{ stars : receives
+    profiles ||--o{ collaborators : "invites (owner)"
+    profiles |o--o{ collaborators : "joins (collaborator)"
+    projects ||--o{ collaborators : "shared in"
+    snapshots ||--o{ snapshot_notes : has
+    profiles ||--o{ snapshot_notes : writes
 ```
 
 - One project has many levels. One level has many tasks.
 - One user has many sessions, attempts and snapshots. One session has many attempts.
 - Users and snapshots have a many-to-many relation through stars.
-- When an account is deleted, its profile and all its rows are deleted (cascade). When a snapshot is deleted, its stars are deleted. When a session is deleted, its snapshots stay, with an empty `session_id`.
+- One user (the owner) invites many emails to a project. One invite has one owner and one project, and, after Accept, one collaborator. One snapshot has many notes; one user writes many notes.
+- When an account is deleted, its profile and all its rows are deleted (cascade). When a snapshot is deleted, its stars are deleted. When a session is deleted, its snapshots stay, with an empty `session_id`. When an owner deletes the account, the invites of the owner go (cascade), and so do the notes under the snapshots. When a collaborator deletes the account, the rows of that collaborator in `collaborators` and `snapshot_notes` go. An invite for an email that has no account stays until the owner removes it. A person who signs up later with that email sees it.
 
 ## Comparison with PLAN.md section 3
 
@@ -191,3 +233,5 @@ erDiagram
 | `created_at` (date) | timestamptz | The dashboard needs the time, not only the date. |
 | Hearts (PLAN.md section 2) | No column. Hearts come from the failed attempts of the session | One source of truth. A failed Check already saves an attempt (issue #25). |
 | — (PLAN.md has no code step) | No column. The sketch of a level is saved in the browser with the board (`sketch: { code, passed }`). The code step content is in `content/sketches/` | PLAN.md section 3 says that the board in progress autosaves in the browser. The sketch is part of that work in progress, so it goes in the same place (Hanif's choice, issue #58). No migration is necessary. |
+| — (PLAN.md section 3 has no table for Collaborate; "Future work" lists it as "Coming soon") | `collaborators` and `snapshot_notes` tables (issue #88) | Hanif decided: invite by email, a shared view of the snapshots of one project, and notes. Not live co-wiring. The live board is only in the browser (PLAN.md section 3), so the shared view uses snapshots. |
+| "Data isolation: user B cannot see A's snapshot" (PLAN.md section 4, required test 1) | Still true for a user who is not a joined collaborator of A | The new select policy on `snapshots` needs a `collaborators` row with `status = 'joined'` for that owner and that project. The SQL test checks a user with no invite, an invited user who did not join, and a removed collaborator. |
