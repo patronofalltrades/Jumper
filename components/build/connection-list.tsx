@@ -7,7 +7,7 @@ import { connectionStates, type ConnectionState, type Rules } from "@/lib/circui
 import type { Part } from "@/lib/circuit/parts";
 import { useBoard } from "@/lib/game/board-store";
 import { cn } from "@/lib/utils";
-import { endpointName } from "./names";
+import { endpointName, strayRow } from "./names";
 
 // The connection list (issue #92): each connection of the level, right or wrong, for the best way round of the
 // resistors and buttons. It shows after a failed Check, and it updates each time the board changes. Its look is the task list.
@@ -38,7 +38,10 @@ export function ConnectionList({ rules }: { rules: Rules }) {
 
 function Row({ state, bench, parts }: { state: ConnectionState; bench: Bench; parts: Part[] }) {
   const { kind, connection, ok } = state;
-  const label = fill(text.connections[kind], { a: endpointName(bench, parts, connection.a), b: endpointName(bench, parts, connection.b) });
+  const label =
+    kind === "stray"
+      ? strayRow(bench, parts, connection)
+      : fill(text.connections[kind], { a: endpointName(bench, parts, connection.a), b: endpointName(bench, parts, connection.b) });
   return (
     <li className="flex items-start gap-2 rounded-xl px-2 py-1.5 text-sm leading-snug">
       <Mark ok={ok} />

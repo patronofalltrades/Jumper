@@ -12,7 +12,7 @@ export const targetSchema = z.discriminatedUnion("kind", [
 
 export const rulesSchema = z.object({
   require: z.array(z.object(connection)).min(1),
-  forbid: z.array(z.object({ ...connection, code: z.string().min(1), message: z.string().min(1) })),
+  forbid: z.array(z.object({ ...connection, code: z.string().min(1), message: z.string().min(1), place_message: z.string().min(1).optional() })),
 });
 
 export const taskSchema = z

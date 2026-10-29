@@ -68,7 +68,7 @@
         {
           "position": 2,
           "kind": "place",
-          "instruction": "This is the breadboard, inside the blinking line. It is already on the table.",
+          "instruction": "This is breadboard A, inside the blinking line. It is already on the table.",
           "popup_why": "A breadboard is a board full of holes. Under the holes, metal strips join them in lines of 5. Put two things in the same line of 5, and they touch. The long red and blue lines at the edges are for power.",
           "concept": "Breadboard: A board with many holes. You push parts and wires into the holes. You do not need glue or solder. Under each line of 5 holes, a metal strip joins the holes, so the parts in that line can talk.",
           "target": {
@@ -83,7 +83,7 @@
         {
           "position": 3,
           "kind": "wire",
-          "instruction": "Connect the 5V pin of the Uno to the red + line of the breadboard, next to the Uno.",
+          "instruction": "Connect the 5V pin of the Uno to the red + line on the left side of breadboard A, next to the Uno.",
           "popup_why": "You gave power to the red + line! The 5V pin pushes power out. Now the whole red line has power, so parts can take power from any hole on it.",
           "concept": "Power rails: The two long lines at the edge of a breadboard. The red + line carries power, and the blue − line carries ground. All the holes on one long line are joined, so every part on the breadboard can reach power and ground.",
           "target": {
@@ -97,7 +97,7 @@
         {
           "position": 4,
           "kind": "wire",
-          "instruction": "Connect a GND pin of the Uno to the blue − line, next to the red + line.",
+          "instruction": "Connect a GND pin of the Uno to the blue − line on the left side of breadboard A.",
           "popup_why": "You made the way back! GND is ground, the end of the circle. The Uno has 3 GND pins, and they all join inside the Uno. Now the blue − line is ground.",
           "concept": "Power and ground: Electricity moves in a circle. It goes out of the power pin (+), through a part, and back to the ground pin (−). If the circle is broken, nothing works.",
           "target": {
@@ -140,7 +140,14 @@
             "a": "led1.anode",
             "b": "uno.GND",
             "code": "reversed_led",
-            "message": "Oops! The LED is the wrong way round. Its long leg (+) is on ground, so it stays dark. Turn the LED around: long leg to the resistor, short leg to the blue − line."
+            "message": "Oops! The LED is the wrong way round, so it stays dark. The short leg (−) is the shorter of its two legs. On the board it has a blue − mark. On a real LED, it is on the flat side. Do not put the short leg in the line of the resistor: put it in an empty line, and connect that line to the blue − line on the left side of breadboard A. Put the long leg (+) in the line of the resistor. Turn the LED around.",
+            "place_message": "Oops! The LED is the wrong way round, so it stays dark. The short leg (−) is the shorter of its two legs. On the board it has a blue − mark. On a real LED, it is on the flat side. Turn the LED around. Put the long leg (+) in row {long_row}, column {long_column} of breadboard {board}. This is the same column as the free leg of the resistor (row {resistor_row}, column {resistor_column}). Put the short leg (−) in row {short_row}, column {short_column}. Then connect column {short_column} to the blue − line on the left side of breadboard A."
+          },
+          {
+            "a": "led1.anode",
+            "b": "led1.cathode",
+            "code": "led_shorted",
+            "message": "Oops! This wire joins the two legs of the LED, so no power goes through it. Undo the wire."
           },
           {
             "a": "uno.D13",
@@ -155,7 +162,7 @@
         {
           "position": 1,
           "kind": "place",
-          "instruction": "Put the 220 Ω resistor on the breadboard. Its two legs go in two different lines.",
+          "instruction": "Put the 220 Ω resistor on breadboard A. Its two legs go in two different lines.",
           "popup_why": "The resistor is in. A resistor slows down electricity, like a narrow pipe slows down water. Here it keeps the LED safe.",
           "concept": "Ohm's law: Current = voltage ÷ resistance. The pin gives 5 V. A red LED uses about 2 V, so 3 V is left for the resistor. 3 V ÷ 220 Ω = about 0.014 A (14 mA). That is enough to make the LED shine, and less than the 20 mA that it can take.",
           "target": {
@@ -170,7 +177,7 @@
         {
           "position": 2,
           "kind": "place",
-          "instruction": "Put the LED on the breadboard. Its two legs go in two different lines.",
+          "instruction": "Put the LED on breadboard A. Put its long leg (+) in the same column as the free leg of the resistor. Put its short leg (−) in the next column, in the same row.",
           "popup_why": "The LED is in. Look at its legs: the long leg is + and the short leg is −. Electricity can only go in at the long leg and out at the short leg.",
           "concept": "LED: A small light. It works only one way round. The long leg goes toward power (+), and the short leg goes toward ground (−).",
           "target": {
@@ -213,7 +220,7 @@
         {
           "position": 5,
           "kind": "wire",
-          "instruction": "Connect the short leg (−) of the LED to the blue − line.",
+          "instruction": "Connect the short leg (−) of the LED to the blue − line on the left side of breadboard A.",
           "popup_why": "You closed the circle! Power goes out of pin 13, through the resistor and the LED, and back to ground. Now the Uno can turn the LED on and off.",
           "concept": null,
           "target": {
@@ -261,7 +268,7 @@
         {
           "position": 1,
           "kind": "place",
-          "instruction": "Put the button across the gap in the middle of the breadboard.",
+          "instruction": "Put the button across the gap in the middle of breadboard A.",
           "popup_why": "Your button sits across the middle gap. The legs on each side are in different lines, so they do not touch. When you press the button, it joins them.",
           "concept": "Button: A part that joins two wires only while you press it. Press: the wires touch. Let go: they come apart.",
           "target": {
@@ -290,7 +297,7 @@
         {
           "position": 3,
           "kind": "wire",
-          "instruction": "Connect the other side of the button to the blue − line.",
+          "instruction": "Connect the other side of the button to the blue − line on the left side of breadboard A.",
           "popup_why": "The button is ready! When you press it, pin 2 touches ground, and the Uno hears LOW: 'pressed'. When you let go, the pull-up resistor inside the Uno makes it HIGH again.",
           "concept": null,
           "target": {
@@ -347,7 +354,14 @@
             "a": "led1.anode",
             "b": "uno.GND",
             "code": "reversed_led",
-            "message": "Oops! The LED is the wrong way round. Its long leg (+) is on ground, so it stays dark. Turn the LED around: long leg to the resistor, short leg to the blue − line."
+            "message": "Oops! The LED is the wrong way round, so it stays dark. The short leg (−) is the shorter of its two legs. On the board it has a blue − mark. On a real LED, it is on the flat side. Do not put the short leg in the line of the resistor: put it in an empty line, and connect that line to the blue − line on the left side of breadboard A. Put the long leg (+) in the line of the resistor. Turn the LED around.",
+            "place_message": "Oops! The LED is the wrong way round, so it stays dark. The short leg (−) is the shorter of its two legs. On the board it has a blue − mark. On a real LED, it is on the flat side. Turn the LED around. Put the long leg (+) in row {long_row}, column {long_column} of breadboard {board}. This is the same column as the free leg of the resistor (row {resistor_row}, column {resistor_column}). Put the short leg (−) in row {short_row}, column {short_column}. Then connect column {short_column} to the blue − line on the left side of breadboard A."
+          },
+          {
+            "a": "led1.anode",
+            "b": "led1.cathode",
+            "code": "led_shorted",
+            "message": "Oops! This wire joins the two legs of the LED, so no power goes through it. Undo the wire."
           },
           {
             "a": "uno.D13",
@@ -362,7 +376,7 @@
         {
           "position": 1,
           "kind": "place",
-          "instruction": "Put the 220 Ω resistor on the breadboard. Its two legs go in two different lines.",
+          "instruction": "Put the 220 Ω resistor on breadboard A. Its two legs go in two different lines.",
           "popup_why": "The resistor is in. A resistor slows down electricity, like a narrow pipe slows down water. Here it keeps the LED safe.",
           "concept": "Input and output: An input tells the Uno something, for example the button. An output is something that the Uno controls, for example the LED. Later, a sketch reads the button and turns the LED on.",
           "target": {
@@ -377,7 +391,7 @@
         {
           "position": 2,
           "kind": "place",
-          "instruction": "Put the LED on the breadboard. Its two legs go in two different lines.",
+          "instruction": "Put the LED on breadboard A. Put its long leg (+) in the same column as the free leg of the resistor. Put its short leg (−) in the next column, in the same row.",
           "popup_why": "The LED is in. Look at its legs: the long leg is + and the short leg is −. Electricity can only go in at the long leg and out at the short leg.",
           "concept": "LED: A small light. It works only one way round. The long leg goes toward power (+), and the short leg goes toward ground (−).",
           "target": {
@@ -420,7 +434,7 @@
         {
           "position": 5,
           "kind": "wire",
-          "instruction": "Connect the short leg (−) of the LED to the blue − line.",
+          "instruction": "Connect the short leg (−) of the LED to the blue − line on the left side of breadboard A.",
           "popup_why": "You closed the circle! Power goes out of pin 13, through the resistor and the LED, and back to ground. Now the Uno can turn the LED on and off.",
           "concept": null,
           "target": {

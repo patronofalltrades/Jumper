@@ -224,7 +224,7 @@ function Bench() {
     <group>
       {bench.breadboards.map((b) => (
         <group key={b.id}>
-          <Breadboard x0={b.x} handlers={handlers} />
+          <Breadboard x0={b.x} letter={b.id} handlers={handlers} />
           <Holes bench={bench} board={b.id} glow={glow} />
         </group>
       ))}
@@ -250,8 +250,8 @@ type Handlers = {
   onPointerLeave: () => void;
 };
 
-function Breadboard({ x0, handlers }: { x0: number; handlers: Handlers }) {
-  const top = useFontTexture(() => drawBreadboard(x0));
+function Breadboard({ x0, letter, handlers }: { x0: number; letter: string; handlers: Handlers }) {
+  const top = useFontTexture(() => drawBreadboard(x0, letter));
   return (
     <mesh position={[x0 + BOARD.centerX, -0.45, 0]} receiveShadow {...handlers}>
       <boxGeometry args={[BOARD.width, 0.9, BOARD.length]} />

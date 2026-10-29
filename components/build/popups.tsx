@@ -2,7 +2,7 @@
 
 import { Html, Line } from "@react-three/drei";
 import { useThree } from "@react-three/fiber";
-import { useCallback, useMemo, useRef, useSyncExternalStore, type ReactNode } from "react";
+import { useCallback, useContext, useMemo, useRef, useSyncExternalStore, type ReactNode } from "react";
 import { Vector3, type Camera, type Object3D } from "three";
 import { Volt } from "@/components/art/volt";
 import text from "@/content/ui/build.json";
@@ -11,7 +11,7 @@ import type { Bench } from "@/lib/circuit/bench";
 import { diagnose } from "@/lib/circuit/diagnose";
 import { terminalAt, partPins, type Part } from "@/lib/circuit/parts";
 import type { Task } from "@/lib/content/schema";
-import { boardStore, useBoard } from "@/lib/game/board-store";
+import { boardStore, FinishContext, useBoard } from "@/lib/game/board-store";
 import { needsAck, taskSpot, type Mistake } from "@/lib/game/engine";
 import { taskOfFailure } from "@/lib/game/fail-task";
 import { HEARTS, heartsLeft } from "@/lib/game/hearts";
@@ -19,7 +19,7 @@ import { mascotPose } from "@/lib/game/mascot";
 import { cn } from "@/lib/utils";
 import { EMPTY_NOTE, useEmptyBoard, type Failed, type LevelCheck } from "./check";
 import { pinName } from "./guide";
-import { endpointName } from "./names";
+import { endpointName, strayText } from "./names";
 
 // The pop-ups of build mode (PLAN.md "How build mode works"): Place, Wire, Concept and Mistake, plus the level intro,
 // the "what happened" pop-up after a task, and the level Check. All their words come from the level content and content/ui/build.json.
@@ -50,7 +50,8 @@ export function useTaskSpot() {
   const progress = useBoard((s) => s.progress);
   const explaining = useBoard((s) => s.done !== null);
   const task = progress.phase === "task" && !explaining ? plan?.tasks[progress.index] : undefined;
-  return useMemo(() => (task ? taskSpot(bench, parts, task.target, progress.swaps) : null), [bench, parts, task, progress.swaps]);
+  const finish = useContext(FinishContext);
+  return useMemo(() => (task ? taskSpot(bench, parts, task.target, progress.swaps, finish) : null), [bench, parts, task, progress.swaps, finish]);
 }
 
 /** The point of the first pin of the first wrong part, for the Mistake pop-up. */
@@ -224,6 +225,8 @@ function IntroBody({ eyebrow, title, goal, tasks }: LevelInfo) {
 /** The text of a failed Check: the forbid rule text, or where the wire end goes now (issue #89), or the general text. */
 function reasonText(bench: Bench, parts: Part[], failed: Failed, position: number) {
   if (failed.message) return failed.message;
+  // A part on a board pin that no rule uses (issue #104): name the part and the pin.
+  if (failed.code === "stray_pin") return strayText(bench, parts, failed.connection);
   const { from } = failed.connection;
   const prefix = from !== undefined && from !== position ? `${fill(text.play.check.fromLevel, { n: from })} ` : "";
   return prefix + (diagnosisText(bench, parts, failed.connection) ?? generalText(bench, parts, failed));

@@ -10,8 +10,8 @@
       "finish": "{act} a hole for the second leg, 2 to 10 holes away from the first."
     },
     "led": {
-      "start": "{act} a hole for the long leg of the light (+).",
-      "finish": "{act} a hole next to it for the short leg (−)."
+      "start": "{act} a hole for the long leg of the light (+). Use the same column as the free leg of the resistor.",
+      "finish": "{act} a hole in the next column, in the same row, for the short leg (−). Then connect that column to the blue − line."
     },
     "remove": {
       "start": "{act} a part to remove it."
@@ -51,7 +51,7 @@
   },
   "hole": {
     "pin": "{board} pin: {pin}",
-    "main": "Row {row}, column {column}",
+    "main": "Breadboard {board} · row {row}, column {column}",
     "rail": {
       "+": "Red + line (power)",
       "-": "Blue − line (ground)"
@@ -111,6 +111,7 @@
     "list": "Connections of this level",
     "require": "{a} → {b}",
     "forbid": "{a} → {b} (must not connect)",
+    "stray": "The {part} must not touch {pin}",
     "right": "Right",
     "wrong": "Wrong"
   },
@@ -154,6 +155,17 @@
       "failTitle": "Not yet",
       "missing_ground": "{a} does not go to the blue − line. Add a wire from it to the blue − line.",
       "wrong_pin": "{a} does not go to {b}. A wire is missing, or it is in the wrong hole.",
+      "stray_pin": "Oops! The {part} touches {pin} on the board. This level does not use {pin}. Move the {part} to a line with no board pin.",
+      "strayParts": {
+        "resistor": "resistor",
+        "led": "light (LED)",
+        "wire": "wire",
+        "pushbutton": "button",
+        "inmp441": "mic",
+        "max98357a": "amp",
+        "speaker": "speaker",
+        "st7789-154": "screen"
+      },
       "lostHeart": "You lost 1 heart. Hearts left: {n}.",
       "noHearts": "You have no hearts left. You can check again. If the next Check fails, you get 3 new hearts.",
       "refilled": "You get 3 new hearts. Read the reason above, then try again.",

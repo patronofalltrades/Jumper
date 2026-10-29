@@ -8,7 +8,7 @@ import { createBench, perchBench } from "@/lib/circuit/bench";
 import { partPins } from "@/lib/circuit/parts";
 import { videoSrc, videos } from "@/lib/content/videos";
 import { deviceKind, hasWebGL, prefersVideo } from "@/lib/device";
-import { BoardContext, createBoardStore } from "@/lib/game/board-store";
+import { BoardContext, createBoardStore, FinishContext } from "@/lib/game/board-store";
 import { startProgress } from "@/lib/game/engine";
 import { clipFrame, type Clip } from "@/lib/game/walkthrough";
 import { cn } from "@/lib/utils";
@@ -162,7 +162,10 @@ export default function ClipPlayer({ clip, title, onClose }: Props) {
   const replay = (
     <>
       <BoardContext value={store}>
-        <BuildScene />
+        {/* The clip parts are the finished board, so a resistor or LED glows the holes where the clip puts it (issue #101). */}
+        <FinishContext value={clip.order}>
+          <BuildScene />
+        </FinishContext>
       </BoardContext>
       {/* The clip is to watch, not to build: this cover takes the clicks, taps and drags on the board. */}
       <div className="absolute inset-0" aria-hidden="true" />

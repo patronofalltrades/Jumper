@@ -1,7 +1,8 @@
 import { breadboardOutline, type Bench } from "@/lib/circuit/bench";
 import { isModuleType } from "@/lib/circuit/modules";
+import { ledSpot } from "@/lib/circuit/led-spot";
 import { buildNets, endpointHole, netHoles, type Nets } from "@/lib/circuit/nets";
-import { checkHole, checkModule, isTerminal, LEG_NAMES, partPins, terminalAt, type LegType, type Part, type PartType } from "@/lib/circuit/parts";
+import { checkHole, checkModule, checkPlacement, isModule, isTerminal, LEG_NAMES, partPins, terminalAt, type LegType, type Part, type PartType } from "@/lib/circuit/parts";
 
 // The build-mode task engine (TRD 6.1): a small state machine. It reads the tasks and the forbid rules of a level, and
 // the parts on the bench. It does not know React, the 3D scene or the database.
@@ -14,7 +15,8 @@ import { checkHole, checkModule, isTerminal, LEG_NAMES, partPins, terminalAt, ty
 // In ready_to_check the learner presses Check (lib/circuit/check.ts). A fail costs a heart; a pass ends the level.
 
 export type Connection = { a: string; b: string };
-export type Forbid = Connection & { code: string; message: string };
+/** `place_message`: a reversed_led text with the exact holes for the LED ({long_row}, {long_column}…), filled in by the engine. */
+export type Forbid = Connection & { code: string; message: string; place_message?: string };
 export type Target = ({ kind: "wire" } & Connection) | { kind: "place"; part: string; id: string; zone: string };
 export type PlanTask = { target: Target; xp: number };
 /** What the engine needs from a level: its tasks in order, and its forbid rules. */
@@ -104,6 +106,52 @@ function zoneBoard(zone: string): string | null {
   return /bb([A-Z])/.exec(zone)?.[1] ?? null;
 }
 
+/**
+ * True when an LED of a place task is the wrong way round (issue #102). The wire tasks of the level tell where each leg
+ * goes: "r1.2 to led1.anode" says that the short leg (−) must not touch the resistor (either leg: its side is not fixed
+ * yet), and "led1.cathode to esp.GND" says that the long leg (+) must not touch ground.
+ */
+function reversedLed(bench: Bench, parts: Part[], nets: Nets, plan: Plan, id: string) {
+  const other: Record<string, string> = { [`${id}.anode`]: `${id}.cathode`, [`${id}.cathode`]: `${id}.anode` };
+  return plan.tasks.some(({ target: t }) => {
+    if (t.kind !== "wire") return false;
+    return [
+      [t.a, t.b],
+      [t.b, t.a],
+    ].some(([leg, end]) => {
+      if (!other[leg]) return false;
+      const [owner, pin] = end.split(".");
+      const symmetric = (pin === "1" || pin === "2") && parts.some((p) => p.id === owner && SYMMETRIC.includes(p.type));
+      return (symmetric ? [`${owner}.1`, `${owner}.2`] : [end]).some((e) => linked(bench, parts, nets, { a: other[leg], b: e }, []));
+    });
+  });
+}
+
+/**
+ * The reversed_led text of the level for the LED `id`. When the level has a `place_message` and the board has a good place
+ * (lib/circuit/led-spot.ts), the text names the exact holes: the long leg (+) next to the free leg of the resistor of the
+ * "r1.2 to led1.anode" task, and the short leg (−) in the next column. Else the plain `message`.
+ */
+function reversedText(bench: Bench, parts: Part[], plan: Plan, id: string) {
+  const rule = plan.forbid.find((f) => f.code === "reversed_led");
+  const resistor = plan.tasks
+    .flatMap(({ target: t }) => (t.kind === "wire" ? [[t.a, t.b], [t.b, t.a]] : []))
+    .find(([leg, end]) => leg === `${id}.anode` && parts.some((p) => p.id === end.split(".")[0] && p.type === "resistor"))?.[1]
+    .split(".")[0];
+  const spot = rule?.place_message && resistor ? ledSpot(bench, parts, resistor, id) : null;
+  if (!rule?.place_message || !spot) return rule?.message;
+  const values: Record<string, string | number> = {
+    board: spot.long.board,
+    resistor_row: spot.resistor.row,
+    resistor_column: spot.resistor.n,
+    long_row: spot.long.row,
+    long_column: spot.long.n,
+    short_row: spot.short.row,
+    short_column: spot.short.n,
+  };
+  return rule.place_message.replace(/\{(\w+)\}/g, (_, k: string) => String(values[k] ?? `{${k}}`));
+}
+
 type TaskState = { done: true; swaps: string[] } | { done: false; wrongPlace: boolean };
 
 /**
@@ -133,7 +181,8 @@ function taskState(bench: Bench, parts: Part[], nets: Nets, plan: Plan, index: n
   const ok = target.zone.includes(".")
     ? placeConnections(target).every((c, i) => pins[i]?.hole === endpointHole(bench, parts, c.b))
     : !board || pins.every((p) => isTerminal(p.hole) || bench.byId.get(p.hole)!.board === board);
-  return ok ? { done: true, swaps } : { done: false, wrongPlace: true };
+  const turned = part.type === "led" && reversedLed(bench, parts, nets, plan, part.id);
+  return ok && !turned ? { done: true, swaps } : { done: false, wrongPlace: true };
 }
 
 /**
@@ -224,6 +273,12 @@ export function step(bench: Bench, plan: Plan, progress: Progress, event: Engine
       });
       if (broken) return wrong({ code: broken.code, message: broken.message, parts: added });
 
+      // An LED that the learner puts the wrong way round: the Mistake comes at once, with the text of the level (issue #102).
+      const turned = plan.tasks
+        .map(({ target: t }) => t)
+        .find((t) => t.kind === "place" && added.includes(t.id) && toolFor(t.part) === "led" && reversedLed(bench, event.after, netsAfter, plan, t.id));
+      if (turned?.kind === "place") return wrong({ code: "reversed_led", message: reversedText(bench, event.after, plan, turned.id), parts: added });
+
       // A part that does a task that the board did not do before is not a mistake, even if the task is an earlier one.
       const wasDone = doneTasks(bench, plan, event.before, reached, progress.swaps).done;
       const redone = now.done.some((d, i) => d && !wasDone[i]);
@@ -304,13 +359,66 @@ function centerOf(points: { x: number; z: number }[]) {
 }
 
 /**
+ * The two holes to tap for a resistor or LED on breadboard `board` (issue #101). First the holes of the part on the
+ * finished board of the level, so the guide and the level clip show the same place. If they are not good now, the
+ * nearest free holes. A good leg is in a line with no board pin and no other part. The first leg of an LED is its long
+ * leg (+): it goes in the line of a resistor leg that has no other part, if there is one.
+ */
+function legTaps(bench: Bench, parts: Part[], tool: "resistor" | "led", id: string, board: string, finish: Part[]): string[] {
+  const count = new Map<string, number>();
+  for (const p of parts)
+    for (const pin of partPins(bench, p)) {
+      const s = bench.byId.get(pin.hole)?.strip;
+      if (s) count.set(s, (count.get(s) ?? 0) + 1);
+    }
+  const pinStrips = new Set(bench.pins.map((p) => bench.byId.get(p.hole)?.strip));
+  const open = (s: string) => !pinStrips.has(s) && !count.has(s);
+  const legStrips = new Set(
+    tool === "led"
+      ? parts.flatMap((p) => (p.type === "resistor" ? [p.a, p.b] : [])).flatMap((h) => {
+          const s = bench.byId.get(h)?.strip;
+          return s && count.get(s) === 1 && !pinStrips.has(s) ? [s] : [];
+        })
+      : [],
+  );
+  const firstOk = (s: string) => (legStrips.size ? legStrips.has(s) : open(s));
+  const good = (h: string) => bench.byId.get(h)?.board === board && bench.byId.get(h)!.kind === "main";
+  const fits = (a: string, b: string) => {
+    if (!good(a) || !good(b)) return false;
+    const [sa, sb] = [bench.byId.get(a)!.strip, bench.byId.get(b)!.strip];
+    return sa !== sb && firstOk(sa) && open(sb) && !checkPlacement(bench, parts, tool, a, b);
+  };
+
+  const goal = finish.find((p) => p.id === id && p.type === tool);
+  if (goal && !isModule(goal) && fits(goal.a, goal.b)) return [goal.a, goal.b];
+
+  const center = centerOf(bench.holes.filter((h) => h.board === board));
+  const [toA, toB] = goal && !isModule(goal) ? [goal.a, goal.b].map((h) => bench.byId.get(h) ?? center) : [center, center];
+  const holes = bench.holes.filter((h) => good(h.id) && !checkHole(bench, parts, h.id));
+  const far = (h: { x: number; z: number }, to: { x: number; z: number }) => Math.hypot(h.x - to.x, h.z - to.z);
+  const firsts = holes.filter((h) => firstOk(h.strip)).sort((a, b) => far(a, toA) - far(b, toA));
+  const seconds = holes.filter((h) => open(h.strip));
+  let best: string[] = [];
+  let distance = Infinity;
+  for (const a of firsts) {
+    if (far(a, toA) >= distance) break;
+    for (const b of seconds) {
+      const d = far(a, toA) + far(b, toB);
+      if (d < distance && a.strip !== b.strip && !checkPlacement(bench, parts, tool, a.id, b.id)) [best, distance] = [[a.id, b.id], d];
+    }
+  }
+  return best;
+}
+
+/**
  * The spot of a task on this bench.
  * - Wire: the two ends glow, with every free hole that connects to them. The pop-up points at the first hole to tap.
  * - Module: the holes where pin 1 can go glow.
  * - Speaker in a terminal: the terminal glows.
+ * - Resistor or LED: its two holes glow, from the finished board of the level clip (`finish`, the clip `order`) when they are free.
  * - A part that is always on the bench: the pop-up points at it, and its outline glows.
  */
-export function taskSpot(bench: Bench, parts: Part[], target: Target, swaps: string[] = []): Spot {
+export function taskSpot(bench: Bench, parts: Part[], target: Target, swaps: string[] = [], finish: Part[] = []): Spot {
   const boardCenter = (board: string) => centerOf(bench.holes.filter((h) => h.board === board));
 
   if (target.kind === "wire") {
@@ -344,6 +452,10 @@ export function taskSpot(bench: Bench, parts: Part[], target: Target, swaps: str
     const holes = placeConnections(target).map((c) => endpointHole(bench, parts, c.b)).filter((h): h is string => h !== null);
     const points = holes.map((h) => pointOf(bench, parts, h)!).filter(Boolean);
     return { holes, at: points.length ? centerOf(points) : boardCenter("A"), taps: holes, area: null };
+  }
+  if (board && (tool === "resistor" || tool === "led")) {
+    const taps = legTaps(bench, parts, tool, target.id, board, finish);
+    return { holes: taps, at: taps.length ? pointOf(bench, parts, taps[0])! : boardCenter(board), taps, area: null };
   }
   // Parts that are always on the bench: the main board (the ESP32-S3 or the Uno), and the breadboards.
   const { outline } = bench.board;
