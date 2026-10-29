@@ -9,3 +9,12 @@
    "can we break our rules for this one and open issues and PRs automatically? Use best practices from prior branch and PR naming and commenting"
 
 Claude's work for #100 (not Hanif's words): an engine run in Vitest of Perch level 2 found the facts in the issue. A red test for the hole card text first, then the letter on the 3D breadboards, the hole card text and the Perch task text. See the ledger for the details.
+
+3. Hanif's answer to the "Questions for Hanif" comment on PR #105 (his words):
+
+   > 1. Yes, please
+   > 2. Yes
+   > 3. No I don't
+   > 4. Yes it is okay
+
+Claude's change for the answer (not Hanif's words): the letter "A" now shows on the Arduino Foundations breadboard and its hole card, the red + line tasks say which line (as the blue − line tasks do), and the rail hole card and the letter size stay as they were.
