@@ -50,7 +50,8 @@ export function useTaskSpot() {
   const progress = useBoard((s) => s.progress);
   const explaining = useBoard((s) => s.done !== null);
   const task = progress.phase === "task" && !explaining ? plan?.tasks[progress.index] : undefined;
-  return useMemo(() => (task ? taskSpot(bench, parts, task.target, progress.swaps) : null), [bench, parts, task, progress.swaps]);
+  const finish = plan?.finish;
+  return useMemo(() => (task ? taskSpot(bench, parts, task.target, progress.swaps, finish) : null), [bench, parts, task, progress.swaps, finish]);
 }
 
 /** The point of the first pin of the first wrong part, for the Mistake pop-up. */

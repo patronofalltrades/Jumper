@@ -97,7 +97,8 @@ export default function ClipPlayer({ clip, title, onClose }: Props) {
     store.getState().open("clip", { readOnly: true, bench });
     store.setState({
       parts: clip.order.slice(0, frame.count),
-      plan: frame.cue ? clip.plan : null,
+      // The clip parts are the finished board, so a resistor or LED glows the holes where the clip puts it (issue #101).
+      plan: frame.cue ? { ...clip.plan, finish: clip.order } : null,
       progress: frame.cue && step.progress ? step.progress : startProgress(),
       flash: added.length ? { kind: "snap", holes: added.flatMap((p) => partPins(bench, p).map((pin) => pin.hole)), at: Date.now() } : null,
     });

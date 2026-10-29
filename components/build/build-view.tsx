@@ -84,6 +84,8 @@ type Props = {
   start: Part[];
   /** True when the level starts with the board of the level before it, so the learner's own board can go on. */
   carry: boolean;
+  /** The parts of the finished board of the level (content/boards/), for the resistor and LED guide holes (issue #101). */
+  finish: Part[];
   /** The levels of the project, for the level select of Save snapshot. */
   levels: LevelOption[];
   /** The walkthrough clip of the level (issue #48). */
@@ -92,11 +94,11 @@ type Props = {
   sketch: SketchStep | null;
 };
 
-export function BuildView({ user, project, levelId, position, eyebrow, title, goal, tasks, rules, bench: spec, start, carry, levels, clip, sketch }: Props) {
+export function BuildView({ user, project, levelId, position, eyebrow, title, goal, tasks, rules, bench: spec, start, carry, finish, levels, clip, sketch }: Props) {
   useKeys();
   useNoticeTimer();
   useFeedback();
-  const plan: Plan = useMemo(() => ({ tasks: tasks.map((t) => ({ target: t.target, xp: t.xp })), forbid: rules.forbid }), [tasks, rules]);
+  const plan: Plan = useMemo(() => ({ tasks: tasks.map((t) => ({ target: t.target, xp: t.xp })), forbid: rules.forbid, finish }), [tasks, rules, finish]);
   const bench = useMemo(() => createBench(spec), [spec]);
   const { error: saveError, otherTab } = useLevel({ user, project, levelId, position, bench, plan, start, carry });
   const levelCheck = useLevelCheck({ user, project, levelId, position, rules, needsSketch: !!sketch });
