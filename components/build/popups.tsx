@@ -2,7 +2,7 @@
 
 import { Html, Line } from "@react-three/drei";
 import { useThree } from "@react-three/fiber";
-import { useCallback, useMemo, useRef, useSyncExternalStore, type ReactNode } from "react";
+import { useCallback, useContext, useMemo, useRef, useSyncExternalStore, type ReactNode } from "react";
 import { Vector3, type Camera, type Object3D } from "three";
 import { Volt } from "@/components/art/volt";
 import text from "@/content/ui/build.json";
@@ -11,7 +11,7 @@ import type { Bench } from "@/lib/circuit/bench";
 import { diagnose } from "@/lib/circuit/diagnose";
 import { terminalAt, partPins, type Part } from "@/lib/circuit/parts";
 import type { Task } from "@/lib/content/schema";
-import { boardStore, useBoard } from "@/lib/game/board-store";
+import { boardStore, FinishContext, useBoard } from "@/lib/game/board-store";
 import { needsAck, taskSpot, type Mistake } from "@/lib/game/engine";
 import { taskOfFailure } from "@/lib/game/fail-task";
 import { HEARTS, heartsLeft } from "@/lib/game/hearts";
@@ -50,7 +50,7 @@ export function useTaskSpot() {
   const progress = useBoard((s) => s.progress);
   const explaining = useBoard((s) => s.done !== null);
   const task = progress.phase === "task" && !explaining ? plan?.tasks[progress.index] : undefined;
-  const finish = plan?.finish;
+  const finish = useContext(FinishContext);
   return useMemo(() => (task ? taskSpot(bench, parts, task.target, progress.swaps, finish) : null), [bench, parts, task, progress.swaps, finish]);
 }
 

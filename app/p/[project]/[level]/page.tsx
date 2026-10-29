@@ -72,7 +72,6 @@ async function Level({ slug, position }: { slug: string; position: string }) {
       bench={await loadBenchSpec(slug)}
       start={startBoard(boards, data.position)}
       carry={carriesBoard(boards, data.position)}
-      finish={boards.levels[data.position] ?? []}
       levels={levels.map(({ id, position, title }) => ({ id, position, title }))}
       clip={(await loadLevelClips(slug)).get(data.position) ?? null}
       sketch={await loadSketchStep(slug, data.position)}

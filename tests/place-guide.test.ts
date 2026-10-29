@@ -4,10 +4,12 @@ import { checkLevel, joinRules } from "@/lib/circuit/check";
 import { checkPlacement, type Part } from "@/lib/circuit/parts";
 import { loadBenchSpec } from "@/lib/content/benches";
 import { loadBoards, startBoard, startLevels } from "@/lib/content/boards";
+import { loadLevelClips } from "@/lib/content/clips";
 import { loadProjects } from "@/lib/content/load";
 import { needsAck, startProgress, step, taskSpot, toolFor, type Effect, type Plan, type Progress, type Target } from "@/lib/game/engine";
 
-// Issue #101: a resistor or LED place task glows good holes and gives two taps, from the finished board of the level.
+// Issue #101: a resistor or LED place task glows good holes and gives two taps, from the finished board of the level:
+// the `order` of the level clip, as the build page and the clip player give it.
 
 /** The lines of 5 (strips) that have a pin of the main board. */
 const pinStrips = (bench: Bench) => new Set(bench.pins.map((p) => bench.byId.get(p.hole)!.strip));
@@ -30,7 +32,8 @@ describe("a learner who taps only the arrow holes", () => {
         const bench = createBench(await loadBenchSpec(project.slug));
         const boards = await loadBoards(project.slug);
         const plan: Plan = { tasks: level.tasks.map((t) => ({ target: t.target, xp: t.xp })), forbid: level.rules.forbid };
-        const finish = boards.levels[level.position] ?? [];
+        // As the build page: the clip order, or no finished board when the level has no clip (the nearest good holes).
+        const finish = (await loadLevelClips(project.slug)).get(level.position)?.order;
         const pins = pinStrips(bench);
         let board = startBoard(boards, level.position);
         let progress: Progress = startProgress();
@@ -77,7 +80,7 @@ describe("resistor and LED guide holes", () => {
 
   it("glows the holes of the level clip for Perch level 2: resistor A-a2 and A-a4, LED A-b4 (long leg) and A-b3", async () => {
     const boards = await loadBoards("perch");
-    const finish = boards.levels[2];
+    const finish = (await loadLevelClips("perch")).get(2)!.order;
     const before = startBoard(boards, 2);
     const r = taskSpot(bench, before, resistor, [], finish);
     expect(r.taps).toEqual(["A-a2", "A-a4"]);
@@ -97,7 +100,7 @@ describe("resistor and LED guide holes", () => {
 
   it("uses the nearest free holes in lines with no board pin when a hole of the finished board is taken", async () => {
     const boards = await loadBoards("perch");
-    const finish = boards.levels[2];
+    const finish = (await loadLevelClips("perch")).get(2)!.order;
     const board: Part[] = [...startBoard(boards, 2), { id: "w99", type: "wire", a: "A-a2", b: "A-L-2" }];
     const spot = taskSpot(bench, board, resistor, [], finish);
     expect(spot.taps).toHaveLength(2);
@@ -109,7 +112,7 @@ describe("resistor and LED guide holes", () => {
 
   it("puts the long leg of the LED in the line of the free resistor leg when its holes are taken", async () => {
     const boards = await loadBoards("perch");
-    const finish = boards.levels[2];
+    const finish = (await loadLevelClips("perch")).get(2)!.order;
     // The resistor is in other holes, so the LED holes of the finished board do not touch it.
     const board: Part[] = [...startBoard(boards, 2), { id: "r1", type: "resistor", a: "A-a20", b: "A-a22" }];
     const spot = taskSpot(bench, board, led, [], finish);

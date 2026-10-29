@@ -9,3 +9,11 @@
    "can we break our rules for this one and open issues and PRs automatically? Use best practices from prior branch and PR naming and commenting"
 
 Claude's work for #101 (not Hanif's words): an engine run of Perch level 2 found that the resistor and LED tasks had no glowing holes and no tap, and pointed at A-f15, a line with pin GPIO37. Claude wrote a red test first (a learner who taps only the arrow holes), then the fix in `taskSpot`. See the ledger for the details.
+
+3. Hanif's answers to the "Questions for Hanif" comment on PR #107 (his words):
+
+   "1. The rule is correct
+   2. No keep it simple
+   3. Field in the clip data"
+
+Claude's change for the answers (not Hanif's words): answers 1 and 2 need no change. For answer 3, Claude removed the `finish` field from `Plan` and the `finish` prop of `BuildView`; the guide now takes the finished board from the clip data (`clip.order`) through a small React context, `FinishContext`, and the level page has no change.

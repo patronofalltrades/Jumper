@@ -11,7 +11,7 @@ import watchText from "@/content/ui/walkthrough.json";
 import { createBench, type BenchSpec } from "@/lib/circuit/bench";
 import type { Part } from "@/lib/circuit/parts";
 import { useAlive } from "@/lib/game/alive-store";
-import { boardStore, useBoard, WIRE_COLORS, type Tool } from "@/lib/game/board-store";
+import { boardStore, FinishContext, useBoard, WIRE_COLORS, type Tool } from "@/lib/game/board-store";
 import type { Rules } from "@/lib/circuit/check";
 import { needsAck, type Plan } from "@/lib/game/engine";
 import type { SketchStep } from "@/lib/content/schema";
@@ -84,8 +84,6 @@ type Props = {
   start: Part[];
   /** True when the level starts with the board of the level before it, so the learner's own board can go on. */
   carry: boolean;
-  /** The parts of the finished board of the level (content/boards/), for the resistor and LED guide holes (issue #101). */
-  finish: Part[];
   /** The levels of the project, for the level select of Save snapshot. */
   levels: LevelOption[];
   /** The walkthrough clip of the level (issue #48). */
@@ -94,11 +92,11 @@ type Props = {
   sketch: SketchStep | null;
 };
 
-export function BuildView({ user, project, levelId, position, eyebrow, title, goal, tasks, rules, bench: spec, start, carry, finish, levels, clip, sketch }: Props) {
+export function BuildView({ user, project, levelId, position, eyebrow, title, goal, tasks, rules, bench: spec, start, carry, levels, clip, sketch }: Props) {
   useKeys();
   useNoticeTimer();
   useFeedback();
-  const plan: Plan = useMemo(() => ({ tasks: tasks.map((t) => ({ target: t.target, xp: t.xp })), forbid: rules.forbid, finish }), [tasks, rules, finish]);
+  const plan: Plan = useMemo(() => ({ tasks: tasks.map((t) => ({ target: t.target, xp: t.xp })), forbid: rules.forbid }), [tasks, rules]);
   const bench = useMemo(() => createBench(spec), [spec]);
   const { error: saveError, otherTab } = useLevel({ user, project, levelId, position, bench, plan, start, carry });
   const levelCheck = useLevelCheck({ user, project, levelId, position, rules, needsSketch: !!sketch });
@@ -219,7 +217,10 @@ export function BuildView({ user, project, levelId, position, eyebrow, title, go
 
       <div className={cn("flex min-h-0 flex-1", codeOpen && "max-sm:flex-col")}>
         <div className="relative min-h-0 min-w-0 flex-1">
-          <BuildScene>{laptop && <PinnedPopup tasks={tasks} hidden={conceptOpen || explaining} />}</BuildScene>
+          {/* The clip parts are the finished board, so a resistor or LED task glows the holes of the clip (issue #101). */}
+          <FinishContext value={clip?.order}>
+            <BuildScene>{laptop && <PinnedPopup tasks={tasks} hidden={conceptOpen || explaining} />}</BuildScene>
+          </FinishContext>
           {/* The guide bar, and the task list below it. Only the panels take clicks; the board gets the rest. Above the Check button, the column stops. */}
           {progress.phase !== "intro" && !alive && (
             <div className={cn("pointer-events-none absolute inset-x-0 top-3 z-10 flex flex-col gap-2 px-3", progress.phase === "ready_to_check" ? "bottom-32" : "bottom-3")}>

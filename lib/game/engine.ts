@@ -17,11 +17,8 @@ export type Connection = { a: string; b: string };
 export type Forbid = Connection & { code: string; message: string };
 export type Target = ({ kind: "wire" } & Connection) | { kind: "place"; part: string; id: string; zone: string };
 export type PlanTask = { target: Target; xp: number };
-/**
- * What the engine needs from a level: its tasks in order, and its forbid rules. `finish`: the parts of the finished board
- * of the level (content/boards/), so that a resistor or LED task glows the holes of the level clip (issue #101).
- */
-export type Plan = { tasks: PlanTask[]; forbid: Forbid[]; finish?: Part[] };
+/** What the engine needs from a level: its tasks in order, and its forbid rules. */
+export type Plan = { tasks: PlanTask[]; forbid: Forbid[] };
 
 export type Phase = "intro" | "task" | "mistake" | "ready_to_check";
 
@@ -363,7 +360,7 @@ function legTaps(bench: Bench, parts: Part[], tool: "resistor" | "led", id: stri
  * - Wire: the two ends glow, with every free hole that connects to them. The pop-up points at the first hole to tap.
  * - Module: the holes where pin 1 can go glow.
  * - Speaker in a terminal: the terminal glows.
- * - Resistor or LED: its two holes glow, from the finished board of the level (`finish`) when they are free.
+ * - Resistor or LED: its two holes glow, from the finished board of the level clip (`finish`, the clip `order`) when they are free.
  * - A part that is always on the bench: the pop-up points at it, and its outline glows.
  */
 export function taskSpot(bench: Bench, parts: Part[], target: Target, swaps: string[] = [], finish: Part[] = []): Spot {
