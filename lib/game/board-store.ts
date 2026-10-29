@@ -73,6 +73,8 @@ export type BoardState = {
   start: () => void;
   ack: () => void;
   dismiss: () => void;
+  /** "Redo this step" on a failed Check: the task opens again, with its guidance. */
+  redo: (task: number) => void;
   /** "Got it" on the "what happened" pop-up. */
   seen: () => void;
   /** The result of a failed level Check: the failed Checks of the session so far. */
@@ -176,6 +178,7 @@ export function createBoardStore(defaultBench: Bench = perchBench()) {
       start: () => set(play({ type: "start" })),
       ack: () => set(play({ type: "ack", parts: get().parts })),
       dismiss: () => set(play({ type: "dismiss" })),
+      redo: (task) => set(play({ type: "redo", task })),
       seen: () => set({ done: null }),
       failed: (fails) => set({ progress: { ...get().progress, fails } }),
       setTool: (tool) => set({ tool, pending: null, notice: null }),

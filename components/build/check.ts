@@ -104,5 +104,7 @@ export function useLevelCheck({ user, project, levelId, position, rules, needsSk
       setState((s) => ({ ...s, open: false }));
       boardStore.getState().showProblem();
     },
+    // "Redo this step": the card closes, and the task opens again with its guidance (issue #91).
+    reset: () => setState({ open: true, busy: false, failed: null, error: null }),
   };
 }
