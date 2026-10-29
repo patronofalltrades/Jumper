@@ -103,12 +103,28 @@ describe("joined rules", () => {
     expect(checkLevel(bench, board, upTo(2))).toMatchObject({ passed: false, code: "missing_ground" });
   });
 
+  // Issue #89: the failed connection says the level it came from, for the text "From level N:".
+  it("gives the failed connection of level 1 the level it came from", () => {
+    const board = finished(2).filter((p) => p.id !== "w1");
+    expect(checkLevel(bench, board, upTo(2))).toMatchObject({ passed: false, connection: { a: "esp.3V3", b: "bbA.+", from: 1 } });
+  });
+
   it("counts a connection once when two levels name it, in either order", () => {
     const a = { require: [{ a: "x.1", b: "y.2" }], forbid: [{ a: "p", b: "q", code: "c", message: "m" }] };
     const b = { require: [{ a: "y.2", b: "x.1" }, { a: "z.1", b: "y.2" }], forbid: [{ a: "q", b: "p", code: "c", message: "m" }] };
     const joined = joinRules([{ position: 1, rules: a }, { position: 2, rules: b }], [1, 2]);
     expect(joined.require).toHaveLength(2);
     expect(joined.forbid).toHaveLength(1);
+  });
+
+  it("gives a connection the level that names it, and the later level when two levels name it", () => {
+    const a = { require: [{ a: "x.1", b: "y.2" }, { a: "p.1", b: "q.2" }], forbid: [] };
+    const b = { require: [{ a: "y.2", b: "x.1" }], forbid: [] };
+    const joined = joinRules([{ position: 1, rules: a }, { position: 2, rules: b }], [1, 2]);
+    expect(joined.require).toEqual([
+      { a: "x.1", b: "y.2", from: 2 },
+      { a: "p.1", b: "q.2", from: 1 },
+    ]);
   });
 
   it("joins only the listed levels", () => {

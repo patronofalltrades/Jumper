@@ -8,6 +8,8 @@ import { checkLevel, isEmptyBoard, type CheckResult, type Rules } from "@/lib/ci
 import { endpointHole } from "@/lib/circuit/nets";
 import { isProblemFixed, problemOf } from "@/lib/circuit/problem";
 import { boardStore, useBoard } from "@/lib/game/board-store";
+import { aliveProject, effectsFor } from "@/lib/game/alive";
+import { aliveStore } from "@/lib/game/alive-store";
 import { opensLevelComplete, withFreshSession } from "@/lib/game/check-flow";
 import { freshSession, markCompleting, readSavedLevel, rememberPass } from "./autosave";
 
@@ -82,7 +84,13 @@ export function useLevelCheck({ user, project, levelId, position, rules, needsSk
     boardStore.setState({ flash: { kind: result.passed ? "snap" : "buzz", holes: ends, at: Date.now() }, problem: result.passed ? null : problemOf(result) });
 
     if (done) rememberPass(user, project, position);
-    if (done) return router.push(`/p/${project}/${position}/complete`);
+    if (done) {
+      const next = () => router.push(`/p/${project}/${position}/complete`);
+      if (project !== aliveProject || effectsFor(position).length === 0) return next();
+      // Perch comes alive on the board (issue #86), then Level complete opens.
+      setState({ open: false, busy: false, failed: null, error: null });
+      return aliveStore.getState().show(position, next);
+    }
     boardStore.getState().failed(saved.fails);
     setState({ open: true, busy: false, failed: result.passed ? null : result, error: null });
   };

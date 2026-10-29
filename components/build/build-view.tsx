@@ -10,12 +10,14 @@ import snapText from "@/content/ui/snapshots.json";
 import watchText from "@/content/ui/walkthrough.json";
 import { createBench, type BenchSpec } from "@/lib/circuit/bench";
 import type { Part } from "@/lib/circuit/parts";
+import { useAlive } from "@/lib/game/alive-store";
 import { boardStore, useBoard, WIRE_COLORS, type Tool } from "@/lib/game/board-store";
 import type { Rules } from "@/lib/circuit/check";
 import { needsAck, type Plan } from "@/lib/game/engine";
 import type { SketchStep } from "@/lib/content/schema";
 import sketchText from "@/content/ui/sketch.json";
 import type { Clip } from "@/lib/game/walkthrough";
+import { AliveStage } from "./alive-stage";
 import { readSavedLevel, useLevel } from "./autosave";
 import { EMPTY_NOTE, useEmptyBoard, useLevelCheck, useProblemWatch, useSketchLock } from "./check";
 import { useFeedback } from "./feedback";
@@ -107,6 +109,8 @@ export function BuildView({ user, project, levelId, position, eyebrow, title, go
   const progress = useBoard((s) => s.progress);
   const explaining = useBoard((s) => s.done !== null);
   const empty = useEmptyBoard();
+  // Perch is coming alive on the board: the panels that guide the build step aside (issue #86).
+  const alive = useAlive((s) => s.stage !== null);
   const mapHref = `/p/${project}`;
 
   // The clip opens each time the level opens, until the learner finishes the first task. useLevel opened the board first.
@@ -129,7 +133,7 @@ export function BuildView({ user, project, levelId, position, eyebrow, title, go
       level={{ eyebrow, title, goal, tasks }}
       conceptOpen={conceptOpen}
       onConceptDone={() => setConceptRead(progress.index)}
-      check={{ check: levelCheck.state, onCheck: () => void levelCheck.check(), onClose: levelCheck.close, onShow: levelCheck.show, sketch: sketch && { passed: codePassed, open: openCode } }}
+      check={{ check: levelCheck.state, onCheck: () => void levelCheck.check(), onClose: levelCheck.close, onShow: levelCheck.show, sketch: sketch && { passed: codePassed, open: openCode }, position }}
     />
   );
 
@@ -202,14 +206,14 @@ export function BuildView({ user, project, levelId, position, eyebrow, title, go
         <div className="relative min-h-0 min-w-0 flex-1">
           <BuildScene>{laptop && <PinnedPopup tasks={tasks} hidden={conceptOpen || explaining} />}</BuildScene>
           {/* The guide bar, and the task list below it. Only the panels take clicks; the board gets the rest. Above the Check button, the column stops. */}
-          {progress.phase !== "intro" && (
+          {progress.phase !== "intro" && !alive && (
             <div className={cn("pointer-events-none absolute inset-x-0 top-3 z-10 flex flex-col gap-2 px-3", progress.phase === "ready_to_check" ? "bottom-32" : "bottom-3")}>
               {building && <GuideBar />}
               <TaskList tasks={tasks} laptop={laptop} code={sketch && { instruction: sketch.task, open: openCode }} small={codeOpen} />
             </div>
           )}
           {/* The learner closed the Check card to fix the board: the Check button stays at the bottom of the board. */}
-          {progress.phase === "ready_to_check" && !explaining && !levelCheck.state.open && !codeOpen && (
+          {progress.phase === "ready_to_check" && !explaining && !levelCheck.state.open && !codeOpen && !alive && (
             <div className="absolute inset-x-3 bottom-4 z-20 flex flex-col items-center gap-2">
               {empty && (
                 <p id={EMPTY_NOTE} className="max-w-xs rounded-xl bg-card px-3 py-2 text-center text-sm font-semibold shadow-panel">
@@ -237,6 +241,7 @@ export function BuildView({ user, project, levelId, position, eyebrow, title, go
             </div>
           )}
           <SpotCard />
+          <AliveStage />
           {laptop && !codeOpen && popups}
           {otherTab && (
             <p role="status" className="absolute inset-x-3 top-20 z-30 rounded-xl border border-border bg-card px-3 py-2 text-sm font-semibold shadow-panel sm:inset-x-auto sm:top-3 sm:left-3 sm:max-w-xs">

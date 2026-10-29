@@ -154,6 +154,14 @@
       "noSession": "We could not save your Check, because this level has no saved session. Go back to the level map, then open the level again.",
       "error": "We could not save your Check. Try again.",
       "empty": "Place a part on the board first. Check tests the parts that you place.",
+      "fromLevel": "From level {n}:",
+      "diagnose": {
+        "pin": "The {end} goes to {pin}. It must go to {other}.",
+        "rail": "The {end} goes to the {rail}. It must go to {other}.",
+        "line": "Your wire is 1 line away. Move it from column {from} to column {to}.",
+        "hole": "Your wire is 1 hole away. Move it from row {from} to row {to}, column {column}.",
+        "nothing": "Nothing is in column {column} with the {end}. It must go to {other}."
+      },
       "names": {
         "resistor": "Resistor",
         "led": "LED"

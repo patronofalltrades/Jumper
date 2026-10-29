@@ -15,6 +15,7 @@ import text from "@/content/ui/site.json";
 import { hasWebGL } from "@/lib/device";
 import { boardStore, useBoard } from "@/lib/game/board-store";
 import { focusDistance } from "@/lib/game/focus";
+import { aliveStore, useAlive } from "@/lib/game/alive-store";
 import { sketchStore, useSketch } from "@/lib/game/sketch-store";
 import { ModuleGhost, ModuleMesh, terminalTop } from "./modules";
 import { PartMesh, type End } from "./parts";
@@ -417,19 +418,26 @@ function Esp32S3({ bench, glow }: { bench: Bench; glow: Map<string, Color> }) {
 }
 
 /** A press on a button while a sketch runs (issue #58). */
-const pressButton = (id: string) => (down: boolean) => sketchStore.getState().press(id, down);
+const pressButton = (id: string) => (down: boolean) => {
+  sketchStore.getState().press(id, down);
+  // The Talk button of Perch, while it is alive: the face is surprised (issue #86).
+  if (aliveStore.getState().stage) aliveStore.getState().input(down);
+};
 
 function Parts({ bench, removing, glow }: { bench: Bench; removing: boolean; glow: Map<string, Color> }) {
   const parts = useBoard((s) => s.parts);
   const running = useSketch((s) => s.running);
   const lit = useSketch((s) => s.lit);
   const pressed = useSketch((s) => s.pressed);
+  const awake = useAlive((s) => s.stage !== null);
+  const blink = useAlive((s) => s.effects.has("led") && s.ledOn);
+  const talkDown = useAlive((s) => s.talkDown);
   const presses = useMemo(() => new Map(parts.map((p) => [p.id, pressButton(p.id)])), [parts]);
   const [target, setTarget] = useState<string | null>(null);
   const invalidate = useThree((s) => s.invalidate);
   useEffect(() => {
     invalidate();
-  }, [parts, target, removing, lit, pressed, invalidate]);
+  }, [parts, target, removing, lit, pressed, blink, talkDown, invalidate]);
 
   return (
     <group>
@@ -456,12 +464,12 @@ function Parts({ bench, removing, glow }: { bench: Bench; removing: boolean; glo
               at={p.at}
               glow={glow}
               removeHot={removing && target === p.id}
-              pressed={pressed.has(p.id)}
-              onPress={running && p.type === "pushbutton" && !removing ? presses.get(p.id) : undefined}
+              pressed={pressed.has(p.id) || talkDown}
+              onPress={(running || awake) && p.type === "pushbutton" && !removing ? presses.get(p.id) : undefined}
               {...(removing ? {} : { ...pinHandlers(partPins(bench, p).flatMap((pin) => (pin.terminal ? [] : [pin.hole]))), terminalHandlers })}
             />
           ) : (
-            <PartMesh part={p} a={endOf(bench, parts, p.a)!} b={endOf(bench, parts, p.b)!} hot={removing && target === p.id} on={lit.has(p.id)} />
+            <PartMesh part={p} a={endOf(bench, parts, p.a)!} b={endOf(bench, parts, p.b)!} hot={removing && target === p.id} on={lit.has(p.id) || (blink && p.type === "led")} />
           )}
         </group>
       ))}
