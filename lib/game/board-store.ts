@@ -247,4 +247,10 @@ export const boardStore = createBoardStore();
  */
 export const BoardContext = createContext(boardStore);
 
+/**
+ * The finished board of the level: the `order` of its walkthrough clip (lib/game/walkthrough.ts). A resistor or LED task
+ * glows the holes where the clip puts the part (issue #101). Undefined when the level has no clip: the nearest good holes glow.
+ */
+export const FinishContext = createContext<Part[] | undefined>(undefined);
+
 export const useBoard = <T>(selector: (state: BoardState) => T) => useStore(useContext(BoardContext), selector);
