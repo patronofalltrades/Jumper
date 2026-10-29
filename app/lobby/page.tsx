@@ -12,10 +12,13 @@ import { Dock } from "@/components/dock";
 import { ContinueCard, DarkCard, pairs, ProjectCard, TabSwitch, type Tab } from "@/components/lobby-cards";
 import { Logo } from "@/components/logo";
 import collab from "@/content/ui/collaborate.json";
-import features from "@/content/features.json";
+import featureList from "@/content/features.json";
 import { loadCatalog, shortName } from "@/lib/game/featured";
 import { avatarSrc } from "@/lib/profile/form";
 import { createClient } from "@/lib/supabase/server";
+
+// The Coming soon cards. The list is empty while every planned feature is built; a new entry shows as a card again.
+const features: { title: string; description: string }[] = featureList;
 
 export const metadata: Metadata = { title: "Lobby · Jumper" };
 

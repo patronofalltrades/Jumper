@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { LeaveButton, Notes, type Note } from "@/components/collaborate/notes";
 import { DeleteSnapshot, EditSnapshot, SnapshotBoard } from "@/components/snapshots/snapshot-page";
+import { ShareSheet } from "@/components/snapshots/share-sheet";
 import { StarButton } from "@/components/snapshots/star-button";
 import collab from "@/content/ui/collaborate.json";
 import text from "@/content/ui/snapshots.json";
@@ -36,7 +37,7 @@ async function Snapshot({ id }: { id: string }) {
   const sub = auth?.claims.sub;
   const { data: snap, error } = await supabase
     .from("snapshots")
-    .select("id, user_id, title, notes, wiring, passed, mistake_count, created_at, levels(position, title, projects(slug)), stars(snapshot_id)")
+    .select("id, user_id, title, notes, wiring, shared, passed, mistake_count, created_at, levels(position, title, projects(slug)), stars(snapshot_id)")
     .eq("id", id)
     .maybeSingle();
   if (error) throw error;
@@ -79,7 +80,12 @@ async function Snapshot({ id }: { id: string }) {
           >
             ← {t.back}
           </Link>
-          {mine && <StarButton id={snap.id} starred={isStarred(snap.stars)} />}
+          {mine && (
+            <div className="flex items-center gap-2">
+              <ShareSheet id={snap.id} title={snap.title} shared={snap.shared} />
+              <StarButton id={snap.id} starred={isStarred(snap.stars)} />
+            </div>
+          )}
         </div>
         <div>
           <p className="font-mono text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
