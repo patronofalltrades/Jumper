@@ -187,7 +187,14 @@
             "a": "led1.anode",
             "b": "esp.GND",
             "code": "reversed_led",
-            "message": "Oops! The light is the wrong way round. Its long leg (+) is on ground, so it stays dark. Turn the light around: long leg to the resistor, short leg to the blue − line."
+            "message": "Oops! The light is the wrong way round, so it stays dark. The short leg (−) is the shorter of its two legs. On the board it has a blue − mark. On a real light, it is on the flat side. Do not put the short leg in the line of the resistor: put it in an empty line, and connect that line to the blue − line. Put the long leg (+) in the line of the resistor. Turn the light around.",
+            "place_message": "Oops! The light is the wrong way round, so it stays dark. The short leg (−) is the shorter of its two legs. On the board it has a blue − mark. On a real light, it is on the flat side. Turn the light around. Put the long leg (+) in row {long_row}, column {long_column} of breadboard {board}. This is the same column as the free leg of the resistor (row {resistor_row}, column {resistor_column}). Put the short leg (−) in row {short_row}, column {short_column}. Then connect column {short_column} to the blue − line."
+          },
+          {
+            "a": "led1.anode",
+            "b": "led1.cathode",
+            "code": "led_shorted",
+            "message": "Oops! This wire joins the two legs of the light, so no power goes through it. Undo the wire."
           },
           {
             "a": "esp.GPIO2",
@@ -260,7 +267,7 @@
         {
           "position": 5,
           "kind": "place",
-          "instruction": "Put the light (LED) on breadboard A. Its two legs go in two different lines.",
+          "instruction": "Put the light (LED) on breadboard A. Put its long leg (+) in the same column as the free leg of the resistor. Put its short leg (−) in the next column, in the same row.",
           "popup_why": "The light is in. Look at its legs: the long leg is + and the short leg is −. Electricity can only go in at the long leg and out at the short leg.",
           "concept": "LED: A small light. It works only one way round. The long leg goes toward power (+), and the short leg goes toward ground (−).",
           "target": {
@@ -289,7 +296,7 @@
         {
           "position": 7,
           "kind": "wire",
-          "instruction": "Connect the other leg of the resistor to the long leg (+) of the light.",
+          "instruction": "The other leg of the resistor must touch the long leg (+) of the light. Put them in the same line of 5, or connect them with a wire.",
           "popup_why": "Now the power goes from pin 2, through the resistor, into the light. The resistor lets just enough through, so the light shines and stays safe.",
           "concept": null,
           "target": {

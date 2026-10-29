@@ -10,8 +10,8 @@
       "finish": "{act} a hole for the second leg, 2 to 10 holes away from the first."
     },
     "led": {
-      "start": "{act} a hole for the long leg of the light (+).",
-      "finish": "{act} a hole next to it for the short leg (−)."
+      "start": "{act} a hole for the long leg of the light (+). Use the same column as the free leg of the resistor.",
+      "finish": "{act} a hole in the next column, in the same row, for the short leg (−). Then connect that column to the blue − line."
     },
     "remove": {
       "start": "{act} a part to remove it."
