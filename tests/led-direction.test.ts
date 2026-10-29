@@ -4,6 +4,7 @@ import type { Part } from "@/lib/circuit/parts";
 import { loadBenchSpec } from "@/lib/content/benches";
 import { loadBoards, startBoard } from "@/lib/content/boards";
 import { loadProjects } from "@/lib/content/load";
+import build from "@/content/ui/build.json";
 import { needsAck, startProgress, step, type Plan, type Progress } from "@/lib/game/engine";
 
 // Issue #102: the LED place task checks the direction of the LED. A short leg (−) in a line with a resistor leg, or a
@@ -79,7 +80,33 @@ describe("Perch level 2: the direction of the LED", () => {
     l.put(led("A-b16", "A-b15"));
     expect(l.effect).toBe("buzz");
     expect(l.progress).toMatchObject({ phase: "mistake", index: 4, mistakes: 1, mistake: { code: "reversed_led", parts: ["led1"] } });
-    expect(l.progress.mistake?.message).toBe(messageOf(l.level, "reversed_led"));
+  });
+
+  it("tells the exact holes for the LED in the reversed_led text (Hanif's answer 4)", () => {
+    const l = atLed();
+    l.put(led("A-b16", "A-b15"));
+    const text = l.progress.mistake?.message ?? "";
+    expect(text).toContain("Put the long leg (+) in row b, column 15 of breadboard A.");
+    expect(text).toContain("the free leg of the resistor (row a, column 15)");
+    expect(text).toContain("Put the short leg (−) in row b, column 16.");
+    expect(text).toContain("connect column 16 to the blue − line");
+    expect(text).toContain("The short leg (−) is the shorter of its two legs.");
+    expect(text).not.toMatch(/[{}]/);
+  });
+
+  it("keeps the plain reversed_led text when the level has no place text", () => {
+    const level = perch.levels.find((l) => l.position === 2)!;
+    const forbid = level.rules.forbid.map(({ place_message: _, ...f }) => f);
+    const plan: Plan = { tasks: level.tasks.map((t) => ({ target: t.target, xp: t.xp })), forbid };
+    let progress = step(perch.bench, plan, startProgress(), { type: "start" }).progress;
+    let board = startBoard(perch.boards, 2);
+    while (needsAck(plan.tasks[progress.index].target)) progress = step(perch.bench, plan, progress, { type: "ack", parts: board }).progress;
+    for (const p of [...perch.boards.levels[2].slice(0, 3), { id: "r1", type: "resistor", a: "A-a12", b: "A-a15" } as Part, led("A-b16", "A-b15")]) {
+      progress = step(perch.bench, plan, progress, { type: "change", before: board, after: [...board, p] }).progress;
+      board = [...board, p];
+      while (progress.phase === "task" && needsAck(plan.tasks[progress.index].target)) progress = step(perch.bench, plan, progress, { type: "ack", parts: board }).progress;
+    }
+    expect(progress.mistake).toMatchObject({ code: "reversed_led", message: messageOf(level, "reversed_led") });
   });
 
   it("gives reversed_led for the short leg in the line of the other resistor leg too", () => {
@@ -144,7 +171,11 @@ describe("Arduino Foundations levels 2 and 4: the direction of the LED", () => {
       l.put(led("A-e27", "A-e26"));
       expect(l.effect).toBe("buzz");
       expect(l.progress).toMatchObject({ phase: "mistake", index: 1, mistake: { code: "reversed_led", parts: ["led1"] } });
-      expect(l.progress.mistake?.message).toBe(messageOf(l.level, "reversed_led"));
+      const text = l.progress.mistake?.message ?? "";
+      expect(text).toContain("Put the long leg (+) in row a, column 26.");
+      expect(text).toContain("the free leg of the resistor (row c, column 26)");
+      expect(text).toContain("Put the short leg (−) in row a, column 27.");
+      expect(text).not.toMatch(/[{}]/);
     });
 
     it(`level ${position}: accepts the LED the right way round`, () => {
@@ -161,6 +192,20 @@ describe("Arduino Foundations levels 2 and 4: the direction of the LED", () => {
       expect(l.progress.mistake?.message).toBe(messageOf(l.level, "led_shorted"));
     });
   }
+});
+
+describe("the LED place text", () => {
+  it("tells where the long leg and the short leg go, in the guide and in the LED task of each level", () => {
+    const withLed = [...perchLevels, ...arduinoLevels].filter((l) => l.tasks.some((t) => t.target.kind === "place" && t.target.part === "led"));
+    for (const l of withLed) {
+      const task = l.tasks.find((t) => t.target.kind === "place" && t.target.part === "led")!;
+      expect(task.instruction, l.title).toMatch(/long leg \(\+\) in the same column as the free leg of the resistor/);
+      expect(task.instruction, l.title).toMatch(/short leg \(−\) in the next column/);
+      expect(l.rules.forbid.find((f) => f.code === "reversed_led")?.place_message, l.title).toMatch(/\{long_column\}/);
+    }
+    expect(build.guide.led.start).toMatch(/same column as the free leg of the resistor/);
+    expect(build.guide.led.finish).toMatch(/next column/);
+  });
 });
 
 describe("the led_shorted rule", () => {
