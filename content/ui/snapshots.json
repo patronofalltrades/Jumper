@@ -71,5 +71,28 @@
     "mistakes": "Most mistakes first",
     "none": "No snapshot agrees with your search and filters.",
     "clear": "Clear the search and filters"
+  },
+  "share": {
+    "button": "Share",
+    "heading": "Share this build",
+    "text": "Send a friend a link. They can look at your board in 3D. They do not need an account, and they cannot change anything.",
+    "switch": "Anyone with the link can see this build",
+    "link": "Link",
+    "copy": "Copy",
+    "copied": "Copied.",
+    "native": "Share…",
+    "off": "The link is off. No one can open it.",
+    "failed": "We could not change the sharing. Try again.",
+    "done": "Close",
+    "native_title": "{title} on Jumper"
+  },
+  "shared": {
+    "not_shared": "This build is not shared",
+    "not_shared_text": "The owner turned the link off, or the build does not exist.",
+    "make_your_own": "Make your own on Jumper",
+    "by": "By {name}",
+    "anonymous": "A Jumper learner",
+    "notes": "Notes",
+    "title_suffix": "Shared build · Jumper"
   }
 }

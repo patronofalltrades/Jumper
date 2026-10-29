@@ -4,6 +4,7 @@ import { notFound, redirect } from "next/navigation";
 import { Suspense } from "react";
 import { Backdrop } from "@/components/backdrop";
 import { Volt } from "@/components/art/volt";
+import { InvitePanel, type Person } from "@/components/collaborate/invite-panel";
 import { Dock } from "@/components/dock";
 import { PlayIcon, WatchButton } from "@/components/walkthrough/watch-button";
 import text from "@/content/ui/build.json";
@@ -49,6 +50,19 @@ async function LevelMap({ slug }: { slug: string }) {
   if (error) throw error;
   if (!project) notFound();
 
+  // The invites of this owner for this project, with the name of each collaborator who joined.
+  const { data: invites, error: invitesError } = await supabase
+    .from("collaborators")
+    .select("id, invitee_email, status, profiles!collaborator_id(display_name, avatar)")
+    .eq("owner_id", auth.claims.sub)
+    .eq("project_id", project.id)
+    .order("created_at");
+  if (invitesError) throw invitesError;
+  const people: Person[] = (invites ?? []).map((row) => {
+    const profile = row.profiles as unknown as { display_name: string | null; avatar: string | null } | null;
+    return { id: row.id, email: row.invitee_email, status: row.status as Person["status"], name: profile?.display_name ?? null, avatar: profile?.avatar ?? null };
+  });
+
   const statuses = levelStatuses(project.levels.length, await passedLevels(supabase, project.id));
   const here = mascotLevel(statuses);
   const clips = await loadLevelClips(project.slug);
@@ -86,6 +100,8 @@ async function LevelMap({ slug }: { slug: string }) {
           />
         ))}
       </ol>
+
+      <InvitePanel projectId={project.id} ownEmail={auth.claims.email ?? ""} people={people} />
     </section>
   );
 }
