@@ -108,6 +108,7 @@
   },
   "connections": {
     "title": "Connections · {done} of {total} right",
+    "chip": "Connections {done}/{total}",
     "list": "Connections of this level",
     "show": "Show the connections",
     "hide": "Hide the connections",
