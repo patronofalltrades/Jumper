@@ -40,7 +40,7 @@ SQL, `supabase/tests/collaborate.sql` (throwaway local Postgres):
 
 ## Answers to open questions (Hanif)
 
-- Confirm email on the live project: I do not know (Hanif checks before applying the migration).
+- Confirm email on the live project: I do not know (Hanif checks before applying the migration). Later: "confirm email is on in supabahse auth".
 - Notes: own notes only.
 - Profile `xp` and `created_at` visible to a joined collaborator: fine for now.
 - Merge order: Share (#87) first, then this branch.
