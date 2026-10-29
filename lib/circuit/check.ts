@@ -124,19 +124,19 @@ export function checkLevel(bench: Bench, parts: Part[], rules: Rules): CheckResu
 }
 
 /** The state of one connection of a level: a `require` is right when it is on the board, a `forbid` when it is not. */
-export type ConnectionState = { kind: "require" | "forbid"; connection: Connection; ok: boolean };
+export type ConnectionState = { kind: "require" | "forbid" | "stray"; connection: Connection; ok: boolean };
 
 /**
  * The state of each connection of the rules, for the list under a failed Check (issue #92). It uses the same way round
  * as checkLevel, so every connection is right exactly when checkLevel passes. Requires come first, then forbids, then
- * each stray pin as a wrong forbid connection (issue #104).
+ * each stray pin as a wrong "stray" connection (issue #104).
  */
 export function connectionStates(bench: Bench, parts: Part[], rules: Rules): ConnectionState[] {
   const { on } = bestWay(bench, parts, rules);
   return [
     ...rules.require.map((c) => ({ kind: "require" as const, connection: { a: c.a, b: c.b }, ok: on(c) })),
     ...rules.forbid.map((c) => ({ kind: "forbid" as const, connection: { a: c.a, b: c.b }, ok: !on(c) })),
-    ...strayPins(bench, parts, rules).map((connection) => ({ kind: "forbid" as const, connection, ok: false })),
+    ...strayPins(bench, parts, rules).map((connection) => ({ kind: "stray" as const, connection, ok: false })),
   ];
 }
 
