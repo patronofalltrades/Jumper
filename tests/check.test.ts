@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { perchBench } from "@/lib/circuit/bench";
-import { checkLevel, isEmptyBoard, joinRules, placedParts } from "@/lib/circuit/check";
+import { checkLevel, connectionStates, isEmptyBoard, joinRules, placedParts } from "@/lib/circuit/check";
 import type { Part } from "@/lib/circuit/parts";
 import { loadBoards, startBoard } from "@/lib/content/boards";
 import { loadProjects } from "@/lib/content/load";
@@ -114,5 +114,65 @@ describe("joined rules", () => {
   it("joins only the listed levels", () => {
     const joined = joinRules(perch.levels, [1, 3]);
     expect(joined.require).toHaveLength(rulesOf(1).require.length + rulesOf(3).require.length);
+  });
+});
+
+// Issue #92: the state of each connection, for the list under a failed Check. It uses the same way round as checkLevel.
+describe("connection states", () => {
+  const rulesUpTo = (position: number) => joinRules(perch.levels, Array.from({ length: position }, (_, i) => i + 1));
+
+  it("is right for every connection on the finished board of every level", () => {
+    for (const level of perch.levels) {
+      const states = connectionStates(bench, finished(level.position), rulesUpTo(level.position));
+      expect(states.length).toBeGreaterThan(0);
+      expect(states.every((s) => s.ok)).toBe(true);
+    }
+  });
+
+  it("gives every connection of the rules, requires first, then forbids", () => {
+    const rules = rulesUpTo(2);
+    const states = connectionStates(bench, finished(2), rules);
+    expect(states.map((s) => s.connection)).toEqual([...rules.require, ...rules.forbid].map((c) => ({ a: c.a, b: c.b })));
+    expect(states.map((s) => s.kind)).toEqual([...rules.require.map(() => "require"), ...rules.forbid.map(() => "forbid")]);
+  });
+
+  it("marks the missing 3V3 wire of level 1 as wrong, and the wire is named", () => {
+    const board = finished(2).filter((p) => p.id !== "w1");
+    expect(connectionStates(bench, board, rulesUpTo(2))).toContainEqual({ kind: "require", connection: { a: "esp.3V3", b: "bbA.+" }, ok: false });
+  });
+
+  it("marks a wire on the wrong pin as wrong", () => {
+    const board = finished(3).map((p) => (p.id === "w12" && p.type === "wire" ? { ...p, b: "B-d9" } : p));
+    expect(connectionStates(bench, board, rulesOf(3))).toContainEqual({ kind: "require", connection: { a: "mic1.WS", b: "esp.GPIO4" }, ok: false });
+  });
+
+  it("marks the reversed LED as wrong, with its forbid connection", () => {
+    const board = finished(2).map((p) => (p.id === "led1" && p.type === "led" ? { ...p, a: p.b, b: p.a } : p));
+    expect(connectionStates(bench, board, rulesOf(2))).toContainEqual({ kind: "forbid", connection: { a: "led1.anode", b: "esp.GND" }, ok: false });
+  });
+
+  it("marks a short circuit as a broken forbid connection", () => {
+    const states = connectionStates(bench, [...finished(1), wire("w9", "B-c5", "A-h5")], rulesOf(1));
+    expect(states.some((s) => s.kind === "forbid" && !s.ok)).toBe(true);
+  });
+
+  it("accepts a resistor with its two sides the other way round, as checkLevel does", () => {
+    const board = finished(2).map((p) => (p.id === "r1" && p.type === "resistor" ? { ...p, a: p.b, b: p.a } : p));
+    expect(connectionStates(bench, board, rulesOf(2)).every((s) => s.ok)).toBe(true);
+  });
+
+  // The list and the Check must agree: every connection is right exactly when the Check passes.
+  it("is all right exactly when checkLevel passes", () => {
+    const boards: Part[][] = [
+      finished(3),
+      finished(3).filter((p) => p.id !== "w12"),
+      finished(2).map((p) => (p.id === "led1" && p.type === "led" ? { ...p, a: p.b, b: p.a } : p)),
+      finished(1).filter((p) => p.id !== "w2"),
+      [...finished(1), wire("w9", "B-c5", "A-h5")],
+    ];
+    for (const board of boards) {
+      const rules = rulesUpTo(3);
+      expect(connectionStates(bench, board, rules).every((s) => s.ok)).toBe(checkLevel(bench, board, rules).passed);
+    }
   });
 });
