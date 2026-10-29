@@ -37,8 +37,9 @@ describe("diagnose: what the learner's wire end connects to now", () => {
   });
 
   it("says that the end goes to a rail, and which rail", () => {
-    // w8 goes to the red + line (hole A-L+3) instead of the blue − line.
-    const board = change(finished(2), "w8", { b: "A-L+3" });
+    // w8 goes to the red + line (hole A-L+3) instead of the blue − line. w1 is taken out, so the red line has no pin
+    // on it (with w1, the red line would be 3V3, and the text would name the pin).
+    const board = change(change(finished(2), "w1", null), "w8", { b: "A-L+3" });
     expect(diagnose(bench, board, { a: "led1.cathode", b: "esp.GND" })).toMatchObject({
       kind: "rail",
       end: "led1.cathode",
