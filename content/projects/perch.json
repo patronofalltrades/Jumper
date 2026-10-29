@@ -187,7 +187,13 @@
             "a": "led1.anode",
             "b": "esp.GND",
             "code": "reversed_led",
-            "message": "Oops! The light is the wrong way round. Its long leg (+) is on ground, so it stays dark. Turn the light around: long leg to the resistor, short leg to the blue − line."
+            "message": "Oops! The light is the wrong way round, so it stays dark. Its long leg (+) must go to the resistor, and its short leg (−) must go to the blue − line. Turn the light around."
+          },
+          {
+            "a": "led1.anode",
+            "b": "led1.cathode",
+            "code": "led_shorted",
+            "message": "Oops! This wire joins the two legs of the light, so no power goes through it. Undo the wire."
           },
           {
             "a": "esp.GPIO2",
@@ -289,7 +295,7 @@
         {
           "position": 7,
           "kind": "wire",
-          "instruction": "Connect the other leg of the resistor to the long leg (+) of the light.",
+          "instruction": "The other leg of the resistor must touch the long leg (+) of the light. Put them in the same line of 5, or connect them with a wire.",
           "popup_why": "Now the power goes from pin 2, through the resistor, into the light. The resistor lets just enough through, so the light shines and stays safe.",
           "concept": null,
           "target": {

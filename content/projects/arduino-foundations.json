@@ -140,7 +140,13 @@
             "a": "led1.anode",
             "b": "uno.GND",
             "code": "reversed_led",
-            "message": "Oops! The LED is the wrong way round. Its long leg (+) is on ground, so it stays dark. Turn the LED around: long leg to the resistor, short leg to the blue − line."
+            "message": "Oops! The LED is the wrong way round, so it stays dark. Its long leg (+) must go to the resistor, and its short leg (−) must go to the blue − line. Turn the LED around."
+          },
+          {
+            "a": "led1.anode",
+            "b": "led1.cathode",
+            "code": "led_shorted",
+            "message": "Oops! This wire joins the two legs of the LED, so no power goes through it. Undo the wire."
           },
           {
             "a": "uno.D13",
@@ -347,7 +353,13 @@
             "a": "led1.anode",
             "b": "uno.GND",
             "code": "reversed_led",
-            "message": "Oops! The LED is the wrong way round. Its long leg (+) is on ground, so it stays dark. Turn the LED around: long leg to the resistor, short leg to the blue − line."
+            "message": "Oops! The LED is the wrong way round, so it stays dark. Its long leg (+) must go to the resistor, and its short leg (−) must go to the blue − line. Turn the LED around."
+          },
+          {
+            "a": "led1.anode",
+            "b": "led1.cathode",
+            "code": "led_shorted",
+            "message": "Oops! This wire joins the two legs of the LED, so no power goes through it. Undo the wire."
           },
           {
             "a": "uno.D13",

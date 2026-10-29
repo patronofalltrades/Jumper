@@ -104,6 +104,27 @@ function zoneBoard(zone: string): string | null {
   return /bb([A-Z])/.exec(zone)?.[1] ?? null;
 }
 
+/**
+ * True when an LED of a place task is the wrong way round (issue #102). The wire tasks of the level tell where each leg
+ * goes: "r1.2 to led1.anode" says that the short leg (−) must not touch the resistor (either leg: its side is not fixed
+ * yet), and "led1.cathode to esp.GND" says that the long leg (+) must not touch ground.
+ */
+function reversedLed(bench: Bench, parts: Part[], nets: Nets, plan: Plan, id: string) {
+  const other: Record<string, string> = { [`${id}.anode`]: `${id}.cathode`, [`${id}.cathode`]: `${id}.anode` };
+  return plan.tasks.some(({ target: t }) => {
+    if (t.kind !== "wire") return false;
+    return [
+      [t.a, t.b],
+      [t.b, t.a],
+    ].some(([leg, end]) => {
+      if (!other[leg]) return false;
+      const [owner, pin] = end.split(".");
+      const symmetric = (pin === "1" || pin === "2") && parts.some((p) => p.id === owner && SYMMETRIC.includes(p.type));
+      return (symmetric ? [`${owner}.1`, `${owner}.2`] : [end]).some((e) => linked(bench, parts, nets, { a: other[leg], b: e }, []));
+    });
+  });
+}
+
 type TaskState = { done: true; swaps: string[] } | { done: false; wrongPlace: boolean };
 
 /**
@@ -133,7 +154,8 @@ function taskState(bench: Bench, parts: Part[], nets: Nets, plan: Plan, index: n
   const ok = target.zone.includes(".")
     ? placeConnections(target).every((c, i) => pins[i]?.hole === endpointHole(bench, parts, c.b))
     : !board || pins.every((p) => isTerminal(p.hole) || bench.byId.get(p.hole)!.board === board);
-  return ok ? { done: true, swaps } : { done: false, wrongPlace: true };
+  const turned = part.type === "led" && reversedLed(bench, parts, nets, plan, part.id);
+  return ok && !turned ? { done: true, swaps } : { done: false, wrongPlace: true };
 }
 
 /**
@@ -223,6 +245,12 @@ export function step(bench: Bench, plan: Plan, progress: Progress, event: Engine
         effect: "buzz" as const,
       });
       if (broken) return wrong({ code: broken.code, message: broken.message, parts: added });
+
+      // An LED that the learner puts the wrong way round: the Mistake comes at once, with the text of the level (issue #102).
+      const turned = plan.tasks.some(
+        ({ target: t }) => t.kind === "place" && added.includes(t.id) && toolFor(t.part) === "led" && reversedLed(bench, event.after, netsAfter, plan, t.id),
+      );
+      if (turned) return wrong({ code: "reversed_led", message: plan.forbid.find((f) => f.code === "reversed_led")?.message, parts: added });
 
       // A part that does a task that the board did not do before is not a mistake, even if the task is an earlier one.
       const wasDone = doneTasks(bench, plan, event.before, reached, progress.swaps).done;

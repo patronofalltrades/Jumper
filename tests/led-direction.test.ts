@@ -114,8 +114,9 @@ describe("Perch level 2: the direction of the LED", () => {
 
   it("gives led_shorted for a wire that joins the two LED legs", () => {
     const l = atLed();
+    // The long leg is in the line of the resistor, so task 7 is done too.
     l.put(led("A-b15", "A-b16"), wire("w7", "A-f9", "A-c12"));
-    expect(l.progress).toMatchObject({ phase: "task", index: 6, mistakes: 0 });
+    expect(l.progress).toMatchObject({ phase: "task", index: 7, mistakes: 0 });
     l.put(wire("w8", "A-c15", "A-c16"));
     expect(l.effect).toBe("buzz");
     expect(l.progress).toMatchObject({ phase: "mistake", mistake: { code: "led_shorted", parts: ["w8"] } });
