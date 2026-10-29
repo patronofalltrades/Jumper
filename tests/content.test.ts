@@ -70,6 +70,20 @@ describe("content/projects", () => {
     }
   });
 
+  it("says which red + or blue − line a task means: the side and the breadboard, as in open_rails (issue #100)", async () => {
+    for (const p of projects.filter((p) => p.status === "available")) {
+      const spec = await loadBenchSpec(p.slug);
+      const side = { L: "left", R: "right" } as const;
+      for (const t of p.levels.flatMap((l) => l.tasks)) {
+        for (const m of t.instruction.matchAll(/(red \+|blue −) line(?: on the (left|right) side of breadboard ([A-Z]))?/g)) {
+          const sign = m[1].startsWith("red") ? "+" : "-";
+          const rail = m[3] && spec.open_rails[m[3]]?.[sign];
+          expect(rail && m[2] === side[rail[0] as "L" | "R"], `${p.slug}: ${t.instruction}`).toBeTruthy();
+        }
+      }
+    }
+  });
+
   it("gives each forbidden connection a mistake code and a message", () => {
     for (const l of levels) {
       for (const f of l.rules.forbid) {
