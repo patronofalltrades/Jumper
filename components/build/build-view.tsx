@@ -18,6 +18,7 @@ import type { SketchStep } from "@/lib/content/schema";
 import sketchText from "@/content/ui/sketch.json";
 import type { Clip } from "@/lib/game/walkthrough";
 import { AliveStage } from "./alive-stage";
+import { BuildDemo, BuildForMe } from "./build-for-me";
 import { readSavedLevel, useLevel } from "./autosave";
 import { EMPTY_NOTE, useEmptyBoard, useLevelCheck, useProblemWatch, useSketchLock } from "./check";
 import { useFeedback } from "./feedback";
@@ -256,9 +257,11 @@ export function BuildView({ user, project, levelId, position, eyebrow, title, go
               >
                 {text.play.check.button}
               </button>
+              <BuildForMe clip={clip} />
             </div>
           )}
           <SpotCard />
+          <BuildDemo clip={clip} position={position} />
           <AliveStage />
           {laptop && !codeOpen && popups}
           {otherTab && (
