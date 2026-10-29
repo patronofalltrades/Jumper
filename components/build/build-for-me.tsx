@@ -22,13 +22,15 @@ const fill = (template: string, values: Record<string, string | number>) => temp
 /** True while the demo plays. The button and the demo are in different places on the page. */
 const demo = createStore<{ running: boolean }>(() => ({ running: false }));
 const stop = () => demo.setState({ running: false });
+/** True while the demo plays. The phone pop-up sheet hides then. */
+export const useDemoRunning = () => useStore(demo, (s) => s.running);
 
 const press =
   "min-h-12 rounded-xl border border-b-4 px-6 text-base font-extrabold tracking-wide shadow-panel outline-none focus-visible:ring-2 focus-visible:ring-ring active:translate-y-0.5 active:border-b-2";
 
 /** The "Build it for me" button. It asks once, then clears the parts of the learner and starts the demo. */
 export function BuildForMe({ clip }: { clip: Clip | null }) {
-  const running = useStore(demo, (s) => s.running);
+  const running = useDemoRunning();
   if (!clip || running) return null;
   const start = () => {
     clearForDemo(boardStore);
@@ -63,7 +65,7 @@ export function BuildForMe({ clip }: { clip: Clip | null }) {
 
 /** The demo over the board, while it plays. Mount it in the board area of the build page. */
 export function BuildDemo({ clip, position }: { clip: Clip | null; position: number }) {
-  const running = useStore(demo, (s) => s.running);
+  const running = useDemoRunning();
   // The learner leaves the page during the demo: the next level does not start with it.
   useEffect(() => {
     return stop;

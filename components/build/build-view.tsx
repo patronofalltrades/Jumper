@@ -18,7 +18,7 @@ import type { SketchStep } from "@/lib/content/schema";
 import sketchText from "@/content/ui/sketch.json";
 import type { Clip } from "@/lib/game/walkthrough";
 import { AliveStage } from "./alive-stage";
-import { BuildDemo, BuildForMe } from "./build-for-me";
+import { BuildDemo, BuildForMe, useDemoRunning } from "./build-for-me";
 import { readSavedLevel, useLevel } from "./autosave";
 import { EMPTY_NOTE, useEmptyBoard, useLevelCheck, useProblemWatch, useSketchLock } from "./check";
 import { useFeedback } from "./feedback";
@@ -113,6 +113,8 @@ export function BuildView({ user, project, levelId, position, eyebrow, title, go
   const empty = useEmptyBoard();
   // Perch is coming alive on the board: the panels that guide the build step aside (issue #86).
   const alive = useAlive((s) => s.stage !== null);
+  // The demo of "Build it for me" is to watch: the pop-up sheet under the board on a phone hides while it plays (issue #115).
+  const demoRunning = useDemoRunning();
   const mapHref = `/p/${project}`;
 
   // The clip opens each time the level opens, until the learner finishes the first task. useLevel opened the board first.
@@ -289,7 +291,7 @@ export function BuildView({ user, project, levelId, position, eyebrow, title, go
         )}
       </div>
 
-      {!laptop && !codeOpen && popups}
+      {!laptop && !codeOpen && !demoRunning && popups}
       {!(codeOpen && !laptop) && <ToolBar />}
       {clip && watching && (
         <ClipPlayer

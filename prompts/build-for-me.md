@@ -23,3 +23,9 @@
    The workflow choice lets Claude open the issues and the agents open the PRs. Hanif merges. This repeats the exception to hook rule 1a from the batch #100 to #104.
 
 Claude's work for #115 (not Hanif's words): this issue is item 6. Red tests first for the demo steps and for "progress, XP and the saved board do not change", then the button and the demo. See the ledger for the details.
+
+3. Hanif's answers to the 5 questions on PR #120 (his words):
+
+   "1 ok, 2 keep undo, 3 keep, 4 ok, 5 hide it"
+
+Claude's work (not Hanif's words): answers 1 to 4 keep the code as it is. For answer 5, the pop-up sheet under the board on a phone hides while the demo plays, and comes back when the demo ends or stops.
