@@ -15,11 +15,11 @@ import { boardStore, FinishContext, useBoard, WIRE_COLORS, type Tool } from "@/l
 import type { Rules } from "@/lib/circuit/check";
 import { needsAck, type Plan } from "@/lib/game/engine";
 import type { SketchStep } from "@/lib/content/schema";
-import sketchText from "@/content/ui/sketch.json";
 import type { Clip } from "@/lib/game/walkthrough";
 import { AliveStage } from "./alive-stage";
+import { BoardActions } from "./board-actions";
 import { readSavedLevel, useLevel } from "./autosave";
-import { EMPTY_NOTE, useEmptyBoard, useLevelCheck, useProblemWatch, useSketchLock } from "./check";
+import { useEmptyBoard, useLevelCheck, useProblemWatch, useSketchLock } from "./check";
 import { useFeedback } from "./feedback";
 import { GuideBar, SpotCard, useNoticeTimer } from "./guide";
 import { Hearts, PinnedPopup, PopupLayer, useLaptop, type LevelTask } from "./popups";
@@ -128,6 +128,8 @@ export function BuildView({ user, project, levelId, position, eyebrow, title, go
   // The guide bar tells how to use the tool. A task that needs only "Got it" does not use a tool.
   const task = tasks[progress.index];
   const building = progress.phase === "mistake" || (progress.phase === "task" && !explaining && !!task && !needsAck(task.target));
+  // The Clear and Check row shows while the learner builds. A pop-up over the board, the Check card or the code panel hides it.
+  const actions = progress.phase !== "intro" && !explaining && !conceptOpen && !(progress.phase === "ready_to_check" && levelCheck.state.open) && !codeOpen && !alive;
 
   const popups = (
     <PopupLayer
@@ -221,42 +223,24 @@ export function BuildView({ user, project, levelId, position, eyebrow, title, go
           <FinishContext value={clip?.order}>
             <BuildScene>{laptop && <PinnedPopup tasks={tasks} hidden={conceptOpen || explaining} />}</BuildScene>
           </FinishContext>
-          {/* The guide bar, and the task list below it. Only the panels take clicks; the board gets the rest. Above the Check button, the column stops. */}
+          {/* The guide bar, and the task list below it. Only the panels take clicks; the board gets the rest. Above the Clear and Check row, the column stops. */}
           {progress.phase !== "intro" && !alive && (
-            <div className={cn("pointer-events-none absolute inset-x-0 top-3 z-10 flex flex-col gap-2 px-3", progress.phase === "ready_to_check" ? "bottom-32" : "bottom-3")}>
+            <div className={cn("pointer-events-none absolute inset-x-0 top-3 z-10 flex flex-col gap-2 px-3", progress.phase === "ready_to_check" && actions ? "bottom-32" : actions ? "bottom-20" : "bottom-3")}>
               {building && <GuideBar />}
               <TaskList tasks={tasks} laptop={laptop} code={sketch && { instruction: sketch.task, open: openCode }} small={codeOpen} />
               {/* After the first failed Check, every connection of the level, right or wrong (issue #92). */}
               {progress.fails > 0 && <ConnectionList rules={rules} />}
             </div>
           )}
-          {/* The learner closed the Check card to fix the board: the Check button stays at the bottom of the board. */}
-          {progress.phase === "ready_to_check" && !explaining && !levelCheck.state.open && !codeOpen && !alive && (
-            <div className="absolute inset-x-3 bottom-4 z-20 flex flex-col items-center gap-2">
-              {empty && (
-                <p id={EMPTY_NOTE} className="max-w-xs rounded-xl bg-card px-3 py-2 text-center text-sm font-semibold shadow-panel">
-                  {text.play.check.empty}
-                </p>
-              )}
-              {locked && (
-                <button
-                  type="button"
-                  onClick={openCode}
-                  className="min-h-12 rounded-xl border-b-4 border-primary-deep bg-primary px-8 text-base font-extrabold tracking-wide text-primary-foreground uppercase shadow-panel outline-none focus-visible:ring-2 focus-visible:ring-ring active:translate-y-0.5 active:border-b-2"
-                >
-                  {sketchText.panel.open}
-                </button>
-              )}
-              <button
-                type="button"
-                onClick={() => void levelCheck.check()}
-                disabled={empty || locked}
-                aria-describedby={empty ? EMPTY_NOTE : undefined}
-                className="min-h-12 rounded-xl border-b-4 border-primary-deep bg-primary px-8 text-base font-extrabold tracking-wide text-primary-foreground uppercase shadow-panel outline-none focus-visible:ring-2 focus-visible:ring-ring active:translate-y-0.5 active:border-b-2 disabled:border-border disabled:bg-muted disabled:text-muted-foreground"
-              >
-                {text.play.check.button}
-              </button>
-            </div>
+          {/* The button row at the bottom of the board: Clear, and Check (on when all tasks are done). Hidden while a card is open (issue #114). */}
+          {actions && (
+            <BoardActions
+              ready={progress.phase === "ready_to_check"}
+              empty={empty}
+              locked={locked}
+              onCheck={() => void levelCheck.check()}
+              onOpenCode={openCode}
+            />
           )}
           <SpotCard />
           <AliveStage />

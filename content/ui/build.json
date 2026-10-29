@@ -148,6 +148,13 @@
     },
     "saveError": "We could not save your progress. Your board is still saved on this device.",
     "otherTab": "This level is open in another tab. This tab stops saving. Reload this page to see the newest board.",
+    "clear": {
+      "button": "Clear",
+      "title": "Remove all the parts that you put in this level?",
+      "text": "The parts that the level started with stay. To put the parts back, use Undo.",
+      "cancel": "Cancel",
+      "confirm": "Remove the parts"
+    },
     "check": {
       "button": "Check",
       "checking": "Checking…",
