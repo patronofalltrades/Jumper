@@ -31,7 +31,8 @@ export type Focus = { at: number };
 /** `base`: the board that the level opened with, before the learner placed a part. It defaults to `parts`. */
 /** `bench`: the bench of the project (content/benches/). It defaults to the bench of the store, Perch for the app store. */
 /** `code`, `codePassed`: the sketch of a level with a code step (issue #58), and whether it did the goal. */
-export type LevelSetup = { bench?: Bench; plan?: Plan; parts?: Part[]; base?: Part[]; progress?: Progress; readOnly?: boolean; code?: string | null; codePassed?: boolean };
+/** `faded`: the ids of the parts that the scene draws faded. Only a walkthrough clip uses it (issue #103). */
+export type LevelSetup = { bench?: Bench; plan?: Plan; parts?: Part[]; base?: Part[]; progress?: Progress; readOnly?: boolean; code?: string | null; codePassed?: boolean; faded?: string[] };
 
 export type BoardState = {
   bench: Bench;
@@ -60,6 +61,8 @@ export type BoardState = {
   problem: Problem | null;
   focus: Focus | null;
   readOnly: boolean;
+  /** The ids of the parts that the scene draws faded: the parts of the levels before, in a walkthrough clip (issue #103). */
+  faded: string[];
   /** The sketch of the code step, as the learner wrote it. Null: the starter code of the level (issue #58). */
   code: string | null;
   /** True when the sketch did the goal of the level, after its last change. The level Check needs it. */
@@ -142,6 +145,7 @@ export function createBoardStore(defaultBench: Bench = perchBench()) {
       problem: null,
       focus: null,
       readOnly: false,
+      faded: [],
       code: null,
       codePassed: false,
     });
@@ -170,6 +174,7 @@ export function createBoardStore(defaultBench: Bench = perchBench()) {
           problem: null,
           focus: null,
           readOnly: setup.readOnly ?? false,
+          faded: setup.faded ?? [],
           code: setup.code ?? null,
           codePassed: setup.codePassed ?? false,
         });

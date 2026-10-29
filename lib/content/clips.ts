@@ -22,7 +22,7 @@ export async function loadLevelClips(slug: string): Promise<Map<number, Clip>> {
   for (const level of project?.levels ?? []) {
     const video = levelVideo(slug, level.position);
     if (!boards.levels[level.position] || !video) continue;
-    const clip = levelClip(bench, boards, level, text.end.replace("{n}", String(level.position)));
+    const clip = levelClip(bench, boards, level, text.end.replace("{n}", String(level.position)), text.start.replace("{n}", String(level.position - 1)));
     clips.set(level.position, { ...clip, video: video.id, bench: spec });
   }
   return clips;

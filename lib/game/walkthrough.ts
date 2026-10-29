@@ -6,13 +6,14 @@ import { needsAck, startProgress, step, type Plan, type Progress, type Target } 
 
 // The walkthrough clips (issue #48): a 3D replay of a level. The board adds the parts of the level one at a time, from
 // content/boards/<project>.json, in task order. Each step shows the instruction of its task as a caption.
+// A clip after level 1 starts with the board of the levels before, faded, so the learner sees which parts are new (issue #103).
 
 /**
  * One step of a clip. The board shows the first `before` parts of the clip's `order`, then the first `after` parts.
  * `progress` is the engine on the task of the step, so the scene glows where the part goes.
  */
 export type ClipStep = {
-  kind: "task" | "popup" | "check" | "end";
+  kind: "board" | "task" | "popup" | "check" | "end";
   /** The index of the task in its level. */
   task: number | null;
   caption: string;
@@ -28,7 +29,7 @@ export type ClipStep = {
  * `video` is the id of its recorded video in content/videos.json (issue #49), if it has one. `bench` is the bench of
  * the project (content/benches/), so the clip window draws the right board; without it, the window uses the Perch bench.
  */
-export type Clip = { order: Part[]; plan: Plan; steps: ClipStep[]; video?: string; bench?: BenchSpec };
+export type Clip = { order: Part[]; plan: Plan; steps: ClipStep[]; faded: string[]; video?: string; bench?: BenchSpec };
 
 export type ClipLevel = { position: number; tasks: { instruction: string; popup_why: string; target: Target; xp: number }[] };
 
@@ -42,13 +43,14 @@ export type IntroScript = {
 /**
  * The clip of a level. The engine plays the level: a part that is always on the bench gets "Got it", and the other
  * tasks get the next part of the level. A part that also finishes the tasks after it gives those tasks a step with no part.
+ * After level 1, the first step shows the board of the levels before, with the caption `start`. Those parts are `faded`.
  */
-export function levelClip(bench: Bench, boards: Boards, level: ClipLevel, end: string): Clip {
+export function levelClip(bench: Bench, boards: Boards, level: ClipLevel, end: string, start: string): Clip {
   const base = startBoard(boards, level.position);
   const own = boards.levels[level.position] ?? [];
   const order = [...base, ...own];
   const plan: Plan = { tasks: level.tasks.map((t) => ({ target: t.target, xp: t.xp })), forbid: [] };
-  const steps: ClipStep[] = [];
+  const steps: ClipStep[] = base.length ? [{ kind: "board", task: null, caption: start, before: base.length, after: base.length, progress: null }] : [];
   let progress = step(bench, plan, startProgress(), { type: "start" }).progress;
   let count = base.length;
   let next = 0;
@@ -72,12 +74,12 @@ export function levelClip(bench: Bench, boards: Boards, level: ClipLevel, end: s
   }
   if (next < own.length) throw new Error(`Level ${level.position}: ${own.length - next} parts are not in a task`);
   steps.push({ kind: "end", task: null, caption: end, before: count, after: count, progress: null });
-  return { order, plan, steps };
+  return { order, plan, steps, faded: base.map((p) => p.id) };
 }
 
 /** The intro clip: a few steps of one level to show the game loop, with the captions of the script. */
 export function introClip(bench: Bench, boards: Boards, level: ClipLevel, script: IntroScript): Clip {
-  const { order, plan, steps: all } = levelClip(bench, boards, level, script.end);
+  const { order, plan, steps: all, faded } = levelClip(bench, boards, level, script.end, "");
   let count = startBoard(boards, level.position).length;
   const steps = script.steps.map((s): ClipStep => {
     const before = count;
@@ -91,7 +93,7 @@ export function introClip(bench: Bench, boards: Boards, level: ClipLevel, script
     return { ...task, caption: s.caption, before };
   });
   steps.push({ kind: "end", task: null, caption: script.end, before: count, after: count, progress: null });
-  return { order, plan, steps };
+  return { order, plan, steps, faded };
 }
 
 /**

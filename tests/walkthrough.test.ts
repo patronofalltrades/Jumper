@@ -12,7 +12,7 @@ const bench = perchBench();
 const boards = boardsSchema.parse(boardsFile);
 const perch = loadProjects().find((p) => p.slug === "perch")!;
 const endOf = (n: number) => text.end.replace("{n}", String(n));
-const startOf = (n: number) => ((text as { start?: string }).start ?? "").replace("{n}", String(n - 1));
+const startOf = (n: number) => text.start.replace("{n}", String(n - 1));
 const ids = (parts: { id: string }[]) => parts.map((p) => p.id);
 
 describe("levelClip", () => {
@@ -130,7 +130,7 @@ describe("clipFrame", () => {
 
 describe("content/ui/walkthrough.json", () => {
   it("has the first caption of a level clip after level 1, with the number of the level before (issue #103)", () => {
-    expect((text as { start?: string }).start).toContain("{n}");
+    expect(text.start).toContain("{n}");
   });
 
   it("has the controls of the clip", () => {

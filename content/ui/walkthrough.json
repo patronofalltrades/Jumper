@@ -1,10 +1,11 @@
 {
-  "_note": "Text for the walkthrough clips (issue #48), in ASD-STE100. The caption of each level step is the instruction of its task, from content/projects/. Only the intro clip of the landing page has its own captions. {n} is a number, {title} a level title.",
+  "_note": "Text for the walkthrough clips (issue #48), in ASD-STE100. The caption of each level step is the instruction of its task, from content/projects/. Only the intro clip of the landing page has its own captions. {n} is a number, {title} a level title. 'start' is the first caption of a level clip after level 1; its {n} is the level before.",
   "watch": "Watch how",
   "watchLevel": "Watch",
   "watchLevelLabel": "Watch how to build level {n}",
   "levelTitle": "Level {n} · {title}",
   "step": "Step {n} of {total}",
+  "start": "This is your board from level {n}. The new parts come next.",
   "end": "Level {n} is done. This is your board now!",
   "loading": "Loading the clip…",
   "still": "Press Next to see the next step.",
