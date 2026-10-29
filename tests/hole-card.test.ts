@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { holeLines } from "@/components/build/guide";
 import uno from "@/content/benches/arduino-foundations.json";
-import { createBench, perchBench, type BenchSpec } from "@/lib/circuit/bench";
+import { breadboardLetter, createBench, perchBench, type BenchSpec } from "@/lib/circuit/bench";
 import { buildNets } from "@/lib/circuit/nets";
 
 // The hole card names the breadboard (issue #100): the Perch tasks say "breadboard A" and "breadboard B".
@@ -20,5 +20,12 @@ describe("hole card title", () => {
   it("gives no letter on a bench with one breadboard", () => {
     const bench = createBench(uno as unknown as BenchSpec);
     expect(title(bench, "A-f15")).toBe("Row f, column 15");
+  });
+});
+
+describe("breadboardLetter", () => {
+  it("gives the id on a bench with two breadboards, and null on a bench with one", () => {
+    expect(breadboardLetter(perchBench(), "B")).toBe("B");
+    expect(breadboardLetter(createBench(uno as unknown as BenchSpec), "A")).toBeNull();
   });
 });

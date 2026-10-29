@@ -5,7 +5,7 @@ import { Canvas, useThree, type ThreeEvent } from "@react-three/fiber";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Color, MathUtils, Object3D, Vector3, type Camera, type InstancedMesh } from "three";
 import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
-import { BOARD, nearestHole, type Bench, type Hole } from "@/lib/circuit/bench";
+import { BOARD, breadboardLetter, nearestHole, type Bench, type Hole } from "@/lib/circuit/bench";
 import { isModuleType, type ModuleType } from "@/lib/circuit/modules";
 import { buildNets, netHoles } from "@/lib/circuit/nets";
 import { problemHoles, type Problem } from "@/lib/circuit/problem";
@@ -224,7 +224,7 @@ function Bench() {
     <group>
       {bench.breadboards.map((b) => (
         <group key={b.id}>
-          <Breadboard x0={b.x} handlers={handlers} />
+          <Breadboard x0={b.x} letter={breadboardLetter(bench, b.id)} handlers={handlers} />
           <Holes bench={bench} board={b.id} glow={glow} />
         </group>
       ))}
@@ -250,8 +250,8 @@ type Handlers = {
   onPointerLeave: () => void;
 };
 
-function Breadboard({ x0, handlers }: { x0: number; handlers: Handlers }) {
-  const top = useFontTexture(() => drawBreadboard(x0));
+function Breadboard({ x0, letter, handlers }: { x0: number; letter: string | null; handlers: Handlers }) {
+  const top = useFontTexture(() => drawBreadboard(x0, letter));
   return (
     <mesh position={[x0 + BOARD.centerX, -0.45, 0]} receiveShadow {...handlers}>
       <boxGeometry args={[BOARD.width, 0.9, BOARD.length]} />
