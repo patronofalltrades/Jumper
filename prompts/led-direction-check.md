@@ -18,3 +18,9 @@ Claude's work for #102 (not Hanif's words): an engine run in Vitest of Perch lev
    4. It should explain what a short leg is and where to put it"
 
 Claude's change for answer 4 (not Hanif's words): the `reversed_led` text explains the short leg and where it goes.
+
+4. Hanif's newest comment on PR #108 (his words):
+
+   "for issue four, you have to be very descriptive about where you want to put the component to the user"
+
+Claude's change for this comment (not Hanif's words): when the learner puts the LED the wrong way round, the `reversed_led` text now names the exact holes on the learner's board (a new pure helper `lib/circuit/led-spot.ts` finds them), and the LED guide and the LED task text say where the long leg and the short leg go.

@@ -96,7 +96,7 @@ describe("Perch level 2: the direction of the LED", () => {
 
   it("keeps the plain reversed_led text when the level has no place text", () => {
     const level = perch.levels.find((l) => l.position === 2)!;
-    const forbid = level.rules.forbid.map(({ place_message: _, ...f }) => f);
+    const forbid = level.rules.forbid.map((f) => ({ ...f, place_message: undefined }));
     const plan: Plan = { tasks: level.tasks.map((t) => ({ target: t.target, xp: t.xp })), forbid };
     let progress = step(perch.bench, plan, startProgress(), { type: "start" }).progress;
     let board = startBoard(perch.boards, 2);

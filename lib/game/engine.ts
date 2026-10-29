@@ -1,5 +1,6 @@
 import { breadboardOutline, type Bench } from "@/lib/circuit/bench";
 import { isModuleType } from "@/lib/circuit/modules";
+import { ledSpot } from "@/lib/circuit/led-spot";
 import { buildNets, endpointHole, netHoles, type Nets } from "@/lib/circuit/nets";
 import { checkHole, checkModule, isTerminal, LEG_NAMES, partPins, terminalAt, type LegType, type Part, type PartType } from "@/lib/circuit/parts";
 
@@ -14,7 +15,8 @@ import { checkHole, checkModule, isTerminal, LEG_NAMES, partPins, terminalAt, ty
 // In ready_to_check the learner presses Check (lib/circuit/check.ts). A fail costs a heart; a pass ends the level.
 
 export type Connection = { a: string; b: string };
-export type Forbid = Connection & { code: string; message: string };
+/** `place_message`: a reversed_led text with the exact holes for the LED ({long_row}, {long_column}…), filled in by the engine. */
+export type Forbid = Connection & { code: string; message: string; place_message?: string };
 export type Target = ({ kind: "wire" } & Connection) | { kind: "place"; part: string; id: string; zone: string };
 export type PlanTask = { target: Target; xp: number };
 /** What the engine needs from a level: its tasks in order, and its forbid rules. */
@@ -123,6 +125,31 @@ function reversedLed(bench: Bench, parts: Part[], nets: Nets, plan: Plan, id: st
       return (symmetric ? [`${owner}.1`, `${owner}.2`] : [end]).some((e) => linked(bench, parts, nets, { a: other[leg], b: e }, []));
     });
   });
+}
+
+/**
+ * The reversed_led text of the level for the LED `id`. When the level has a `place_message` and the board has a good place
+ * (lib/circuit/led-spot.ts), the text names the exact holes: the long leg (+) next to the free leg of the resistor of the
+ * "r1.2 to led1.anode" task, and the short leg (−) in the next column. Else the plain `message`.
+ */
+function reversedText(bench: Bench, parts: Part[], plan: Plan, id: string) {
+  const rule = plan.forbid.find((f) => f.code === "reversed_led");
+  const resistor = plan.tasks
+    .flatMap(({ target: t }) => (t.kind === "wire" ? [[t.a, t.b], [t.b, t.a]] : []))
+    .find(([leg, end]) => leg === `${id}.anode` && parts.some((p) => p.id === end.split(".")[0] && p.type === "resistor"))?.[1]
+    .split(".")[0];
+  const spot = rule?.place_message && resistor ? ledSpot(bench, parts, resistor, id) : null;
+  if (!rule?.place_message || !spot) return rule?.message;
+  const values: Record<string, string | number> = {
+    board: spot.long.board,
+    resistor_row: spot.resistor.row,
+    resistor_column: spot.resistor.n,
+    long_row: spot.long.row,
+    long_column: spot.long.n,
+    short_row: spot.short.row,
+    short_column: spot.short.n,
+  };
+  return rule.place_message.replace(/\{(\w+)\}/g, (_, k: string) => String(values[k] ?? `{${k}}`));
 }
 
 type TaskState = { done: true; swaps: string[] } | { done: false; wrongPlace: boolean };
@@ -247,10 +274,10 @@ export function step(bench: Bench, plan: Plan, progress: Progress, event: Engine
       if (broken) return wrong({ code: broken.code, message: broken.message, parts: added });
 
       // An LED that the learner puts the wrong way round: the Mistake comes at once, with the text of the level (issue #102).
-      const turned = plan.tasks.some(
-        ({ target: t }) => t.kind === "place" && added.includes(t.id) && toolFor(t.part) === "led" && reversedLed(bench, event.after, netsAfter, plan, t.id),
-      );
-      if (turned) return wrong({ code: "reversed_led", message: plan.forbid.find((f) => f.code === "reversed_led")?.message, parts: added });
+      const turned = plan.tasks
+        .map(({ target: t }) => t)
+        .find((t) => t.kind === "place" && added.includes(t.id) && toolFor(t.part) === "led" && reversedLed(bench, event.after, netsAfter, plan, t.id));
+      if (turned?.kind === "place") return wrong({ code: "reversed_led", message: reversedText(bench, event.after, plan, turned.id), parts: added });
 
       // A part that does a task that the board did not do before is not a mistake, even if the task is an earlier one.
       const wasDone = doneTasks(bench, plan, event.before, reached, progress.swaps).done;
