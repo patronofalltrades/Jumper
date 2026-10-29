@@ -17,7 +17,7 @@ The test in plain English: a learner who taps only the arrow holes, task after t
 
 - Red (`0c89fde`): `npx vitest run tests/place-guide.test.ts`: 7 failed, 6 passed (13). Fails: Perch level 2, Arduino Foundations levels 2 and 4 (`expected [] to have a length of 2`: no taps), and the 4 small tests.
 - Green (`9cc32be`): `tests/place-guide.test.ts` 13 passed. Full suite `npx vitest run`: 501 passed in 37 files.
-- After Hanif's answers (finished board from the clip data, COMMIT): `tests/place-guide.test.ts` 13 passed; full suite 501 passed in 37 files. This change moves data only (the `taskSpot` logic did not change), so it has no new red test.
+- After Hanif's answers (finished board from the clip data, `5d8cc95`): `tests/place-guide.test.ts` 13 passed; full suite 501 passed in 37 files. This change moves data only (the `taskSpot` logic did not change), so it has no new red test.
 - Typecheck (`next typegen && tsc --noEmit`): exit 0. Lint (`eslint .`): exit 0.
 - Browser, local only: a temporary route (removed before the commit) with placeholder Supabase values showed Perch level 2 at the resistor task in Chromium at 1280 x 800. The pop-up pointed at A-a2 with the tap ring. No Supabase project was used.
 
