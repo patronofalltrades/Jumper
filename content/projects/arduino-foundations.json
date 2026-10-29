@@ -140,7 +140,14 @@
             "a": "led1.anode",
             "b": "uno.GND",
             "code": "reversed_led",
-            "message": "Oops! The LED is the wrong way round. Its long leg (+) is on ground, so it stays dark. Turn the LED around: long leg to the resistor, short leg to the blue − line on the left side of breadboard A."
+            "message": "Oops! The LED is the wrong way round, so it stays dark. The short leg (−) is the shorter of its two legs. On the board it has a blue − mark. On a real LED, it is on the flat side. Do not put the short leg in the line of the resistor: put it in an empty line, and connect that line to the blue − line on the left side of breadboard A. Put the long leg (+) in the line of the resistor. Turn the LED around.",
+            "place_message": "Oops! The LED is the wrong way round, so it stays dark. The short leg (−) is the shorter of its two legs. On the board it has a blue − mark. On a real LED, it is on the flat side. Turn the LED around. Put the long leg (+) in row {long_row}, column {long_column} of breadboard {board}. This is the same column as the free leg of the resistor (row {resistor_row}, column {resistor_column}). Put the short leg (−) in row {short_row}, column {short_column}. Then connect column {short_column} to the blue − line on the left side of breadboard A."
+          },
+          {
+            "a": "led1.anode",
+            "b": "led1.cathode",
+            "code": "led_shorted",
+            "message": "Oops! This wire joins the two legs of the LED, so no power goes through it. Undo the wire."
           },
           {
             "a": "uno.D13",
@@ -170,7 +177,7 @@
         {
           "position": 2,
           "kind": "place",
-          "instruction": "Put the LED on breadboard A. Its two legs go in two different lines.",
+          "instruction": "Put the LED on breadboard A. Put its long leg (+) in the same column as the free leg of the resistor. Put its short leg (−) in the next column, in the same row.",
           "popup_why": "The LED is in. Look at its legs: the long leg is + and the short leg is −. Electricity can only go in at the long leg and out at the short leg.",
           "concept": "LED: A small light. It works only one way round. The long leg goes toward power (+), and the short leg goes toward ground (−).",
           "target": {
@@ -347,7 +354,14 @@
             "a": "led1.anode",
             "b": "uno.GND",
             "code": "reversed_led",
-            "message": "Oops! The LED is the wrong way round. Its long leg (+) is on ground, so it stays dark. Turn the LED around: long leg to the resistor, short leg to the blue − line on the left side of breadboard A."
+            "message": "Oops! The LED is the wrong way round, so it stays dark. The short leg (−) is the shorter of its two legs. On the board it has a blue − mark. On a real LED, it is on the flat side. Do not put the short leg in the line of the resistor: put it in an empty line, and connect that line to the blue − line on the left side of breadboard A. Put the long leg (+) in the line of the resistor. Turn the LED around.",
+            "place_message": "Oops! The LED is the wrong way round, so it stays dark. The short leg (−) is the shorter of its two legs. On the board it has a blue − mark. On a real LED, it is on the flat side. Turn the LED around. Put the long leg (+) in row {long_row}, column {long_column} of breadboard {board}. This is the same column as the free leg of the resistor (row {resistor_row}, column {resistor_column}). Put the short leg (−) in row {short_row}, column {short_column}. Then connect column {short_column} to the blue − line on the left side of breadboard A."
+          },
+          {
+            "a": "led1.anode",
+            "b": "led1.cathode",
+            "code": "led_shorted",
+            "message": "Oops! This wire joins the two legs of the LED, so no power goes through it. Undo the wire."
           },
           {
             "a": "uno.D13",
@@ -377,7 +391,7 @@
         {
           "position": 2,
           "kind": "place",
-          "instruction": "Put the LED on breadboard A. Its two legs go in two different lines.",
+          "instruction": "Put the LED on breadboard A. Put its long leg (+) in the same column as the free leg of the resistor. Put its short leg (−) in the next column, in the same row.",
           "popup_why": "The LED is in. Look at its legs: the long leg is + and the short leg is −. Electricity can only go in at the long leg and out at the short leg.",
           "concept": "LED: A small light. It works only one way round. The long leg goes toward power (+), and the short leg goes toward ground (−).",
           "target": {

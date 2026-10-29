@@ -27,6 +27,7 @@
     "reversed_power": "Power pin on ground",
     "power_to_power": "Two power pins joined",
     "reversed_led": "LED turned around",
+    "led_shorted": "LED legs joined by a wire",
     "missing_resistor": "LED with no resistor",
     "button_bypassed": "Wire around the button",
     "amp_shutdown": "Amplifier in shutdown (SD on ground)",

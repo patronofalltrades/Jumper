@@ -11,7 +11,7 @@ import watchText from "@/content/ui/walkthrough.json";
 import { createBench, type BenchSpec } from "@/lib/circuit/bench";
 import type { Part } from "@/lib/circuit/parts";
 import { useAlive } from "@/lib/game/alive-store";
-import { boardStore, useBoard, WIRE_COLORS, type Tool } from "@/lib/game/board-store";
+import { boardStore, FinishContext, useBoard, WIRE_COLORS, type Tool } from "@/lib/game/board-store";
 import type { Rules } from "@/lib/circuit/check";
 import { needsAck, type Plan } from "@/lib/game/engine";
 import type { SketchStep } from "@/lib/content/schema";
@@ -217,7 +217,10 @@ export function BuildView({ user, project, levelId, position, eyebrow, title, go
 
       <div className={cn("flex min-h-0 flex-1", codeOpen && "max-sm:flex-col")}>
         <div className="relative min-h-0 min-w-0 flex-1">
-          <BuildScene>{laptop && <PinnedPopup tasks={tasks} hidden={conceptOpen || explaining} />}</BuildScene>
+          {/* The clip parts are the finished board, so a resistor or LED task glows the holes of the clip (issue #101). */}
+          <FinishContext value={clip?.order}>
+            <BuildScene>{laptop && <PinnedPopup tasks={tasks} hidden={conceptOpen || explaining} />}</BuildScene>
+          </FinishContext>
           {/* The guide bar, and the task list below it. Only the panels take clicks; the board gets the rest. Above the Check button, the column stops. */}
           {progress.phase !== "intro" && !alive && (
             <div className={cn("pointer-events-none absolute inset-x-0 top-3 z-10 flex flex-col gap-2 px-3", progress.phase === "ready_to_check" ? "bottom-32" : "bottom-3")}>

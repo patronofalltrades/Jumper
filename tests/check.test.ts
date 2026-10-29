@@ -1,8 +1,11 @@
+import { readdirSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { perchBench } from "@/lib/circuit/bench";
+import { createBench, perchBench } from "@/lib/circuit/bench";
 import { checkLevel, connectionStates, isEmptyBoard, joinRules, placedParts } from "@/lib/circuit/check";
 import type { Part } from "@/lib/circuit/parts";
-import { loadBoards, startBoard } from "@/lib/content/boards";
+import { strayRow, strayText } from "@/components/build/names";
+import { loadBenchSpec } from "@/lib/content/benches";
+import { loadBoards, startBoard, startLevels } from "@/lib/content/boards";
 import { loadProjects } from "@/lib/content/load";
 
 const bench = perchBench();
@@ -14,9 +17,12 @@ const finished = (position: number) => startBoard(boards, position + 1);
 const wire = (id: string, a: string, b: string): Part => ({ id, type: "wire", a, b });
 
 describe("level check", () => {
+  // The board has the parts of the levels before, so the rules of those levels come too (issue #104: else their pins
+  // look like stray pins). The level page joins the rules in the same way.
   for (const level of perch.levels) {
     it(`passes the finished board of level ${level.position}`, () => {
-      expect(checkLevel(bench, finished(level.position), level.rules)).toEqual({ passed: true });
+      const rules = joinRules(perch.levels, [...startLevels(boards, level.position), level.position]);
+      expect(checkLevel(bench, finished(level.position), rules)).toEqual({ passed: true });
     });
   }
 
@@ -191,4 +197,58 @@ describe("connection states", () => {
       expect(connectionStates(bench, board, rules).every((s) => s.ok)).toBe(checkLevel(bench, board, rules).passed);
     }
   });
+});
+
+// Issue #104: a part or wire must not touch a board pin that no rule of the level (or the levels before) uses.
+describe("stray pin", () => {
+  const upTo = (position: number) => joinRules(perch.levels, Array.from({ length: position }, (_, i) => i + 1));
+  // The board of the issue: the resistor and the LED in the lines of GPIO37, GPIO35 and GPIO0 (row j holds the pins).
+  const strayBoard = () => [
+    ...finished(2).filter((p) => !["r1", "led1", "w7", "w8"].includes(p.id)),
+    { id: "r1", type: "resistor", a: "A-f15", b: "A-f17" } as Part,
+    { id: "led1", type: "led", a: "A-g17", b: "A-g18" } as Part,
+    wire("w7", "A-f9", "A-h15"),
+    wire("w8", "A-h18", "A-L-18"),
+  ];
+
+  it("fails the level 2 board with the resistor on GPIO37, and names the pin", () => {
+    expect(checkLevel(bench, strayBoard(), upTo(2))).toMatchObject({ passed: false, code: "stray_pin", connection: { a: "r1.1", b: "esp.GPIO37" } });
+  });
+
+  it("shows each stray pin in the connection list as a wrong connection", () => {
+    const states = connectionStates(bench, strayBoard(), upTo(2));
+    expect(states).toContainEqual({ kind: "stray", connection: { a: "r1.1", b: "esp.GPIO37" }, ok: false });
+    expect(states).toContainEqual({ kind: "stray", connection: { a: "r1.2", b: "esp.GPIO35" }, ok: false });
+    expect(states).toContainEqual({ kind: "stray", connection: { a: "led1.cathode", b: "esp.GPIO0" }, ok: false });
+  });
+
+  // Hanif's answer on PR #106: name only the part, in plain words, not the part end.
+  it("gives a simple fail text and list row: the part name and the pin", () => {
+    const board = strayBoard();
+    const result = checkLevel(bench, board, upTo(2));
+    if (result.passed) throw new Error("expected a failed Check");
+    expect(strayText(bench, board, result.connection)).toBe(
+      "Oops! The resistor touches GPIO 37 on the board. This level does not use GPIO 37. Move the resistor to a line with no board pin.",
+    );
+    expect(strayRow(bench, board, result.connection)).toBe("The resistor must not touch GPIO 37");
+    expect(strayText(bench, board, { a: "led1.cathode", b: "esp.GPIO0" })).toContain("The light (LED) touches GPIO 0");
+  });
+});
+
+// Issue #104: the finished board of every level of every project passes, with the rules that the level page joins.
+describe("finished boards of all projects", async () => {
+  const slugs = readdirSync("content/boards").map((f) => f.replace(/\.json$/, ""));
+  for (const slug of slugs) {
+    const project = loadProjects().find((p) => p.slug === slug)!;
+    const projectBench = createBench(await loadBenchSpec(slug));
+    const projectBoards = await loadBoards(slug);
+    for (const level of project.levels) {
+      it(`${slug} level ${level.position} passes`, () => {
+        const rules = joinRules(project.levels, [...startLevels(projectBoards, level.position), level.position]);
+        const board = [...startBoard(projectBoards, level.position), ...projectBoards.levels[level.position]];
+        expect(connectionStates(projectBench, board, rules).every((s) => s.ok)).toBe(true);
+        expect(checkLevel(projectBench, board, rules)).toEqual({ passed: true });
+      });
+    }
+  }
 });
