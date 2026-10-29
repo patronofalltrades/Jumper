@@ -54,14 +54,20 @@ function turn(endpoint: string, turned: Set<string>) {
   return `${owner}.${pin === "1" ? "2" : "1"}`;
 }
 
-export function checkLevel(bench: Bench, parts: Part[], rules: Rules): CheckResult {
+type Forbid = Rules["forbid"][number];
+/** One way round of the resistors and buttons: its problems, and whether a connection is on the board that way. */
+type Way = { problems: number; on: (c: Connection) => boolean; broken: Forbid[]; missing: Connection[] };
+
+/**
+ * The way round of the resistors and buttons with the fewest problems (the first one, when two ways tie). Each way is
+ * tried, so the learner can use either side as "1". Stops at the first way with no problem.
+ */
+function bestWay(bench: Bench, parts: Part[], rules: Rules): Way {
   const nets = buildNets(bench, parts);
   const owners = new Set([...rules.require, ...rules.forbid].flatMap((c) => [c.a, c.b]).map((e) => e.split(".")[0]));
   const free = parts.filter((p) => SYMMETRIC.includes(p.type) && owners.has(p.id)).map((p) => p.id);
 
-  // Try each way round of the resistors and buttons. Report the way with the fewest problems, forbid rules first.
-  let best: CheckResult = { passed: true };
-  let fewest = Infinity;
+  let best: Way | null = null;
   for (let mask = 0; mask < 1 << free.length; mask++) {
     const turned = new Set(free.filter((_, i) => mask & (1 << i)));
     const on = (c: Connection) => {
@@ -72,16 +78,37 @@ export function checkLevel(bench: Bench, parts: Part[], rules: Rules): CheckResu
     const broken = rules.forbid.filter(on);
     const missing = rules.require.filter((c) => !on(c));
     const problems = broken.length + missing.length;
-    if (problems === 0) return { passed: true };
-    if (problems >= fewest) continue;
-    fewest = problems;
-    const [f] = broken;
-    const [m] = missing;
-    best = f
-      ? { passed: false, code: f.code, message: f.message, connection: { a: f.a, b: f.b, from: f.from } }
-      : { passed: false, code: isGround(m.a) || isGround(m.b) ? "missing_ground" : "wrong_pin", connection: { a: m.a, b: m.b, from: m.from } };
+    if (best && problems >= best.problems) continue;
+    best = { problems, on, broken, missing };
+    if (problems === 0) break;
   }
-  return best;
+  return best!;
+}
+
+export function checkLevel(bench: Bench, parts: Part[], rules: Rules): CheckResult {
+  // Report the way with the fewest problems, forbid rules first.
+  const { problems, broken, missing } = bestWay(bench, parts, rules);
+  if (problems === 0) return { passed: true };
+  const [f] = broken;
+  const [m] = missing;
+  return f
+    ? { passed: false, code: f.code, message: f.message, connection: { a: f.a, b: f.b, from: f.from } }
+    : { passed: false, code: isGround(m.a) || isGround(m.b) ? "missing_ground" : "wrong_pin", connection: { a: m.a, b: m.b, from: m.from } };
+}
+
+/** The state of one connection of a level: a `require` is right when it is on the board, a `forbid` when it is not. */
+export type ConnectionState = { kind: "require" | "forbid"; connection: Connection; ok: boolean };
+
+/**
+ * The state of each connection of the rules, for the list under a failed Check (issue #92). It uses the same way round
+ * as checkLevel, so every connection is right exactly when checkLevel passes. Requires come first, then forbids.
+ */
+export function connectionStates(bench: Bench, parts: Part[], rules: Rules): ConnectionState[] {
+  const { on } = bestWay(bench, parts, rules);
+  return [
+    ...rules.require.map((c) => ({ kind: "require" as const, connection: { a: c.a, b: c.b }, ok: on(c) })),
+    ...rules.forbid.map((c) => ({ kind: "forbid" as const, connection: { a: c.a, b: c.b }, ok: !on(c) })),
+  ];
 }
 
 /**

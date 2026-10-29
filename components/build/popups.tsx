@@ -19,6 +19,7 @@ import { mascotPose } from "@/lib/game/mascot";
 import { cn } from "@/lib/utils";
 import { EMPTY_NOTE, useEmptyBoard, type Failed, type LevelCheck } from "./check";
 import { pinName } from "./guide";
+import { endpointName } from "./names";
 
 // The pop-ups of build mode (PLAN.md "How build mode works"): Place, Wire, Concept and Mistake, plus the level intro,
 // the "what happened" pop-up after a task, and the level Check. All their words come from the level content and content/ui/build.json.
@@ -220,21 +221,6 @@ function IntroBody({ eyebrow, title, goal, tasks }: LevelInfo) {
   );
 }
 
-const names: Record<string, string> = { ...text.tray.parts, ...text.play.check.names };
-const legs: Record<string, string> = text.play.check.legs;
-const rails: Record<string, string> = text.railName;
-
-/** A plain name for an endpoint of a level rule: "esp.GPIO4" → "GPIO 4", "mic1.WS" → "Mic WS", "led1.anode" → "LED + leg". */
-function endpointName(bench: Bench, parts: Part[], endpoint: string) {
-  const [owner, pin] = endpoint.split(".");
-  if (owner === bench.board.id) return pinName(pin);
-  if (/^bb[A-Z]$/.test(owner)) return rails[pin] ?? pin;
-  const part = parts.find((p) => p.id === owner);
-  if (!part) return endpoint;
-  const label = legs[pin] ?? partPins(bench, part).find((p) => p.name === pin)?.label ?? pin;
-  return `${names[part.type] ?? owner} ${label}`;
-}
-
 /** The text of a failed Check: the forbid rule text, or where the wire end goes now (issue #89), or the general text. */
 function reasonText(bench: Bench, parts: Part[], failed: Failed, position: number) {
   if (failed.message) return failed.message;
@@ -251,7 +237,7 @@ function diagnosisText(bench: Bench, parts: Part[], connection: Failed["connecti
   const end = endpointName(bench, parts, d.end);
   const other = endpointName(bench, parts, d.other);
   if (d.kind === "pin") return fill(t.pin, { end, other, pin: pinName(d.pin) });
-  if (d.kind === "rail") return fill(t.rail, { end, other, rail: rails[d.rail] });
+  if (d.kind === "rail") return fill(t.rail, { end, other, rail: text.railName[d.rail] });
   if (d.kind === "line") return fill(t.line, { from: d.from.n, to: d.to.n });
   if (d.kind === "hole") return fill(t.hole, { from: d.from.row, to: d.to.row, column: d.to.n });
   return fill(t.nothing, { end, other, column: d.to.n });
