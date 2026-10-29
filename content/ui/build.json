@@ -106,6 +106,14 @@
       "todo": "To do"
     }
   },
+  "connections": {
+    "title": "Connections · {done} of {total} right",
+    "list": "Connections of this level",
+    "require": "{a} → {b}",
+    "forbid": "{a} → {b} (must not connect)",
+    "right": "Right",
+    "wrong": "Wrong"
+  },
   "play": {
     "intro": {
       "tasks": "{n} tasks",
