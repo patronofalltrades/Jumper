@@ -51,7 +51,7 @@ export type EngineEvent =
   | { type: "dismiss" }
   /** "Redo this step" on a failed Check: the task `task` opens again (lib/game/fail-task.ts). */
   | { type: "redo"; task: number }
-  | { type: "change"; before: Part[]; after: Part[] };
+  | { type: "change"; before: Part[]; after: Part[]; restore?: boolean };
 
 /** A correct change snaps in. A wrong one buzzes. */
 export type Effect = "snap" | "buzz" | null;
@@ -253,13 +253,16 @@ export function step(bench: Bench, plan: Plan, progress: Progress, event: Engine
       const index = now.gap === -1 ? reached : now.gap;
 
       // A removal or an undo: if the wrong parts are gone, the mistake is over. A part that goes can undo a task.
-      if (!added.length) {
+      // "Put back the level {n} build" (`restore`, issue #111) comes here too: the ready-made parts of the earlier levels
+      // give no Mistake and no XP. They can make the tasks below `reached` done again.
+      if (!added.length || event.restore) {
         const after = ids(event.after);
         const fixed = !!progress.mistake && progress.mistake.parts.every((id) => !after.has(id));
-        const phase = fixed || (progress.phase === "ready_to_check" && index < plan.tasks.length) ? "task" : progress.phase;
+        const next = fixed || (progress.phase === "ready_to_check" && index < plan.tasks.length) ? "task" : progress.phase;
+        const phase = next === "task" && index >= plan.tasks.length ? "ready_to_check" : next;
         const mistake = fixed ? null : progress.mistake;
         if (index === progress.index && phase === progress.phase && mistake === progress.mistake) return same;
-        return { progress: { ...progress, phase, index, mistake, swaps: now.swaps }, effect: null };
+        return { progress: { ...progress, phase, index, mistake, swaps: now.swaps }, effect: added.length ? "snap" : null };
       }
 
       const netsBefore = buildNets(bench, event.before);
