@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { createBench, perchBench } from "@/lib/circuit/bench";
 import { checkLevel, connectionStates, isEmptyBoard, joinRules, placedParts } from "@/lib/circuit/check";
 import type { Part } from "@/lib/circuit/parts";
+import { strayRow, strayText } from "@/components/build/names";
 import { loadBenchSpec } from "@/lib/content/benches";
 import { loadBoards, startBoard, startLevels } from "@/lib/content/boards";
 import { loadProjects } from "@/lib/content/load";
@@ -216,9 +217,21 @@ describe("stray pin", () => {
 
   it("shows each stray pin in the connection list as a wrong connection", () => {
     const states = connectionStates(bench, strayBoard(), upTo(2));
-    expect(states).toContainEqual({ kind: "forbid", connection: { a: "r1.1", b: "esp.GPIO37" }, ok: false });
-    expect(states).toContainEqual({ kind: "forbid", connection: { a: "r1.2", b: "esp.GPIO35" }, ok: false });
-    expect(states).toContainEqual({ kind: "forbid", connection: { a: "led1.cathode", b: "esp.GPIO0" }, ok: false });
+    expect(states).toContainEqual({ kind: "stray", connection: { a: "r1.1", b: "esp.GPIO37" }, ok: false });
+    expect(states).toContainEqual({ kind: "stray", connection: { a: "r1.2", b: "esp.GPIO35" }, ok: false });
+    expect(states).toContainEqual({ kind: "stray", connection: { a: "led1.cathode", b: "esp.GPIO0" }, ok: false });
+  });
+
+  // Hanif's answer on PR #106: name only the part, in plain words, not the part end.
+  it("gives a simple fail text and list row: the part name and the pin", () => {
+    const board = strayBoard();
+    const result = checkLevel(bench, board, upTo(2));
+    if (result.passed) throw new Error("expected a failed Check");
+    expect(strayText(bench, board, result.connection)).toBe(
+      "Oops! The resistor touches GPIO 37 on the board. This level does not use GPIO 37. Move the resistor to a line with no board pin.",
+    );
+    expect(strayRow(bench, board, result.connection)).toBe("The resistor must not touch GPIO 37");
+    expect(strayText(bench, board, { a: "led1.cathode", b: "esp.GPIO0" })).toContain("The light (LED) touches GPIO 0");
   });
 });
 
