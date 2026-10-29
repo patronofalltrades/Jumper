@@ -6,7 +6,9 @@ import type { Bench } from "@/lib/circuit/bench";
 import { connectionStates, type ConnectionState, type Rules } from "@/lib/circuit/check";
 import type { Part } from "@/lib/circuit/parts";
 import { useBoard } from "@/lib/game/board-store";
+import { connectionHologram } from "@/lib/game/hologram";
 import { cn } from "@/lib/utils";
+import { HologramRow } from "./hologram-row";
 import { endpointName, strayRow } from "./names";
 import { PanelHeader, usePanelOpen } from "./panel-header";
 
@@ -56,11 +58,12 @@ function Row({ state, bench, parts }: { state: ConnectionState; bench: Bench; pa
       ? strayRow(bench, parts, connection)
       : fill(text.connections[kind], { a: endpointName(bench, parts, connection.a), b: endpointName(bench, parts, connection.b) });
   return (
-    <li className="flex items-start gap-2 rounded-xl px-2 py-1.5 text-sm leading-snug">
+    // A connection that must be made shows a ghost wire between its two ends on the board (issue #113).
+    <HologramRow target={connectionHologram(state)} className="flex items-start gap-2 rounded-xl px-2 py-1.5 text-sm leading-snug">
       <Mark ok={ok} />
       <span className="sr-only">{ok ? text.connections.right : text.connections.wrong}:</span>
       <span className={cn("flex-1", ok ? "text-muted-foreground" : "font-bold")}>{label}</span>
-    </li>
+    </HologramRow>
   );
 }
 

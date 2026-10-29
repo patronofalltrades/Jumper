@@ -6,6 +6,7 @@ import sketchText from "@/content/ui/sketch.json";
 import { boardStore, useBoard } from "@/lib/game/board-store";
 import { needsAck, taskMarks, type TaskMark } from "@/lib/game/engine";
 import { cn } from "@/lib/utils";
+import { HologramRow } from "./hologram-row";
 import { PanelHeader, usePanelOpen } from "./panel-header";
 import type { LevelTask } from "./popups";
 
@@ -62,8 +63,10 @@ export function TaskList({ tasks, laptop, code, small = false }: { tasks: LevelT
           {rows.map(({ key, instruction, task }, i) => {
             const mark = marks[i];
             return (
-              <li
+              <HologramRow
                 key={key}
+                // A task row shows the ghost of its part or wire on the board (issue #113).
+                target={task ? { kind: "task", index: i } : null}
                 aria-current={mark === "now" ? "step" : undefined}
                 className={cn("flex items-start gap-2 rounded-xl px-2 py-1.5 text-sm leading-snug", mark === "now" && "bg-muted")}
               >
@@ -90,7 +93,7 @@ export function TaskList({ tasks, laptop, code, small = false }: { tasks: LevelT
                     {mark === "now" ? sketchText.panel.open : sketchText.panel.reopen}
                   </button>
                 )}
-              </li>
+              </HologramRow>
             );
           })}
         </ol>

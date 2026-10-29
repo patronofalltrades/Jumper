@@ -2,7 +2,7 @@
 
 import { Line, OrbitControls } from "@react-three/drei";
 import { Canvas, useThree, type ThreeEvent } from "@react-three/fiber";
-import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useContext, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Color, MathUtils, Object3D, Vector3, type Camera, type Group, type InstancedMesh, type Material, type Mesh } from "three";
 import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
 import { BOARD, nearestHole, type Bench, type Hole } from "@/lib/circuit/bench";
@@ -13,7 +13,8 @@ import { checkModule, isModule, partPins, terminalAt, type Part } from "@/lib/ci
 import { useTaskSpot } from "@/components/build/popups";
 import text from "@/content/ui/site.json";
 import { hasWebGL } from "@/lib/device";
-import { boardStore, useBoard } from "@/lib/game/board-store";
+import { boardStore, FinishContext, useBoard } from "@/lib/game/board-store";
+import { hologramGhost, type Ghost } from "@/lib/game/hologram";
 import { focusDistance } from "@/lib/game/focus";
 import { aliveStore, useAlive } from "@/lib/game/alive-store";
 import { sketchStore, useSketch } from "@/lib/game/sketch-store";
@@ -235,6 +236,7 @@ function Bench() {
       )}
       <Parts bench={bench} removing={tool === "remove"} glow={glow} />
       <ProblemMarks ends={marks} />
+      <Hologram probe={probe} />
       {isModuleType(tool) && <Ghost tool={tool} />}
       {spot && <Cue taps={spot.taps} area={spot.area} up={blink} probe={probe} />}
       {pending && !isModuleType(tool) && endOf(bench, parts, pending) && (
@@ -427,9 +429,12 @@ const pressButton = (id: string) => (down: boolean) => {
 /** How much of a faded part shows: the parts of the levels before, in a walkthrough clip (issue #103). */
 const FADED_OPACITY = 0.3;
 
+/** How much of a hologram part shows (issue #113). */
+const HOLOGRAM_OPACITY = 0.45;
+
 /** Draws its part faded when `on`. The materials of the part change in place, after each render, so a prop that
  *  React three fiber sets again (for example the lens of an LED) is faded again. */
-function Fade({ on, children }: { on: boolean; children: ReactNode }) {
+function Fade({ on, opacity = FADED_OPACITY, children }: { on: boolean; opacity?: number; children: ReactNode }) {
   const ref = useRef<Group>(null);
   useLayoutEffect(() => {
     if (!on) return;
@@ -437,12 +442,48 @@ function Fade({ on, children }: { on: boolean; children: ReactNode }) {
       const m = (o as Mesh).material as Material | Material[] | undefined;
       for (const material of Array.isArray(m) ? m : m ? [m] : []) {
         if (!material.transparent) material.needsUpdate = true;
-        Object.assign(material, { transparent: true, opacity: FADED_OPACITY, depthWrite: false });
+        Object.assign(material, { transparent: true, opacity, depthWrite: false });
       }
     });
   });
   return <group ref={ref}>{children}</group>;
 }
+
+/**
+ * The hologram of the task or connection row under the pointer (issue #113): its part or wire, see-through, in the holes
+ * of the guide, or a dashed ghost wire between the two ends of a connection. It has no click handlers and changes nothing.
+ */
+function Hologram({ probe }: { probe: Color }) {
+  const bench = useBoard((s) => s.bench);
+  const parts = useBoard((s) => s.parts);
+  const plan = useBoard((s) => s.plan);
+  const swaps = useBoard((s) => s.progress.swaps);
+  const target = useBoard((s) => s.hologram);
+  const finish = useContext(FinishContext);
+  const invalidate = useThree((s) => s.invalidate);
+  const ghost: Ghost | null = useMemo(() => (target ? hologramGhost(bench, parts, target, plan, swaps, finish) : null), [bench, parts, target, plan, swaps, finish]);
+  const line = useMemo(() => (ghost?.line ?? []).map((h) => endOf(bench, parts, h)).filter((e): e is End => e !== null), [ghost, bench, parts]);
+  useLayoutEffect(() => {
+    invalidate();
+  });
+  if (!ghost) return null;
+  const all = [...parts, ...ghost.parts];
+  return (
+    <group>
+      {ghost.parts.map((p) => (
+        <Fade key={p.id} on opacity={HOLOGRAM_OPACITY}>
+          {isModule(p) ? (
+            <ModuleMesh bench={bench} id={p.id} type={p.type} at={p.at} glow={NO_GLOW} />
+          ) : (
+            endOf(bench, all, p.a) && endOf(bench, all, p.b) && <PartMesh part={p} a={endOf(bench, all, p.a)!} b={endOf(bench, all, p.b)!} hot={false} />
+          )}
+        </Fade>
+      ))}
+      <ProblemMarks ends={line} color={probe} />
+    </group>
+  );
+}
+const NO_GLOW = new Map<string, Color>();
 
 function Parts({ bench, removing, glow }: { bench: Bench; removing: boolean; glow: Map<string, Color> }) {
   const parts = useBoard((s) => s.parts);
