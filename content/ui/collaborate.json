@@ -1,0 +1,69 @@
+{
+  "_note": "Text for Collaborate (issue #88), in ASD-STE100. {name}, {project}, {n}, {level} and {date} are filled in by the app.",
+  "invite": {
+    "heading": "Collaborators",
+    "text": "Invite a friend by email. Your friend can look at your snapshots of this project and write notes on them. Your friend cannot change your board.",
+    "email": "Email of your friend",
+    "email_hint": "friend@example.com",
+    "submit": "Invite",
+    "sending": "Sending…",
+    "sent": "Invite sent. When your friend logs in with this email, the invite shows in their lobby.",
+    "failed": "We could not send the invite. Try again.",
+    "duplicate": "You already invited this email.",
+    "errors": {
+      "empty": "Write the email of your friend.",
+      "invalid": "Write a correct email. For example: friend@example.com.",
+      "own": "This is your own email. Write the email of your friend."
+    }
+  },
+  "list": {
+    "empty": "No collaborators yet.",
+    "invited": "Invited",
+    "joined": "Joined",
+    "unnamed": "Not joined yet",
+    "remove": "Remove",
+    "remove_label": "Remove {name} from this project",
+    "remove_heading": "Remove this collaborator?",
+    "remove_text": "{name} cannot open your snapshots of this project after this. The notes that {name} wrote stay.",
+    "remove_yes": "Yes, remove",
+    "cancel": "Cancel",
+    "failed": "We could not change the list. Try again."
+  },
+  "lobby": {
+    "invite_label": "Invite",
+    "invite_title": "{name} invited you to {project}",
+    "invite_text": "If you accept, you can look at the snapshots of {name} for this project and write notes. You cannot change their board.",
+    "accept": "Accept",
+    "decline": "Decline",
+    "failed": "We could not answer the invite. Try again.",
+    "shared_label": "Shared with me",
+    "shared_by": "From {name}",
+    "shared_empty_title": "Nothing shared yet",
+    "shared_empty": "When a friend shares a project with you and saves a snapshot, it shows here.",
+    "leave": "Leave project",
+    "leave_label": "Leave {project} of {name}",
+    "someone": "A friend"
+  },
+  "notes": {
+    "heading": "Notes",
+    "empty": "No notes yet.",
+    "add": "Add a note",
+    "add_hint": "Write a note about this board",
+    "submit": "Add note",
+    "sending": "Adding…",
+    "delete": "Delete",
+    "delete_label": "Delete your note",
+    "you": "You",
+    "failed": "We could not save the note. Try again.",
+    "delete_failed": "We could not delete the note. Try again.",
+    "errors": {
+      "empty": "Write a note.",
+      "long": "The note is too long. Use 1000 characters or fewer."
+    },
+    "former": "Former collaborator",
+    "someone": "A collaborator"
+  },
+  "page": {
+    "shared_by": "Shared by {name}. You can look at this board and write notes. You cannot change it."
+  }
+}

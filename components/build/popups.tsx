@@ -8,6 +8,7 @@ import { Volt } from "@/components/art/volt";
 import text from "@/content/ui/build.json";
 import sketchText from "@/content/ui/sketch.json";
 import type { Bench } from "@/lib/circuit/bench";
+import { diagnose } from "@/lib/circuit/diagnose";
 import { terminalAt, partPins, type Part } from "@/lib/circuit/parts";
 import type { Task } from "@/lib/content/schema";
 import { boardStore, useBoard } from "@/lib/game/board-store";
@@ -201,7 +202,8 @@ type LevelInfo = { eyebrow: string; title: string; goal: string; tasks: LevelTas
  */
 export type SketchGate = { passed: boolean; open: () => void };
 /** `onRedo`: "Redo this step" on a fail that has a task of this level. It gets the index of the task. */
-type CheckProps = { check: LevelCheck; onCheck: () => void; onClose: () => void; onRedo: (task: number) => void; sketch: SketchGate | null };
+/** `position`: the level of this Check. A connection from another level says so (issue #89). */
+type CheckProps = { check: LevelCheck; onCheck: () => void; onClose: () => void; onShow: () => void; onRedo: (task: number) => void; sketch: SketchGate | null; position: number };
 
 function IntroBody({ eyebrow, title, goal, tasks }: LevelInfo) {
   return (
@@ -233,9 +235,30 @@ function endpointName(bench: Bench, parts: Part[], endpoint: string) {
   return `${names[part.type] ?? owner} ${label}`;
 }
 
-/** The text of a failed Check: the forbid rule text, or the missing connection in plain words. */
-function reasonText(bench: Bench, parts: Part[], failed: Failed) {
+/** The text of a failed Check: the forbid rule text, or where the wire end goes now (issue #89), or the general text. */
+function reasonText(bench: Bench, parts: Part[], failed: Failed, position: number) {
   if (failed.message) return failed.message;
+  const { from } = failed.connection;
+  const prefix = from !== undefined && from !== position ? `${fill(text.play.check.fromLevel, { n: from })} ` : "";
+  return prefix + (diagnosisText(bench, parts, failed.connection) ?? generalText(bench, parts, failed));
+}
+
+/** Where the learner's wire end goes now, in plain words, for the cases of diagnose (issue #89). Null: no case fits. */
+function diagnosisText(bench: Bench, parts: Part[], connection: Failed["connection"]) {
+  const d = diagnose(bench, parts, connection);
+  if (!d) return null;
+  const t = text.play.check.diagnose;
+  const end = endpointName(bench, parts, d.end);
+  const other = endpointName(bench, parts, d.other);
+  if (d.kind === "pin") return fill(t.pin, { end, other, pin: pinName(d.pin) });
+  if (d.kind === "rail") return fill(t.rail, { end, other, rail: rails[d.rail] });
+  if (d.kind === "line") return fill(t.line, { from: d.from.n, to: d.to.n });
+  if (d.kind === "hole") return fill(t.hole, { from: d.from.row, to: d.to.row, column: d.to.n });
+  return fill(t.nothing, { end, other, column: d.to.n });
+}
+
+/** The general text: the missing connection in plain words. */
+function generalText(bench: Bench, parts: Part[], failed: Failed) {
   const template = failed.code === "missing_ground" ? text.play.check.missing_ground : text.play.check.wrong_pin;
   // A ground rule names its other end first: "Mic L/R does not connect to ground".
   const [a, b] = failed.code === "missing_ground" && /\.GND$|^bb[A-Z]\.-$/.test(failed.connection.a) ? [failed.connection.b, failed.connection.a] : [failed.connection.a, failed.connection.b];
@@ -249,7 +272,7 @@ function heartsText(fails: number) {
 }
 
 /** The end of the tasks: Check the level. After a fail: the reason, the hearts, and "Fix the board". */
-function CheckBody({ check, onCheck, onClose, onRedo, sketch, tasks }: CheckProps & { tasks: LevelTask[] }) {
+function CheckBody({ check, onCheck, onClose, onShow, onRedo, sketch, position, tasks }: CheckProps & { tasks: LevelTask[] }) {
   const { xp, mistakes, fails } = useBoard((s) => s.progress);
   const bench = useBoard((s) => s.bench);
   const parts = useBoard((s) => s.parts);
@@ -290,7 +313,7 @@ function CheckBody({ check, onCheck, onClose, onRedo, sketch, tasks }: CheckProp
           <Hearts fails={fails} />
         </div>
         <h2 className="text-2xl leading-tight font-extrabold tracking-tight">{text.play.check.failTitle}</h2>
-        <p className="text-[15px] leading-snug font-semibold">{reasonText(bench, parts, check.failed)}</p>
+        <p className="text-[15px] leading-snug font-semibold">{reasonText(bench, parts, check.failed, position)}</p>
         {redoIndex !== null && (
           <p className="text-sm leading-snug font-semibold">{fill(text.play.check.redoTask, { n: tasks[redoIndex].position, task: tasks[redoIndex].instruction })}</p>
         )}
@@ -307,6 +330,9 @@ function CheckBody({ check, onCheck, onClose, onRedo, sketch, tasks }: CheckProp
               {text.play.check.redo}
             </PressButton>
           )}
+          <PressButton tone="plain" onClick={onShow}>
+            {text.play.check.show}
+          </PressButton>
           {button}
         </div>
       </>

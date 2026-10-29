@@ -64,9 +64,14 @@ function Tabs({ view, find }: { view: View; find: Find }) {
 
 async function List({ view, find }: { view: View; find: Find }) {
   const supabase = await createClient();
-  // Row-level security gives only the snapshots and the stars of this user, so `stars` is empty or has one row.
+  const { data: auth } = await supabase.auth.getClaims();
+  // Row-level security also lets a collaborator read the shared snapshots (issue #88), so the notebook asks for the
+  // snapshots of this user only. The stars are the stars of this user, so `stars` is empty or has one row.
   const [snapshots, levels] = await Promise.all([
-    applyFind(supabase.from("snapshots").select("id, title, notes, passed, mistake_count, created_at, levels(position, title), stars(snapshot_id)"), find),
+    applyFind(
+      supabase.from("snapshots").select("id, title, notes, passed, mistake_count, created_at, levels(position, title), stars(snapshot_id)").eq("user_id", auth?.claims.sub ?? ""),
+      find,
+    ),
     supabase.from("levels").select("id, position, title").order("project_id").order("position"),
   ]);
   if (snapshots.error) throw snapshots.error;

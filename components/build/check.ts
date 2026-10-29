@@ -1,12 +1,15 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { recordAttempt } from "@/app/actions/attempt";
 import text from "@/content/ui/build.json";
 import { checkLevel, isEmptyBoard, type CheckResult, type Rules } from "@/lib/circuit/check";
 import { endpointHole } from "@/lib/circuit/nets";
+import { isProblemFixed, problemOf } from "@/lib/circuit/problem";
 import { boardStore, useBoard } from "@/lib/game/board-store";
+import { aliveProject, effectsFor } from "@/lib/game/alive";
+import { aliveStore } from "@/lib/game/alive-store";
 import { opensLevelComplete, withFreshSession } from "@/lib/game/check-flow";
 import { freshSession, markCompleting, readSavedLevel, rememberPass } from "./autosave";
 
@@ -35,6 +38,16 @@ export const EMPTY_NOTE = "check-empty-note";
 
 /** True when the level has a code step and the sketch did not do the goal yet. The Check is off; it costs no heart. */
 export const useSketchLock = (needsSketch: boolean) => useBoard((s) => needsSketch && !s.codePassed);
+
+/** The problem of the last fail clears when its connection is right on the board (issue #90). Runs on each change. */
+export function useProblemWatch() {
+  const bench = useBoard((s) => s.bench);
+  const parts = useBoard((s) => s.parts);
+  const problem = useBoard((s) => s.problem);
+  useEffect(() => {
+    if (problem && isProblemFixed(bench, parts, problem)) boardStore.setState({ problem: null });
+  }, [bench, parts, problem]);
+}
 
 export function useLevelCheck({ user, project, levelId, position, rules, needsSketch }: Props) {
   const router = useRouter();
@@ -67,13 +80,31 @@ export function useLevelCheck({ user, project, levelId, position, rules, needsSk
 
     // The two ends of the connection flash: green for a pass, red for the reason of a fail.
     const ends = result.passed ? [] : [result.connection.a, result.connection.b].map((e) => endpointHole(bench, parts, e)).filter((h): h is string => h !== null);
-    boardStore.setState({ flash: { kind: result.passed ? "snap" : "buzz", holes: ends, at: Date.now() } });
+    // A fail keeps its connection on the board, until the connection is right or a new Check names another problem (issue #90).
+    boardStore.setState({ flash: { kind: result.passed ? "snap" : "buzz", holes: ends, at: Date.now() }, problem: result.passed ? null : problemOf(result) });
 
     if (done) rememberPass(user, project, position);
-    if (done) return router.push(`/p/${project}/${position}/complete`);
+    if (done) {
+      const next = () => router.push(`/p/${project}/${position}/complete`);
+      if (project !== aliveProject || effectsFor(position).length === 0) return next();
+      // Perch comes alive on the board (issue #86), then Level complete opens.
+      setState({ open: false, busy: false, failed: null, error: null });
+      return aliveStore.getState().show(position, next);
+    }
     boardStore.getState().failed(saved.fails);
     setState({ open: true, busy: false, failed: result.passed ? null : result, error: null });
   };
 
-  return { state, check, close: () => setState((s) => ({ ...s, open: false })), reset: () => setState({ open: true, busy: false, failed: null, error: null }) };
+  return {
+    state,
+    check,
+    close: () => setState((s) => ({ ...s, open: false })),
+    // "Show me": the card closes, and the camera moves to the problem on the board (issue #90).
+    show: () => {
+      setState((s) => ({ ...s, open: false }));
+      boardStore.getState().showProblem();
+    },
+    // "Redo this step": the card closes, and the task opens again with its guidance (issue #91).
+    reset: () => setState({ open: true, busy: false, failed: null, error: null }),
+  };
 }

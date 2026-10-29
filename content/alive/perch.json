@@ -1,0 +1,55 @@
+{
+  "_note": "Text and rules for 'It's alive' (issue #86), in ASD-STE100. After a Perch level passes, the effects of that level and of the levels before it show on the 3D board. lib/game/alive.ts reads this file.",
+  "project": "perch",
+  "showSeconds": 8,
+  "sleepSeconds": 30,
+  "momentSeconds": 1.5,
+  "lastLevel": 5,
+  "levels": {
+    "2": ["led"],
+    "3": ["mic"],
+    "4": ["voice"],
+    "5": ["face"]
+  },
+  "voiceLine": "Hello! I am Perch. I am alive!",
+  "text": {
+    "continue": "Continue",
+    "hint": {
+      "led": "The status light blinks.",
+      "mic": "Say something. The meter moves.",
+      "voice": "Perch speaks.",
+      "face": "Perch has a face. Press the Talk button."
+    },
+    "meter": {
+      "label": "Microphone level",
+      "button": "Turn on the microphone",
+      "off": "The microphone is off. Tap the button and say yes in the browser window.",
+      "live": "Your microphone is on. The sound stays in your browser.",
+      "fallback": "The browser did not give the microphone. This meter is a demo."
+    },
+    "face": "The face of Perch on the screen"
+  },
+  "triggers": {
+    "default": "The default face.",
+    "level_pass": "A level passes.",
+    "voice_speaking": "The voice of Level 4 speaks.",
+    "mic_sound": "The microphone hears sound.",
+    "check_pressed": "You press Check.",
+    "talk_pressed": "You press the Talk button on the 3D board.",
+    "check_failed": "A Check fails and you lose a heart.",
+    "no_input": "No input for 30 seconds.",
+    "all_levels_passed": "All 5 levels pass."
+  },
+  "emotions": {
+    "idle": { "name": "Idle", "trigger": "default" },
+    "happy": { "name": "Happy", "trigger": "level_pass" },
+    "talking": { "name": "Talking", "trigger": "voice_speaking" },
+    "listening": { "name": "Listening", "trigger": "mic_sound" },
+    "thinking": { "name": "Thinking", "trigger": "check_pressed" },
+    "surprised": { "name": "Surprised", "trigger": "talk_pressed" },
+    "sad": { "name": "Sad", "trigger": "check_failed" },
+    "sleepy": { "name": "Sleepy", "trigger": "no_input" },
+    "excited": { "name": "Excited", "trigger": "all_levels_passed" }
+  },
+  "priority": ["excited", "surprised", "sad", "thinking", "talking", "listening", "happy", "sleepy", "idle"]
+}

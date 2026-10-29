@@ -4,6 +4,7 @@ import { createStore } from "zustand/vanilla";
 import { perchBench, type Bench } from "@/lib/circuit/bench";
 import { isModuleType } from "@/lib/circuit/modules";
 import { checkHole, checkModule, checkPlacement, isModule, moduleOver, nextPartId, partAt, partPins, type LegPart, type Part, type PartType, type PlaceProblem } from "@/lib/circuit/parts";
+import type { Problem } from "@/lib/circuit/problem";
 import { startProgress, step, taskTool, type EngineEvent, type Plan, type Progress } from "./engine";
 
 export type Tool = PartType | "remove";
@@ -21,6 +22,9 @@ export const WIRE_COLORS = [
 
 /** The green flash of a part that snaps in, or the red flash of a wrong one, on its holes. `at` makes each one new. */
 export type Flash = { kind: "snap" | "buzz"; holes: string[]; at: number };
+
+/** "Show me" was pressed: the camera moves to the problem. `at` makes each press new. */
+export type Focus = { at: number };
 
 /** What a level starts with: its tasks, and the board and progress from the browser, if it has them. */
 /** `readOnly`: a saved snapshot. The camera moves and the nets glow, but taps do not change the board. */
@@ -52,6 +56,9 @@ export type BoardState = {
   /** The task that the learner just finished with a part or a wire. Its "what happened" pop-up shows until `seen`. */
   done: number | null;
   flash: Flash | null;
+  /** The connection that the last failed Check named. It stays until the connection is right, or a new Check (issue #90). */
+  problem: Problem | null;
+  focus: Focus | null;
   readOnly: boolean;
   /** The sketch of the code step, as the learner wrote it. Null: the starter code of the level (issue #58). */
   code: string | null;
@@ -88,6 +95,8 @@ export type BoardState = {
   setCode: (code: string | null) => void;
   /** The sketch did the goal. */
   passCode: () => void;
+  /** "Show me" on the fail card: the camera moves to the problem. */
+  showProblem: () => void;
 };
 
 export function createBoardStore(defaultBench: Bench = perchBench()) {
@@ -130,6 +139,8 @@ export function createBoardStore(defaultBench: Bench = perchBench()) {
       progress: startProgress(),
       done: null,
       flash: null,
+      problem: null,
+      focus: null,
       readOnly: false,
       code: null,
       codePassed: false,
@@ -156,6 +167,8 @@ export function createBoardStore(defaultBench: Bench = perchBench()) {
           progress,
           done: null,
           flash: null,
+          problem: null,
+          focus: null,
           readOnly: setup.readOnly ?? false,
           code: setup.code ?? null,
           codePassed: setup.codePassed ?? false,
@@ -174,6 +187,7 @@ export function createBoardStore(defaultBench: Bench = perchBench()) {
       cancel: () => set({ pending: null, notice: null }),
       setCode: (code) => set({ code, codePassed: false }),
       passCode: () => set({ codePassed: true }),
+      showProblem: () => set({ focus: { at: Date.now() } }),
 
       tapHole: (hole, preview = false) => {
         if (get().readOnly) return;
