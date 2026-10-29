@@ -78,7 +78,7 @@ async function Snapshot({ id }: { id: string }) {
             href={mine ? "/snapshots" : "/lobby?tab=builds"}
             className="inline-flex min-h-11 w-fit items-center rounded-xl border border-b-4 border-border bg-card px-3 text-sm font-semibold active:translate-y-0.5 active:border-b-2"
           >
-            ← {t.back}
+            ← {mine ? t.back : collab.lobby.shared_label}
           </Link>
           {mine && (
             <div className="flex items-center gap-2">
