@@ -21,3 +21,7 @@
    - Workflow: "Yes, issues and PRs"
 
 Claude's work for #113 (not Hanif's words): a red test first (`37f0b0d`), then the fix (`9c7bf7e`). The pure logic is `lib/game/hologram.ts`; the hover target is `hologram` in the board store; the scene draws the ghost. See the ledger for the details.
+
+3. Hanif's answers to the "Questions for Hanif" comment on PR #119 (his words):
+
+   "1 yes, 2 yes, 3 yes, 4 yes, 5 keep, 6 yes"
