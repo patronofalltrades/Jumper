@@ -128,7 +128,7 @@ export function BuildView({ user, project, levelId, position, eyebrow, title, go
       level={{ eyebrow, title, goal, tasks }}
       conceptOpen={conceptOpen}
       onConceptDone={() => setConceptRead(progress.index)}
-      check={{ check: levelCheck.state, onCheck: () => void levelCheck.check(), onClose: levelCheck.close, sketch: sketch && { passed: codePassed, open: openCode } }}
+      check={{ check: levelCheck.state, onCheck: () => void levelCheck.check(), onClose: levelCheck.close, sketch: sketch && { passed: codePassed, open: openCode }, position }}
     />
   );
 
