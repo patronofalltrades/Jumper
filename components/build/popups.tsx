@@ -224,6 +224,9 @@ function IntroBody({ eyebrow, title, goal, tasks }: LevelInfo) {
 /** The text of a failed Check: the forbid rule text, or where the wire end goes now (issue #89), or the general text. */
 function reasonText(bench: Bench, parts: Part[], failed: Failed, position: number) {
   if (failed.message) return failed.message;
+  // A part on a board pin that no rule uses (issue #104): name the part end and the pin.
+  if (failed.code === "stray_pin")
+    return fill(text.play.check.stray_pin, { part: endpointName(bench, parts, failed.connection.a), pin: endpointName(bench, parts, failed.connection.b) });
   const { from } = failed.connection;
   const prefix = from !== undefined && from !== position ? `${fill(text.play.check.fromLevel, { n: from })} ` : "";
   return prefix + (diagnosisText(bench, parts, failed.connection) ?? generalText(bench, parts, failed));

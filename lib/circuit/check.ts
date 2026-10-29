@@ -1,6 +1,6 @@
 import type { Bench } from "./bench.ts";
 import { buildNets, endpointHole } from "./nets.ts";
-import type { Part, PartType } from "./parts.ts";
+import { partPins, type Part, type PartType } from "./parts.ts";
 
 // The level check (TRD 6.2): the level passes when every `require` connection is true and no `forbid` connection is
 // true. It compares connections, not holes, so any layout that makes the same circuit passes.
@@ -10,8 +10,8 @@ export type Connection = { a: string; b: string; from?: number };
 export type Rules = { require: Connection[]; forbid: (Connection & { code: string; message: string })[] };
 
 /**
- * A failed check gives one reason: the forbid rule code (with its text from the content), or "missing_ground" or
- * "wrong_pin" for a require connection that is not there.
+ * A failed check gives one reason: the forbid rule code (with its text from the content), "missing_ground" or
+ * "wrong_pin" for a require connection that is not there, or "stray_pin" for a part on a board pin that no rule uses.
  */
 export type CheckResult = { passed: true } | { passed: false; code: string; message?: string; connection: Connection };
 
@@ -85,10 +85,37 @@ function bestWay(bench: Bench, parts: Part[], rules: Rules): Way {
   return best!;
 }
 
+/**
+ * The board pins that a part or a wire touches, but that no rule uses (issue #104). For example a resistor in the line
+ * of GPIO37 on a level that does not use GPIO37. One connection for each such pin: a part end on the same net, and the
+ * pin. The part end in the line of the pin comes first, then a part before a wire. The list is in the order of the parts.
+ * `rules` must be the joined rules, so the pins of the earlier levels count as used.
+ */
+export function strayPins(bench: Bench, parts: Part[], rules: Rules): Connection[] {
+  const nets = buildNets(bench, parts);
+  const strip = (hole: string) => bench.byId.get(hole)?.strip;
+  const used = new Set([...rules.require, ...rules.forbid].flatMap((c) => [c.a, c.b]));
+  const ends = [...parts.filter((p) => p.type !== "wire"), ...parts.filter((p) => p.type === "wire")].flatMap((p) =>
+    partPins(bench, p).map((pin) => ({ endpoint: `${p.id}.${pin.name}`, hole: pin.hole })),
+  );
+  const stray = new Map<string, number>();
+  for (const pin of bench.pins) {
+    const name = `${bench.board.id}.${pin.name}`;
+    if (used.has(name) || stray.has(name)) continue;
+    const inLine = ends.findIndex((e) => strip(e.hole) !== undefined && strip(e.hole) === strip(pin.hole));
+    const index = inLine !== -1 ? inLine : ends.findIndex((e) => nets.get(e.hole) === nets.get(pin.hole));
+    if (index !== -1) stray.set(name, index);
+  }
+  return [...stray].sort(([, x], [, y]) => x - y).map(([name, index]) => ({ a: ends[index].endpoint, b: name }));
+}
+
 export function checkLevel(bench: Bench, parts: Part[], rules: Rules): CheckResult {
-  // Report the way with the fewest problems, forbid rules first.
+  // Report the way with the fewest problems, forbid rules first, then a stray pin.
   const { problems, broken, missing } = bestWay(bench, parts, rules);
-  if (problems === 0) return { passed: true };
+  if (problems === 0) {
+    const [stray] = strayPins(bench, parts, rules);
+    return stray ? { passed: false, code: "stray_pin", connection: stray } : { passed: true };
+  }
   const [f] = broken;
   const [m] = missing;
   return f
@@ -101,13 +128,15 @@ export type ConnectionState = { kind: "require" | "forbid"; connection: Connecti
 
 /**
  * The state of each connection of the rules, for the list under a failed Check (issue #92). It uses the same way round
- * as checkLevel, so every connection is right exactly when checkLevel passes. Requires come first, then forbids.
+ * as checkLevel, so every connection is right exactly when checkLevel passes. Requires come first, then forbids, then
+ * each stray pin as a wrong forbid connection (issue #104).
  */
 export function connectionStates(bench: Bench, parts: Part[], rules: Rules): ConnectionState[] {
   const { on } = bestWay(bench, parts, rules);
   return [
     ...rules.require.map((c) => ({ kind: "require" as const, connection: { a: c.a, b: c.b }, ok: on(c) })),
     ...rules.forbid.map((c) => ({ kind: "forbid" as const, connection: { a: c.a, b: c.b }, ok: !on(c) })),
+    ...strayPins(bench, parts, rules).map((connection) => ({ kind: "forbid" as const, connection, ok: false })),
   ];
 }
 

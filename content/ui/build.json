@@ -154,6 +154,7 @@
       "failTitle": "Not yet",
       "missing_ground": "{a} does not go to the blue − line. Add a wire from it to the blue − line.",
       "wrong_pin": "{a} does not go to {b}. A wire is missing, or it is in the wrong hole.",
+      "stray_pin": "Oops! The {part} touches pin {pin} of the board. This level does not use that pin. Move the part to a line with no board pin.",
       "lostHeart": "You lost 1 heart. Hearts left: {n}.",
       "noHearts": "You have no hearts left. You can check again. If the next Check fails, you get 3 new hearts.",
       "refilled": "You get 3 new hearts. Read the reason above, then try again.",

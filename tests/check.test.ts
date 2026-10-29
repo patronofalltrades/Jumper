@@ -16,9 +16,12 @@ const finished = (position: number) => startBoard(boards, position + 1);
 const wire = (id: string, a: string, b: string): Part => ({ id, type: "wire", a, b });
 
 describe("level check", () => {
+  // The board has the parts of the levels before, so the rules of those levels come too (issue #104: else their pins
+  // look like stray pins). The level page joins the rules in the same way.
   for (const level of perch.levels) {
     it(`passes the finished board of level ${level.position}`, () => {
-      expect(checkLevel(bench, finished(level.position), level.rules)).toEqual({ passed: true });
+      const rules = joinRules(perch.levels, [...startLevels(boards, level.position), level.position]);
+      expect(checkLevel(bench, finished(level.position), rules)).toEqual({ passed: true });
     });
   }
 
