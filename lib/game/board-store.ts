@@ -7,6 +7,7 @@ import { checkHole, checkModule, checkPlacement, isModule, moduleOver, nextPartI
 import type { Problem } from "@/lib/circuit/problem";
 import { startProgress, step, taskTool, type EngineEvent, type Plan, type Progress } from "./engine";
 import type { HologramTarget } from "./hologram";
+import { putBackParts } from "./put-back";
 
 export type Tool = PartType | "remove";
 
@@ -98,6 +99,8 @@ export type BoardState = {
   tapHole: (hole: string, preview?: boolean) => void;
   removePart: (id: string) => void;
   undo: () => void;
+  /** "Put back the level {n} build" (issue #111): adds the parts of `start` that can go back, as one step that Undo takes back. */
+  putBack: (start: Part[]) => { back: Part[]; blocked: Part[] };
   cancel: () => void;
   /** A change to the sketch. The sketch must do the goal again. */
   setCode: (code: string | null) => void;
@@ -125,12 +128,12 @@ export function createBoardStore(defaultBench: Bench = perchBench()) {
     };
 
     /** A new board: the engine checks the change. */
-    const change = (parts: Part[], history: Part[][]) => {
+    const change = (parts: Part[], history: Part[][], restore = false) => {
       const before = get().parts;
       const added = parts.filter((p) => !before.some((b) => b.id === p.id));
-      set({ parts, history, pending: null, notice: null, ...play({ type: "change", before, after: parts }, added) });
+      set({ parts, history, pending: null, notice: null, ...play({ type: "change", before, after: parts, restore }, added) });
     };
-    const commit = (parts: Part[]) => change(parts, [...get().history, get().parts]);
+    const commit = (parts: Part[], restore = false) => change(parts, [...get().history, get().parts], restore);
 
     const empty = () => ({
       bench: defaultBench,
@@ -246,6 +249,13 @@ export function createBoardStore(defaultBench: Bench = perchBench()) {
         const { history } = get();
         if (!history.length) return set({ notice: { problem: "nothing_to_undo" } });
         change(history[history.length - 1], history.slice(0, -1));
+      },
+
+      putBack: (start) => {
+        const { bench, parts, readOnly } = get();
+        const result = readOnly ? { back: [], blocked: [] } : putBackParts(bench, parts, start);
+        if (result.back.length) commit([...parts, ...result.back], true);
+        return result;
       },
     };
   });

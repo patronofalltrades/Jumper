@@ -14,6 +14,7 @@ import { useAlive } from "@/lib/game/alive-store";
 import { boardStore, FinishContext, useBoard, WIRE_COLORS, type Tool } from "@/lib/game/board-store";
 import type { Rules } from "@/lib/circuit/check";
 import { needsAck, type Plan } from "@/lib/game/engine";
+import { putBackParts } from "@/lib/game/put-back";
 import type { SketchStep } from "@/lib/content/schema";
 import sketchText from "@/content/ui/sketch.json";
 import type { Clip } from "@/lib/game/walkthrough";
@@ -84,6 +85,8 @@ type Props = {
   start: Part[];
   /** True when the level starts with the board of the level before it, so the learner's own board can go on. */
   carry: boolean;
+  /** The last level whose parts `start` holds, for "Put back the level {n} build" (issue #111). 0: no earlier parts. */
+  startLevel?: number;
   /** The levels of the project, for the level select of Save snapshot. */
   levels: LevelOption[];
   /** The walkthrough clip of the level (issue #48). */
@@ -92,7 +95,7 @@ type Props = {
   sketch: SketchStep | null;
 };
 
-export function BuildView({ user, project, levelId, position, eyebrow, title, goal, tasks, rules, bench: spec, start, carry, levels, clip, sketch }: Props) {
+export function BuildView({ user, project, levelId, position, eyebrow, title, goal, tasks, rules, bench: spec, start, carry, startLevel = 0, levels, clip, sketch }: Props) {
   useKeys();
   useNoticeTimer();
   useFeedback();
@@ -227,7 +230,7 @@ export function BuildView({ user, project, levelId, position, eyebrow, title, go
               {building && <GuideBar />}
               <TaskList tasks={tasks} laptop={laptop} code={sketch && { instruction: sketch.task, open: openCode }} small={codeOpen} />
               {/* After the first failed Check, every connection of the level, right or wrong (issue #92). */}
-              {progress.fails > 0 && <ConnectionList rules={rules} />}
+              {progress.fails > 0 && <ConnectionList rules={rules} laptop={laptop} small={codeOpen} />}
             </div>
           )}
           {/* The learner closed the Check card to fix the board: the Check button stays at the bottom of the board. */}
@@ -287,7 +290,7 @@ export function BuildView({ user, project, levelId, position, eyebrow, title, go
       </div>
 
       {!laptop && !codeOpen && popups}
-      {!(codeOpen && !laptop) && <ToolBar />}
+      {!(codeOpen && !laptop) && <ToolBar start={start} startLevel={startLevel} />}
       {clip && watching && (
         <ClipPlayer
           clip={clip}
@@ -302,17 +305,41 @@ export function BuildView({ user, project, levelId, position, eyebrow, title, go
   );
 }
 
-function ToolBar() {
+/** `start`, `startLevel`: the ready-made parts of the earlier levels, for "Put back the level {n} build" (issue #111). */
+function ToolBar({ start, startLevel }: { start: Part[]; startLevel: number }) {
   const tool = useBoard((s) => s.tool);
   const canUndo = useBoard((s) => s.history.length > 0);
   const { undo } = boardStore.getState();
+  // The button shows in a level that starts with earlier parts. It is off when no ready-made part is missing.
+  const missing = useBoard((s) => {
+    if (!start.length || s.readOnly) return false;
+    const { back, blocked } = putBackParts(s.bench, s.parts, start);
+    return back.length + blocked.length > 0;
+  });
+  const [note, setNote] = useState<string | null>(null);
+  useEffect(() => {
+    if (!note) return;
+    const timer = setTimeout(() => setNote(null), 5000);
+    return () => clearTimeout(timer);
+  }, [note]);
+  const putBack = () => {
+    const { back, blocked } = boardStore.getState().putBack(start);
+    const n = blocked.length;
+    setNote(n ? (n === 1 ? text.putBack.blockedOne : fill(text.putBack.blocked, { count: n })) : back.length ? fill(text.putBack.done, { n: startLevel }) : null);
+  };
+  const putBackLabel = fill(text.putBack.button, { n: startLevel });
 
   return (
     <div className="z-10 border-t border-border bg-card px-3 pt-2 pb-[max(env(safe-area-inset-bottom),10px)] sm:px-4">
       <div className="mx-auto flex max-w-2xl flex-col gap-2">
+        {note && (
+          <p role="status" className="rounded-xl bg-muted px-3 py-1.5 text-center text-sm font-semibold">
+            {note}
+          </p>
+        )}
         {/* The row keeps its space for every tool, so the board does not move when the tool changes. */}
         <div className="h-11">{inTray(tool) ? <Tray tool={tool} /> : <Swatches hidden={tool !== "wire"} />}</div>
-        <div className="grid grid-cols-6 gap-1 sm:gap-2" role="toolbar" aria-label="Tools">
+        <div className={cn("grid gap-1 sm:gap-2", start.length ? "grid-cols-7" : "grid-cols-6")} role="toolbar" aria-label="Tools">
           {TOOLS.map((t) => (
             <ToolButton
               key={t.tool}
@@ -327,6 +354,11 @@ function ToolBar() {
           <ToolButton onClick={undo} label="Undo" shortcut="Ctrl+Z" disabled={!canUndo}>
             {icon("M9 14 4 9l5-5M4 9h10a6 6 0 0 1 0 12h-3")}
           </ToolButton>
+          {start.length > 0 && (
+            <ToolButton onClick={putBack} label={text.putBack.short} shortcut="" title={putBackLabel} aria-label={putBackLabel} disabled={!missing}>
+              {icon("M3 12a9 9 0 1 0 3-6.7M3 4v5h5M12 8v4l3 2")}
+            </ToolButton>
+          )}
         </div>
       </div>
     </div>
