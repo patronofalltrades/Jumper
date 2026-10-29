@@ -107,7 +107,32 @@ function Resistor({ a, b, hot, dir, length, mid, q }: Shape) {
   );
 }
 
-/** A red 5 mm LED. The + leg (anode, in hole a) is longer and bent, and a red + badge marks it. It glows when `on`. */
+/** A small round badge flat on the bench: a white + or − on a colored disc. */
+function Badge({ at: p, color, plus }: { at: Vector3; color: string; plus: boolean }) {
+  return (
+    <group position={p} rotation={[-Math.PI / 2, 0, 0]}>
+      <mesh>
+        <circleGeometry args={[0.28, 24]} />
+        <meshBasicMaterial color={color} />
+      </mesh>
+      <mesh position={[0, 0, 0.01]}>
+        <planeGeometry args={[0.3, 0.07]} />
+        <meshBasicMaterial color="#ffffff" />
+      </mesh>
+      {plus && (
+        <mesh position={[0, 0, 0.01]}>
+          <planeGeometry args={[0.07, 0.3]} />
+          <meshBasicMaterial color="#ffffff" />
+        </mesh>
+      )}
+    </group>
+  );
+}
+
+/**
+ * A red 5 mm LED. The + leg (anode, in hole a) is longer and bent. A red + badge marks it, and a blue − badge marks the
+ * short − leg (cathode, in hole b), so the learner sees the direction on the board (issue #102). It glows when `on`.
+ */
 function Led({ a, b, hot, on, dir, mid }: Shape & { on: boolean }) {
   const baseY = 1.15;
   const legs = useMemo(() => {
@@ -127,7 +152,6 @@ function Led({ a, b, hot, on, dir, mid }: Shape & { on: boolean }) {
     transparent: true,
     opacity: on ? 0.96 : 0.88,
   };
-  const plus = at(a, 0.95).addScaledVector(dir, -0.45);
   return (
     <group>
       {legs.map((points, i) => (
@@ -147,18 +171,8 @@ function Led({ a, b, hot, on, dir, mid }: Shape & { on: boolean }) {
       </mesh>
       {/* The light stays in the scene when it is off: a light that comes and goes makes three.js build its shaders again. */}
       <pointLight position={[mid.x, baseY + 1.6, mid.z]} color="#FF3B1F" intensity={on ? 8 : 0} distance={7} decay={2} />
-      <mesh position={plus} rotation={[-Math.PI / 2, 0, 0]}>
-        <circleGeometry args={[0.28, 24]} />
-        <meshBasicMaterial color="#C8302A" />
-      </mesh>
-      <mesh position={[plus.x, plus.y + 0.01, plus.z]} rotation={[-Math.PI / 2, 0, 0]}>
-        <planeGeometry args={[0.3, 0.07]} />
-        <meshBasicMaterial color="#ffffff" />
-      </mesh>
-      <mesh position={[plus.x, plus.y + 0.01, plus.z]} rotation={[-Math.PI / 2, 0, 0]}>
-        <planeGeometry args={[0.07, 0.3]} />
-        <meshBasicMaterial color="#ffffff" />
-      </mesh>
+      <Badge at={at(a, 0.95).addScaledVector(dir, -0.45)} color="#C8302A" plus />
+      <Badge at={at(b, 0.95).addScaledVector(dir, 0.45)} color="#2F6FD6" plus={false} />
     </group>
   );
 }
