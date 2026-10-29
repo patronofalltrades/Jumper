@@ -6,6 +6,7 @@ import { isModuleType } from "@/lib/circuit/modules";
 import { checkHole, checkModule, checkPlacement, isModule, moduleOver, nextPartId, partAt, partPins, type LegPart, type Part, type PartType, type PlaceProblem } from "@/lib/circuit/parts";
 import type { Problem } from "@/lib/circuit/problem";
 import { startProgress, step, taskTool, type EngineEvent, type Plan, type Progress } from "./engine";
+import type { HologramTarget } from "./hologram";
 
 export type Tool = PartType | "remove";
 
@@ -67,6 +68,8 @@ export type BoardState = {
   code: string | null;
   /** True when the sketch did the goal of the level, after its last change. The level Check needs it. */
   codePassed: boolean;
+  /** The task or connection row under the pointer: the scene shows its ghost (issue #113). It never changes the board. */
+  hologram: HologramTarget | null;
 
   /** Opens the board of a level. A different level starts from `setup`, or an empty bench; the same level keeps its state. */
   open: (level: string, setup?: LevelSetup) => void;
@@ -85,6 +88,8 @@ export type BoardState = {
   setTool: (tool: Tool) => void;
   setWireColor: (hex: string) => void;
   setHover: (hole: string | null) => void;
+  /** Shows the ghost of a task or connection row, or hides it (null). */
+  setHologram: (hologram: HologramTarget | null) => void;
   /**
    * A click or tap on a hole: start a part, finish it, or remove what is in the hole.
    * With a module tool, a click puts the module there. With `preview` (a phone, which has no hover), the first tap
@@ -148,6 +153,7 @@ export function createBoardStore(defaultBench: Bench = perchBench()) {
       faded: [],
       code: null,
       codePassed: false,
+      hologram: null,
     });
 
     return {
@@ -177,6 +183,7 @@ export function createBoardStore(defaultBench: Bench = perchBench()) {
           faded: setup.faded ?? [],
           code: setup.code ?? null,
           codePassed: setup.codePassed ?? false,
+          hologram: null,
         });
       },
       reset: () => set(empty()),
@@ -189,6 +196,7 @@ export function createBoardStore(defaultBench: Bench = perchBench()) {
       setTool: (tool) => set({ tool, pending: null, notice: null }),
       setWireColor: (wireColor) => set({ wireColor, tool: "wire", pending: null, notice: null }),
       setHover: (hover) => set({ hover }),
+      setHologram: (hologram) => set({ hologram }),
       cancel: () => set({ pending: null, notice: null }),
       setCode: (code) => set({ code, codePassed: false }),
       passCode: () => set({ codePassed: true }),

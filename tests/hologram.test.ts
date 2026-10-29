@@ -87,6 +87,19 @@ describe("hologram of a task", () => {
     expect(ghost).toEqual({ parts: [r1], line: [] });
   });
 
+  it("shows the wire of a task whose part is not on the board yet, with the hole of the finished board", async () => {
+    const boards = await loadBoards("perch");
+    const finish = (await loadLevelClips("perch")).get(2)!.order;
+    const index = level2.tasks.findIndex((t) => t.target.kind === "wire" && [t.target.a, t.target.b].some((e) => e.startsWith("btn1.")));
+    const t = level2.tasks[index].target as { a: string; b: string };
+    const ghost = hologramGhost(bench, startBoard(boards, 2), { kind: "task", index }, plan, [], finish)!;
+    expect(ghost.parts).toHaveLength(1);
+    const wire = ghost.parts[0] as Part & { a: string; b: string };
+    expect(wire.type).toBe("wire");
+    const button = [t.a, t.b].findIndex((e) => e.startsWith("btn1."));
+    expect([wire.a, wire.b][button]).toBe(endpointHole(bench, finish, [t.a, t.b][button]));
+  });
+
   it("shows nothing for a task that is not in the plan", () => {
     expect(hologramGhost(bench, [], { kind: "task", index: 99 }, plan, [], [])).toBeNull();
     expect(hologramGhost(bench, [], { kind: "task", index: 0 }, null, [], [])).toBeNull();
@@ -96,7 +109,6 @@ describe("hologram of a task", () => {
 describe("hologram of a connection", () => {
   const bench = perchBench();
   const perch = loadProjects().find((p) => p.slug === "perch")!;
-  const level2 = perch.levels.find((l) => l.position === 2)!;
 
   it("shows a ghost wire only for a connection that must be made", () => {
     expect(connectionHologram({ kind: "require", connection: { a: "r1.2", b: "led1.anode" }, ok: false })).toEqual({ kind: "connection", a: "r1.2", b: "led1.anode" });
