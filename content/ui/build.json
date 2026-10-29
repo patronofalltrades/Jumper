@@ -150,6 +150,7 @@
       "noHearts": "You have no hearts left. You can check again. If the next Check fails, you get 3 new hearts.",
       "refilled": "You get 3 new hearts. Read the reason above, then try again.",
       "fix": "Fix the board",
+      "show": "Show me",
       "noSession": "We could not save your Check, because this level has no saved session. Go back to the level map, then open the level again.",
       "error": "We could not save your Check. Try again.",
       "empty": "Place a part on the board first. Check tests the parts that you place.",

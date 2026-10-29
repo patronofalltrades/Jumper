@@ -19,7 +19,7 @@ import sketchText from "@/content/ui/sketch.json";
 import type { Clip } from "@/lib/game/walkthrough";
 import { AliveStage } from "./alive-stage";
 import { readSavedLevel, useLevel } from "./autosave";
-import { EMPTY_NOTE, useEmptyBoard, useLevelCheck, useSketchLock } from "./check";
+import { EMPTY_NOTE, useEmptyBoard, useLevelCheck, useProblemWatch, useSketchLock } from "./check";
 import { useFeedback } from "./feedback";
 import { GuideBar, SpotCard, useNoticeTimer } from "./guide";
 import { Hearts, PinnedPopup, PopupLayer, useLaptop, type LevelTask } from "./popups";
@@ -100,6 +100,7 @@ export function BuildView({ user, project, levelId, position, eyebrow, title, go
   const { error: saveError, otherTab } = useLevel({ user, project, levelId, position, bench, plan, start, carry });
   const levelCheck = useLevelCheck({ user, project, levelId, position, rules, needsSketch: !!sketch });
   const locked = useSketchLock(!!sketch);
+  useProblemWatch();
   const codePassed = useBoard((s) => s.codePassed);
   // The code panel: beside the board on a laptop, under it on a phone. The board stays in view, so the learner sees the LEDs.
   const [codeOpen, setCodeOpen] = useState(false);
@@ -132,7 +133,7 @@ export function BuildView({ user, project, levelId, position, eyebrow, title, go
       level={{ eyebrow, title, goal, tasks }}
       conceptOpen={conceptOpen}
       onConceptDone={() => setConceptRead(progress.index)}
-      check={{ check: levelCheck.state, onCheck: () => void levelCheck.check(), onClose: levelCheck.close, sketch: sketch && { passed: codePassed, open: openCode }, position }}
+      check={{ check: levelCheck.state, onCheck: () => void levelCheck.check(), onClose: levelCheck.close, onShow: levelCheck.show, sketch: sketch && { passed: codePassed, open: openCode }, position }}
     />
   );
 

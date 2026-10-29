@@ -201,7 +201,7 @@ type LevelInfo = { eyebrow: string; title: string; goal: string; tasks: LevelTas
  */
 export type SketchGate = { passed: boolean; open: () => void };
 /** `position`: the level of this Check. A connection from another level says so (issue #89). */
-type CheckProps = { check: LevelCheck; onCheck: () => void; onClose: () => void; sketch: SketchGate | null; position: number };
+type CheckProps = { check: LevelCheck; onCheck: () => void; onClose: () => void; onShow: () => void; sketch: SketchGate | null; position: number };
 
 function IntroBody({ eyebrow, title, goal, tasks }: LevelInfo) {
   return (
@@ -270,7 +270,7 @@ function heartsText(fails: number) {
 }
 
 /** The end of the tasks: Check the level. After a fail: the reason, the hearts, and "Fix the board". */
-function CheckBody({ check, onCheck, onClose, sketch, position }: CheckProps) {
+function CheckBody({ check, onCheck, onClose, onShow, sketch, position }: CheckProps) {
   const { xp, mistakes, fails } = useBoard((s) => s.progress);
   const bench = useBoard((s) => s.bench);
   const parts = useBoard((s) => s.parts);
@@ -313,9 +313,12 @@ function CheckBody({ check, onCheck, onClose, sketch, position }: CheckProps) {
         {check.error && <p role="alert" className="text-sm font-semibold text-destructive">{check.error}</p>}
         {locked && sketchNote}
         {emptyNote}
-        <div className="flex justify-end gap-2">
+        <div className="flex flex-wrap justify-end gap-2">
           <PressButton tone="plain" onClick={onClose}>
             {text.play.check.fix}
+          </PressButton>
+          <PressButton tone="plain" onClick={onShow}>
+            {text.play.check.show}
           </PressButton>
           {button}
         </div>
