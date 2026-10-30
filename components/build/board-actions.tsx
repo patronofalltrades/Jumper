@@ -41,7 +41,7 @@ export function BoardActions({ ready, empty, locked, onCheck, onOpenCode, extra 
           {sketchText.panel.open}
         </button>
       )}
-      <div className="flex flex-wrap items-center justify-center gap-2">
+      <div className="flex flex-wrap items-center justify-center gap-2 max-sm:flex-nowrap">
         <ClearButton disabled={empty} />
         <button
           type="button"
