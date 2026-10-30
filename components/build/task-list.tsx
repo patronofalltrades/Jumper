@@ -49,6 +49,7 @@ export function TaskList({ tasks, laptop, code, small = false }: { tasks: LevelT
   return (
     <section
       aria-label={text.tasks.list}
+      data-tour="tasks"
       className={cn("pointer-events-auto flex min-h-0 flex-col self-start rounded-2xl border border-border bg-card shadow-panel", open && "w-full sm:w-72")}
     >
       <PanelHeader

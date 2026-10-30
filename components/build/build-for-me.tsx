@@ -39,7 +39,7 @@ export function BuildForMe({ clip }: { clip: Clip | null }) {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <button type="button" className={`${press} border-border bg-card text-foreground`}>
+        <button data-tour="build" type="button" className={`${press} border-border bg-card text-foreground`}>
           {t.button}
         </button>
       </DialogTrigger>

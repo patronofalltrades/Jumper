@@ -36,6 +36,12 @@
       "same": "That is already your email."
     }
   },
+  "tour": {
+    "heading": "Build tour",
+    "text": "The tour of build mode shows once in each browser.",
+    "button": "Show the tour again",
+    "done": "The tour shows the next time you open build mode."
+  },
   "log_out": "Log out",
   "errors": {
     "name_empty": "Enter a display name.",

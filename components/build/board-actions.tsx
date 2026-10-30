@@ -44,6 +44,7 @@ export function BoardActions({ ready, empty, locked, onCheck, onOpenCode, extra 
       <div className="flex flex-wrap items-center justify-center gap-2">
         <ClearButton disabled={empty} />
         <button
+          data-tour="check"
           type="button"
           onClick={onCheck}
           disabled={!ready || empty || locked}
@@ -64,7 +65,7 @@ function ClearButton({ disabled }: { disabled: boolean }) {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <button type="button" disabled={disabled} className={`${BIG} border border-border bg-card text-foreground disabled:text-muted-foreground disabled:opacity-60`}>
+        <button data-tour="clear" type="button" disabled={disabled} className={`${BIG} border border-border bg-card text-foreground disabled:text-muted-foreground disabled:opacity-60`}>
           {t.button}
         </button>
       </DialogTrigger>

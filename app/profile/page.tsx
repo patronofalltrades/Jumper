@@ -8,6 +8,7 @@ import { Backdrop } from "@/components/backdrop";
 import { Dock } from "@/components/dock";
 import { DeleteAccount } from "@/components/profile/delete-account";
 import { AccountForm, EmailForm, PasswordForm } from "@/components/profile/profile-forms";
+import { TourAgain } from "@/components/profile/tour-again";
 import { Button } from "@/components/ui/button";
 import text from "@/content/ui/profile.json";
 import { avatarSrc } from "@/lib/profile/form";
@@ -76,6 +77,7 @@ async function Profile() {
       <section className="rounded-2xl bg-card p-5 shadow-panel">
         <PasswordForm action={changePassword} />
       </section>
+      <TourAgain />
       <LogOutForm>
         <Button type="submit" variant="outline" className="min-h-11">
           {text.log_out}

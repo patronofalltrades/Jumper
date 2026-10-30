@@ -28,6 +28,7 @@ import { Hearts, PinnedPopup, PopupLayer, useLaptop, type LevelTask } from "./po
 import { SketchPanel } from "./sketch-panel";
 import { TaskList } from "./task-list";
 import { ConnectionList } from "./connection-list";
+import { Tour } from "./tour";
 import { cn } from "@/lib/utils";
 
 export type { LevelTask };
@@ -139,6 +140,18 @@ export function BuildView({ user, project, levelId, position, eyebrow, title, go
   const building = progress.phase === "mistake" || (progress.phase === "task" && !explaining && !!task && !needsAck(task.target));
   // The Clear and Check row shows while the learner builds. A pop-up over the board, the Check card or the code panel hides it.
   const actions = progress.phase !== "intro" && !explaining && !conceptOpen && !(progress.phase === "ready_to_check" && levelCheck.state.open) && !codeOpen && !alive;
+  // The first-visit tour waits while a pop-up, the intro clip, the Check card, the code panel or the demo is open (issue #123).
+  const tourBusy =
+    watching ||
+    progress.phase === "intro" ||
+    progress.phase === "mistake" ||
+    explaining ||
+    conceptOpen ||
+    (progress.phase === "ready_to_check" && levelCheck.state.open) ||
+    (progress.phase === "task" && !!task && needsAck(task.target)) ||
+    codeOpen ||
+    alive ||
+    demoRunning;
 
   const popups = (
     <PopupLayer
@@ -283,6 +296,7 @@ export function BuildView({ user, project, levelId, position, eyebrow, title, go
 
       {!laptop && !codeOpen && !demoRunning && popups}
       {!(codeOpen && !laptop) && <ToolBar start={start} startLevel={startLevel} />}
+      <Tour busy={tourBusy} />
       {clip && watching && (
         <ClipPlayer
           clip={clip}

@@ -31,6 +31,7 @@ export function ConnectionList({ rules, laptop, small = false }: { rules: Rules;
   return (
     <section
       aria-label={text.connections.list}
+      data-tour="connections"
       className={cn("pointer-events-auto flex min-h-0 flex-col self-start rounded-2xl border border-border bg-card shadow-panel", open && "w-full sm:w-72")}
     >
       <PanelHeader
