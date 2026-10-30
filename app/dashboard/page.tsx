@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { Suspense, type ReactNode } from "react";
 import { Backdrop } from "@/components/backdrop";
 import { MistakeChart } from "@/components/dashboard/mistake-chart";
+import { TermsDictionary } from "@/components/dashboard/terms-dictionary";
 import { Dock } from "@/components/dock";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -11,7 +12,7 @@ import text from "@/content/ui/dashboard.json";
 import { loadTerms } from "@/lib/content/terms";
 import { shortName } from "@/lib/game/featured";
 import { completedSessions, firstTryPassRate, levelsCompleted, mistakesByType, topMistakes, type Session } from "@/lib/stats/dashboard";
-import { termsLearned } from "@/lib/stats/terms";
+import { termsByLetter, termsLearned } from "@/lib/stats/terms";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = { title: "Dashboard · Jumper" };
@@ -74,7 +75,7 @@ async function Dashboard() {
   });
   const passed = mySessions.filter((s) => s.status === "completed").flatMap((s) => where.get(s.levelId) ?? []);
   const names = new Map([...where.values()].map((w) => [w.project, w.name]));
-  const terms = termsLearned(loadTerms(), passed);
+  const groups = termsByLetter(termsLearned(loadTerms(), passed));
 
   return (
     <>
@@ -140,16 +141,12 @@ async function Dashboard() {
           <h2 className="text-xl font-extrabold tracking-tight">{text.terms.heading}</h2>
           <p className="text-sm text-muted-foreground">{text.terms.text}</p>
         </div>
-        {terms.length ? (
-          <dl className="flex flex-col gap-3">
-            {terms.map((t) => (
-              <div key={`${t.project} ${t.term}`} className="flex flex-col gap-0.5">
-                <dt className="font-semibold">{t.term}</dt>
-                <dd className="text-sm">{t.definition}</dd>
-                <dd className="text-xs text-muted-foreground">{fill(text.terms.level, { project: names.get(t.project) ?? t.project, n: t.level })}</dd>
-              </div>
-            ))}
-          </dl>
+        {groups.length ? (
+          <TermsDictionary
+            groups={groups}
+            source={(t) => names.get(t.project) ?? t.project}
+            where={(t) => fill(text.terms.level, { project: names.get(t.project) ?? t.project, n: t.level })}
+          />
         ) : (
           <p className="rounded-xl bg-muted px-3 py-3 text-sm text-muted-foreground">{text.terms.empty}</p>
         )}

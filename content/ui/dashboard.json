@@ -25,8 +25,8 @@
   },
   "terms": {
     "heading": "Terms you learned",
-    "text": "Terms from the levels that you passed.",
-    "level": "{project}, level {n}",
+    "text": "Terms from the levels that you passed. Open a term to read its meaning.",
+    "level": "Taught in {project}, level {n}",
     "empty": "Pass a level to see its terms here."
   },
   "flashcards": {
