@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { LevelComplete, type LevelSummary } from "@/components/build/level-complete";
+import { loadMascot } from "@/lib/content/mascot";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = { title: "Level complete · Jumper" };
@@ -63,5 +64,5 @@ async function Complete({ slug, position, preview }: { slug: string; position: s
 
   const next = level.position < levels.length ? `/p/${slug}/${level.position + 1}` : "/lobby";
   const save = { levels, user: auth.claims.sub, project: slug, position: level.position };
-  return <LevelComplete summary={summary} continueHref={next} save={save} preview={!session} />;
+  return <LevelComplete summary={summary} continueHref={next} save={save} preview={!session} mascot={loadMascot(slug)} />;
 }

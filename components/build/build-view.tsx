@@ -17,6 +17,8 @@ import { needsAck, type Plan } from "@/lib/game/engine";
 import { putBackParts } from "@/lib/game/put-back";
 import type { SketchStep } from "@/lib/content/schema";
 import { carriedClip, type Clip } from "@/lib/game/walkthrough";
+import { MascotContext } from "@/components/art/mascot";
+import type { MascotId } from "@/lib/game/project-mascot";
 import { AliveStage } from "./alive-stage";
 import { BoardActions } from "./board-actions";
 import { BuildDemo, BuildForMe, useDemoRunning } from "./build-for-me";
@@ -94,9 +96,19 @@ type Props = {
   clip: Clip | null;
   /** The code step after the wiring tasks, if the level has one (issue #58). */
   sketch: SketchStep | null;
+  /** The mascot of the project (feature/mascots): the pop-ups show it. Volt when the project names none. */
+  mascot: MascotId;
 };
 
-export function BuildView({ user, project, levelId, position, eyebrow, title, goal, tasks, rules, bench: spec, start, carry, startLevel = 0, levels, clip: finished, sketch }: Props) {
+export function BuildView({ mascot, ...props }: Props) {
+  return (
+    <MascotContext value={mascot}>
+      <BuildBoard {...props} mascot={mascot} />
+    </MascotContext>
+  );
+}
+
+function BuildBoard({ user, project, levelId, position, eyebrow, title, goal, tasks, rules, bench: spec, start, carry, startLevel = 0, levels, clip: finished, sketch, mascot }: Props) {
   useKeys();
   useNoticeTimer();
   useFeedback();
@@ -230,7 +242,7 @@ export function BuildView({ user, project, levelId, position, eyebrow, title, go
         <div className="relative min-h-0 min-w-0 flex-1">
           {/* The finished board, so a resistor or LED task glows the holes of the clip (issue #101). */}
           <FinishContext value={finished?.order}>
-            <BuildScene>{laptop && <PinnedPopup tasks={tasks} hidden={conceptOpen || explaining} />}</BuildScene>
+            <BuildScene>{laptop && <PinnedPopup tasks={tasks} hidden={conceptOpen || explaining} mascot={mascot} />}</BuildScene>
           </FinishContext>
           {/* The guide bar, and the task list below it. Only the panels take clicks; the board gets the rest. Above the Clear and Check row, the column stops. */}
           {progress.phase !== "intro" && !alive && (

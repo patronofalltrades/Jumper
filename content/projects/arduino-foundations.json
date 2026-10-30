@@ -3,6 +3,7 @@
   "title": "Arduino Foundations",
   "tagline": "Breadboard basics, Ohm's law, LEDs and buttons",
   "board": "Arduino Uno",
+  "mascot": "bulb",
   "status": "available",
   "position": 2,
   "levels": [

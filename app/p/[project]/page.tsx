@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { Suspense } from "react";
 import { Backdrop } from "@/components/backdrop";
-import { Volt } from "@/components/art/volt";
+import { Mascot } from "@/components/art/mascot";
 import { InvitePanel, type Person } from "@/components/collaborate/invite-panel";
 import { Dock } from "@/components/dock";
 import { PlayIcon, WatchButton } from "@/components/walkthrough/watch-button";
@@ -14,7 +14,9 @@ import { loadLevelClips } from "@/lib/content/clips";
 import type { Clip } from "@/lib/game/walkthrough";
 import { passedLevels, shortName } from "@/lib/game/featured";
 import { levelStatuses, type LevelStatus } from "@/lib/game/map";
+import { loadMascot } from "@/lib/content/mascot";
 import { mascotLevel } from "@/lib/game/mascot";
+import type { MascotId } from "@/lib/game/project-mascot";
 import { createClient } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
 
@@ -65,6 +67,8 @@ async function LevelMap({ slug }: { slug: string }) {
 
   const statuses = levelStatuses(project.levels.length, await passedLevels(supabase, project.id));
   const here = mascotLevel(statuses);
+  // The project's mascot stands on the level to play now (feature/mascots).
+  const character = loadMascot(project.slug);
   const clips = await loadLevelClips(project.slug);
 
   return (
@@ -96,6 +100,7 @@ async function LevelMap({ slug }: { slug: string }) {
             shift={[0, 1, 0, -1][i % 4]}
             last={i === project.levels.length - 1}
             here={i === here}
+            character={character}
             clip={clips.get(level.position)}
           />
         ))}
@@ -115,6 +120,7 @@ function Node({
   shift,
   last,
   here,
+  character,
   clip,
 }: {
   href: string;
@@ -125,6 +131,7 @@ function Node({
   shift: number;
   last: boolean;
   here: boolean;
+  character: MascotId;
   clip?: Clip;
 }) {
   const circle = (
@@ -164,7 +171,7 @@ function Node({
   // Volt stands on the level to play now, at the end of its row.
   const volt = here && (
     <span className="ml-auto shrink-0" title={mascot.map.here}>
-      <Volt pose="idle" className="h-16 w-auto" />
+      <Mascot id={character} pose="idle" className="h-16 w-auto" />
       <span className="sr-only">{mascot.map.here}</span>
     </span>
   );

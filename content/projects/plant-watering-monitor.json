@@ -3,6 +3,7 @@
   "title": "Plant-watering monitor",
   "tagline": "Analog input, relays, power for a pump",
   "board": "ESP32 DevKit V1",
+  "mascot": "coil",
   "status": "coming_soon",
   "position": 4,
   "levels": []

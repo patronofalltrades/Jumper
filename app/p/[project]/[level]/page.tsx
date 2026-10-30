@@ -5,6 +5,7 @@ import { BuildView, type LevelTask } from "@/components/build/build-view";
 import { loadBenchSpec } from "@/lib/content/benches";
 import { carriesBoard, loadBoards, startBoard, startLevels } from "@/lib/content/boards";
 import { loadLevelClips } from "@/lib/content/clips";
+import { loadMascot } from "@/lib/content/mascot";
 import { loadSketchStep } from "@/lib/content/sketches";
 import { rulesSchema, targetSchema } from "@/lib/content/schema";
 import { passedLevels } from "@/lib/game/featured";
@@ -76,6 +77,7 @@ async function Level({ slug, position }: { slug: string; position: string }) {
       levels={levels.map(({ id, position, title }) => ({ id, position, title }))}
       clip={(await loadLevelClips(slug)).get(data.position) ?? null}
       sketch={await loadSketchStep(slug, data.position)}
+      mascot={loadMascot(slug)}
     />
   );
 }

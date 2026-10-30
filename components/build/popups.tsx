@@ -4,7 +4,8 @@ import { Html, Line } from "@react-three/drei";
 import { useThree } from "@react-three/fiber";
 import { useCallback, useContext, useMemo, useRef, useSyncExternalStore, type ReactNode } from "react";
 import { Vector3, type Camera, type Object3D } from "three";
-import { Volt } from "@/components/art/volt";
+import { Mascot, MascotContext } from "@/components/art/mascot";
+import type { MascotId } from "@/lib/game/project-mascot";
 import text from "@/content/ui/build.json";
 import sketchText from "@/content/ui/sketch.json";
 import type { Bench } from "@/lib/circuit/bench";
@@ -101,7 +102,8 @@ function PopupVolt() {
   const phase = useBoard((s) => s.progress.phase);
   const done = useBoard((s) => s.done);
   const pose = mascotPose({ phase, done });
-  return <Volt key={pose} pose={pose} label className="h-14 w-auto shrink-0 sm:h-16" />;
+  const mascot = useContext(MascotContext);
+  return <Mascot id={mascot} key={pose} pose={pose} label className="h-14 w-auto shrink-0 sm:h-16" />;
 }
 
 /**
@@ -439,7 +441,7 @@ const EDGE = 8;
 const GUIDE_BOTTOM = 72;
 
 /** Laptop: the Place, Wire or Mistake pop-up, over the target pin, with a line down to it. Goes inside the Canvas. */
-export function PinnedPopup({ tasks, hidden }: { tasks: LevelTask[]; hidden: boolean }) {
+export function PinnedPopup({ tasks, hidden, mascot }: { tasks: LevelTask[]; hidden: boolean; mascot: MascotId }) {
   const progress = useBoard((s) => s.progress);
   // The card stays inside the board. When there is no space above the pin, it goes beside the pin, so that it does
   // not cover the target. Html renders the card in its own React root, so a callback ref measures it when it is there,
@@ -490,11 +492,14 @@ export function PinnedPopup({ tasks, hidden }: { tasks: LevelTask[]; hidden: boo
         raycast={() => null}
       />
       <Html position={[at.x, HANG, at.z]} zIndexRange={[15, 10]} calculatePosition={place} style={{ pointerEvents: "none" }}>
-        <div ref={card} className="pointer-events-auto -translate-x-1/2 -translate-y-full pb-1" style={{ width: PINNED_WIDTH }}>
-          <Card mistake={!!mistake} className="rounded-2xl">
-            {mistake ? <MistakeBody mistake={mistake} /> : <TaskBody task={task} total={tasks.length} />}
-          </Card>
-        </div>
+        {/* Html has its own React root, so the mascot of the project goes in as a context here (feature/mascots). */}
+        <MascotContext value={mascot}>
+          <div ref={card} className="pointer-events-auto -translate-x-1/2 -translate-y-full pb-1" style={{ width: PINNED_WIDTH }}>
+            <Card mistake={!!mistake} className="rounded-2xl">
+              {mistake ? <MistakeBody mistake={mistake} /> : <TaskBody task={task} total={tasks.length} />}
+            </Card>
+          </div>
+        </MascotContext>
       </Html>
     </group>
   );

@@ -1,5 +1,5 @@
 {
-  "_note": "Text for Volt, the Jumper mascot, in ASD-STE100. Volt is also a profile picture (content/ui/avatars.json). Each pose text is the screen reader label of that pose.",
+  "_note": "Text for Volt, the Jumper mascot, in ASD-STE100. Volt is also a profile picture (content/ui/avatars.json). Each pose text is the screen reader label of that pose. mascots: the other mascots (lib/game/project-mascot.ts); each has a name and the same four poses.",
   "name": "Volt",
   "poses": {
     "idle": "Volt waits for you.",
@@ -9,5 +9,34 @@
   },
   "map": {
     "here": "Volt is here. Play this level next."
+  },
+  "mascots": {
+    "bulb": {
+      "name": "Bulb",
+      "poses": {
+        "idle": "Bulb waits for you.",
+        "happy": "Bulb is happy. You did the step.",
+        "oops": "Bulb says oops. Something is not correct.",
+        "cheer": "Bulb cheers. You completed the level."
+      }
+    },
+    "coil": {
+      "name": "Coil",
+      "poses": {
+        "idle": "Coil waits for you.",
+        "happy": "Coil is happy. You did the step.",
+        "oops": "Coil says oops. Something is not correct.",
+        "cheer": "Coil cheers. You completed the level."
+      }
+    },
+    "knob": {
+      "name": "Knob",
+      "poses": {
+        "idle": "Knob waits for you.",
+        "happy": "Knob is happy. You did the step.",
+        "oops": "Knob says oops. Something is not correct.",
+        "cheer": "Knob cheers. You completed the level."
+      }
+    }
   }
 }
