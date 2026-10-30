@@ -19,6 +19,7 @@ import type { SketchStep } from "@/lib/content/schema";
 import type { Clip } from "@/lib/game/walkthrough";
 import { AliveStage } from "./alive-stage";
 import { BoardActions } from "./board-actions";
+import { BuildDemo, BuildForMe, useDemoRunning } from "./build-for-me";
 import { readSavedLevel, useLevel } from "./autosave";
 import { useEmptyBoard, useLevelCheck, useProblemWatch, useSketchLock } from "./check";
 import { useFeedback } from "./feedback";
@@ -115,6 +116,8 @@ export function BuildView({ user, project, levelId, position, eyebrow, title, go
   const empty = useEmptyBoard();
   // Perch is coming alive on the board: the panels that guide the build step aside (issue #86).
   const alive = useAlive((s) => s.stage !== null);
+  // The demo of "Build it for me" is to watch: the pop-up sheet under the board on a phone hides while it plays (issue #115).
+  const demoRunning = useDemoRunning();
   const mapHref = `/p/${project}`;
 
   // The clip opens each time the level opens, until the learner finishes the first task. useLevel opened the board first.
@@ -235,17 +238,19 @@ export function BuildView({ user, project, levelId, position, eyebrow, title, go
               {progress.fails > 0 && <ConnectionList rules={rules} laptop={laptop} small={codeOpen} />}
             </div>
           )}
-          {/* The button row at the bottom of the board: Clear, and Check (on when all tasks are done). Hidden while a card is open (issue #114). */}
-          {actions && (
+          {/* The button row at the bottom of the board: Clear, and Check (on when all tasks are done). Hidden while a card is open (issue #114), and while "Build it for me" plays (issue #115). */}
+          {actions && !demoRunning && (
             <BoardActions
               ready={progress.phase === "ready_to_check"}
               empty={empty}
               locked={locked}
               onCheck={() => void levelCheck.check()}
               onOpenCode={openCode}
+              extra={<BuildForMe clip={clip} />}
             />
           )}
           <SpotCard />
+          <BuildDemo clip={clip} position={position} />
           <AliveStage />
           {laptop && !codeOpen && popups}
           {otherTab && (
@@ -273,7 +278,7 @@ export function BuildView({ user, project, levelId, position, eyebrow, title, go
         )}
       </div>
 
-      {!laptop && !codeOpen && popups}
+      {!laptop && !codeOpen && !demoRunning && popups}
       {!(codeOpen && !laptop) && <ToolBar start={start} startLevel={startLevel} />}
       {clip && watching && (
         <ClipPlayer

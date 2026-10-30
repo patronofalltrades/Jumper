@@ -30,7 +30,7 @@ const READ_MS = 4500;
 const fill = (template: string, values: Record<string, string | number>) => template.replace(/\{(\w+)\}/g, (_, k: string) => String(values[k]));
 
 const query = "(prefers-reduced-motion: reduce)";
-const useReducedMotion = () =>
+export const useReducedMotion = () =>
   useSyncExternalStore(
     (change) => {
       const media = window.matchMedia(query);

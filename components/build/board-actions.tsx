@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import text from "@/content/ui/build.json";
@@ -18,13 +19,15 @@ type Props = {
   locked: boolean;
   onCheck: () => void;
   onOpenCode: () => void;
+  /** More buttons after Check, for example "Build it for me" (issue #115). */
+  extra?: ReactNode;
 };
 
 /**
  * The button row at the bottom of the board while the learner builds: Clear and Check (issue #114).
  * Other board buttons (for example "Build it for me", issue #115) go in this row.
  */
-export function BoardActions({ ready, empty, locked, onCheck, onOpenCode }: Props) {
+export function BoardActions({ ready, empty, locked, onCheck, onOpenCode, extra }: Props) {
   const note = ready && empty;
   return (
     <div className="absolute inset-x-3 bottom-4 z-20 flex flex-col items-center gap-2">
@@ -49,6 +52,7 @@ export function BoardActions({ ready, empty, locked, onCheck, onOpenCode }: Prop
         >
           {text.play.check.button}
         </button>
+        {extra}
       </div>
     </div>
   );

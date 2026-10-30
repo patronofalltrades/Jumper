@@ -1,5 +1,16 @@
 {
   "_note": "Text for the build page and the level map, in ASD-STE100. {act} is \"Click\" on a laptop and \"Tap\" on a phone. {pin}, {rail}, {part}, {n}, {total}, {a} and {b} are filled in by the app. Write all text so that a person who never saw a circuit can follow it: short words, one idea in each sentence.",
+  "buildForMe": {
+    "button": "Build it for me",
+    "title": "Build it for me?",
+    "body": "Jumper removes the parts that you put in this level. Then Jumper builds the level on your board, one step at a time. You get no XP for it. At the end, the board goes back to the start, and you build the level.",
+    "yes": "Build it",
+    "no": "Cancel",
+    "label": "Jumper builds level {n} for you",
+    "step": "Step {n} of {total}",
+    "end": "This is the full build of level {n}. Now the board goes back to the start. You build it!",
+    "stop": "Stop"
+  },
   "guide": {
     "wire": {
       "start": "{act} a glowing hole. This is where the wire starts.",
