@@ -105,6 +105,13 @@
       "st7789-154": "Screen"
     }
   },
+  "putBack": {
+    "button": "Put back the level {n} build",
+    "short": "Put back",
+    "done": "The parts of level {n} are back.",
+    "blocked": "{count} parts did not go back. Other parts are in their holes. Remove those parts, then try again.",
+    "blockedOne": "1 part did not go back. Another part is in its holes. Remove that part, then try again."
+  },
   "tasks": {
     "title": "Tasks · {done} of {total} done",
     "chip": "Tasks {done}/{total}",
@@ -119,7 +126,10 @@
   },
   "connections": {
     "title": "Connections · {done} of {total} right",
+    "chip": "Connections {done}/{total}",
     "list": "Connections of this level",
+    "show": "Show the connections",
+    "hide": "Hide the connections",
     "require": "{a} → {b}",
     "forbid": "{a} → {b} (must not connect)",
     "stray": "The {part} must not touch {pin}",
@@ -159,6 +169,13 @@
     },
     "saveError": "We could not save your progress. Your board is still saved on this device.",
     "otherTab": "This level is open in another tab. This tab stops saving. Reload this page to see the newest board.",
+    "clear": {
+      "button": "Clear",
+      "title": "Remove all the parts that you put in this level?",
+      "text": "The parts that the level started with stay. To put the parts back, use Undo.",
+      "cancel": "Cancel",
+      "confirm": "Remove the parts"
+    },
     "check": {
       "button": "Check",
       "checking": "Checking…",
