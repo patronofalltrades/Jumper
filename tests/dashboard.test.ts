@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { completedSessions, firstTryPassRate, levelsCompleted, mistakesByType, type Attempt, type Session } from "@/lib/stats/dashboard";
+import { completedSessions, firstTryPassRate, levelsCompleted, mistakesByType, topMistakes, type Attempt, type Session } from "@/lib/stats/dashboard";
+import { termsLearned, type Term } from "@/lib/stats/terms";
 
 // An attempt on a level at a time. `at` is minutes after the start of the day, so the order is clear.
 const attempt = (levelId: number, passed: boolean, at: number, mistakeType: string | null = passed ? null : "wrong_pin"): Attempt => ({
@@ -82,5 +83,66 @@ describe("mistakes by type", () => {
 
   it("does not count passed attempts or failed attempts with no type", () => {
     expect(mistakesByType([attempt(1, true, 1), attempt(1, false, 2, null)])).toEqual([]);
+  });
+});
+
+describe("top mistakes", () => {
+  it("gives the 3 most frequent mistake types, each with its count and the level where it happened most", () => {
+    const attempts = [
+      attempt(1, false, 1, "short_power"),
+      attempt(2, false, 2, "short_power"),
+      attempt(2, false, 3, "short_power"),
+      attempt(3, false, 4, "wrong_pin"),
+      attempt(3, false, 5, "wrong_pin"),
+      attempt(1, false, 6, "missing_ground"),
+      attempt(2, false, 7, "reversed_led"),
+      attempt(2, true, 8),
+    ];
+    expect(topMistakes(attempts)).toEqual([
+      { type: "short_power", count: 3, levelId: 2 },
+      { type: "wrong_pin", count: 2, levelId: 3 },
+      { type: "missing_ground", count: 1, levelId: 1 },
+    ]);
+  });
+
+  it("puts a level tie in the lower level id, so the link does not change between visits", () => {
+    const attempts = [attempt(3, false, 1, "wrong_pin"), attempt(1, false, 2, "wrong_pin")];
+    expect(topMistakes(attempts)).toEqual([{ type: "wrong_pin", count: 2, levelId: 1 }]);
+  });
+
+  it("gives all the types when there are fewer than 3", () => {
+    expect(topMistakes([attempt(1, false, 1, "short_power")])).toEqual([{ type: "short_power", count: 1, levelId: 1 }]);
+  });
+
+  it("is empty with no failed attempts", () => {
+    expect(topMistakes([attempt(1, true, 1)])).toEqual([]);
+  });
+});
+
+describe("terms learned", () => {
+  const terms: Term[] = [
+    { project: "perch", level: 1, term: "Breadboard", definition: "A board with holes." },
+    { project: "perch", level: 2, term: "Button", definition: "A part that joins two wires while you press it." },
+    { project: "arduino-foundations", level: 2, term: "LED", definition: "A small light." },
+  ];
+
+  it("returns only the terms of the levels that the learner passed", () => {
+    expect(termsLearned(terms, [{ project: "perch", level: 2 }]).map((t) => t.term)).toEqual(["Button"]);
+  });
+
+  it("keeps the order of the content", () => {
+    const passed = [
+      { project: "perch", level: 2 },
+      { project: "perch", level: 1 },
+    ];
+    expect(termsLearned(terms, passed).map((t) => t.term)).toEqual(["Breadboard", "Button"]);
+  });
+
+  it("does not count a level of another project that has the same number", () => {
+    expect(termsLearned(terms, [{ project: "perch", level: 2 }]).some((t) => t.project === "arduino-foundations")).toBe(false);
+  });
+
+  it("is empty when no level is passed, so a new learner sees no terms", () => {
+    expect(termsLearned(terms, [])).toEqual([]);
   });
 });

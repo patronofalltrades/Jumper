@@ -6,6 +6,7 @@ import { placeConnections } from "@/lib/game/engine";
 import { loadBenchSpec } from "@/lib/content/benches";
 import { loadBoards, startBoard } from "@/lib/content/boards";
 import { loadProjects } from "@/lib/content/load";
+import { loadTerms } from "@/lib/content/terms";
 import { taskSchema } from "@/lib/content/schema";
 import dashboard from "@/content/ui/dashboard.json";
 import avatars from "@/content/ui/avatars.json";
@@ -138,5 +139,30 @@ describe("taskSchema", () => {
 
   it("refuses an endpoint that is not <part>.<pin>", () => {
     expect(taskSchema.safeParse({ ...task, target: { kind: "wire", a: "WS", b: "esp.GPIO4" } }).success).toBe(false);
+  });
+});
+
+describe("content/terms", () => {
+  const terms = loadTerms();
+
+  it("has terms for Perch and Arduino Foundations, and each term has a level of its project", () => {
+    expect(new Set(terms.map((t) => t.project))).toEqual(new Set(["perch", "arduino-foundations"]));
+    for (const t of terms) {
+      const level = projects.find((p) => p.slug === t.project)?.levels.find((l) => l.position === t.level);
+      expect(level, `${t.project} level ${t.level}: ${t.term}`).toBeDefined();
+    }
+  });
+
+  it("has no term twice in one project", () => {
+    const keys = terms.map((t) => `${t.project} ${t.term}`);
+    expect(new Set(keys).size).toBe(keys.length);
+  });
+
+  it("writes each sentence of a definition in 20 words or fewer (ASD-STE100)", () => {
+    for (const t of terms) {
+      for (const sentence of t.definition.split(/(?<=[.!?])\s+/)) {
+        expect(sentence.split(/\s+/).length, `${t.term}: ${sentence}`).toBeLessThanOrEqual(20);
+      }
+    }
   });
 });
