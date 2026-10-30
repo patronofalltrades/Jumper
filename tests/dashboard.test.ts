@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { completedSessions, firstTryPassRate, levelsCompleted, mistakesByType, topMistakes, type Attempt, type Session } from "@/lib/stats/dashboard";
-import { termsLearned, type Term } from "@/lib/stats/terms";
+import { termsByLetter, termsLearned, type Term } from "@/lib/stats/terms";
 
 // An attempt on a level at a time. `at` is minutes after the start of the day, so the order is clear.
 const attempt = (levelId: number, passed: boolean, at: number, mistakeType: string | null = passed ? null : "wrong_pin"): Attempt => ({
@@ -144,5 +144,28 @@ describe("terms learned", () => {
 
   it("is empty when no level is passed, so a new learner sees no terms", () => {
     expect(termsLearned(terms, [])).toEqual([]);
+  });
+});
+
+describe("terms by letter", () => {
+  const terms: Term[] = [
+    { project: "perch", level: 2, term: "Resistor", definition: "A small part." },
+    { project: "perch", level: 1, term: "3V3", definition: "A pin." },
+    { project: "perch", level: 1, term: "Ground", definition: "The way back." },
+    { project: "perch", level: 2, term: "anode", definition: "The long leg." },
+    { project: "perch", level: 2, term: "GPIO pin", definition: "A pin that the board controls." },
+  ];
+
+  it("groups the terms under their first letter, in alphabetical order, like a dictionary", () => {
+    expect(termsByLetter(terms).map((g) => [g.letter, g.terms.map((t) => t.term)])).toEqual([
+      ["3", ["3V3"]],
+      ["A", ["anode"]],
+      ["G", ["GPIO pin", "Ground"]],
+      ["R", ["Resistor"]],
+    ]);
+  });
+
+  it("is empty with no terms, so a new learner sees no letters", () => {
+    expect(termsByLetter([])).toEqual([]);
   });
 });
