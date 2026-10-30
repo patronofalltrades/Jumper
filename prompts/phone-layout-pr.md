@@ -13,7 +13,7 @@ As a learner, I want to click two holes to place a wire, resistor or LED on a 3D
 - `components/build/popups.tsx`: the phone pop-up sheet is 160 px high (was 240 px). Its text scrolls inside it.
 - `components/build/build-view.tsx`: on a phone, the tool bar is shorter (tool buttons `min-h-12`, smaller gap and tray row). Desktop classes do not change.
 - `tests/phone-layout.test.ts` (new): 3 tests for `panelStartsOpen`.
-- `prompts/phone-layout.md`, `prompts/phone-layout-pr.md`, `prompts/phone-layout-screens/`: prompt log, this text, before and after screenshots, and the measuring script.
+- `prompts/phone-layout.md`, `prompts/phone-layout-pr.md`, `prompts/phone-layout-screens/`: prompt log, this text, and before and after screenshots.
 
 ## How it was tested
 Plain English: the test checks the rule that decides if the task list and the connection list start open. On a laptop they start open. On a phone they start closed. When the code panel is open, they start closed, even on a laptop.
@@ -22,7 +22,7 @@ Plain English: the test checks the rule that decides if the task list and the co
 - Green (`871fb40`): `vitest run tests/phone-layout.test.ts`: 3 passed. `vitest run` (full): 47 files, 632 tests passed.
 - Typecheck (`npm run typecheck`): exit 0. Lint (`npm run lint`): exit 0.
 - Browser, local only, at 390 x 844 (touch) and 1280 x 800 (Chromium, Perch level 1, placeholder Supabase values, a temporary route that was removed before the commit):
-  - Board height, with the task sheet open: before 412 px (49%), after 508 px (60.2%). Measured with `prompts/phone-layout-screens/measure-board.js`.
+  - Board height, with the task sheet open: before 412 px (49%), after 508 px (60.2%). Measured in Chromium with a script that read the bounding boxes of the board canvas and the panels (the script is not in the repo).
   - The button row: before, Clear and Check on one line and Build it for me on a second line (row 100 px). After, all three on one line (row 44 px).
   - The task list and the connection list start closed on the phone (before and after).
   - Desktop 1280 x 800: the before and after screenshots are pixel-identical.

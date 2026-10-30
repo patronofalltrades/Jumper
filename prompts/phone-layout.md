@@ -37,3 +37,5 @@ Process notes:
 - The browser check used a temporary route at `app/s/phone-check/` (not committed) with Perch level 1 data, and placeholder Supabase values. The Supabase save banner was hidden in the screenshots. The walkthrough clip opens by itself at the start of a level; the script closes it.
 - The task-observer skill named in CLAUDE.md is not in this session's skill list, so I could not load it.
 - The `ledger/raw/` entry was staged by the hook and went into the red commit (59f5b26) and the green commit (871fb40). I did not edit `ledger/LEDGER.md` or `PLAN.md`.
+
+- The measuring script was removed from the repo in a later commit: `npx eslint` failed on it (`require()` import, unused variable). The numbers are kept in the PR text.
