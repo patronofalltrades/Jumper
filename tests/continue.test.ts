@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { continueTarget } from "@/lib/game/continue";
+import { featuredHrefs } from "@/lib/game/featured";
 
 describe("continueTarget", () => {
   it("starts a new user at level 1", () => {
@@ -20,5 +21,15 @@ describe("continueTarget", () => {
 
   it("stays on the last level when the last level is completed", () => {
     expect(continueTarget({ level: 5, status: "completed" }, 5)).toEqual({ level: 5, started: true });
+  });
+});
+
+describe("featuredHrefs", () => {
+  it("opens the level map when the card body is tapped", () => {
+    expect(featuredHrefs("perch", 2).mapHref).toBe("/p/perch");
+  });
+
+  it("opens the current level when the round play button is tapped", () => {
+    expect(featuredHrefs("perch", 2).href).toBe("/p/perch/2");
   });
 });
