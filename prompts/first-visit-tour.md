@@ -51,3 +51,13 @@ Claude did not edit `PLAN.md` or `ledger/LEDGER.md`. The parent session adds the
 - A human check of the ASD-STE100 text.
 - The tour after a failed Check (the connection list step). Not run in the browser.
 - No task-observer skill is listed in this session, so it was not loaded.
+
+## Hanif's answers to the five questions in the PR text (his choices, from the question form)
+
+- Flag: localStorage.
+- Steps: 4 steps, with the connection list step skipped on a first visit.
+- Phone "Place" sheet: the tour waits only for blocking pop-ups.
+- Blocked storage: counts as seen.
+- Screenshots: add screenshots of the red and green test runs.
+
+Claude's work (not Hanif's words): the red and green test runs were captured as screenshots. The red run was made in a temporary git worktree at `fc652e0`, which was then removed. The PR text was updated with these answers. No code changed.
