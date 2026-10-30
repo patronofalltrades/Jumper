@@ -16,7 +16,7 @@ import type { Rules } from "@/lib/circuit/check";
 import { needsAck, type Plan } from "@/lib/game/engine";
 import { putBackParts } from "@/lib/game/put-back";
 import type { SketchStep } from "@/lib/content/schema";
-import type { Clip } from "@/lib/game/walkthrough";
+import { carriedClip, type Clip } from "@/lib/game/walkthrough";
 import { AliveStage } from "./alive-stage";
 import { BoardActions } from "./board-actions";
 import { BuildDemo, BuildForMe, useDemoRunning } from "./build-for-me";
@@ -96,7 +96,7 @@ type Props = {
   sketch: SketchStep | null;
 };
 
-export function BuildView({ user, project, levelId, position, eyebrow, title, goal, tasks, rules, bench: spec, start, carry, startLevel = 0, levels, clip, sketch }: Props) {
+export function BuildView({ user, project, levelId, position, eyebrow, title, goal, tasks, rules, bench: spec, start, carry, startLevel = 0, levels, clip: finished, sketch }: Props) {
   useKeys();
   useNoticeTimer();
   useFeedback();
@@ -119,14 +119,17 @@ export function BuildView({ user, project, levelId, position, eyebrow, title, go
   // The demo of "Build it for me" is to watch: the pop-up sheet under the board on a phone hides while it plays (issue #115).
   const demoRunning = useDemoRunning();
   const mapHref = `/p/${project}`;
+  // A level that carries the learner's own board plays its clip on that board (issue #110).
+  const base = useBoard((s) => s.base);
+  const clip = useMemo(() => (finished && carry ? (carriedClip(bench, finished, base) ?? finished) : finished), [finished, carry, bench, base]);
 
   // The clip opens each time the level opens, until the learner finishes the first task. useLevel opened the board first.
   const [watching, setWatching] = useState(false);
   const watchButton = useRef<HTMLButtonElement>(null);
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- the saved progress is in the browser only
-    if (clip && boardStore.getState().progress.tasksDone === 0) setWatching(true);
-  }, [clip]);
+    if (finished && boardStore.getState().progress.tasksDone === 0) setWatching(true);
+  }, [finished]);
 
   // A task that brings a new idea shows its Concept pop-up first, after the "what happened" pop-up of the last task.
   const [conceptRead, setConceptRead] = useState(-1);
@@ -225,8 +228,8 @@ export function BuildView({ user, project, levelId, position, eyebrow, title, go
 
       <div className={cn("flex min-h-0 flex-1", codeOpen && "max-sm:flex-col")}>
         <div className="relative min-h-0 min-w-0 flex-1">
-          {/* The clip parts are the finished board, so a resistor or LED task glows the holes of the clip (issue #101). */}
-          <FinishContext value={clip?.order}>
+          {/* The finished board, so a resistor or LED task glows the holes of the clip (issue #101). */}
+          <FinishContext value={finished?.order}>
             <BuildScene>{laptop && <PinnedPopup tasks={tasks} hidden={conceptOpen || explaining} />}</BuildScene>
           </FinishContext>
           {/* The guide bar, and the task list below it. Only the panels take clicks; the board gets the rest. Above the Clear and Check row, the column stops. */}
