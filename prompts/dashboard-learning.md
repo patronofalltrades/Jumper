@@ -7,6 +7,13 @@
    Claude worked test first:
    - Red commit `3d9ddc2`: tests in `tests/dashboard.test.ts` (top mistakes, terms learned) and `tests/content.test.ts` (content/terms). The modules did not exist, so the files failed to load and no tests ran.
    - Green commit `f471c05`: `lib/stats/dashboard.ts` (`topMistakes`), `lib/stats/terms.ts` (`termsLearned`), `lib/content/terms.ts` (`loadTerms`, Zod), `content/terms/perch.json` and `content/terms/arduino-foundations.json`, `content/ui/dashboard.json` (new text), and `app/dashboard/page.tsx` (Top mistakes with Practise links, Terms you learned, disabled Flashcards card).
+   - Docs commit `aa41fce`: this log and the PR text. Pushed to `origin/feature/dashboard-learning`.
+
+2. "Redesign the terms section. Each terms should be collapsible and in a way formatted like a thesaurus dictionary"
+
+   Hanif asked for a new layout of the terms section. Claude again worked test first:
+   - Red commit `0b4787b`: a test for `termsByLetter()` (terms in alphabetical order, under their first letter). The function did not exist, so 2 tests failed with `termsByLetter is not a function`.
+   - Green commit `311257f`: `termsByLetter()` in `lib/stats/terms.ts`, a new component `components/dashboard/terms-dictionary.tsx`, and the terms section of `app/dashboard/page.tsx` now uses it. Each term is a native `details` element, closed by default, so no script is needed. Each letter has a heading. The project name shows beside each term, because Perch and Arduino Foundations both teach Pin, Ground, Breadboard and Power rail.
 
 ## Ledger notes
 
@@ -23,6 +30,8 @@ Choices made:
 - I added Anode and Cathode for the LED legs. The level text says "long leg (+)" and "short leg (−)". The new definitions say the same thing with the two words.
 - Flashcards: a disabled card (dimmed, no action) with the "Coming soon" text in `content/ui/dashboard.json`. The lobby cards still have "Coming soon" written in the code. I did not change them, because they are outside this issue.
 - No database change. No new dependency.
+- Request 2: the terms are now alphabetical, not in level order. Each entry is collapsible, and the level that teaches the term is in the open entry.
+- Request 2: the dictionary is a separate component so that the browser check renders the real markup.
 
 What was not checked:
 - The live app with a real login and real attempt rows.
