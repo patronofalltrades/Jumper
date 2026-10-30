@@ -157,6 +157,8 @@ export function BuildView({ user, project, levelId, position, eyebrow, title, go
         },
         sketch: sketch && { passed: codePassed, open: openCode },
         position,
+        clip,
+        onWatch: () => setWatching(true),
       }}
     />
   );
