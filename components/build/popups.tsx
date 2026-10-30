@@ -14,10 +14,12 @@ import type { Task } from "@/lib/content/schema";
 import { boardStore, FinishContext, useBoard } from "@/lib/game/board-store";
 import { needsAck, taskSpot, type Mistake } from "@/lib/game/engine";
 import { taskOfFailure } from "@/lib/game/fail-task";
-import { HEARTS, heartsLeft } from "@/lib/game/hearts";
+import { HEARTS, heartsLeft, outOfHearts } from "@/lib/game/hearts";
 import { mascotPose } from "@/lib/game/mascot";
+import type { Clip } from "@/lib/game/walkthrough";
 import { cn } from "@/lib/utils";
 import { EMPTY_NOTE, useEmptyBoard, type Failed, type LevelCheck } from "./check";
+import { BuildForMe } from "./build-for-me";
 import { pinName } from "./guide";
 import { endpointName, strayText } from "./names";
 
@@ -205,7 +207,8 @@ type LevelInfo = { eyebrow: string; title: string; goal: string; tasks: LevelTas
 export type SketchGate = { passed: boolean; open: () => void };
 /** `onRedo`: "Redo this step" on a fail that has a task of this level. It gets the index of the task. */
 /** `position`: the level of this Check. A connection from another level says so (issue #89). */
-type CheckProps = { check: LevelCheck; onCheck: () => void; onClose: () => void; onShow: () => void; onRedo: (task: number) => void; sketch: SketchGate | null; position: number };
+/** `clip`, `onWatch`: the level clip, and its opener, for the out-of-hearts card (issue #124). */
+type CheckProps = { check: LevelCheck; onCheck: () => void; onClose: () => void; onShow: () => void; onRedo: (task: number) => void; sketch: SketchGate | null; position: number; clip: Clip | null; onWatch: () => void };
 
 function IntroBody({ eyebrow, title, goal, tasks }: LevelInfo) {
   return (
@@ -257,11 +260,40 @@ function generalText(bench: Bench, parts: Part[], failed: Failed) {
 function heartsText(fails: number) {
   const hearts = heartsLeft(fails);
   if (fails > 0 && hearts === HEARTS) return text.play.check.refilled;
-  return hearts === 0 ? text.play.check.noHearts : fill(text.play.check.lostHeart, { n: hearts });
+  return fill(text.play.check.lostHeart, { n: hearts });
+}
+
+/** The fail that takes the last heart (issue #124): Volt, the reason, what occurred, and three choices. */
+function OutOfHearts({ reason, check, onCheck, onWatch, clip }: { reason: string; check: LevelCheck; onCheck: () => void; onWatch: () => void; clip: Clip | null }) {
+  const t = text.play.check.outOfHearts;
+  return (
+    <>
+      <div className="flex items-center gap-2">
+        <Volt pose="oops" label className="h-14 w-auto shrink-0 sm:h-16" />
+        <Chip tone="mistake">{text.play.kind.mistake}</Chip>
+      </div>
+      <h2 className="text-2xl leading-tight font-extrabold tracking-tight">{t.title}</h2>
+      <p className="text-[15px] leading-snug font-semibold">{reason}</p>
+      <p className="text-sm leading-snug text-muted-foreground">{t.body}</p>
+      {check.error && <p role="alert" className="text-sm font-semibold text-destructive">{check.error}</p>}
+      <div className="flex flex-wrap items-center justify-end gap-2">
+        {clip && (
+          <PressButton tone="plain" onClick={onWatch}>
+            {t.watch}
+          </PressButton>
+        )}
+        <BuildForMe clip={clip} />
+        <PressButton onClick={onCheck} disabled={check.busy} className="disabled:opacity-60">
+          {t.retry}
+        </PressButton>
+      </div>
+      <p className="text-right text-xs font-semibold text-muted-foreground">{t.retryNote}</p>
+    </>
+  );
 }
 
 /** The end of the tasks: Check the level. After a fail: the reason, the hearts, and "Fix the board". */
-function CheckBody({ check, onCheck, onClose, onShow, onRedo, sketch, position, tasks }: CheckProps & { tasks: LevelTask[] }) {
+function CheckBody({ check, onCheck, onClose, onShow, onRedo, sketch, position, tasks, clip, onWatch }: CheckProps & { tasks: LevelTask[] }) {
   const { xp, mistakes, fails } = useBoard((s) => s.progress);
   const bench = useBoard((s) => s.bench);
   const parts = useBoard((s) => s.parts);
@@ -293,6 +325,10 @@ function CheckBody({ check, onCheck, onClose, onShow, onRedo, sketch, position, 
       {text.play.check.empty}
     </p>
   );
+
+  if (check.failed && outOfHearts(fails)) {
+    return <OutOfHearts reason={reasonText(bench, parts, check.failed, position)} check={check} onCheck={onCheck} onWatch={onWatch} clip={clip} />;
+  }
 
   if (check.failed) {
     return (
