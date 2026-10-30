@@ -6,6 +6,7 @@ export type Attempt = { levelId: number; passed: boolean; mistakeType: string | 
 
 export type PassRate = { passed: number; levels: number; percent: number };
 export type MistakeCount = { type: string; count: number };
+export type TopMistake = MistakeCount & { levelId: number };
 
 /** How many levels have a completed session. A level done two times counts once. */
 export function levelsCompleted(sessions: Session[]): number {
@@ -39,4 +40,21 @@ export function mistakesByType(attempts: Attempt[]): MistakeCount[] {
   return [...counts]
     .map(([type, count]) => ({ type, count }))
     .sort((x, y) => y.count - x.count || x.type.localeCompare(y.type));
+}
+
+/**
+ * The mistake types that the learner makes most (3 by default), each with the level where it happened most. A level
+ * tie goes to the lower level id, so the Practise link does not change between visits.
+ */
+export function topMistakes(attempts: Attempt[], limit = 3): TopMistake[] {
+  return mistakesByType(attempts)
+    .slice(0, limit)
+    .map((m) => ({ ...m, levelId: levelWithMost(attempts, m.type) }));
+}
+
+// The level with the most failed attempts of one mistake type. The caller passes a type that has a failed attempt.
+function levelWithMost(attempts: Attempt[], type: string): number {
+  const counts = new Map<number, number>();
+  for (const a of attempts) if (!a.passed && a.mistakeType === type) counts.set(a.levelId, (counts.get(a.levelId) ?? 0) + 1);
+  return [...counts].sort((x, y) => y[1] - x[1] || x[0] - y[0])[0][0];
 }

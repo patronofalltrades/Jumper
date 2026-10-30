@@ -1,0 +1,15 @@
+{
+  "_note": "The terms of the Arduino Foundations levels, in ASD-STE100. Each definition matches the text of the level in content/projects/arduino-foundations.json. A term shows on the dashboard when the learner passes its level.",
+  "project": "arduino-foundations",
+  "terms": [
+    { "term": "Pin", "level": 1, "definition": "A small metal hole on the Uno. Each pin has one job, and its name tells you the job. For example, 5V gives power and GND is ground. You push one end of a wire into a pin." },
+    { "term": "Breadboard", "level": 1, "definition": "A board with many holes. You push parts and wires into the holes. You do not need glue or solder. Under each line of 5 holes, a metal strip joins the holes, so the parts in that line can talk." },
+    { "term": "Power rail", "level": 1, "definition": "The two long lines at the edge of a breadboard. The red + line carries power, and the blue − line carries ground. All the holes on one long line are joined, so every part on the breadboard can reach power and ground." },
+    { "term": "Ground", "level": 1, "definition": "Electricity moves in a circle. It goes out of the power pin (+), through a part, and back to the ground pin (−). If the circle is broken, nothing works." },
+    { "term": "Ohm's law", "level": 2, "definition": "Current = voltage ÷ resistance. The pin gives 5 V. A red LED uses about 2 V, so 3 V is left for the resistor. 3 V ÷ 220 Ω = about 0.014 A (14 mA). That is enough to make the LED shine, and less than the 20 mA that it can take." },
+    { "term": "LED", "level": 2, "definition": "A small light. It works only one way round. The long leg goes toward power (+), and the short leg goes toward ground (−)." },
+    { "term": "Button", "level": 3, "definition": "A part that joins two wires only while you press it. Press: the wires touch. Let go: they come apart." },
+    { "term": "Pull-up resistor", "level": 3, "definition": "The Uno has a resistor inside that joins pin 2 to 5 V. You turn it on in the sketch with INPUT_PULLUP. When nobody presses the button, the pin reads HIGH (5 V). When you press it, the pin touches ground and reads LOW." },
+    { "term": "Input and output", "level": 4, "definition": "An input tells the Uno something, for example the button. An output is something that the Uno controls, for example the LED. Later, a sketch reads the button and turns the LED on." }
+  ]
+}

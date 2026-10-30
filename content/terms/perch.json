@@ -1,0 +1,22 @@
+{
+  "_note": "The terms of the Perch levels, in ASD-STE100. Each definition matches the text of the level in content/projects/perch.json. A term shows on the dashboard when the learner passes its level.",
+  "project": "perch",
+  "terms": [
+    { "term": "Breadboard", "level": 1, "definition": "A board with many holes. You push parts and wires into the holes. You do not need glue or solder." },
+    { "term": "Power rail", "level": 1, "definition": "A long line at the edge of a breadboard. The red + line is for power. The blue − line is for ground. All the holes on one rail are joined." },
+    { "term": "Pin", "level": 1, "definition": "A small metal leg on a part. Each pin has one job, and its name tells you the job." },
+    { "term": "3V3", "level": 1, "definition": "A pin of the ESP32-S3 board. It pushes power out." },
+    { "term": "Ground", "level": 1, "definition": "Electricity moves in a circle. It goes out of the power pin (+), through a part, and back to the ground pin (−). If the circle is broken, nothing works." },
+    { "term": "Button", "level": 2, "definition": "A part that joins two wires only while you press it. Press: the wires touch. Let go: they come apart." },
+    { "term": "GPIO pin", "level": 2, "definition": "A pin that the board controls. It can listen (is the button pressed?) or talk (turn the light on). GPIO 1 is pin number 1." },
+    { "term": "Resistor", "level": 2, "definition": "A small part that lets less electricity through. Without it, too much goes into the light, and the light burns out." },
+    { "term": "LED", "level": 2, "definition": "A small light. It works only one way round. The long leg goes toward power (+), and the short leg goes toward ground (−)." },
+    { "term": "Anode", "level": 2, "definition": "The long leg of an LED. It goes toward power (+)." },
+    { "term": "Cathode", "level": 2, "definition": "The short leg of an LED. It goes toward ground (−)." },
+    { "term": "Microphone", "level": 3, "definition": "A part that hears sound. This mic turns sound into numbers. It sends the numbers to the board on 3 wires. The wires are a clock wire, a 'which side' wire and a data wire." },
+    { "term": "Clock", "level": 3, "definition": "A wire that goes on, off, on, off, very fast. Two parts use it to keep the same beat, like two people who clap together." },
+    { "term": "Amplifier", "level": 4, "definition": "A part that makes sound louder. The board is too weak to move a speaker. The amp takes the sound from the board and makes it strong enough." },
+    { "term": "Speaker", "level": 4, "definition": "A part that makes sound. It moves in and out very fast, and pushes the air. Your ears hear the moving air as sound." },
+    { "term": "Screen", "level": 5, "definition": "A small square of 240 × 240 tiny dots. Each dot can be any color. The board tells each dot what color to be, many times each second, and that makes pictures." }
+  ]
+}
