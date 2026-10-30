@@ -275,7 +275,9 @@ function OutOfHearts({ reason, check, onCheck, onWatch, clip }: { reason: string
       <h2 className="text-2xl leading-tight font-extrabold tracking-tight">{t.title}</h2>
       <p className="text-[15px] leading-snug font-semibold">{reason}</p>
       <p className="text-sm leading-snug text-muted-foreground">{t.body}</p>
+      <p className="text-sm leading-snug text-muted-foreground">{t.retryNote}</p>
       {check.error && <p role="alert" className="text-sm font-semibold text-destructive">{check.error}</p>}
+      {/* The button row is the last child: on a phone it stays at the bottom of the sheet (see PopupLayer). */}
       <div className="flex flex-wrap items-center justify-end gap-2">
         {clip && (
           <PressButton tone="plain" onClick={onWatch}>
@@ -287,7 +289,6 @@ function OutOfHearts({ reason, check, onCheck, onWatch, clip }: { reason: string
           {t.retry}
         </PressButton>
       </div>
-      <p className="text-right text-xs font-semibold text-muted-foreground">{t.retryNote}</p>
     </>
   );
 }
