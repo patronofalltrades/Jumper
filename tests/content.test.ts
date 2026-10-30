@@ -103,9 +103,9 @@ describe("content/ui/dashboard.json", () => {
 });
 
 describe("content/ui/avatars.json", () => {
-  it("has 5 characters, each with a unique id and an image in public/avatars", () => {
+  it("has 8 characters, each with a unique id and an image in public/avatars", () => {
     const ids = avatars.avatars.map((a) => a.id);
-    expect(ids).toHaveLength(5);
+    expect(ids).toHaveLength(8);
     expect(new Set(ids).size).toBe(ids.length);
     for (const id of ids) expect(existsSync(`public/avatars/${id}.svg`)).toBe(true);
   });
