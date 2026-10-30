@@ -1,5 +1,5 @@
 {
-  "_note": "Text for the dashboard, in ASD-STE100. {passed}, {levels} and {n} are filled in by the app. Each mistake code of a level Check (the forbid rules in content/projects/, plus missing_ground and wrong_pin) has a plain label.",
+  "_note": "Text for the dashboard, in ASD-STE100. {passed}, {levels}, {n}, {project} and {title} are filled in by the app. Each mistake code of a level Check (the forbid rules in content/projects/, plus missing_ground and wrong_pin) has a plain label.",
   "heading": "Dashboard",
   "text": "Your progress, and the mistakes to practice.",
   "stats": {
@@ -10,12 +10,29 @@
     "first_try_detail": "{passed} of {levels} levels passed on the first Check",
     "first_try_none": "No Checks yet"
   },
+  "top": {
+    "heading": "Top mistakes",
+    "text": "The 3 reasons that your Checks fail most. Practise the level where each reason happens most.",
+    "level": "Most on {project}, level {n}",
+    "practise": "Practise"
+  },
   "chart": {
     "heading": "Mistakes you make most",
     "text": "Failed Checks, by the reason that the Check gave.",
     "count": "{n} failed Checks",
     "count_one": "1 failed Check",
     "empty": "No failed Checks. When a Check fails, its reason shows here, so you know what to practice."
+  },
+  "terms": {
+    "heading": "Terms you learned",
+    "text": "Terms from the levels that you passed.",
+    "level": "{project}, level {n}",
+    "empty": "Pass a level to see its terms here."
+  },
+  "flashcards": {
+    "heading": "Flashcards",
+    "text": "Study the terms with cards.",
+    "soon": "Coming soon"
   },
   "empty": {
     "heading": "Start your first level",

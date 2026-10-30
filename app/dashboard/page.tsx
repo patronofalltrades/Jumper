@@ -5,9 +5,13 @@ import { Suspense, type ReactNode } from "react";
 import { Backdrop } from "@/components/backdrop";
 import { MistakeChart } from "@/components/dashboard/mistake-chart";
 import { Dock } from "@/components/dock";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import text from "@/content/ui/dashboard.json";
-import { completedSessions, firstTryPassRate, levelsCompleted, mistakesByType, type Session } from "@/lib/stats/dashboard";
+import { loadTerms } from "@/lib/content/terms";
+import { shortName } from "@/lib/game/featured";
+import { completedSessions, firstTryPassRate, levelsCompleted, mistakesByType, topMistakes, type Session } from "@/lib/stats/dashboard";
+import { termsLearned } from "@/lib/stats/terms";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = { title: "Dashboard · Jumper" };
@@ -15,8 +19,12 @@ export const metadata: Metadata = { title: "Dashboard · Jumper" };
 const fill = (template: string, values: Record<string, string | number>) => template.replace(/\{(\w+)\}/g, (_, k: string) => String(values[k]));
 const labels: Record<string, string> = text.mistakes;
 
-// The dashboard (PLAN.md feature 10, TRD 4): levels completed, completed sessions, XP, first-try pass rate, and the
-// mistakes that the learner makes most. Row-level security gives only the user's own sessions and attempts.
+// Where a level is: its project, the short name of the project, and the position of the level (for /p/<project>/<level>).
+type Where = { project: string; name: string; level: number };
+
+// The dashboard (PLAN.md feature 10, TRD 4): levels completed, completed sessions, XP, first-try pass rate, the mistakes
+// that the learner makes most, and the terms of the levels that the learner passed. Row-level security gives only the
+// user's own sessions and attempts.
 export default function DashboardPage() {
   return (
     <>
@@ -40,17 +48,33 @@ async function Dashboard() {
   const { data: auth } = await supabase.auth.getClaims();
   if (!auth?.claims) redirect("/login");
 
-  const [profile, sessions, attempts] = await Promise.all([
+  const [profile, sessions, attempts, levels] = await Promise.all([
     supabase.from("profiles").select("xp").eq("id", auth.claims.sub).maybeSingle(),
     supabase.from("sessions").select("level_id, status"),
     supabase.from("attempts").select("level_id, passed, mistake_type, created_at"),
+    supabase.from("levels").select("id, position, projects(slug, title)"),
   ]);
-  for (const result of [profile, sessions, attempts]) if (result.error) throw result.error;
+  for (const result of [profile, sessions, attempts, levels]) if (result.error) throw result.error;
 
   const mySessions = (sessions.data ?? []).map((s) => ({ levelId: s.level_id, status: s.status as Session["status"] }));
   const myAttempts = (attempts.data ?? []).map((a) => ({ levelId: a.level_id, passed: a.passed, mistakeType: a.mistake_type, createdAt: a.created_at }));
   const rate = firstTryPassRate(myAttempts);
   const mistakes = mistakesByType(myAttempts).map((m) => ({ label: labels[m.type] ?? labels.other, count: m.count }));
+
+  // The database id of each level (attempts and sessions use it) and where the level is.
+  const where = new Map<number, Where>(
+    (levels.data ?? []).map((l) => {
+      const project = l.projects as unknown as { slug: string; title: string };
+      return [l.id, { project: project.slug, name: shortName(project.title), level: l.position }];
+    }),
+  );
+  const top = topMistakes(myAttempts).flatMap((m) => {
+    const w = where.get(m.levelId);
+    return w ? [{ ...m, ...w, label: labels[m.type] ?? labels.other }] : [];
+  });
+  const passed = mySessions.filter((s) => s.status === "completed").flatMap((s) => where.get(s.levelId) ?? []);
+  const names = new Map([...where.values()].map((w) => [w.project, w.name]));
+  const terms = termsLearned(loadTerms(), passed);
 
   return (
     <>
@@ -75,6 +99,30 @@ async function Dashboard() {
         />
       </dl>
 
+      {top.length > 0 && (
+        <section className="flex flex-col gap-3 rounded-2xl bg-card p-5 shadow-panel">
+          <div>
+            <h2 className="text-xl font-extrabold tracking-tight">{text.top.heading}</h2>
+            <p className="text-sm text-muted-foreground">{text.top.text}</p>
+          </div>
+          <ul className="flex flex-col gap-2">
+            {top.map((m) => (
+              <li key={m.type} className="flex items-center justify-between gap-3 rounded-xl bg-muted px-3 py-3">
+                <div className="min-w-0">
+                  <p className="font-semibold">{m.label}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {m.count === 1 ? text.chart.count_one : fill(text.chart.count, { n: m.count })} · {fill(text.top.level, { project: m.name, n: m.level })}
+                  </p>
+                </div>
+                <Button asChild className="min-h-11 shrink-0">
+                  <Link href={`/p/${m.project}/${m.level}`}>{text.top.practise}</Link>
+                </Button>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
       <section className="flex flex-col gap-3 rounded-2xl bg-card p-5 shadow-panel">
         <div>
           <h2 className="text-xl font-extrabold tracking-tight">{text.chart.heading}</h2>
@@ -85,6 +133,34 @@ async function Dashboard() {
         ) : (
           <p className="rounded-xl bg-muted px-3 py-3 text-sm text-muted-foreground">{text.chart.empty}</p>
         )}
+      </section>
+
+      <section className="flex flex-col gap-3 rounded-2xl bg-card p-5 shadow-panel">
+        <div>
+          <h2 className="text-xl font-extrabold tracking-tight">{text.terms.heading}</h2>
+          <p className="text-sm text-muted-foreground">{text.terms.text}</p>
+        </div>
+        {terms.length ? (
+          <dl className="flex flex-col gap-3">
+            {terms.map((t) => (
+              <div key={`${t.project} ${t.term}`} className="flex flex-col gap-0.5">
+                <dt className="font-semibold">{t.term}</dt>
+                <dd className="text-sm">{t.definition}</dd>
+                <dd className="text-xs text-muted-foreground">{fill(text.terms.level, { project: names.get(t.project) ?? t.project, n: t.level })}</dd>
+              </div>
+            ))}
+          </dl>
+        ) : (
+          <p className="rounded-xl bg-muted px-3 py-3 text-sm text-muted-foreground">{text.terms.empty}</p>
+        )}
+      </section>
+
+      <section className="flex flex-col gap-2 rounded-2xl bg-card p-5 opacity-60 shadow-panel">
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="text-xl font-extrabold tracking-tight">{text.flashcards.heading}</h2>
+          <Badge>{text.flashcards.soon}</Badge>
+        </div>
+        <p className="text-sm text-muted-foreground">{text.flashcards.text}</p>
       </section>
     </>
   );
