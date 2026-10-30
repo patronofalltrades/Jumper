@@ -5,6 +5,7 @@ import { checkModule, checkPlacement, isModule, type Part } from "@/lib/circuit/
 import { loadBoards, startBoard, startLevels } from "@/lib/content/boards";
 import { loadLevelClips } from "@/lib/content/clips";
 import { loadProjects } from "@/lib/content/load";
+import { demoBoard, demoFrames } from "@/lib/game/build-demo";
 import { carriedClip, type Clip } from "@/lib/game/walkthrough";
 
 // Issue #110: with `carry`, the level clip starts from the learner's own board, with parts maybe in other holes.
@@ -82,5 +83,14 @@ describe("carriedClip", async () => {
     // A wire in each column of breadboard A: no line of 5 is free for the amplifier.
     const full: Part[] = Array.from({ length: 30 }, (_, i) => ({ id: `x${i + 1}`, type: "wire", a: `A-a${i + 1}`, b: `A-f${i + 1}` }));
     expect(carriedClip(bench, finished, full)).toBeNull();
+  });
+
+  it("\"Build it for me\" builds the carried clip on the learner's board, in the same holes (issue #115)", async () => {
+    const carried = await movedLight(4);
+    const clip = carriedClip(bench, clips.get(4)!, carried)!;
+    expect(demoBoard(clip, carried)).toEqual(clip.order);
+    const frames = demoFrames(clip, carried, false, "");
+    expect(frames[0].parts).toEqual(carried);
+    expect(frames.at(-1)!.parts).toEqual(clip.order);
   });
 });

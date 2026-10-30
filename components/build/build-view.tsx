@@ -14,12 +14,14 @@ import { useAlive } from "@/lib/game/alive-store";
 import { boardStore, FinishContext, useBoard, WIRE_COLORS, type Tool } from "@/lib/game/board-store";
 import type { Rules } from "@/lib/circuit/check";
 import { needsAck, type Plan } from "@/lib/game/engine";
+import { putBackParts } from "@/lib/game/put-back";
 import type { SketchStep } from "@/lib/content/schema";
-import sketchText from "@/content/ui/sketch.json";
 import { carriedClip, type Clip } from "@/lib/game/walkthrough";
 import { AliveStage } from "./alive-stage";
+import { BoardActions } from "./board-actions";
+import { BuildDemo, BuildForMe, useDemoRunning } from "./build-for-me";
 import { readSavedLevel, useLevel } from "./autosave";
-import { EMPTY_NOTE, useEmptyBoard, useLevelCheck, useProblemWatch, useSketchLock } from "./check";
+import { useEmptyBoard, useLevelCheck, useProblemWatch, useSketchLock } from "./check";
 import { useFeedback } from "./feedback";
 import { GuideBar, SpotCard, useNoticeTimer } from "./guide";
 import { Hearts, PinnedPopup, PopupLayer, useLaptop, type LevelTask } from "./popups";
@@ -84,6 +86,8 @@ type Props = {
   start: Part[];
   /** True when the level starts with the board of the level before it, so the learner's own board can go on. */
   carry: boolean;
+  /** The last level whose parts `start` holds, for "Put back the level {n} build" (issue #111). 0: no earlier parts. */
+  startLevel?: number;
   /** The levels of the project, for the level select of Save snapshot. */
   levels: LevelOption[];
   /** The walkthrough clip of the level (issue #48). */
@@ -92,7 +96,7 @@ type Props = {
   sketch: SketchStep | null;
 };
 
-export function BuildView({ user, project, levelId, position, eyebrow, title, goal, tasks, rules, bench: spec, start, carry, levels, clip: finished, sketch }: Props) {
+export function BuildView({ user, project, levelId, position, eyebrow, title, goal, tasks, rules, bench: spec, start, carry, startLevel = 0, levels, clip: finished, sketch }: Props) {
   useKeys();
   useNoticeTimer();
   useFeedback();
@@ -112,6 +116,8 @@ export function BuildView({ user, project, levelId, position, eyebrow, title, go
   const empty = useEmptyBoard();
   // Perch is coming alive on the board: the panels that guide the build step aside (issue #86).
   const alive = useAlive((s) => s.stage !== null);
+  // The demo of "Build it for me" is to watch: the pop-up sheet under the board on a phone hides while it plays (issue #115).
+  const demoRunning = useDemoRunning();
   const mapHref = `/p/${project}`;
   // A level that carries the learner's own board plays its clip on that board (issue #110).
   const base = useBoard((s) => s.base);
@@ -131,6 +137,8 @@ export function BuildView({ user, project, levelId, position, eyebrow, title, go
   // The guide bar tells how to use the tool. A task that needs only "Got it" does not use a tool.
   const task = tasks[progress.index];
   const building = progress.phase === "mistake" || (progress.phase === "task" && !explaining && !!task && !needsAck(task.target));
+  // The Clear and Check row shows while the learner builds. A pop-up over the board, the Check card or the code panel hides it.
+  const actions = progress.phase !== "intro" && !explaining && !conceptOpen && !(progress.phase === "ready_to_check" && levelCheck.state.open) && !codeOpen && !alive;
 
   const popups = (
     <PopupLayer
@@ -224,44 +232,28 @@ export function BuildView({ user, project, levelId, position, eyebrow, title, go
           <FinishContext value={finished?.order}>
             <BuildScene>{laptop && <PinnedPopup tasks={tasks} hidden={conceptOpen || explaining} />}</BuildScene>
           </FinishContext>
-          {/* The guide bar, and the task list below it. Only the panels take clicks; the board gets the rest. Above the Check button, the column stops. */}
+          {/* The guide bar, and the task list below it. Only the panels take clicks; the board gets the rest. Above the Clear and Check row, the column stops. */}
           {progress.phase !== "intro" && !alive && (
-            <div className={cn("pointer-events-none absolute inset-x-0 top-3 z-10 flex flex-col gap-2 px-3", progress.phase === "ready_to_check" ? "bottom-32" : "bottom-3")}>
+            <div className={cn("pointer-events-none absolute inset-x-0 top-3 z-10 flex flex-col gap-2 px-3", progress.phase === "ready_to_check" && actions ? "bottom-32" : actions ? "bottom-20" : "bottom-3")}>
               {building && <GuideBar />}
               <TaskList tasks={tasks} laptop={laptop} code={sketch && { instruction: sketch.task, open: openCode }} small={codeOpen} />
               {/* After the first failed Check, every connection of the level, right or wrong (issue #92). */}
-              {progress.fails > 0 && <ConnectionList rules={rules} />}
+              {progress.fails > 0 && <ConnectionList rules={rules} laptop={laptop} small={codeOpen} />}
             </div>
           )}
-          {/* The learner closed the Check card to fix the board: the Check button stays at the bottom of the board. */}
-          {progress.phase === "ready_to_check" && !explaining && !levelCheck.state.open && !codeOpen && !alive && (
-            <div className="absolute inset-x-3 bottom-4 z-20 flex flex-col items-center gap-2">
-              {empty && (
-                <p id={EMPTY_NOTE} className="max-w-xs rounded-xl bg-card px-3 py-2 text-center text-sm font-semibold shadow-panel">
-                  {text.play.check.empty}
-                </p>
-              )}
-              {locked && (
-                <button
-                  type="button"
-                  onClick={openCode}
-                  className="min-h-12 rounded-xl border-b-4 border-primary-deep bg-primary px-8 text-base font-extrabold tracking-wide text-primary-foreground uppercase shadow-panel outline-none focus-visible:ring-2 focus-visible:ring-ring active:translate-y-0.5 active:border-b-2"
-                >
-                  {sketchText.panel.open}
-                </button>
-              )}
-              <button
-                type="button"
-                onClick={() => void levelCheck.check()}
-                disabled={empty || locked}
-                aria-describedby={empty ? EMPTY_NOTE : undefined}
-                className="min-h-12 rounded-xl border-b-4 border-primary-deep bg-primary px-8 text-base font-extrabold tracking-wide text-primary-foreground uppercase shadow-panel outline-none focus-visible:ring-2 focus-visible:ring-ring active:translate-y-0.5 active:border-b-2 disabled:border-border disabled:bg-muted disabled:text-muted-foreground"
-              >
-                {text.play.check.button}
-              </button>
-            </div>
+          {/* The button row at the bottom of the board: Clear, and Check (on when all tasks are done). Hidden while a card is open (issue #114), and while "Build it for me" plays (issue #115). */}
+          {actions && !demoRunning && (
+            <BoardActions
+              ready={progress.phase === "ready_to_check"}
+              empty={empty}
+              locked={locked}
+              onCheck={() => void levelCheck.check()}
+              onOpenCode={openCode}
+              extra={<BuildForMe clip={clip} />}
+            />
           )}
           <SpotCard />
+          <BuildDemo clip={clip} position={position} />
           <AliveStage />
           {laptop && !codeOpen && popups}
           {otherTab && (
@@ -289,8 +281,8 @@ export function BuildView({ user, project, levelId, position, eyebrow, title, go
         )}
       </div>
 
-      {!laptop && !codeOpen && popups}
-      {!(codeOpen && !laptop) && <ToolBar />}
+      {!laptop && !codeOpen && !demoRunning && popups}
+      {!(codeOpen && !laptop) && <ToolBar start={start} startLevel={startLevel} />}
       {clip && watching && (
         <ClipPlayer
           clip={clip}
@@ -305,17 +297,41 @@ export function BuildView({ user, project, levelId, position, eyebrow, title, go
   );
 }
 
-function ToolBar() {
+/** `start`, `startLevel`: the ready-made parts of the earlier levels, for "Put back the level {n} build" (issue #111). */
+function ToolBar({ start, startLevel }: { start: Part[]; startLevel: number }) {
   const tool = useBoard((s) => s.tool);
   const canUndo = useBoard((s) => s.history.length > 0);
   const { undo } = boardStore.getState();
+  // The button shows in a level that starts with earlier parts. It is off when no ready-made part is missing.
+  const missing = useBoard((s) => {
+    if (!start.length || s.readOnly) return false;
+    const { back, blocked } = putBackParts(s.bench, s.parts, start);
+    return back.length + blocked.length > 0;
+  });
+  const [note, setNote] = useState<string | null>(null);
+  useEffect(() => {
+    if (!note) return;
+    const timer = setTimeout(() => setNote(null), 5000);
+    return () => clearTimeout(timer);
+  }, [note]);
+  const putBack = () => {
+    const { back, blocked } = boardStore.getState().putBack(start);
+    const n = blocked.length;
+    setNote(n ? (n === 1 ? text.putBack.blockedOne : fill(text.putBack.blocked, { count: n })) : back.length ? fill(text.putBack.done, { n: startLevel }) : null);
+  };
+  const putBackLabel = fill(text.putBack.button, { n: startLevel });
 
   return (
     <div className="z-10 border-t border-border bg-card px-3 pt-2 pb-[max(env(safe-area-inset-bottom),10px)] sm:px-4">
       <div className="mx-auto flex max-w-2xl flex-col gap-2">
+        {note && (
+          <p role="status" className="rounded-xl bg-muted px-3 py-1.5 text-center text-sm font-semibold">
+            {note}
+          </p>
+        )}
         {/* The row keeps its space for every tool, so the board does not move when the tool changes. */}
         <div className="h-11">{inTray(tool) ? <Tray tool={tool} /> : <Swatches hidden={tool !== "wire"} />}</div>
-        <div className="grid grid-cols-6 gap-1 sm:gap-2" role="toolbar" aria-label="Tools">
+        <div className={cn("grid gap-1 sm:gap-2", start.length ? "grid-cols-7" : "grid-cols-6")} role="toolbar" aria-label="Tools">
           {TOOLS.map((t) => (
             <ToolButton
               key={t.tool}
@@ -330,6 +346,11 @@ function ToolBar() {
           <ToolButton onClick={undo} label="Undo" shortcut="Ctrl+Z" disabled={!canUndo}>
             {icon("M9 14 4 9l5-5M4 9h10a6 6 0 0 1 0 12h-3")}
           </ToolButton>
+          {start.length > 0 && (
+            <ToolButton onClick={putBack} label={text.putBack.short} shortcut="" title={putBackLabel} aria-label={putBackLabel} disabled={!missing}>
+              {icon("M3 12a9 9 0 1 0 3-6.7M3 4v5h5M12 8v4l3 2")}
+            </ToolButton>
+          )}
         </div>
       </div>
     </div>

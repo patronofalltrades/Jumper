@@ -10,11 +10,12 @@ import type { End } from "./parts";
 // ghost wire between them. They stay until the connection is right. The red is the buzz color of build-scene.tsx.
 const RED = new Color("#E5432F");
 
-export function ProblemMarks({ ends }: { ends: End[] }) {
+/** `color`: red for a problem; the hologram of a connection row uses the guide color (issue #113). */
+export function ProblemMarks({ ends, color = RED }: { ends: End[]; color?: Color }) {
   const invalidate = useThree((s) => s.invalidate);
   useLayoutEffect(() => {
     invalidate();
-  }, [ends, invalidate]);
+  }, [ends, color, invalidate]);
 
   if (ends.length === 0) return null;
   const [from, to] = ends;
@@ -23,7 +24,7 @@ export function ProblemMarks({ ends }: { ends: End[] }) {
       {ends.map((end) => (
         <mesh key={end.id} position={[end.x, (end.lift ?? 0) + 0.05, end.z]} rotation={[-Math.PI / 2, 0, 0]} raycast={() => null}>
           <ringGeometry args={[0.5, 0.7, 28]} />
-          <meshBasicMaterial color={RED} />
+          <meshBasicMaterial color={color} />
         </mesh>
       ))}
       {to && (
@@ -32,7 +33,7 @@ export function ProblemMarks({ ends }: { ends: End[] }) {
             [from.x, (from.lift ?? 0) + 0.3, from.z],
             [to.x, (to.lift ?? 0) + 0.3, to.z],
           ]}
-          color={RED}
+          color={color}
           lineWidth={2}
           dashed
           dashSize={0.35}
