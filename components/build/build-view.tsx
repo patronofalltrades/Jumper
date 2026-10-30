@@ -323,14 +323,14 @@ function ToolBar({ start, startLevel }: { start: Part[]; startLevel: number }) {
 
   return (
     <div className="z-10 border-t border-border bg-card px-3 pt-2 pb-[max(env(safe-area-inset-bottom),10px)] sm:px-4">
-      <div className="mx-auto flex max-w-2xl flex-col gap-2">
+      <div className="mx-auto flex max-w-2xl flex-col gap-2 max-sm:gap-1">
         {note && (
           <p role="status" className="rounded-xl bg-muted px-3 py-1.5 text-center text-sm font-semibold">
             {note}
           </p>
         )}
         {/* The row keeps its space for every tool, so the board does not move when the tool changes. */}
-        <div className="h-11">{inTray(tool) ? <Tray tool={tool} /> : <Swatches hidden={tool !== "wire"} />}</div>
+        <div className="h-11 max-sm:h-10">{inTray(tool) ? <Tray tool={tool} /> : <Swatches hidden={tool !== "wire"} />}</div>
         <div className={cn("grid gap-1 sm:gap-2", start.length ? "grid-cols-7" : "grid-cols-6")} role="toolbar" aria-label="Tools">
           {TOOLS.map((t) => (
             <ToolButton
@@ -370,7 +370,7 @@ function ToolButton({
       aria-pressed={pressed}
       title={`${label} (${shortcut})`}
       className={cn(
-        "flex min-h-14 flex-col items-center justify-center gap-0.5 rounded-xl border border-b-4 text-xs font-semibold transition-[transform,border] outline-none focus-visible:ring-2 focus-visible:ring-ring active:translate-y-0.5 active:border-b-2 disabled:opacity-40",
+        "flex min-h-14 flex-col items-center justify-center gap-0.5 rounded-xl border border-b-4 text-xs font-semibold max-sm:min-h-12 transition-[transform,border] outline-none focus-visible:ring-2 focus-visible:ring-ring active:translate-y-0.5 active:border-b-2 disabled:opacity-40",
         pressed ? "border-primary-deep bg-primary text-primary-foreground" : "border-border bg-card text-foreground",
       )}
       {...props}

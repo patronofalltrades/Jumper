@@ -421,7 +421,7 @@ export function PopupLayer({ level, conceptOpen, onConceptDone, check }: { level
       <Card mistake={mistake} className="w-full max-w-md rounded-2xl">{body}</Card>
     </div>
   ) : (
-    <div className="z-10 h-60 shrink-0 overflow-y-auto border-t border-border bg-card">
+    <div className="z-10 h-40 shrink-0 overflow-y-auto border-t border-border bg-card">
       {/* The last row of each pop-up has its buttons: it stays at the bottom of the sheet when the text scrolls. */}
       <Card mistake={mistake} className="min-h-full border-0 shadow-none *:last:sticky *:last:bottom-0 *:last:bg-card *:last:py-1">
         {body}
