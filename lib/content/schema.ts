@@ -114,3 +114,9 @@ export const sketchStepSchema = z.object({
 export const sketchesSchema = z.object({ levels: z.record(position, sketchStepSchema) });
 
 export type SketchStep = z.infer<typeof sketchStepSchema>;
+
+// content/terms/<project>.json: the terms of one project, each tied to the level that teaches it (lib/content/terms.ts).
+export const termsFileSchema = z.object({
+  project: z.string().regex(/^[a-z0-9-]+$/),
+  terms: z.array(z.object({ term: z.string().min(1), definition: z.string().min(1), level: z.number().int().positive() })).min(1),
+});
