@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useLayoutEffect, useState } from "react";
-import { Volt } from "@/components/art/volt";
+import { Mascot } from "@/components/art/mascot";
 import { PlayIcon, WatchButton } from "@/components/walkthrough/watch-button";
 import text from "@/content/ui/build.json";
 import mascot from "@/content/ui/mascot.json";
@@ -10,6 +10,7 @@ import watch from "@/content/ui/walkthrough.json";
 import { levelStatuses, type LevelStatus } from "@/lib/game/map";
 import { mascotLevel } from "@/lib/game/mascot";
 import { animateFrom, countValue, parseStoredProgress, type MapProgress } from "@/lib/game/map-progress";
+import type { MascotId } from "@/lib/game/project-mascot";
 import type { Clip } from "@/lib/game/walkthrough";
 import { cn } from "@/lib/utils";
 
@@ -22,7 +23,7 @@ const fill = (template: string, values: Record<string, string | number>) => temp
 // The levels of a project on the level map, on a path. When the learner passed a level since the last visit in this browser,
 // the map starts at the old state, then moves to the new one once: the path fills, the next level opens, the XP counts up.
 // The server draws the end state, so a first visit, a visit with no change, and reduced motion show it with no animation.
-export function LevelPath({ storageKey, levels, server }: { storageKey: string; levels: PathLevel[]; server: MapProgress }) {
+export function LevelPath({ storageKey, levels, server, character }: { storageKey: string; levels: PathLevel[]; server: MapProgress; character: MascotId }) {
   const [anim, setAnim] = useState<{ from: MapProgress; to: MapProgress } | null>(null);
   const [reached, setReached] = useState(false);
   const [xp, setXp] = useState(server.xp);
@@ -88,6 +89,7 @@ export function LevelPath({ storageKey, levels, server }: { storageKey: string; 
             shift={[0, 1, 0, -1][i % 4]}
             last={i === levels.length - 1}
             here={i === here}
+            character={character}
             animating={anim !== null}
             moving={reached}
             clip={level.clip}
@@ -132,6 +134,7 @@ function Node({
   shift,
   last,
   here,
+  character,
   animating,
   moving,
   clip,
@@ -144,6 +147,7 @@ function Node({
   shift: number;
   last: boolean;
   here: boolean;
+  character: MascotId;
   animating: boolean;
   moving: boolean;
   clip?: Clip;
@@ -185,10 +189,10 @@ function Node({
       </span>
     </span>
   );
-  // Volt stands on the level to play now, at the end of its row. It hops in when the marker moves here during an animation.
+  // The mascot of the project stands on the level to play now, at the end of its row. It hops in when the marker moves here during an animation.
   const volt = here && (
     <span className={cn("ml-auto shrink-0", animating && "rise-in")} title={mascot.map.here}>
-      <Volt pose="idle" className="h-16 w-auto" />
+      <Mascot id={character} pose="idle" className="h-16 w-auto" />
       <span className="sr-only">{mascot.map.here}</span>
     </span>
   );

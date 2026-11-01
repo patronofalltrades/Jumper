@@ -9,6 +9,7 @@ import { Dock } from "@/components/dock";
 import text from "@/content/ui/build.json";
 import { loadLevelClips } from "@/lib/content/clips";
 import { passedLevels, shortName } from "@/lib/game/featured";
+import { loadMascot } from "@/lib/content/mascot";
 import { mapProgressKey } from "@/lib/game/map-progress";
 import { createClient } from "@/lib/supabase/server";
 
@@ -62,6 +63,8 @@ async function LevelMap({ slug }: { slug: string }) {
   ]);
   if (profileError) throw profileError;
 
+  // The project's mascot stands on the level to play now (feature/mascots).
+  const character = loadMascot(project.slug);
   const clips = await loadLevelClips(project.slug);
   const levels: PathLevel[] = project.levels.map((level) => ({
     position: level.position,
@@ -87,7 +90,7 @@ async function LevelMap({ slug }: { slug: string }) {
         <p className="text-muted-foreground">{project.tagline}</p>
       </header>
 
-      <LevelPath storageKey={mapProgressKey(auth.claims.sub, project.slug)} levels={levels} server={{ passed, xp: profile?.xp ?? 0 }} />
+      <LevelPath storageKey={mapProgressKey(auth.claims.sub, project.slug)} levels={levels} server={{ passed, xp: profile?.xp ?? 0 }} character={character} />
 
       <InvitePanel projectId={project.id} ownEmail={auth.claims.email ?? ""} people={people} />
     </section>
