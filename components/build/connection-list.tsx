@@ -6,6 +6,7 @@ import type { Bench } from "@/lib/circuit/bench";
 import { connectionStates, type ConnectionState, type Rules } from "@/lib/circuit/check";
 import type { Part } from "@/lib/circuit/parts";
 import { useBoard } from "@/lib/game/board-store";
+import { panelStartsOpen } from "@/lib/game/phone-layout";
 import { connectionHologram } from "@/lib/game/hologram";
 import { cn } from "@/lib/utils";
 import { HologramRow } from "./hologram-row";
@@ -26,7 +27,7 @@ export function ConnectionList({ rules, laptop, small = false }: { rules: Rules;
   const parts = useBoard((s) => s.parts);
   const states = useMemo(() => connectionStates(bench, parts, rules), [bench, parts, rules]);
   const done = states.filter((s) => s.ok).length;
-  const [open, toggle] = usePanelOpen(laptop && !small);
+  const [open, toggle] = usePanelOpen(panelStartsOpen(laptop, small));
 
   return (
     <section

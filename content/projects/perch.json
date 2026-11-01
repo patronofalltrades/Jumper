@@ -3,6 +3,7 @@
   "title": "Perch: a home for your AI agent",
   "tagline": "A little desk friend with a button, a light, ears, a voice and a face",
   "board": "ESP32-S3",
+  "mascot": "volt",
   "status": "available",
   "position": 1,
   "levels": [
