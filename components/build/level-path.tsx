@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useLayoutEffect, useState } from "react";
 import { Mascot } from "@/components/art/mascot";
+import { ScrollHere } from "@/components/map/scroll-here";
 import { PlayIcon, WatchButton } from "@/components/walkthrough/watch-button";
 import text from "@/content/ui/build.json";
 import mascot from "@/content/ui/mascot.json";
@@ -160,6 +161,7 @@ function Node({
         status === "locked" ? "border-border bg-muted text-muted-foreground" : "border-primary-deep bg-primary text-primary-foreground",
         status === "open" && "ring-4 ring-probe ring-offset-4 ring-offset-card",
         status !== "locked" && "group-active:translate-y-1 group-active:border-b-2",
+        here && "motion-safe:animate-pulse",
       )}
     >
       <span className={stage(status === "done", moving)} aria-hidden={status !== "done"}>
@@ -199,6 +201,7 @@ function Node({
   const row = "group flex min-h-20 min-w-0 flex-1 items-center gap-4 rounded-2xl p-2 outline-none focus-visible:ring-2 focus-visible:ring-ring";
   return (
     <li className="flex flex-col" style={{ paddingLeft: `${(shift + 1) * 2.25}rem` }}>
+      {here && <ScrollHere />}
       <div className="flex items-center gap-1">
         {status === "locked" ? (
           <div className={row} aria-disabled="true">
