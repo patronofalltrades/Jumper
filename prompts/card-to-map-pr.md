@@ -25,11 +25,12 @@ Plain English: the tests check the two links of the Perch card. The card body mu
 - Browser, local only: temporary routes with mock data (removed before the commit), in Chromium at 1280 x 800 and 390 x 844. Each card: the body link and the ▶ link are both found; `nested links: 0`. `elementFromPoint` on the title, the empty area, and the Perch picture returns `/p/perch`. On the ▶ button it returns `/p/perch/2` (started) or `/p/perch/1` (new). No page errors. The map check (temporary page with the same `ScrollHere` component): the level 4 row scrolled into view (level 4 at 382 px from the top on a 844 px screen). Level 4 has the pulse animation; with reduced motion, no level has it. Screenshots: `prompts/card-to-map-screens/`.
 - A real change that makes the test fail: if `featuredHrefs` returns the level link as `mapHref` (`/p/perch/2` instead of `/p/perch`), the body test fails.
 
-## Choices for Hanif
-1. The card uses a stretched link: one link for the body, and a separate ▶ link on top. Is this OK, or do you want a different pattern?
-2. The current level pulses with `animate-pulse` (opacity). Do you want a different pulse, for example a scale pulse?
-3. On load, the map scrolls the current level to the centre of the screen. Is that the right position?
-4. The card's `group` is now the `article`, not the link. Pressing the card still moves the ▶ button, as before.
+## Decided by Hanif
+Hanif answered "keep current choices". The code stays as it is.
+1. The card uses a stretched link: one link for the body, and a separate ▶ link on top.
+2. The current level pulses with `animate-pulse` (opacity), with motion-safe only.
+3. On load, the map scrolls the current level to the centre of the screen.
+4. The card's `group` is the `article`, not the link. Pressing the card still moves the ▶ button.
 
 ## Not checked
 - The lobby and the level map with a real log-in and real data. The live app was not used, and no account was made.

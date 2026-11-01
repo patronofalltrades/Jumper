@@ -11,6 +11,8 @@
    - Red test first: `tests/continue.test.ts`, `featuredHrefs` (commit `d4c71a2`).
    - Change that makes it green (commit `2f5d942`): the card body opens the map, the play button opens the level, the dock's Build button opens the map, and the level map scrolls to and pulses the current level.
 
+3. Hanif's decision on the questions for the PR (his words, from the parent session's relay): "keep current choices". Claude's work (not Hanif's words): the four choices in the PR text are kept, and the PR text now says they are decided.
+
 ## Ledger notes
 
 How it works:
