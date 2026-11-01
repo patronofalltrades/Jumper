@@ -265,13 +265,14 @@ function heartsText(fails: number) {
   return fill(text.play.check.lostHeart, { n: hearts });
 }
 
-/** The fail that takes the last heart (issue #124): Volt, the reason, what occurred, and three choices. */
+/** The fail that takes the last heart (issue #124): the project's mascot, the reason, what occurred, and three choices. */
 function OutOfHearts({ reason, check, onCheck, onWatch, clip }: { reason: string; check: LevelCheck; onCheck: () => void; onWatch: () => void; clip: Clip | null }) {
   const t = text.play.check.outOfHearts;
+  const mascot = useContext(MascotContext);
   return (
     <>
       <div className="flex items-center gap-2">
-        <Volt pose="oops" label className="h-14 w-auto shrink-0 sm:h-16" />
+        <Mascot id={mascot} pose="oops" label className="h-14 w-auto shrink-0 sm:h-16" />
         <Chip tone="mistake">{text.play.kind.mistake}</Chip>
       </div>
       <h2 className="text-2xl leading-tight font-extrabold tracking-tight">{t.title}</h2>
