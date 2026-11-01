@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { MASCOT_IDS } from "../game/project-mascot";
 
 // A pin on a part on the board: "<part id>.<pin>", for example "mic1.WS", "esp.GPIO4", "uno.D13" or "bbA.+" (a breadboard rail).
 export const endpointSchema = z.string().regex(/^[a-z][A-Za-z0-9]*\.[A-Za-z0-9+-]+$/, "Use <part>.<pin>, for example mic1.WS");
@@ -43,6 +44,7 @@ export const projectSchema = z
     title: z.string().min(1),
     tagline: z.string().min(1),
     board: z.string().min(1),
+    mascot: z.enum(MASCOT_IDS).optional(),
     status: z.enum(["available", "coming_soon"]),
     position: z.number().int().positive(),
     levels: z.array(levelSchema),
