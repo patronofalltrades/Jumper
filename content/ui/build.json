@@ -195,7 +195,13 @@
         "st7789-154": "screen"
       },
       "lostHeart": "You lost 1 heart. Hearts left: {n}.",
-      "noHearts": "You have no hearts left. You can check again. If the next Check fails, you get 3 new hearts.",
+      "outOfHearts": {
+        "title": "Out of hearts",
+        "body": "You lost your last heart. You have 0 hearts left.",
+        "retry": "Try again",
+        "retryNote": "If this Check fails, you get 3 new hearts.",
+        "watch": "Watch the level clip"
+      },
       "refilled": "You get 3 new hearts. Read the reason above, then try again.",
       "fix": "Fix the board",
       "redo": "Redo this step",

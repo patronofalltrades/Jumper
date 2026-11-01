@@ -169,6 +169,8 @@ function BuildBoard({ user, project, levelId, position, eyebrow, title, goal, ta
         },
         sketch: sketch && { passed: codePassed, open: openCode },
         position,
+        clip,
+        onWatch: () => setWatching(true),
       }}
     />
   );
