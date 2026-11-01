@@ -241,6 +241,7 @@
       "locked": "Locked"
     },
     "lockedHint": "Pass level {n} to open this level.",
-    "start": "Start"
+    "start": "Start",
+    "xp": "{n} XP"
   }
 }
