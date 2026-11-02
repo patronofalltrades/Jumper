@@ -11,6 +11,9 @@
     "end": "This is the full build of level {n}. Now the board goes back to the start. You build it!",
     "stop": "Stop"
   },
+  "header": {
+    "eyebrow": "{project} · {board} · Level {n}"
+  },
   "guide": {
     "wire": {
       "start": "{act} a glowing hole. This is where the wire starts.",
