@@ -218,16 +218,26 @@ Claude suggests this arc. Hanif can change it or drop it. The arc has two thread
 
 **Priority in the report.** Quick wins (content only): the microcontroller label, part descriptions, pin reasons. Medium: voltages, voice, story cases. Large: code and simulation. The report calls the large item a decision about the position of the product.
 
+**Each request against the road map (Claude's check of the repository, Nov 2).**
+
+| # | Request | Status in Jumper | Size for Nov 4 |
+| --- | --- | --- | --- |
+| 1 | Code and simulation | Partly built. Arduino Foundations has a code editor, and the sketch runs on the 3D board (Plan vs. Reality row 22). Perch comes alive after each level: LED, mic meter, voice, face (row 11, Done). Perch has no code step. No tool simulates voltage or current. The users did not mention these features, so maybe they did not find them. | Large. Not before Nov 4. |
+| 2 | Why this pin, and what occurs with a wrong pin | Partly built. Each task has a "why" pop-up (`popup_why`) and a Concept card. A failed Check gives a reason and where the wire goes now (rows 31 to 39). No task says what occurs with a wrong pin before the learner makes the mistake. | Medium (content in JSON). |
+| 3 | Name of the microcontroller | Partly built. The catalog cards and the level map show the board (ESP32-S3, Arduino Uno). Build mode does not show it. | Small. |
+| 4 | Voltage at points of the circuit | Not on the road map. The PRD says: "It does not simulate electrical behavior." The Arduino Foundations Ohm's law concept gives the numbers for one LED as text. | Large (new logic in `lib/circuit`). |
+| 5 | A voice that reads the steps | Not on the road map. Speech Synthesis is already in the TRD and in the app (Perch level 4 speaks), so no new dependency is necessary. | Small to medium. |
+| 6 | A description of each part | Partly built. The parts tray shows only names. The terms on the dashboard give definitions after a level passes. | Small (content in JSON). |
+| 7 | Story problems and assessments | Not on the road map. | Medium to large. |
+
 **Claude notes (not the users' voice, not Hanif's voice).**
-- The request for simulation agrees with Feature 11 ("It's alive" simulation of Perch). Chapter 8 says that Feature 11 is not built. Arduino Foundations has a code step that runs on the 3D board, but the users did not mention it. Claude does not know if the users played that project.
-- Perch uses an ESP32-S3 board (see `CLAUDE.md`). Claude did not check where the app shows the board name to the learner.
-- These are 2 users. The report does not include the original messages in Bahasa Indonesia.
+- Chapter 8 (written Oct 27) says that Feature 11 is not built. Row 11 of "Plan vs. Reality" now says Done. Use row 11.
+- These are 2 users only.
 
 **For Hanif.**
-- Did the feedback confirm or change your cut of Feature 11?
-- Which of the 7 requests would you build next, and why?
+- Which of the 7 requests did you build after the feedback, and why?
 - The users praised "to the point". How do you add the "why" without more text on the screen?
-- Do you want to keep the original messages as evidence? If yes, add them to the repository.
+- Two users asked for simulation, and Jumper has some of it. What does this tell you about discoverability?
 
 ## Recurring patterns
 
