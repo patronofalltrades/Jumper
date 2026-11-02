@@ -185,6 +185,50 @@ Claude suggests this arc. Hanif can change it or drop it. The arc has two thread
 - Which unplanned feature do you think was the right call? Which one cost the most time?
 - What did you cut, and what did the cut order in the plan tell you?
 
+## Pilot user feedback (Nov 2, 2026)
+
+**Source.** Two pilot users sent short messages on Nov 2, 2026. They wrote in Bahasa Indonesia. Hanif gave Claude a report with an English translation. The quotes below are close translations, not the exact words of the users. One user said that they did not try all the features. Thus, use these results as a direction, not as a proof.
+
+**What the users liked.**
+- Fast learning. One user learned faster with Jumper than with wiring diagrams or YouTube videos. Quote (translated): "more to the point".
+- A clean interface. No user had a problem with the navigation or the layout.
+- The flow: hardware assembly only, in levels of difficulty. This makes Jumper different from general simulators.
+- Both users were positive. One user wrote (translated): "the app is cool". No user reported a bug, a crash, or a confusing step.
+
+**What the users did not have.** No user disliked a feature that exists. Each item is a missing capability. The users compare Jumper with circuit simulators (Wokwi, Tinkercad, Cirkit Designer) and with electronics math by hand.
+- No code and no simulation. The users cannot see if the circuit works.
+- No "why". The app shows where a wire goes, but not why a part connects to that pin, or what occurs if it connects to a different pin.
+- No voltages. The users must calculate the voltage drop by hand (for example, the voltage at an LED after a 220 Ω resistor).
+- The project does not say which microcontroller it uses (Arduino, ESP32).
+- The component library has no description of each part.
+
+**What the users asked for.**
+1. A code editor and a simulation mode, as in Wokwi, Tinkercad and Cirkit Designer.
+2. The datasheet and input/output reason for each pin connection, and what occurs with a wrong connection.
+3. The name of the microcontroller in each project.
+4. The voltage at points of the circuit while the learner builds.
+5. A voice that reads the assembly steps, for example "Install a 220 ohm resistor in the circuit".
+6. A description of each part in the component library.
+7. Story problems or assessments that use the finished build.
+
+**Patterns in the report.**
+- Both users asked for more "why", not more "what".
+- The users come with simulator habits. They expect simulation by default.
+- Jumper wins on clarity. New depth must keep the app direct.
+
+**Priority in the report.** Quick wins (content only): the microcontroller label, part descriptions, pin reasons. Medium: voltages, voice, story cases. Large: code and simulation. The report calls the large item a decision about the position of the product.
+
+**Claude notes (not the users' voice, not Hanif's voice).**
+- The request for simulation agrees with Feature 11 ("It's alive" simulation of Perch). Chapter 8 says that Feature 11 is not built. Arduino Foundations has a code step that runs on the 3D board, but the users did not mention it. Claude does not know if the users played that project.
+- Perch uses an ESP32-S3 board (see `CLAUDE.md`). Claude did not check where the app shows the board name to the learner.
+- These are 2 users. The report does not include the original messages in Bahasa Indonesia.
+
+**For Hanif.**
+- Did the feedback confirm or change your cut of Feature 11?
+- Which of the 7 requests would you build next, and why?
+- The users praised "to the point". How do you add the "why" without more text on the screen?
+- Do you want to keep the original messages as evidence? If yes, add them to the repository.
+
 ## Recurring patterns
 
 Claude saw these in the ledger. Hanif can accept or reject each one.
