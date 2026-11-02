@@ -30,6 +30,7 @@ import { Hearts, PinnedPopup, PopupLayer, useLaptop, type LevelTask } from "./po
 import { SketchPanel } from "./sketch-panel";
 import { TaskList } from "./task-list";
 import { ConnectionList } from "./connection-list";
+import { readAloud, stopReading, useReadSteps } from "./read-aloud";
 import { cn } from "@/lib/utils";
 
 export type { LevelTask };
@@ -151,6 +152,22 @@ function BuildBoard({ user, project, levelId, position, eyebrow, title, goal, ta
   const building = progress.phase === "mistake" || (progress.phase === "task" && !explaining && !!task && !needsAck(task.target));
   // The Clear and Check row shows while the learner builds. A pop-up over the board, the Check card or the code panel hides it.
   const actions = progress.phase !== "intro" && !explaining && !conceptOpen && !(progress.phase === "ready_to_check" && levelCheck.state.open) && !codeOpen && !alive;
+
+  // Read the task aloud (issue #135). With "Read steps aloud" on, each new task is read by itself. The voice stops when
+  // the learner leaves the level, or opens the Check card (the Build-it-for-me demo stops it in its own button).
+  const [readSteps] = useReadSteps();
+  const taskOpen = progress.phase === "task" && !explaining;
+  const taskText = taskOpen ? tasks[progress.index]?.instruction : undefined;
+  useEffect(() => {
+    if (readSteps && taskText) readAloud(taskText);
+  }, [readSteps, taskText, progress.index]);
+  useEffect(() => {
+    return () => stopReading();
+  }, [levelId]);
+  const checkOpen = levelCheck.state.open;
+  useEffect(() => {
+    if (checkOpen) stopReading();
+  }, [checkOpen]);
 
   const popups = (
     <PopupLayer

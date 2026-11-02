@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import { HologramRow } from "./hologram-row";
 import { PanelHeader, usePanelOpen } from "./panel-header";
 import type { LevelTask } from "./popups";
+import { ReadStepsSwitch, SpeakButton, useSpeechSupported } from "./read-aloud";
 
 // The task list (issue #52): every task of the level, with a tick for each task that the board does now.
 // Laptop: it starts open. Phone: it starts as a small chip, and a tap opens it over the board.
@@ -37,6 +38,7 @@ export function TaskList({ tasks, laptop, code, small = false }: { tasks: LevelT
   const [open, toggle] = usePanelOpen(panelStartsOpen(laptop, small));
   const list = useRef<HTMLOListElement>(null);
   const now = marks.indexOf("now");
+  const speaks = useSpeechSupported();
 
   // Keep the task of now in view when the list scrolls. The braces matter: a new browser gives a Promise from
   // scrollIntoView, and an effect that gives back a Promise stops the page.
@@ -74,6 +76,8 @@ export function TaskList({ tasks, laptop, code, small = false }: { tasks: LevelT
                 <Mark mark={mark} />
                 <span className="sr-only">{text.tasks.state[mark]}:</span>
                 <span className={cn("flex-1", mark === "done" && "text-muted-foreground", mark === "now" && "font-bold")}>{instruction}</span>
+                {/* The current task can be read aloud (issue #135). */}
+                {mark === "now" && <SpeakButton line={instruction} className="-my-1" />}
                 {/* A part that is always on the bench: "Got it" finishes its task here too, as in its pop-up. */}
                 {task && mark === "now" && progress.phase === "task" && needsAck(task.target) && (
                   <button
@@ -98,6 +102,11 @@ export function TaskList({ tasks, laptop, code, small = false }: { tasks: LevelT
             );
           })}
         </ol>
+      )}
+      {open && speaks && (
+        <div className="border-t border-border p-2">
+          <ReadStepsSwitch />
+        </div>
       )}
     </section>
   );
