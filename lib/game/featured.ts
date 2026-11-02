@@ -18,8 +18,16 @@ export type Featured = {
   level: number;
   levelTitle: string | null;
   started: boolean;
+  /** The card body: the level map of the project. */
+  mapHref: string;
+  /** The round play button: the level itself. */
   href: string;
 };
+
+/** The two links of the lobby card: the body opens the map, the play button opens the level. */
+export function featuredHrefs(slug: string, level: number) {
+  return { mapHref: `/p/${slug}`, href: `/p/${slug}/${level}` };
+}
 
 /** The catalog in position order, and the first available project with the level that Continue opens. */
 export async function loadCatalog(supabase: Supabase): Promise<{ catalog: ProjectRow[]; featured: Featured | null }> {
@@ -43,7 +51,7 @@ export async function loadCatalog(supabase: Supabase): Promise<{ catalog: Projec
 
   return {
     catalog,
-    featured: { project, ...target, levelTitle: level?.title ?? null, href: `/p/${project.slug}/${target.level}` },
+    featured: { project, ...target, levelTitle: level?.title ?? null, ...featuredHrefs(project.slug, target.level) },
   };
 }
 

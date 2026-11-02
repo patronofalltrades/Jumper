@@ -35,29 +35,38 @@ export function TabSwitch({ tab }: { tab: Tab }) {
 export const CARD = "relative flex min-h-[15rem] flex-col overflow-hidden rounded-[28px] p-6 sm:h-[29rem] sm:p-8";
 
 export function ContinueCard({ featured, name }: { featured: Featured; name: string }) {
-  const { project, level, levelTitle, started, href } = featured;
+  const { project, level, levelTitle, started, mapHref, href } = featured;
   return (
-    <Link href={href} className={cn(CARD, "group min-h-[24rem] w-full bg-card sm:w-[84vw] sm:max-w-[32rem] text-foreground shadow-panel")}>
-      <span className="text-sm font-medium text-muted-foreground">Hi, {name}</span>
-      <h2 className="mt-3 text-5xl leading-[0.95] font-extrabold tracking-tight sm:text-6xl">
-        {started ? "Continue" : "Start"}
-        <br />
-        {shortName(project.title)}
-      </h2>
-      {/* The text stays in front of the picture, and a long level name wraps before it gets to the picture. */}
-      <p className="relative z-10 mt-4 text-base text-balance sm:max-w-[15rem] text-muted-foreground">
-        Level {level}
-        {levelTitle && ` · ${levelTitle}`}
-      </p>
-      <p className="relative z-10 mt-1 font-mono text-xs font-medium tracking-wide text-muted-foreground uppercase">{project.board}</p>
-      <PerchArt className="absolute -right-8 -bottom-6 w-56 transition-transform group-hover:-rotate-3 sm:w-64" />
-      <span className="mt-auto flex size-16 items-center justify-center rounded-full border-b-4 border-primary-deep bg-primary text-primary-foreground transition-[transform,border] group-active:translate-y-0.5 group-active:border-b-2">
+    <article className={cn(CARD, "group min-h-[24rem] w-full bg-card sm:w-[84vw] sm:max-w-[32rem] text-foreground shadow-panel")}>
+      {/* The body opens the level map. The link covers the whole card, and the play button sits above it, so no link is inside a link. */}
+      <Link
+        href={mapHref}
+        className="block outline-none after:absolute after:inset-0 after:rounded-[28px] focus-visible:after:ring-2 focus-visible:after:ring-ring"
+      >
+        <span className="text-sm font-medium text-muted-foreground">Hi, {name}</span>
+        <h2 className="mt-3 text-5xl leading-[0.95] font-extrabold tracking-tight sm:text-6xl">
+          {started ? "Continue" : "Start"}
+          <br />
+          {shortName(project.title)}
+        </h2>
+        {/* The text stays in front of the picture, and a long level name wraps before it gets to the picture. */}
+        <p className="relative z-10 mt-4 text-base text-balance sm:max-w-[15rem] text-muted-foreground">
+          Level {level}
+          {levelTitle && ` · ${levelTitle}`}
+        </p>
+        <p className="relative z-10 mt-1 font-mono text-xs font-medium tracking-wide text-muted-foreground uppercase">{project.board}</p>
+      </Link>
+      <PerchArt className="pointer-events-none absolute -right-8 -bottom-6 w-56 transition-transform group-hover:-rotate-3 sm:w-64" />
+      <Link
+        href={href}
+        className="relative z-10 mt-auto flex size-16 items-center justify-center rounded-full border-b-4 border-primary-deep bg-primary text-primary-foreground outline-none transition-[transform,border] focus-visible:ring-2 focus-visible:ring-ring group-active:translate-y-0.5 group-active:border-b-2"
+      >
         <svg width="26" height="26" viewBox="0 0 24 24" aria-hidden="true">
           <path d="M8 5.5v13l11-6.5z" fill="currentColor" />
         </svg>
         <span className="sr-only">{started ? `Continue ${shortName(project.title)}, level ${level}` : `Start ${shortName(project.title)}`}</span>
-      </span>
-    </Link>
+      </Link>
+    </article>
   );
 }
 

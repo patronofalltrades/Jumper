@@ -4,7 +4,8 @@ import { Html, Line } from "@react-three/drei";
 import { useThree } from "@react-three/fiber";
 import { useCallback, useContext, useMemo, useRef, useSyncExternalStore, type ReactNode } from "react";
 import { Vector3, type Camera, type Object3D } from "three";
-import { Volt } from "@/components/art/volt";
+import { Mascot, MascotContext } from "@/components/art/mascot";
+import type { MascotId } from "@/lib/game/project-mascot";
 import text from "@/content/ui/build.json";
 import sketchText from "@/content/ui/sketch.json";
 import type { Bench } from "@/lib/circuit/bench";
@@ -14,10 +15,12 @@ import type { Task } from "@/lib/content/schema";
 import { boardStore, FinishContext, useBoard } from "@/lib/game/board-store";
 import { needsAck, taskSpot, type Mistake } from "@/lib/game/engine";
 import { taskOfFailure } from "@/lib/game/fail-task";
-import { HEARTS, heartsLeft } from "@/lib/game/hearts";
+import { HEARTS, heartsLeft, outOfHearts } from "@/lib/game/hearts";
 import { mascotPose } from "@/lib/game/mascot";
+import type { Clip } from "@/lib/game/walkthrough";
 import { cn } from "@/lib/utils";
 import { EMPTY_NOTE, useEmptyBoard, type Failed, type LevelCheck } from "./check";
+import { BuildForMe } from "./build-for-me";
 import { pinName } from "./guide";
 import { endpointName, strayText } from "./names";
 
@@ -101,7 +104,8 @@ function PopupVolt() {
   const phase = useBoard((s) => s.progress.phase);
   const done = useBoard((s) => s.done);
   const pose = mascotPose({ phase, done });
-  return <Volt key={pose} pose={pose} label className="h-14 w-auto shrink-0 sm:h-16" />;
+  const mascot = useContext(MascotContext);
+  return <Mascot id={mascot} key={pose} pose={pose} label className="h-14 w-auto shrink-0 sm:h-16" />;
 }
 
 /**
@@ -205,7 +209,8 @@ type LevelInfo = { eyebrow: string; title: string; goal: string; tasks: LevelTas
 export type SketchGate = { passed: boolean; open: () => void };
 /** `onRedo`: "Redo this step" on a fail that has a task of this level. It gets the index of the task. */
 /** `position`: the level of this Check. A connection from another level says so (issue #89). */
-type CheckProps = { check: LevelCheck; onCheck: () => void; onClose: () => void; onShow: () => void; onRedo: (task: number) => void; sketch: SketchGate | null; position: number };
+/** `clip`, `onWatch`: the level clip, and its opener, for the out-of-hearts card (issue #124). */
+type CheckProps = { check: LevelCheck; onCheck: () => void; onClose: () => void; onShow: () => void; onRedo: (task: number) => void; sketch: SketchGate | null; position: number; clip: Clip | null; onWatch: () => void };
 
 function IntroBody({ eyebrow, title, goal, tasks }: LevelInfo) {
   return (
@@ -257,11 +262,42 @@ function generalText(bench: Bench, parts: Part[], failed: Failed) {
 function heartsText(fails: number) {
   const hearts = heartsLeft(fails);
   if (fails > 0 && hearts === HEARTS) return text.play.check.refilled;
-  return hearts === 0 ? text.play.check.noHearts : fill(text.play.check.lostHeart, { n: hearts });
+  return fill(text.play.check.lostHeart, { n: hearts });
+}
+
+/** The fail that takes the last heart (issue #124): the project's mascot, the reason, what occurred, and three choices. */
+function OutOfHearts({ reason, check, onCheck, onWatch, clip }: { reason: string; check: LevelCheck; onCheck: () => void; onWatch: () => void; clip: Clip | null }) {
+  const t = text.play.check.outOfHearts;
+  const mascot = useContext(MascotContext);
+  return (
+    <>
+      <div className="flex items-center gap-2">
+        <Mascot id={mascot} pose="oops" label className="h-14 w-auto shrink-0 sm:h-16" />
+        <Chip tone="mistake">{text.play.kind.mistake}</Chip>
+      </div>
+      <h2 className="text-2xl leading-tight font-extrabold tracking-tight">{t.title}</h2>
+      <p className="text-[15px] leading-snug font-semibold">{reason}</p>
+      <p className="text-sm leading-snug text-muted-foreground">{t.body}</p>
+      <p className="text-sm leading-snug text-muted-foreground">{t.retryNote}</p>
+      {check.error && <p role="alert" className="text-sm font-semibold text-destructive">{check.error}</p>}
+      {/* The button row is the last child: on a phone it stays at the bottom of the sheet (see PopupLayer). */}
+      <div className="flex flex-wrap items-center justify-end gap-2">
+        {clip && (
+          <PressButton tone="plain" onClick={onWatch}>
+            {t.watch}
+          </PressButton>
+        )}
+        <BuildForMe clip={clip} />
+        <PressButton onClick={onCheck} disabled={check.busy} className="disabled:opacity-60">
+          {t.retry}
+        </PressButton>
+      </div>
+    </>
+  );
 }
 
 /** The end of the tasks: Check the level. After a fail: the reason, the hearts, and "Fix the board". */
-function CheckBody({ check, onCheck, onClose, onShow, onRedo, sketch, position, tasks }: CheckProps & { tasks: LevelTask[] }) {
+function CheckBody({ check, onCheck, onClose, onShow, onRedo, sketch, position, tasks, clip, onWatch }: CheckProps & { tasks: LevelTask[] }) {
   const { xp, mistakes, fails } = useBoard((s) => s.progress);
   const bench = useBoard((s) => s.bench);
   const parts = useBoard((s) => s.parts);
@@ -293,6 +329,10 @@ function CheckBody({ check, onCheck, onClose, onShow, onRedo, sketch, position, 
       {text.play.check.empty}
     </p>
   );
+
+  if (check.failed && outOfHearts(fails)) {
+    return <OutOfHearts reason={reasonText(bench, parts, check.failed, position)} check={check} onCheck={onCheck} onWatch={onWatch} clip={clip} />;
+  }
 
   if (check.failed) {
     return (
@@ -421,7 +461,7 @@ export function PopupLayer({ level, conceptOpen, onConceptDone, check }: { level
       <Card mistake={mistake} className="w-full max-w-md rounded-2xl">{body}</Card>
     </div>
   ) : (
-    <div className="z-10 h-60 shrink-0 overflow-y-auto border-t border-border bg-card">
+    <div className="z-10 h-40 shrink-0 overflow-y-auto border-t border-border bg-card">
       {/* The last row of each pop-up has its buttons: it stays at the bottom of the sheet when the text scrolls. */}
       <Card mistake={mistake} className="min-h-full border-0 shadow-none *:last:sticky *:last:bottom-0 *:last:bg-card *:last:py-1">
         {body}
@@ -439,7 +479,7 @@ const EDGE = 8;
 const GUIDE_BOTTOM = 72;
 
 /** Laptop: the Place, Wire or Mistake pop-up, over the target pin, with a line down to it. Goes inside the Canvas. */
-export function PinnedPopup({ tasks, hidden }: { tasks: LevelTask[]; hidden: boolean }) {
+export function PinnedPopup({ tasks, hidden, mascot }: { tasks: LevelTask[]; hidden: boolean; mascot: MascotId }) {
   const progress = useBoard((s) => s.progress);
   // The card stays inside the board. When there is no space above the pin, it goes beside the pin, so that it does
   // not cover the target. Html renders the card in its own React root, so a callback ref measures it when it is there,
@@ -490,11 +530,14 @@ export function PinnedPopup({ tasks, hidden }: { tasks: LevelTask[]; hidden: boo
         raycast={() => null}
       />
       <Html position={[at.x, HANG, at.z]} zIndexRange={[15, 10]} calculatePosition={place} style={{ pointerEvents: "none" }}>
-        <div ref={card} className="pointer-events-auto -translate-x-1/2 -translate-y-full pb-1" style={{ width: PINNED_WIDTH }}>
-          <Card mistake={!!mistake} className="rounded-2xl">
-            {mistake ? <MistakeBody mistake={mistake} /> : <TaskBody task={task} total={tasks.length} />}
-          </Card>
-        </div>
+        {/* Html has its own React root, so the mascot of the project goes in as a context here (feature/mascots). */}
+        <MascotContext value={mascot}>
+          <div ref={card} className="pointer-events-auto -translate-x-1/2 -translate-y-full pb-1" style={{ width: PINNED_WIDTH }}>
+            <Card mistake={!!mistake} className="rounded-2xl">
+              {mistake ? <MistakeBody mistake={mistake} /> : <TaskBody task={task} total={tasks.length} />}
+            </Card>
+          </div>
+        </MascotContext>
       </Html>
     </group>
   );

@@ -4,12 +4,13 @@ import Link from "next/link";
 import { Dialog } from "radix-ui";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { PerchWake } from "@/components/art/perch-wake";
-import { Volt } from "@/components/art/volt";
+import { Mascot } from "@/components/art/mascot";
 import { readSavedLevel } from "@/components/build/autosave";
 import { SaveSnapshot, type LevelOption } from "@/components/snapshots/save-snapshot";
 import { Button } from "@/components/ui/button";
 import text from "@/content/ui/complete.json";
 import { accuracy, accuracyTier, formatDuration, isReplay, titleTier } from "@/lib/stats/level-summary";
+import type { MascotId } from "@/lib/game/project-mascot";
 import { cn } from "@/lib/utils";
 
 export type LevelSummary = {
@@ -24,7 +25,7 @@ export type LevelSummary = {
 /** Where Save snapshot finds the board: the level and the user, as build mode saved them in this browser. */
 export type SaveFrom = { levels: LevelOption[]; user: string; project: string; position: number };
 
-export function LevelComplete({ summary, continueHref, save, preview = false }: { summary: LevelSummary; continueHref: string; save: SaveFrom; preview?: boolean }) {
+export function LevelComplete({ summary, continueHref, save, preview = false, mascot = "volt" }: { summary: LevelSummary; continueHref: string; save: SaveFrom; preview?: boolean; mascot?: MascotId }) {
   const continueRef = useRef<HTMLAnchorElement>(null);
   const percent = accuracy(summary.tasksDone, summary.mistakes);
   const xp = useCountUp(summary.xp, 1200);
@@ -45,9 +46,9 @@ export function LevelComplete({ summary, continueHref, save, preview = false }: 
           {preview && <p className="mb-2 rounded-full bg-muted px-3 py-1 text-xs text-muted-foreground">{text.preview}</p>}
 
           <div className="flex w-full max-w-md flex-1 flex-col items-center justify-center gap-6">
-            {/* Volt cheers next to the device that wakes up. Only Perch has a device picture. */}
+            {/* The project's mascot cheers next to the device that wakes up. Only Perch has a device picture. */}
             <div className="flex items-end gap-1 sm:gap-3">
-              <Volt pose="cheer" label className="w-24 sm:w-32" />
+              <Mascot id={mascot} pose="cheer" label className="w-24 sm:w-32" />
               {save.project === "perch" && <PerchWake className="w-40 sm:w-56" />}
             </div>
 

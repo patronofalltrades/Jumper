@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef } from "react";
 import text from "@/content/ui/build.json";
 import sketchText from "@/content/ui/sketch.json";
 import { boardStore, useBoard } from "@/lib/game/board-store";
+import { panelStartsOpen } from "@/lib/game/phone-layout";
 import { needsAck, taskMarks, type TaskMark } from "@/lib/game/engine";
 import { cn } from "@/lib/utils";
 import { HologramRow } from "./hologram-row";
@@ -33,7 +34,7 @@ export function TaskList({ tasks, laptop, code, small = false }: { tasks: LevelT
     ...tasks.map((t) => ({ key: String(t.position), instruction: t.instruction, task: t as LevelTask | null })),
     ...(code ? [{ key: "code", instruction: code.instruction, task: null }] : []),
   ];
-  const [open, toggle] = usePanelOpen(laptop && !small);
+  const [open, toggle] = usePanelOpen(panelStartsOpen(laptop, small));
   const list = useRef<HTMLOListElement>(null);
   const now = marks.indexOf("now");
 

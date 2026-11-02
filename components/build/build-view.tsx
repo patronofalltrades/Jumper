@@ -17,6 +17,8 @@ import { needsAck, type Plan } from "@/lib/game/engine";
 import { putBackParts } from "@/lib/game/put-back";
 import type { SketchStep } from "@/lib/content/schema";
 import { carriedClip, type Clip } from "@/lib/game/walkthrough";
+import { MascotContext } from "@/components/art/mascot";
+import type { MascotId } from "@/lib/game/project-mascot";
 import { AliveStage } from "./alive-stage";
 import { BoardActions } from "./board-actions";
 import { BuildDemo, BuildForMe, useDemoRunning } from "./build-for-me";
@@ -95,9 +97,19 @@ type Props = {
   clip: Clip | null;
   /** The code step after the wiring tasks, if the level has one (issue #58). */
   sketch: SketchStep | null;
+  /** The mascot of the project (feature/mascots): the pop-ups show it. Volt when the project names none. */
+  mascot: MascotId;
 };
 
-export function BuildView({ user, project, levelId, position, eyebrow, title, goal, tasks, rules, bench: spec, start, carry, startLevel = 0, levels, clip: finished, sketch }: Props) {
+export function BuildView({ mascot, ...props }: Props) {
+  return (
+    <MascotContext value={mascot}>
+      <BuildBoard {...props} mascot={mascot} />
+    </MascotContext>
+  );
+}
+
+function BuildBoard({ user, project, levelId, position, eyebrow, title, goal, tasks, rules, bench: spec, start, carry, startLevel = 0, levels, clip: finished, sketch, mascot }: Props) {
   useKeys();
   useNoticeTimer();
   useFeedback();
@@ -170,6 +182,8 @@ export function BuildView({ user, project, levelId, position, eyebrow, title, go
         },
         sketch: sketch && { passed: codePassed, open: openCode },
         position,
+        clip,
+        onWatch: () => setWatching(true),
       }}
     />
   );
@@ -243,7 +257,7 @@ export function BuildView({ user, project, levelId, position, eyebrow, title, go
         <div className="relative min-h-0 min-w-0 flex-1">
           {/* The finished board, so a resistor or LED task glows the holes of the clip (issue #101). */}
           <FinishContext value={finished?.order}>
-            <BuildScene>{laptop && <PinnedPopup tasks={tasks} hidden={conceptOpen || explaining} />}</BuildScene>
+            <BuildScene>{laptop && <PinnedPopup tasks={tasks} hidden={conceptOpen || explaining} mascot={mascot} />}</BuildScene>
           </FinishContext>
           {/* The guide bar, and the task list below it. Only the panels take clicks; the board gets the rest. Above the Clear and Check row, the column stops. */}
           {progress.phase !== "intro" && !alive && (
@@ -337,14 +351,14 @@ function ToolBar({ start, startLevel }: { start: Part[]; startLevel: number }) {
 
   return (
     <div className="z-10 border-t border-border bg-card px-3 pt-2 pb-[max(env(safe-area-inset-bottom),10px)] sm:px-4">
-      <div className="mx-auto flex max-w-2xl flex-col gap-2">
+      <div className="mx-auto flex max-w-2xl flex-col gap-2 max-sm:gap-1">
         {note && (
           <p role="status" className="rounded-xl bg-muted px-3 py-1.5 text-center text-sm font-semibold">
             {note}
           </p>
         )}
         {/* The row keeps its space for every tool, so the board does not move when the tool changes. */}
-        <div className="h-11">{inTray(tool) ? <Tray tool={tool} /> : <Swatches hidden={tool !== "wire"} />}</div>
+        <div className="h-11 max-sm:h-10">{inTray(tool) ? <Tray tool={tool} /> : <Swatches hidden={tool !== "wire"} />}</div>
         <div className={cn("grid gap-1 sm:gap-2", start.length ? "grid-cols-7" : "grid-cols-6")} role="toolbar" aria-label="Tools">
           {TOOLS.map((t) => (
             <ToolButton
@@ -384,7 +398,7 @@ function ToolButton({
       aria-pressed={pressed}
       title={`${label} (${shortcut})`}
       className={cn(
-        "flex min-h-14 flex-col items-center justify-center gap-0.5 rounded-xl border border-b-4 text-xs font-semibold transition-[transform,border] outline-none focus-visible:ring-2 focus-visible:ring-ring active:translate-y-0.5 active:border-b-2 disabled:opacity-40",
+        "flex min-h-14 flex-col items-center justify-center gap-0.5 rounded-xl border border-b-4 text-xs font-semibold max-sm:min-h-12 transition-[transform,border] outline-none focus-visible:ring-2 focus-visible:ring-ring active:translate-y-0.5 active:border-b-2 disabled:opacity-40",
         pressed ? "border-primary-deep bg-primary text-primary-foreground" : "border-border bg-card text-foreground",
       )}
       {...props}

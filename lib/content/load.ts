@@ -16,6 +16,6 @@ export function loadProjects(): Project[] {
     .sort((a, b) => a.position - b.position);
 }
 
-function issueText(error: { issues: { path: PropertyKey[]; message: string }[] }) {
+export function issueText(error: { issues: { path: PropertyKey[]; message: string }[] }) {
   return error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("; ");
 }
