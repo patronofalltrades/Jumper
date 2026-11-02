@@ -256,6 +256,7 @@ This ledger is source material for Hanif's reflection. Hanif writes the reflecti
 - Oct 28 (#88): Hanif answered Claude's four open questions (answers chosen in the session; Hanif's words are the option names). (1) Supabase "Confirm email" on the live project: "I do not know". Hanif will check it before applying the migration; Claude did not change the policies. (2) Notes: "No, own notes only"; the owner cannot delete the note of a collaborator, and the notes of a removed collaborator stay. (3) Profile data: "Fine for now"; a joined collaborator can read `xp` and `created_at` of the owner's profile row. (4) Merge order: "Share (#87) first"; after #87 merges, Claude merges main into this branch, moved the Plan vs. Reality row to 30 and fixes the conflicts.
 
 - Oct 29 (#92): Hanif's decisions, in the issue: hearts do not change (only a failed Check costs a heart, and only Check passes the level), and the list shows only after the first failed Check.
+- Nov 2: Hanif decided that the original pilot messages in Bahasa Indonesia are not necessary in the repository. His words: "no need indonesian translations".
 
 ## Corrections and agent issues
 
@@ -342,7 +343,6 @@ Only things Hanif said or wrote. Add the date and the exact words where possible
 - Oct 29 (#91): Hanif said: "the gripe that I have with the perch level is that it is pretty hard to see what I did wrong and try to understand how to fix it. ... when I finish a level and check, it says, 'Oh, something is wrong,' and then I don't really know how to fix it. The video is not really helpful because it does not indicate how to solve the problem." (Hanif's words, from the session prompt.)
 
 - Oct 29 (#92, issue text and prompt log): "the gripe that I have with the perch level is that it is pretty hard to see what I did wrong and try to understand how to fix it. ... when I finish a level and check, it says, 'Oh, something is wrong,' and then I don't really know how to fix it. The video is not really helpful because it does not indicate how to solve the problem."
-- Nov 2: Hanif decided that the original pilot messages in Bahasa Indonesia are not necessary in the repository. His words: "no need indonesian translations".
 
 ## Claude notes (not Hanif's voice)
 
