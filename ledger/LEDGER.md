@@ -164,6 +164,7 @@ This ledger is source material for Hanif's reflection. Hanif writes the reflecti
 | Oct 29 | "Work on PR 110" (Hanif). #110 is issue "Walkthrough: start the level clip from the learner's own board", the follow-up from PR #109 | Claude worked on `feature/clip-own-board`. `carriedClip` in `lib/game/walkthrough.ts` plays the level clip on the learner's carried board (the shared loop is now `playClip`); `components/build/build-view.tsx` uses it when the level carries the board. New tests in `tests/carried-clip.test.ts` (5). 561 tests, typecheck and lint pass. Prompt log in `prompts/clip-own-board.md`, PLAN row 45. No PR opened | Issue [#110](https://github.com/patronofalltrades/Jumper/issues/110) |
 | Nov 2 | "@…/jumper-pilot-feedback-report.md find feedback from two pilot users. Put it in the memo for the write up later" (Hanif) | Claude read the pilot feedback report (2 users, Nov 2, translated from Bahasa Indonesia) and added the section "Pilot user feedback (Nov 2, 2026)" to `ledger/story-brief.md`: what the users liked, what they did not have, their 7 requests, the patterns and priority of the report, Claude notes, and questions for Hanif. No code change. Claude took "the memo" to be `ledger/story-brief.md` | `ledger/story-brief.md` |
 | Nov 2 | "no need indonesian translations. Return all their suggestions and see if we have time to implement some or if some already is part of our road map" (Hanif) | Claude removed the note about the original messages, checked each of the 7 requests against `PLAN.md`, the PRD, the TRD and `content/`, and added a road map table to the pilot feedback section of `ledger/story-brief.md`. Claude also corrected the note that Feature 11 is not built (row 11 says Done). No code change; Hanif to choose what to build | `ledger/story-brief.md` |
+| Nov 2 | "build 3, 5 and 6, write the issue text. Open Issues for each stories" (Hanif) | Claude wrote the text of 3 issues (board name in build mode, read the task aloud, part descriptions) in `prompts/pilot-feedback-issues.md`. Claude tried to open issue A; the guard hook denied it ("opening an issue is Hanif's step"). Claude did not go around the hook. Hanif to open the 3 issues and the branches `feature/board-name`, `feature/read-aloud`, `feature/part-descriptions` | `prompts/pilot-feedback-issues.md` |
 
 ## Decisions by Hanif
 
@@ -257,6 +258,7 @@ This ledger is source material for Hanif's reflection. Hanif writes the reflecti
 
 - Oct 29 (#92): Hanif's decisions, in the issue: hearts do not change (only a failed Check costs a heart, and only Check passes the level), and the list shows only after the first failed Check.
 - Nov 2: Hanif decided that the original pilot messages in Bahasa Indonesia are not necessary in the repository. His words: "no need indonesian translations".
+- Nov 2: Hanif chose to build pilot requests 3 (board name), 5 (voice) and 6 (part descriptions), and not 1, 2, 4 and 7. His words: "build 3, 5 and 6".
 
 ## Corrections and agent issues
 
