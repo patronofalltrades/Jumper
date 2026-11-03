@@ -179,6 +179,7 @@ This ledger is source material for Hanif's reflection. Hanif writes the reflecti
 | Nov 3 | Work on issue #144: Step by step mode for the sketch (planning-session decisions on #143, #144, #145) | Branch `Features/SketchStepByStep`: `lib/sketch/steps.ts` (line check), `steps` per level in `content/sketches/arduino-foundations.json`, Free / Step by step switch and step card in the sketch panel, 17 new Vitest tests, PLAN row 50 | [#144](https://github.com/patronofalltrades/Jumper/issues/144) |
 | Nov 3 | "do adversarial testing on this before I merge" (#144) | Claude attacked the line check, the content and the panel state. 4 bugs found and fixed in `lib/sketch/steps.ts` and the sketch panel; 8 new tests (red, then green); 722 Vitest tests pass | [#144](https://github.com/patronofalltrades/Jumper/issues/144) |
 | Nov 3 | "resolve branch conflicts" (#144) | Claude merged `main` (code glossary, #143, PR #146) into `Features/SketchStepByStep`. Conflicts in `lib/sketch/parse.ts`, `components/build/code-editor.tsx`, `content/ui/sketch.json`, PLAN.md and this ledger; both sides kept. This branch's PLAN row is now 50 | [#144](https://github.com/patronofalltrades/Jumper/issues/144) |
+| Nov 3 | Hanif opened the PR: "https://github.com/patronofalltrades/Jumper/pull/147 update row 50" (#144) | PLAN row 50 now names PR #147 | [#147](https://github.com/patronofalltrades/Jumper/pull/147) |
 
 ## Decisions by Hanif
 
