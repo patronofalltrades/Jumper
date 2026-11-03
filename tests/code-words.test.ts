@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { codeTermsSchema } from "@/lib/content/schema";
 import { loadTerms } from "@/lib/content/terms";
-import { KNOWN_WORDS, SYMBOLS } from "@/lib/sketch/parse";
+import { KNOWN_WORDS, parseSketch, SYMBOLS } from "@/lib/sketch/parse";
 import { CODE_WORDS, codeWord, codeWordAt } from "@/lib/sketch/words";
 import codeTerms from "@/content/code-terms/arduino.json";
 
@@ -30,6 +30,20 @@ describe("the code words", () => {
     const keys = CODE_WORDS.flatMap((w) => w.keys);
     expect(new Set(keys).size).toBe(keys.length);
     for (const k of keys) expect([...KNOWN_WORDS, ...SYMBOLS, "//", "/*"], k).toContain(k);
+  });
+});
+
+describe("the examples", () => {
+  it("are valid code for Jumper, so a learner can copy them (a part of a line is checked inside an if)", () => {
+    for (const w of CODE_WORDS) {
+      const ex = w.example.replace(/\/\/.*$/, "").trim();
+      const line = ex.startsWith("}") ? `if (state == LOW) { ${ex}` : ex.endsWith(";") || ex.endsWith("}") ? ex : `if (${ex}) { }`;
+      const src = line.startsWith("void")
+        ? `${line.startsWith("void setup") ? "" : "void setup() { }\n"}${line}\n${line.startsWith("void loop") ? "" : "void loop() { delay(1); }"}`
+        : `int state = 0;\nvoid setup() { }\nvoid loop() {\n${line}\ndelay(1);\n}`;
+      const result = parseSketch(src);
+      expect(result.ok ? "" : result.error.message, `${w.word}: ${w.example}`).toBe("");
+    }
   });
 });
 
@@ -69,6 +83,12 @@ describe("the word under the cursor", () => {
     expect(at("pinMode(led|Pin, OUTPUT);")).toBeNull();
     expect(at("digitalwr|ite(13, HIGH);")).toBeNull();
     expect(at("|")).toBeNull();
+  });
+
+  it("gives the same word at the start of a very long sketch, and does not read past it", () => {
+    const long = `void setup() {\n${"digitalWrite(13, HIGH);\n".repeat(50_000)}}`;
+    expect(codeWordAt(long, 1)?.word.word).toBe("void setup()");
+    expect(codeWordAt(long, long.length - 1)?.word.word).toBe("{ } (braces)");
   });
 });
 

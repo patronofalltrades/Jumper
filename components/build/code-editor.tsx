@@ -3,7 +3,7 @@
 import { cpp } from "@codemirror/lang-cpp";
 import { HighlightStyle, syntaxHighlighting } from "@codemirror/language";
 import { EditorState, StateEffect, StateField } from "@codemirror/state";
-import { Decoration, EditorView, hoverTooltip, showTooltip, type DecorationSet, type Tooltip } from "@codemirror/view";
+import { Decoration, EditorView, hoverTooltip, showTooltip, ViewPlugin, type DecorationSet, type Tooltip } from "@codemirror/view";
 import { tags } from "@lezer/highlight";
 import { basicSetup } from "codemirror";
 import { useEffect, useRef } from "react";
@@ -91,9 +91,9 @@ function wordTooltip(doc: string, pos: number): Tooltip | null {
 }
 
 /** Laptop: the pointer stays on a word, and its card shows. */
-const wordHover = hoverTooltip((view, pos) => wordTooltip(view.state.doc.toString(), pos), { hoverTime: 350 });
+const wordHover = hoverTooltip((view, pos) => wordTooltip(view.state.doc.toString(), pos), { hoverTime: 350, hideOnChange: true });
 
-/** Phone: a tap on a word shows its card. A tap on another place, or a change to the code, closes it. */
+/** Phone: a tap on a word shows its card. A tap on another place (also on the card, or outside the editor), or a change to the code, closes it. */
 const tapWord = StateEffect.define<number | null>();
 const wordTap = StateField.define<Tooltip | null>({
   create: () => null,
@@ -102,6 +102,15 @@ const wordTap = StateField.define<Tooltip | null>({
     return tr.docChanged ? null : tip;
   },
   provide: (f) => showTooltip.from(f),
+});
+/** On a phone the card covers other buttons, so a touch outside the code text closes it. A tap in the code is handled below. */
+const closeOnTouchOutside = ViewPlugin.define((view) => {
+  const down = (e: PointerEvent) => {
+    if (e.pointerType === "mouse" || !view.state.field(wordTap)) return;
+    if (!(e.target instanceof Node && view.contentDOM.contains(e.target))) view.dispatch({ effects: tapWord.of(null) });
+  };
+  document.addEventListener("pointerdown", down, true);
+  return { destroy: () => document.removeEventListener("pointerdown", down, true) };
 });
 const tapHandler = EditorView.domEventHandlers({
   pointerup(e, view) {
@@ -169,6 +178,7 @@ export function CodeEditor({ value, onChange, errorAt, label }: Props) {
           wordHover,
           wordTap,
           tapHandler,
+          closeOnTouchOutside,
           wordTheme,
           EditorView.contentAttributes.of({ "aria-label": label, autocapitalize: "off", autocorrect: "off", spellcheck: "false" }),
           EditorView.updateListener.of((u) => {

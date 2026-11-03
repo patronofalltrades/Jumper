@@ -87,8 +87,8 @@
       "word": "else",
       "level": 3,
       "text": "Comes after the { } of an if. Its code runs only when the test of the if is false.",
-      "example": "else { digitalWrite(13, LOW); }",
-      "does": "turns off the LED when nobody presses the button."
+      "example": "} else { digitalWrite(13, LOW); }",
+      "does": "turns off the LED when the test of the if is false."
     },
     {
       "keys": ["=="],

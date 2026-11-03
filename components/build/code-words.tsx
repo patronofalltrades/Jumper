@@ -9,7 +9,7 @@ export function CodeWords() {
     <details className="rounded-xl bg-muted px-3 py-2 text-sm">
       <summary className="cursor-pointer font-semibold">{text.words.title}</summary>
       <p className="mt-2 leading-snug text-muted-foreground">{text.words.text}</p>
-      <dl className="mt-2 flex flex-col gap-3">
+      <dl className="mt-2 flex max-h-64 flex-col gap-3 overflow-y-auto pr-1">
         {CODE_WORDS.map((w) => (
           <div key={w.word}>
             <dt className="font-mono font-bold">{w.word}</dt>

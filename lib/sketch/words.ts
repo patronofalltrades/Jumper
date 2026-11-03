@@ -20,7 +20,15 @@ const TOKEN = /\/\/[^\n]*|\/\*[\s\S]*?(?:\*\/|$)|[A-Za-z_]\w*|\d\w*|==|!=|\S/g;
 
 type Token = { text: string; from: number; to: number };
 
-const tokens = (source: string): Token[] => [...source.matchAll(TOKEN)].map((m) => ({ text: m[0], from: m.index, to: m.index + m[0].length }));
+/** The tokens up to `pos`, and one more that is not a comment (for the word after void). It stops there, so a long sketch stays fast. */
+function tokens(source: string, pos: number): Token[] {
+  const all: Token[] = [];
+  for (const m of source.matchAll(TOKEN)) {
+    all.push({ text: m[0], from: m.index, to: m.index + m[0].length });
+    if (m.index > pos && !m[0].startsWith("//") && !m[0].startsWith("/*")) break;
+  }
+  return all;
+}
 
 /** The key of a token: a comment gives "//" or "/*", "void" gives the function after it ("setup" or "loop"). */
 function keyOf(all: Token[], i: number) {
@@ -35,7 +43,7 @@ function keyOf(all: Token[], i: number) {
  * First the token that holds `pos`; if it has no explanation, the token that ends at `pos` (the cursor is just after it).
  */
 export function codeWordAt(source: string, pos: number): { word: CodeWord; from: number; to: number } | null {
-  const all = tokens(source);
+  const all = tokens(source, pos);
   const hit = (i: number) => {
     const word = i >= 0 ? codeWord(keyOf(all, i)) : undefined;
     return word ? { word, from: all[i].from, to: all[i].to } : null;

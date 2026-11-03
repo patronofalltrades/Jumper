@@ -8,6 +8,7 @@ Hanif's words and decisions only. Claude notes are in `ledger/LEDGER.md`.
 
 1. Planning session, Nov 3 (relayed by the coordinating session; not his exact words): learners find the sketch levels hard without C++. The work must be about learning to code, not a magic experience. Hanif chose three features: #143 code glossary, #144 Step by Step mode, #145 "Write it for me" (+20 XP for a sketch that the learner writes, 0 XP for a sketch that Jumper writes).
 2. Session task (from the coordinating session, in Hanif's name, short form): work on issue #143 on `Feature/ArduinoCodeGlossary`. Read the house rules, the issue and the sketch code first. Write the tests first (red, then green). Keep the diff small in `sketch-panel.tsx` and `content/sketches/arduino-foundations.json`, because #144 and #145 change the same panel. #144 will reuse the word explanations, so keep the data easy to read from other code. Give Hanif the PR title and body.
+3. "do adversarial testing on this before I merge"
 
 ## Decisions by Hanif
 
