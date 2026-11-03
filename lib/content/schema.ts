@@ -110,6 +110,8 @@ export const sketchStepSchema = z.object({
   starter: z.array(z.string()).min(1),
   hints: z.array(z.string().min(1)),
   source_url: z.url(),
+  /** Step by step (issue #144): the lines of the sketch, in order, each with its goal in simple words (lib/sketch/steps.ts). */
+  steps: z.array(z.object({ line: z.string().min(1), goal: z.string().min(1), accept: z.array(z.string().min(1)).optional(), hint: z.string().min(1).optional() })).min(1).optional(),
 });
 
 /** content/sketches/<project>.json: the code step of each level that has one, by level position. */

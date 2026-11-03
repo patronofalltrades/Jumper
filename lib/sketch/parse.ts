@@ -10,8 +10,8 @@ import text from "../../content/ui/sketch.json";
 
 export type ErrorCode = keyof typeof text.errors;
 
-/** A mistake in a sketch: the line (1, 2, 3…), a code for the tests, and the message for the learner. */
-export type SketchError = { line: number; code: ErrorCode; message: string };
+/** A mistake in a sketch: the line (1, 2, 3…), a code for the tests, and the message for the learner. `reason`: the message with no line. */
+export type SketchError = { line: number; code: ErrorCode; message: string; reason: string };
 
 export type Expr =
   /** A number. `name`: the fixed name that gave it, for example "HIGH". */
@@ -44,14 +44,14 @@ export type ParseResult = { ok: true; program: Program } | { ok: false; error: S
 export const MODES = { INPUT: 0, OUTPUT: 1, INPUT_PULLUP: 2 } as const;
 
 /** The fixed names of the Arduino, and their values. */
-const FIXED: Record<string, number> = { HIGH: 1, LOW: 0, ...MODES, LED_BUILTIN: 13 };
+export const FIXED: Record<string, number> = { HIGH: 1, LOW: 0, ...MODES, LED_BUILTIN: 13 };
 
 /** The functions that Jumper runs, and the number of values that each one needs. */
-const FUNCTIONS = { pinMode: 2, digitalWrite: 2, digitalRead: 1, delay: 1 } as const;
+export const FUNCTIONS = { pinMode: 2, digitalWrite: 2, digitalRead: 1, delay: 1 } as const;
 type FunctionName = keyof typeof FUNCTIONS;
 
 /** Words of Arduino C that Jumper does not run yet. They get a clear message, not "unknown name". */
-const UNSUPPORTED = new Set([
+export const UNSUPPORTED = new Set([
   "for", "while", "do", "switch", "case", "return", "break", "continue", "goto",
   "float", "double", "bool", "boolean", "byte", "char", "long", "short", "unsigned", "String", "word", "static", "volatile",
   "Serial", "analogRead", "analogWrite", "millis", "micros", "delayMicroseconds", "tone", "noTone", "map", "random", "attachInterrupt",
@@ -63,10 +63,11 @@ export const fill = (template: string, values: Record<string, string | number>) 
 
 /** The error for a line, with its message in simple words. */
 export function sketchError(line: number, code: ErrorCode, values: Record<string, string | number> = {}): SketchError {
-  return { line, code, message: fill(text.line, { line, message: fill(text.errors[code], values) }) };
+  const reason = fill(text.errors[code], values);
+  return { line, code, message: fill(text.line, { line, message: reason }), reason };
 }
 
-class ParseError extends Error {
+export class ParseError extends Error {
   constructor(readonly error: SketchError) {
     super(error.message);
   }
@@ -77,7 +78,7 @@ const fail = (line: number, code: ErrorCode, values?: Record<string, string | nu
 };
 
 /** "other": a sign of C that Jumper does not use yet. The reader stops at it with a message, if no earlier mistake stops it first. */
-type Token = { type: "num" | "word" | "sym" | "other" | "eof"; text: string; line: number };
+export type Token = { type: "num" | "word" | "sym" | "other" | "eof"; text: string; line: number };
 
 /** The signs of C that Jumper reads. */
 export const SYMBOLS = ["==", "!=", "(", ")", "{", "}", ";", ",", "=", "!"];
