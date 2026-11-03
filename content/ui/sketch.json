@@ -78,6 +78,24 @@
     "failTitle": "Not yet",
     "noHeart": "A sketch that does not work does not cost a heart. Fix it and press Run again."
   },
+  "steps": {
+    "_note": "Step by step (issue #144). The learner reads the goal of one line, types the line, and Jumper checks it. empty, wrong, extra, short and bad_name: the reasons of a wrong line. They must not show the code of the line.",
+    "empty": "Type the line first.",
+    "wrong": "This line does not do the goal yet. Look at {found}, then read the goal again.",
+    "extra": "This line has more than the goal. Remove {found} and the part after it.",
+    "short": "This line is not complete. Read the goal again.",
+    "bad_name": "You cannot use {name} as a name, because Arduino C uses this word. Use a different name, for example ledPin.",
+    "mode": "How to write the sketch",
+    "free": "Free",
+    "stepByStep": "Step by step",
+    "confirm": "Start Step by step? Jumper removes the code in the editor. Then you write the sketch one line at a time.",
+    "count": "Line {n} of {total}",
+    "input": "Type the line",
+    "check": "Check line",
+    "hint": "Hint",
+    "correct": "Correct! The line is in the sketch.",
+    "done": "All the lines are in the sketch. Press Run to test it on the board."
+  },
   "check": {
     "title": "Now write the sketch",
     "text": "The wires are ready. Now tell the Uno what to do. Write the sketch, then press Run.",

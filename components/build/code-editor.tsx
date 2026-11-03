@@ -2,7 +2,7 @@
 
 import { cpp } from "@codemirror/lang-cpp";
 import { HighlightStyle, syntaxHighlighting } from "@codemirror/language";
-import { EditorState, StateEffect, StateField } from "@codemirror/state";
+import { Compartment, EditorState, StateEffect, StateField } from "@codemirror/state";
 import { Decoration, EditorView, type DecorationSet } from "@codemirror/view";
 import { tags } from "@lezer/highlight";
 import { basicSetup } from "codemirror";
@@ -69,9 +69,14 @@ type Props = {
   /** The line to mark red, or null. A new object marks the line again, after the learner changed the code. */
   errorAt: { line: number } | null;
   label: string;
+  /** Step by step (issue #144): the learner reads the code, and types each line in the step card. */
+  readOnly?: boolean;
 };
 
-export function CodeEditor({ value, onChange, errorAt, label }: Props) {
+const editable = new Compartment();
+const canEdit = (readOnly: boolean) => [EditorState.readOnly.of(readOnly), EditorView.editable.of(!readOnly)];
+
+export function CodeEditor({ value, onChange, errorAt, label, readOnly = false }: Props) {
   const host = useRef<HTMLDivElement>(null);
   const view = useRef<EditorView | null>(null);
   const change = useRef(onChange);
@@ -92,6 +97,7 @@ export function CodeEditor({ value, onChange, errorAt, label }: Props) {
           arduinoNames,
           arduinoTheme,
           errorLine,
+          editable.of(canEdit(readOnly)),
           EditorView.contentAttributes.of({ "aria-label": label, autocapitalize: "off", autocorrect: "off", spellcheck: "false" }),
           EditorView.updateListener.of((u) => {
             if (u.docChanged) change.current(u.state.doc.toString());
@@ -112,6 +118,10 @@ export function CodeEditor({ value, onChange, errorAt, label }: Props) {
     const editor = view.current;
     if (editor && editor.state.doc.toString() !== value) editor.dispatch({ changes: { from: 0, to: editor.state.doc.length, insert: value } });
   }, [value]);
+
+  useEffect(() => {
+    view.current?.dispatch({ effects: editable.reconfigure(canEdit(readOnly)) });
+  }, [readOnly]);
 
   useEffect(() => {
     const editor = view.current;
