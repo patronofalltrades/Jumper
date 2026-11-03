@@ -1,5 +1,5 @@
 import text from "../../content/ui/sketch.json";
-import { fill, FIXED, FUNCTIONS, ParseError, tokenize, UNSUPPORTED, WORDS, type ErrorCode, type Token } from "./parse.ts";
+import { fill, FIXED, FUNCTIONS, ParseError, tokenize, UNSUPPORTED, KNOWN_WORDS, type ErrorCode, type Token } from "./parse.ts";
 
 // Step by step (issue #144): the learner reads the goal of one line, types the line, and Jumper checks it.
 // Hanif's decisions (Nov 3):
@@ -20,7 +20,7 @@ type Why = { code: ErrorCode; values?: Record<string, string> } | { step: "wrong
 
 /** Words of C++ that the Arduino does not let you use as a name. The reader does not know them, so the check stops them. */
 const CPP = ["main", "class", "struct", "union", "enum", "new", "delete", "this", "auto", "namespace", "template", "typename", "public", "private", "protected", "virtual", "operator", "friend", "inline", "extern", "register", "signed", "sizeof", "typedef", "try", "catch", "throw", "nullptr", "NULL", "and", "or", "not"];
-const RESERVED = new Set([...WORDS, ...UNSUPPORTED, ...Object.keys(FIXED), ...Object.keys(FUNCTIONS), ...CPP]);
+const RESERVED = new Set([...KNOWN_WORDS, ...UNSUPPORTED, ...Object.keys(FIXED), ...Object.keys(FUNCTIONS), ...CPP]);
 /** The name of the learner for a name in the content. Only own keys: "toString" is not a name of the learner. */
 const nameOf = (names: Names, word: string) => (Object.hasOwn(names, word) ? names[word] : word);
 const quote = (t: Token) => `"${t.text}"`;
