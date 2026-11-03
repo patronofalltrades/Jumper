@@ -10,3 +10,5 @@
 2. Claude's question in this session: "Issue #145 (+20 XP for a sketch the learner writes) needs a database change. [...] How should the +20 be saved?" Options: a new parameter of `record_attempt`, a new column `levels.code_xp`, or no database change now.
 
    Hanif's choice (from the multiple-choice form): "New param (Recommended)".
+
+3. Hanif's prompt (his words): "do adversarial testing on this before I merge"

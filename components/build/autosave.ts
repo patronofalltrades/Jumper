@@ -37,8 +37,8 @@ const savedSchema = z.object({
   session: z.string().optional(),
   /** The level was passed in this browser. When it opens again, it is a replay, and a replay gives no XP (issue #62). */
   done: z.boolean().optional(),
-  /** The sketch of the code step (issue #58), and whether it did the goal. `helped`: "Write it for me" wrote it (issue #145). */
-  sketch: z.object({ code: z.string(), passed: z.boolean(), helped: z.boolean().optional() }).optional(),
+  /** The sketch of the code step (issue #58), and whether it did the goal. `helped`: the sketch that "Write it for me" wrote (issue #145). */
+  sketch: z.object({ code: z.string(), passed: z.boolean(), helped: z.string().optional() }).optional(),
 });
 type Saved = z.infer<typeof savedSchema>;
 
@@ -144,8 +144,8 @@ type Props = {
 
 /** What the browser saves for the open level: the board, the progress and the sketch. */
 function saved(): Omit<Saved, "session"> {
-  const { parts, base, progress, code, codePassed, codeHelped } = boardStore.getState();
-  return { parts, base, progress, ...(code !== null && { sketch: { code, passed: codePassed, ...(codeHelped && { helped: true }) } }) };
+  const { parts, base, progress, code, codePassed, helpedCode } = boardStore.getState();
+  return { parts, base, progress, ...(code !== null && { sketch: { code, passed: codePassed, ...(helpedCode !== null && { helped: helpedCode }) } }) };
 }
 
 /**
@@ -167,7 +167,7 @@ export function useLevel({ user, project, levelId, position, bench, plan, start,
     opened.set(key, new Date().toISOString());
     const before = carry ? read(keyOf(user, project, position - 1)) : null;
     const setup: LevelSetup = own
-      ? { bench, plan, parts: own.parts as Part[], base: (own.base ?? start) as Part[], progress: replayProgress(own.progress, own.done) as Progress, code: own.sketch?.code, codePassed: own.sketch?.passed, codeHelped: own.sketch?.helped }
+      ? { bench, plan, parts: own.parts as Part[], base: (own.base ?? start) as Part[], progress: replayProgress(own.progress, own.done) as Progress, code: own.sketch?.code, codePassed: own.sketch?.passed, helpedCode: own.sketch?.helped }
       : { bench, plan, parts: before?.progress.phase === "ready_to_check" ? (before.parts as Part[]) : start };
     const open = levelKey(user, project, position);
     boardStore.getState().open(open, setup);
@@ -212,7 +212,7 @@ export function useLevel({ user, project, levelId, position, bench, plan, start,
     };
 
     const stop = boardStore.subscribe((s, prev) => {
-      if (s.parts !== prev.parts || s.progress !== prev.progress || s.code !== prev.code || s.codePassed !== prev.codePassed || s.codeHelped !== prev.codeHelped) save();
+      if (s.parts !== prev.parts || s.progress !== prev.progress || s.code !== prev.code || s.codePassed !== prev.codePassed || s.helpedCode !== prev.helpedCode) save();
     });
     // Send the last counters when the learner leaves the page.
     const leave = () => {

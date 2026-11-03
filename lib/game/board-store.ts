@@ -34,9 +34,9 @@ export type Focus = { at: number };
 /** `base`: the board that the level opened with, before the learner placed a part. It defaults to `parts`. */
 /** `bench`: the bench of the project (content/benches/). It defaults to the bench of the store, Perch for the app store. */
 /** `code`, `codePassed`: the sketch of a level with a code step (issue #58), and whether it did the goal. */
-/** `codeHelped`: "Write it for me" wrote the sketch, and the learner did not change it after (issue #145). */
+/** `helpedCode`: the sketch that "Write it for me" wrote in this level, if the learner used it (issue #145). */
 /** `faded`: the ids of the parts that the scene draws faded. Only a walkthrough clip uses it (issue #103). */
-export type LevelSetup = { bench?: Bench; plan?: Plan; parts?: Part[]; base?: Part[]; progress?: Progress; readOnly?: boolean; code?: string | null; codePassed?: boolean; codeHelped?: boolean; faded?: string[] };
+export type LevelSetup = { bench?: Bench; plan?: Plan; parts?: Part[]; base?: Part[]; progress?: Progress; readOnly?: boolean; code?: string | null; codePassed?: boolean; helpedCode?: string | null; faded?: string[] };
 
 export type BoardState = {
   bench: Bench;
@@ -71,8 +71,8 @@ export type BoardState = {
   code: string | null;
   /** True when the sketch did the goal of the level, after its last change. The level Check needs it. */
   codePassed: boolean;
-  /** True when "Write it for me" wrote the sketch and the learner did not change it after. The code step then gives no XP (issue #145). */
-  codeHelped: boolean;
+  /** The sketch that "Write it for me" wrote, or null. While the code is this text, the code step gives no XP (issue #145). */
+  helpedCode: string | null;
   /** The task or connection row under the pointer: the scene shows its ghost (issue #113). It never changes the board. */
   hologram: HologramTarget | null;
 
@@ -164,7 +164,7 @@ export function createBoardStore(defaultBench: Bench = perchBench()) {
       faded: [],
       code: null,
       codePassed: false,
-      codeHelped: false,
+      helpedCode: null,
       hologram: null,
     });
 
@@ -195,7 +195,7 @@ export function createBoardStore(defaultBench: Bench = perchBench()) {
           faded: setup.faded ?? [],
           code: setup.code ?? null,
           codePassed: setup.codePassed ?? false,
-          codeHelped: setup.codeHelped ?? false,
+          helpedCode: setup.helpedCode ?? null,
           hologram: null,
         });
       },
@@ -212,10 +212,10 @@ export function createBoardStore(defaultBench: Bench = perchBench()) {
       setHologram: (hologram) => set({ hologram }),
       cancel: () => set({ pending: null, notice: null }),
       setCode: (code) => {
-        if (code !== get().code) set({ code, codePassed: false, codeHelped: false });
+        if (code !== get().code) set({ code, codePassed: false });
       },
       passCode: () => set({ codePassed: true }),
-      writeForMe: (code) => set({ code, codePassed: false, codeHelped: true }),
+      writeForMe: (code) => set({ code, codePassed: false, helpedCode: code }),
       showProblem: () => set({ focus: { at: Date.now() } }),
 
       tapHole: (hole, preview = false) => {

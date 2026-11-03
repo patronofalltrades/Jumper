@@ -32,9 +32,11 @@ describe("the solution of each code step", () => {
 describe("the code XP", () => {
   it("gives +20 XP for a sketch that the learner wrote and that does the goal, else 0", () => {
     expect(CODE_XP).toBe(20);
-    expect(codeXp({ codePassed: true, codeHelped: false })).toBe(20);
-    expect(codeXp({ codePassed: true, codeHelped: true })).toBe(0);
-    expect(codeXp({ codePassed: false, codeHelped: false })).toBe(0);
+    expect(codeXp({ code: "mine", codePassed: true, helpedCode: null })).toBe(20);
+    expect(codeXp({ code: "mine", codePassed: true, helpedCode: "theirs" })).toBe(20);
+    expect(codeXp({ code: "theirs", codePassed: true, helpedCode: "theirs" })).toBe(0);
+    expect(codeXp({ code: null, codePassed: true, helpedCode: null })).toBe(20);
+    expect(codeXp({ code: "mine", codePassed: false, helpedCode: null })).toBe(0);
   });
 
   it("gives 0 XP for a sketch from Write it for me, and +20 XP after the learner changes it and it does the goal again", () => {
@@ -43,22 +45,40 @@ describe("the code XP", () => {
     const solution = "void setup() {}\nvoid loop() { delay(10); }";
 
     store.getState().writeForMe(solution);
-    expect(store.getState()).toMatchObject({ code: solution, codePassed: false, codeHelped: true });
+    expect(store.getState()).toMatchObject({ code: solution, codePassed: false, helpedCode: solution });
     store.getState().passCode();
     expect(codeXp(store.getState())).toBe(0);
     // The editor sends the new text back as a change. The same text is not a change of the learner.
     store.getState().setCode(solution);
-    expect(store.getState()).toMatchObject({ codePassed: true, codeHelped: true });
+    expect(store.getState()).toMatchObject({ codePassed: true });
+    expect(codeXp(store.getState())).toBe(0);
 
     store.getState().setCode(`${solution}\n// my change`);
-    expect(store.getState()).toMatchObject({ codePassed: false, codeHelped: false });
+    expect(store.getState()).toMatchObject({ codePassed: false });
     store.getState().passCode();
     expect(codeXp(store.getState())).toBe(20);
   });
 
+  it("gives 0 XP when the code goes back to the sketch of Write it for me: undo and redo, or Start again and paste", () => {
+    const store = createBoardStore(bench);
+    store.getState().open("af/2", { bench, code: "// mine" });
+    const solution = "void setup() {}\nvoid loop() { delay(10); }";
+    store.getState().writeForMe(solution);
+    // Undo in the editor gives back the code of the learner, and redo gives the sketch of Write it for me again.
+    store.getState().setCode("// mine");
+    store.getState().setCode(solution);
+    store.getState().passCode();
+    expect(codeXp(store.getState())).toBe(0);
+    // Start again, then paste the same sketch.
+    store.getState().setCode(null);
+    store.getState().setCode(solution);
+    store.getState().passCode();
+    expect(codeXp(store.getState())).toBe(0);
+  });
+
   it("keeps the 0 XP mark when the level opens again from the browser save", () => {
     const store = createBoardStore(bench);
-    store.getState().open("af/3", { bench, code: "x", codePassed: true, codeHelped: true });
+    store.getState().open("af/3", { bench, code: "x", codePassed: true, helpedCode: "x" });
     expect(codeXp(store.getState())).toBe(0);
     store.getState().open("af/4", { bench, code: "x", codePassed: true });
     expect(codeXp(store.getState())).toBe(20);

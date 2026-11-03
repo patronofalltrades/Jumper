@@ -5,6 +5,7 @@ import buildText from "@/content/ui/build.json";
 import text from "@/content/ui/sketch.json";
 import type { SketchStep } from "@/lib/content/schema";
 import { boardStore, useBoard } from "@/lib/game/board-store";
+import { isHelped } from "@/lib/game/check-flow";
 import { sketchStore, useSketch } from "@/lib/game/sketch-store";
 import { sketchCircuit, type Circuit } from "@/lib/sketch/circuit";
 import { checkGoal, type GoalResult } from "@/lib/sketch/goal";
@@ -19,7 +20,7 @@ import { CodeEditor } from "./code-editor";
 // 3. The sketch also runs on the 3D board, on the clock of the app: the LEDs light from the pins. While it runs, a tap
 //    on the 3D button presses it. A sketch that does not do the goal does not cost a heart.
 // 4. "Write it for me" puts the full sketch of the level in the editor (issue #145). The learner presses Run, and the
-//    level goes on, but the code step gives no XP until the learner changes the code and it does the goal again.
+//    level goes on, but the code step gives no XP while the code is that sketch (also after undo and redo, or a paste).
 
 type Outcome = { kind: "error"; error: SketchError } | { kind: "goal"; result: GoalResult };
 
@@ -28,7 +29,7 @@ const starterOf = (step: SketchStep) => step.starter.join("\n");
 export function SketchPanel({ step, onClose, onDone }: { step: SketchStep; onClose: () => void; onDone: () => void }) {
   const saved = useBoard((s) => s.code);
   const code = saved ?? starterOf(step);
-  const helped = useBoard((s) => s.codeHelped);
+  const helped = useBoard(isHelped);
   const running = useSketch((s) => s.running);
   const [outcome, setOutcome] = useState<Outcome | null>(null);
   const [mark, setMark] = useState<{ line: number } | null>(null);

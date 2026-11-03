@@ -54,7 +54,7 @@ export function useLevelCheck({ user, project, levelId, position, rules, needsSk
   const [state, setState] = useState<LevelCheck>({ open: true, busy: false, failed: null, error: null });
 
   const check = async () => {
-    const { bench, parts, base, progress, codePassed, codeHelped } = boardStore.getState();
+    const { bench, parts, base, progress, code, codePassed, helpedCode } = boardStore.getState();
     if (progress.phase !== "ready_to_check" || state.busy || isEmptyBoard(parts, base) || (needsSketch && !codePassed)) return;
     const session = readSavedLevel(user, project, position)?.session;
     if (!session) return setState({ open: true, busy: false, failed: null, error: text.play.check.noSession });
@@ -72,7 +72,7 @@ export function useLevelCheck({ user, project, levelId, position, rules, needsSk
         mistakes: progress.mistakes,
         xp: progress.xp,
         // A replay gives no XP: the server gives the code XP only on the first pass of the level.
-        codeXp: needsSketch ? codeXp({ codePassed, codeHelped }) : 0,
+        codeXp: needsSketch ? codeXp({ code, codePassed, helpedCode }) : 0,
       });
     const { result: saved } = await withFreshSession(session, attempt, () => freshSession(user, project, position, levelId, session));
     const done = opensLevelComplete(result.passed, saved.completed);
