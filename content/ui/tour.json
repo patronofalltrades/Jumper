@@ -1,0 +1,30 @@
+{
+  "_note": "Text for the first-visit tour of build mode (issue #123), in ASD-STE100. The steps follow TOUR_STEPS in lib/game/tour.ts.",
+  "label": "Tour of build mode",
+  "step": "Step {n} of {total}",
+  "next": "Next",
+  "done": "Done",
+  "skip": "Skip the tour",
+  "steps": {
+    "tasks": {
+      "title": "The task list",
+      "text": "This list shows each task of the level. A tick means that the task is done. The ring shows the task that you do now."
+    },
+    "connections": {
+      "title": "The connection list",
+      "text": "After a failed Check, this list shows each connection. A green tick means that the connection is right. A red cross means that it is wrong."
+    },
+    "clear": {
+      "title": "Clear",
+      "text": "Clear removes the parts that you put in this level. To put them back, press Undo."
+    },
+    "check": {
+      "title": "Check",
+      "text": "When all tasks are done, press Check. Check tests your board. Check stays off until then."
+    },
+    "build": {
+      "title": "Build it for me",
+      "text": "This button shows the build, one step at a time. It clears your parts first. It does not give XP."
+    }
+  }
+}
