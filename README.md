@@ -86,6 +86,7 @@ You need Node.js 22 (or newer) and a Supabase project. That is it — let's go!
 | Command | What it does |
 | --- | --- |
 | `npm test` | Runs the Vitest tests |
+| `npm run test:sql` | Runs the SQL tests of `supabase/tests/`, with the Data isolation test, on a throwaway local Postgres 16. Set `PGHOST`, `PGPORT`, `PGUSER` and `PGPASSWORD` for that Postgres. Never point it at the live project |
 | `npm run typecheck` | Makes the route types, then runs the TypeScript check |
 | `npm run lint` | Runs ESLint |
 | `npm run build` | Makes the production build |
