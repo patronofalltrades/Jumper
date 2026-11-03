@@ -66,7 +66,7 @@
     "on_gap": "This part must stay on one side of the center gap. Move pin 1.",
     "on_part": "The part would go on top of another part. Use a different place.",
     "esp_line": "A pin of this part would touch a pin of the board. Move the part to lines that have no board pin.",
-      "socket_leg": "Put the legs of this part in the breadboard. Use a wire to go from the breadboard to a pin of the board."
+    "socket_leg": "Put the legs of this part in the breadboard. Use a wire to go from the breadboard to a pin of the board."
   },
   "hole": {
     "pin": "{board} pin: {pin}",
@@ -81,7 +81,7 @@
     "connectedRail": "Connected to the {rail}.",
     "empty": "Nothing connects to this line yet.",
     "pinTip": "To use this pin, put a wire in an empty hole in the same line of 5.",
-      "socketTip": "To use this pin, put one end of a wire into it.",
+    "socketTip": "To use this pin, put one end of a wire into it.",
     "railEmpty": "Nothing connects to this rail yet.",
     "part": "{part} pin: {pin}",
     "partTip": "To use this pin, put a wire in an empty hole in the same line of 5.",
@@ -94,10 +94,10 @@
     "RST": "RST (reset)",
     "GPIO43": "TX (GPIO 43)",
     "GPIO44": "RX (GPIO 44)",
-    "gpio": "GPIO {n}",
-      "VIN": "VIN (power in)",
-      "digital": "pin {n} (D{n})",
-      "analog": "analog pin A{n}"
+    "gpio": "pin {n} (GPIO {n})",
+    "VIN": "VIN (power in)",
+    "digital": "pin {n} (D{n})",
+    "analog": "analog pin A{n}"
   },
   "railName": {
     "+": "red + line",
@@ -269,5 +269,20 @@
     "lockedHint": "Pass level {n} to open this level.",
     "start": "Start",
     "xp": "{n} XP"
+  },
+  "spot": {
+    "_note": "The holes in a task (issue #148). The app puts these in {from} and {to} of the task text, from the holes that the arrow points at. {board} is the letter of the breadboard, {row} is a to j, {column} is the number printed at the edge.",
+    "main": "breadboard {board}, row {row}, column {column}",
+    "mainOne": "the breadboard, row {row}, column {column}",
+    "mainSame": "row {row}, column {column}",
+    "rail": "the {line} of breadboard {board} next to column {column}",
+    "railOne": "the {line} next to column {column}",
+    "railSame": "the {line} next to column {column}",
+    "side": {
+      "L": "left {line}",
+      "R": "right {line}"
+    },
+    "pin": "{pin} of the {board}",
+    "terminal": "the {sign} screw of the {part}"
   }
 }
