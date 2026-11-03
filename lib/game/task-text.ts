@@ -2,7 +2,8 @@ import text from "@/content/ui/build.json";
 import { railColumn, type Bench } from "@/lib/circuit/bench";
 import { buildNets, endpointHole } from "@/lib/circuit/nets";
 import { isModule, terminalAt, type Part } from "@/lib/circuit/parts";
-import type { Target } from "./engine";
+import { taskSpot, type Plan, type Progress, type Target } from "./engine";
+import { hologramGhost } from "./hologram";
 
 // The holes in the text of a task (issue #148). A task says "Connect {from} to {to}." The app puts in the holes that
 // the arrow points at (taskSpot), so the text and the arrow always agree, also when the guide picks another free hole.
@@ -64,6 +65,12 @@ const boardOf = (bench: Bench, hole: string) => {
 export function taskText(bench: Bench, parts: Part[], instruction: string, taps: string[]): string {
   if (!/\{(from|to)\}/.test(instruction)) return instruction;
   const [from, to] = taps;
+  // The two ends are in one line of 5 already (the light in the line of the resistor): no wire is needed.
+  const strip = (h: string | undefined) => (h ? bench.byId.get(h)?.strip : undefined);
+  const label = /^([^:{]+):/.exec(instruction)?.[1];
+  if (label && from && to && strip(from) !== undefined && strip(from) === strip(to)) {
+    return `${label}: ${fill(text.spot.joined, { hole: holePhrase(bench, parts, from) })}.`;
+  }
   const values: Record<string, string> = {};
   if (from) values.from = holePhrase(bench, parts, from);
   if (to) values.to = holePhrase(bench, parts, to, from ? boardOf(bench, from) : undefined);
@@ -83,4 +90,41 @@ export function partTaps(bench: Bench, before: Part[], target: Target, part: Par
   const first = endpointHole(bench, before, target.a);
   const onFirst = (h: string) => first !== null && nets.get(h) !== undefined && nets.get(h) === nets.get(first);
   return onFirst(b) && !onFirst(a) ? [b, a] : [a, b];
+}
+
+/**
+ * The text of a task in the task list, on the board now. When a part of the task is not on the board yet (the button of
+ * "connect … to the button"), the holes come from the finished board of the level clip, as the ghost of the row does
+ * (issue #113). The task of now always has its part ends on the board, so its text is the text of the arrow.
+ */
+export function filledTask(bench: Bench, parts: Part[], instruction: string, target: Target, swaps: string[], finish: Part[] = []): string {
+  if (!/\{(from|to)\}/.test(instruction)) return instruction;
+  let taps = taskSpot(bench, parts, target, swaps, finish).taps;
+  if (!taps.length) {
+    const ids = new Set(parts.map((p) => p.id));
+    const board = [...parts, ...finish.filter((p) => !ids.has(p.id) && p.type !== "wire")];
+    taps = taskSpot(bench, board, target, swaps, finish).taps;
+    return taskText(bench, board, instruction, taps);
+  }
+  return taskText(bench, parts, instruction, taps);
+}
+
+/**
+ * The text of each task of the task list (issue #148). A task that the learner did is read on the board now. The task
+ * of now and the tasks after it are read on the board of the guide: each task before them gets its ghost (the part in
+ * the holes of the arrow, issue #113), so a row names the holes that the arrow will show when the learner gets there.
+ */
+export function taskTexts(bench: Bench, parts: Part[], plan: Plan, instructions: string[], progress: Progress, finish: Part[] = []): string[] {
+  const now = progress.phase === "intro" ? 0 : Math.min(progress.index, plan.tasks.length);
+  let board = parts;
+  return instructions.map((instruction, i) => {
+    const { target } = plan.tasks[i];
+    if (i < now) return filledTask(bench, parts, instruction, target, progress.swaps, finish);
+    const text = filledTask(bench, board, instruction, target, progress.swaps, finish);
+    const ghost = hologramGhost(bench, board, { kind: "task", index: i }, plan, progress.swaps, finish);
+    const ids = new Set(board.map((p) => p.id));
+    const added = (ghost?.parts ?? []).filter((p) => !ids.has(p.id) || p.type === "wire").map((p) => (p.type === "wire" ? { ...p, id: `guide${i}` } : p));
+    board = [...board, ...added];
+    return text;
+  });
 }

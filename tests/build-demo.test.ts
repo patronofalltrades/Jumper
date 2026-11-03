@@ -54,7 +54,8 @@ describe("demoFrames", () => {
         expect(order).toEqual(level.tasks.map((_, i) => i));
         const caption = (i: number) => tasks.find((f) => f.task === i)!.caption;
         const filled = (instruction: string) => new RegExp(`^${instruction.replace(/[.*+?^$()|[\]\\]/g, "\\$&").replace(/\{(from|to)\}/g, ".+")}$`);
-        for (const i of order) expect(caption(i!)).toMatch(filled(level.tasks[i!].instruction));
+        const joined = (instruction: string) => new RegExp(`^${instruction.split(":")[0]}: already joined in .+\\.$`);
+        for (const i of order) expect([filled, joined].some((f) => f(level.tasks[i!].instruction).test(caption(i!))), caption(i!)).toBe(true);
       });
 
       it("starts on the start board and adds the parts of the level one step at a time, in order", () => {

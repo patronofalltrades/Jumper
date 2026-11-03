@@ -27,7 +27,9 @@ describe("levelClip", () => {
 
       it("has one step for each task, in task order, with the instruction of the task as its caption, with its holes", () => {
         expect(tasks.map((s) => s.task)).toEqual(level.tasks.map((_, i) => i));
-        tasks.forEach((s, i) => expect(s.caption).toMatch(filled(level.tasks[i].instruction)));
+        // A wire task whose two ends already share a line of 5 says "already joined" (issue #148).
+        const joined = (instruction: string) => new RegExp(`^${instruction.split(":")[0]}: already joined in .+\\.$`);
+        tasks.forEach((s, i) => expect([filled, joined].some((f) => f(level.tasks[i].instruction).test(s.caption)), s.caption).toBe(true));
       });
 
       it("ends on the finished board, with the end caption", () => {

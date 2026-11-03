@@ -63,3 +63,52 @@ describe("taskText", () => {
     expect(taskText(perch, [], "Look at your bench.", [])).toBe("Look at your bench.");
   });
 });
+
+describe("filledTask: every row of the task list (issue #148)", async () => {
+  const { loadProjects } = await import("@/lib/content/load");
+  const { loadBoards, startBoard } = await import("@/lib/content/boards");
+  const { loadLevelClips } = await import("@/lib/content/clips");
+  const { filledTask } = await import("@/lib/game/task-text");
+  for (const slug of ["perch", "arduino-foundations"]) {
+    const project = loadProjects().find((p) => p.slug === slug)!;
+    const bench = slug === "perch" ? perch : uno;
+    const boards = await loadBoards(slug);
+    const clips = await loadLevelClips(slug);
+    for (const level of project.levels) {
+      it(`${slug} level ${level.position}: on the start board, a task whose part is not on the board yet still names its holes`, () => {
+        const parts = startBoard(boards, level.position);
+        for (const t of level.tasks) {
+          const text = filledTask(bench, parts, t.instruction, t.target, [], clips.get(level.position)?.order);
+          expect(text, `task ${t.position}`).not.toMatch(/\{/);
+        }
+      });
+    }
+  }
+});
+
+describe("taskTexts: the task list follows the guide (issue #148)", async () => {
+  const { loadProjects } = await import("@/lib/content/load");
+  const { loadBoards, startBoard } = await import("@/lib/content/boards");
+  const { loadLevelClips } = await import("@/lib/content/clips");
+  const { startProgress } = await import("@/lib/game/engine");
+  const { taskTexts } = await import("@/lib/game/task-text");
+  const project = loadProjects().find((p) => p.slug === "perch")!;
+  const boards = await loadBoards("perch");
+  const clips = await loadLevelClips("perch");
+  const level = project.levels.find((l) => l.position === 2)!;
+  const plan = { tasks: level.tasks.map((t) => ({ target: t.target, xp: t.xp })), forbid: level.rules.forbid };
+  const texts = taskTexts(perch, startBoard(boards, 2), plan, level.tasks.map((t) => t.instruction), { ...startProgress(), phase: "task" }, clips.get(2)?.order);
+
+  it("names the button hole of the guide in the next task too", () => {
+    const column = /column (\d+), across/.exec(texts[0])![1];
+    expect(texts[1]).toMatch(new RegExp(`button at row [a-j], column ${column}\\.`));
+  });
+
+  it("says that the resistor and the light are already joined when the guide puts them in one line", () => {
+    expect(texts[6]).toMatch(/^Resistor to light: already joined in breadboard A, row [a-j], column \d+\.$/);
+  });
+
+  it("names holes in every task", () => {
+    for (const t of texts) expect(t).not.toMatch(/\{/);
+  });
+});

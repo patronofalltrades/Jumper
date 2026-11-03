@@ -119,7 +119,7 @@ function BuildBoard({ user, project, levelId, position, eyebrow, title, goal, ta
   useFeedback();
   const plan: Plan = useMemo(() => ({ tasks: rawTasks.map((t) => ({ target: t.target, xp: t.xp })), forbid: rules.forbid }), [rawTasks, rules]);
   // The task text names the holes of the arrow (issue #148).
-  const tasks = useFilledTasks(rawTasks, finished?.order);
+  const tasks = useFilledTasks(rawTasks, plan, finished?.order);
   const bench = useMemo(() => createBench(spec), [spec]);
   const { error: saveError, otherTab } = useLevel({ user, project, levelId, position, bench, plan, start, carry });
   const levelCheck = useLevelCheck({ user, project, levelId, position, rules, needsSketch: !!sketch });

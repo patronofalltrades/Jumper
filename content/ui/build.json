@@ -283,6 +283,7 @@
       "R": "right {line}"
     },
     "pin": "{pin} on the {board}",
-    "terminal": "the {sign} screw of the {part}"
+    "terminal": "the {sign} screw of the {part}",
+    "joined": "already joined in {hole}"
   }
 }
