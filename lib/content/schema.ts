@@ -122,3 +122,20 @@ export const termsFileSchema = z.object({
   project: z.string().regex(/^[a-z0-9-]+$/),
   terms: z.array(z.object({ term: z.string().min(1), definition: z.string().min(1), level: z.number().int().positive() })).min(1),
 });
+
+// content/code-terms/<language>.json: the code words of a sketch, each tied to the level that teaches it (issue #143).
+export const codeTermsSchema = z.object({
+  project: z.string().regex(/^[a-z0-9-]+$/),
+  words: z
+    .array(
+      z.object({
+        keys: z.array(z.string().min(1)).min(1),
+        word: z.string().min(1),
+        level: z.number().int().positive(),
+        text: z.string().min(1),
+        example: z.string().min(1),
+        does: z.string().min(1),
+      }),
+    )
+    .min(1),
+});

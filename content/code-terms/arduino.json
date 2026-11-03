@@ -1,0 +1,190 @@
+{
+  "_note": "The code words of an Arduino sketch (issue #143), in ASD-STE100. keys: the words or signs in the code that show this explanation (lib/sketch/words.ts). void shows the explanation of the function after it. word: the name that the learner sees. level: the level of the project that teaches the word; after the learner passes it, the word shows with the terms on the dashboard. text: what the word does. example: one line of code. does: what the example does, as the end of a sentence that starts with the example. Each sentence has 20 words or fewer.",
+  "project": "arduino-foundations",
+  "words": [
+    {
+      "keys": ["setup"],
+      "word": "void setup()",
+      "level": 2,
+      "text": "The setup function. Its code runs one time, when the Uno starts. Put pinMode here.",
+      "example": "void setup() { pinMode(13, OUTPUT); }",
+      "does": "makes pin 13 an output, one time at the start."
+    },
+    {
+      "keys": ["loop"],
+      "word": "void loop()",
+      "level": 2,
+      "text": "The loop function. Its code runs again and again, after setup(). After the last line, it starts again at the top.",
+      "example": "void loop() { delay(500); }",
+      "does": "waits 500 ms, again and again."
+    },
+    {
+      "keys": ["const"],
+      "word": "const int",
+      "level": 2,
+      "text": "Makes a variable with a value that cannot change. Use it for a pin number, so the name tells the job of the pin.",
+      "example": "const int ledPin = 13;",
+      "does": "gives pin 13 the name ledPin."
+    },
+    {
+      "keys": ["int"],
+      "word": "int",
+      "level": 3,
+      "text": "Makes a variable: a name that keeps a whole number. You can change the number later with =.",
+      "example": "int state = digitalRead(2);",
+      "does": "keeps the value of pin 2 in the variable state."
+    },
+    {
+      "keys": ["="],
+      "word": "= (put in)",
+      "level": 2,
+      "text": "Puts a value into a variable. It does not compare two values. To compare, use ==.",
+      "example": "int state = LOW;",
+      "does": "puts LOW into the variable state."
+    },
+    {
+      "keys": ["pinMode"],
+      "word": "pinMode(pin, mode)",
+      "level": 2,
+      "text": "Tells the Uno how a pin works: OUTPUT, INPUT or INPUT_PULLUP. Put it in setup().",
+      "example": "pinMode(13, OUTPUT);",
+      "does": "makes pin 13 an output, so it can give power to an LED."
+    },
+    {
+      "keys": ["digitalWrite"],
+      "word": "digitalWrite(pin, value)",
+      "level": 2,
+      "text": "Gives power to a pin (HIGH) or stops it (LOW). The pin must be an OUTPUT.",
+      "example": "digitalWrite(13, HIGH);",
+      "does": "turns on the LED on pin 13."
+    },
+    {
+      "keys": ["digitalRead"],
+      "word": "digitalRead(pin)",
+      "level": 3,
+      "text": "Reads a pin. It gives HIGH when the pin has 5 V, and LOW when the pin touches ground.",
+      "example": "int state = digitalRead(2);",
+      "does": "reads the button on pin 2."
+    },
+    {
+      "keys": ["delay"],
+      "word": "delay(ms)",
+      "level": 2,
+      "text": "Stops the sketch for a time, in milliseconds (ms). 1000 ms is 1 second.",
+      "example": "delay(500);",
+      "does": "waits half a second."
+    },
+    {
+      "keys": ["if"],
+      "word": "if",
+      "level": 3,
+      "text": "Runs the code in its { } only when the test in its ( ) is true.",
+      "example": "if (state == LOW) { digitalWrite(13, HIGH); }",
+      "does": "turns on the LED when the button is pressed."
+    },
+    {
+      "keys": ["else"],
+      "word": "else",
+      "level": 3,
+      "text": "Comes after the { } of an if. Its code runs only when the test of the if is false.",
+      "example": "else { digitalWrite(13, LOW); }",
+      "does": "turns off the LED when nobody presses the button."
+    },
+    {
+      "keys": ["=="],
+      "word": "== (is equal to)",
+      "level": 3,
+      "text": "Compares two values. The test is true when the two values are the same.",
+      "example": "state == LOW",
+      "does": "is true when pin 2 reads LOW."
+    },
+    {
+      "keys": ["!="],
+      "word": "!= (is not equal to)",
+      "level": 3,
+      "text": "Compares two values. The test is true when the two values are different.",
+      "example": "state != LOW",
+      "does": "is true when pin 2 does not read LOW."
+    },
+    {
+      "keys": ["!"],
+      "word": "! (not)",
+      "level": 3,
+      "text": "Changes a test that is true to false, and a test that is false to true.",
+      "example": "if (!digitalRead(2)) { digitalWrite(13, HIGH); }",
+      "does": "turns on the LED when pin 2 reads LOW."
+    },
+    {
+      "keys": ["HIGH"],
+      "word": "HIGH",
+      "level": 2,
+      "text": "The value for power on: 5 V on the Uno. With digitalWrite, HIGH turns an LED on.",
+      "example": "digitalWrite(13, HIGH);",
+      "does": "gives 5 V to pin 13."
+    },
+    {
+      "keys": ["LOW"],
+      "word": "LOW",
+      "level": 2,
+      "text": "The value for power off: 0 V, the same as ground. With digitalWrite, LOW turns an LED off.",
+      "example": "digitalWrite(13, LOW);",
+      "does": "gives 0 V to pin 13."
+    },
+    {
+      "keys": ["OUTPUT"],
+      "word": "OUTPUT",
+      "level": 2,
+      "text": "A mode for pinMode. The Uno controls the pin, for example to turn an LED on and off.",
+      "example": "pinMode(13, OUTPUT);",
+      "does": "lets pin 13 give power."
+    },
+    {
+      "keys": ["INPUT"],
+      "word": "INPUT",
+      "level": 3,
+      "text": "A mode for pinMode. The Uno reads the pin. With no resistor, the pin floats and can read a wrong value.",
+      "example": "pinMode(2, INPUT);",
+      "does": "lets the Uno read pin 2."
+    },
+    {
+      "keys": ["INPUT_PULLUP"],
+      "word": "INPUT_PULLUP",
+      "level": 3,
+      "text": "A mode for pinMode. The Uno reads the pin, and a resistor inside the Uno joins the pin to 5 V.",
+      "example": "pinMode(2, INPUT_PULLUP);",
+      "does": "makes pin 2 read HIGH, and LOW only while you press its button."
+    },
+    {
+      "keys": ["LED_BUILTIN"],
+      "word": "LED_BUILTIN",
+      "level": 3,
+      "text": "The pin of the small LED marked L on the Uno. On the Uno, it is pin 13.",
+      "example": "pinMode(LED_BUILTIN, OUTPUT);",
+      "does": "makes pin 13 an output."
+    },
+    {
+      "keys": [";"],
+      "word": "; (semicolon)",
+      "level": 2,
+      "text": "Ends each line of code, as a full stop ends a sentence. Without it, the Uno does not know where the line stops.",
+      "example": "delay(500);",
+      "does": "is one full line of code."
+    },
+    {
+      "keys": ["{", "}"],
+      "word": "{ } (braces)",
+      "level": 2,
+      "text": "Hold a group of lines together. Each { needs a } to close it.",
+      "example": "void loop() { delay(10); }",
+      "does": "puts delay(10); inside loop()."
+    },
+    {
+      "keys": ["//", "/*"],
+      "word": "// (comment)",
+      "level": 2,
+      "text": "A note for people. The Uno does not run it. A // note stops at the end of the line. A /* */ note can have many lines.",
+      "example": "delay(500); // Wait half a second.",
+      "does": "runs only delay(500);."
+    }
+  ]
+}

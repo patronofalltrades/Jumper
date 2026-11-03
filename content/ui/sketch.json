@@ -78,6 +78,11 @@
     "failTitle": "Not yet",
     "noHeart": "A sketch that does not work does not cost a heart. Fix it and press Run again."
   },
+  "words": {
+    "title": "Code words",
+    "text": "Put the pointer on a word in the code to see what it does. On a phone, tap the word.",
+    "example": "Example:"
+  },
   "check": {
     "title": "Now write the sketch",
     "text": "The wires are ready. Now tell the Uno what to do. Write the sketch, then press Run.",
