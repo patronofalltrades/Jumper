@@ -10,6 +10,7 @@ import text from "@/content/ui/build.json";
 import { BoardContext, boardStore, createBoardStore, FinishContext } from "@/lib/game/board-store";
 import { clearForDemo, demoFrames, showFrame } from "@/lib/game/build-demo";
 import type { Clip } from "@/lib/game/walkthrough";
+import { stopReading } from "./read-aloud";
 
 // "Build it for me" (issue #115). The button sits beside Check. The demo plays over the board, in its own store, so the
 // board of the learner, its engine and its autosave do not see it (lib/game/build-demo.ts).
@@ -33,6 +34,7 @@ export function BuildForMe({ clip }: { clip: Clip | null }) {
   const running = useDemoRunning();
   if (!clip || running) return null;
   const start = () => {
+    stopReading();
     clearForDemo(boardStore);
     demo.setState({ running: true });
   };

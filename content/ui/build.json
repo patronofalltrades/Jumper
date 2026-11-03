@@ -14,6 +14,11 @@
   "header": {
     "eyebrow": "{project} · {board} · Level {n}"
   },
+  "aloud": {
+    "read": "Read this step aloud",
+    "stop": "Stop reading",
+    "switch": "Read steps aloud"
+  },
   "guide": {
     "wire": {
       "start": "{act} a glowing hole. This is where the wire starts.",

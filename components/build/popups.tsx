@@ -22,6 +22,7 @@ import { cn } from "@/lib/utils";
 import { EMPTY_NOTE, useEmptyBoard, type Failed, type LevelCheck } from "./check";
 import { BuildForMe } from "./build-for-me";
 import { pinName } from "./guide";
+import { SpeakButton } from "./read-aloud";
 import { endpointName, strayText } from "./names";
 
 // The pop-ups of build mode (PLAN.md "How build mode works"): Place, Wire, Concept and Mistake, plus the level intro,
@@ -123,7 +124,11 @@ function TaskBody({ task, total }: { task: LevelTask; total: number }) {
           <Chip tone="xp">{fill(text.play.xp, { n: task.xp })}</Chip>
         </div>
       </div>
-      <h2 className="text-[17px] leading-snug font-extrabold">{task.instruction}</h2>
+      <div className="flex items-start gap-2">
+        <h2 className="flex-1 text-[17px] leading-snug font-extrabold">{task.instruction}</h2>
+        {/* The task can be read aloud (issue #135). */}
+        <SpeakButton line={task.instruction} className="-mt-1" />
+      </div>
       {needsAck(task.target) && (
         <>
           <p className="text-sm leading-relaxed text-muted-foreground">{task.popup_why}</p>
