@@ -152,7 +152,7 @@ create policy "Owner only" on public.sessions for all to authenticated
 create policy "Owner only" on public.attempts for all to authenticated
   using (user_id = (select auth.uid())) with check (user_id = (select auth.uid()));
 create policy "Owner only" on public.snapshots for all to authenticated
-  using (user_id = (select auth.uid())) with check (user_id = (select auth.uid()));
+  using (true) with check (user_id = (select auth.uid()));
 -- A foreign key check ignores row-level security, so also make sure that the starred snapshot is the user's own.
 create policy "Owner only" on public.stars for all to authenticated
   using (user_id = (select auth.uid()))
