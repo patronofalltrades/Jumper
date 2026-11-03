@@ -79,7 +79,8 @@ const fail = (line: number, code: ErrorCode, values?: Record<string, string | nu
 /** "other": a sign of C that Jumper does not use yet. The reader stops at it with a message, if no earlier mistake stops it first. */
 type Token = { type: "num" | "word" | "sym" | "other" | "eof"; text: string; line: number };
 
-const SYMBOLS = ["==", "!=", "(", ")", "{", "}", ";", ",", "=", "!"];
+/** The signs of C that Jumper reads. */
+export const SYMBOLS = ["==", "!=", "(", ")", "{", "}", ";", ",", "=", "!"];
 /** Signs of C that Jumper does not use yet: the longest first, so that "<=" is one sign. */
 const OTHER_SIGNS = ["&&", "||", "<=", ">=", "++", "--", "+=", "-=", "*=", "/=", "<", ">", "+", "-", "*", "/", "%", "&", "|", "^", "~", "?", ":", "[", "]", "."];
 
@@ -129,10 +130,12 @@ export function tokenize(source: string): Token[] {
   return tokens;
 }
 
+/** The words that Jumper reads: the 4 functions, the fixed names and the words of C. content/code-terms/ explains each one. */
+export const KNOWN_WORDS = [...Object.keys(FUNCTIONS), ...Object.keys(FIXED), "setup", "loop", "void", "int", "const", "if", "else"];
+
 /** A known name with other big and small letters: "digitalwrite" → "digitalWrite". */
 function sameLetters(name: string) {
-  const known = [...Object.keys(FUNCTIONS), ...Object.keys(FIXED), "setup", "loop", "void", "int", "const", "if", "else"];
-  return known.find((k) => k !== name && k.toLowerCase() === name.toLowerCase());
+  return KNOWN_WORDS.find((k) => k !== name && k.toLowerCase() === name.toLowerCase());
 }
 
 type Variable = { slot: number; constant: boolean };

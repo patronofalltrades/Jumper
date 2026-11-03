@@ -12,6 +12,7 @@ import { parseSketch, type SketchError } from "@/lib/sketch/parse";
 import { createRunner } from "@/lib/sketch/run";
 import { cn } from "@/lib/utils";
 import { CodeEditor } from "./code-editor";
+import { CodeWords } from "./code-words";
 
 // The code step of a level (issue #58). The learner writes the sketch and presses Run:
 // 1. A mistake in the code marks its line and tells what is wrong. Nothing runs.
@@ -118,6 +119,7 @@ export function SketchPanel({ step, onClose, onDone }: { step: SketchStep; onClo
           </ul>
         </details>
       )}
+      <CodeWords />
 
       <div className="min-h-40 flex-1">
         <CodeEditor value={code} onChange={(next) => boardStore.getState().setCode(next)} errorAt={mark} label={text.panel.editor} />
