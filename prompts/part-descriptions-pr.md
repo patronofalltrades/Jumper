@@ -10,13 +10,13 @@ As a learner, I want to drop multi-pin modules (button, mic, amplifier, screen) 
 - The text is in `content/ui/build.json` under `about`. Each entry is one or two short sentences. The part models match `content/parts/*.json` and the terms in `content/terms/*.json` (for example: "INMP441: a digital microphone. It sends sound to the board on 3 wires (I²S).").
 - `components/build/build-view.tsx`: a `ABOUT` lookup, one `<p>` line under the tray row, a `title` on the tool buttons and the tray chips, and an optional `about` prop on `ToolButton`.
 - `tests/part-descriptions.test.ts` (new): red first, then green. It checks that each tool and each tray part has a description, and that each description is at most 180 characters.
-- `PLAN.md`: row 46 added at the end of "Plan vs. Reality". No other line changed.
+- `PLAN.md`: row 48 added at the end of "Plan vs. Reality". No other line changed.
 - `ledger/LEDGER.md`: one timeline row. `prompts/part-descriptions.md`: prompt log.
 
 ## Commits
 - `0d612bb` Add red test for part descriptions (issue #136)
 - `4761d55` Show a short description of each part and tool (issue #136)
-- Docs commit: prompt logs, PLAN row 46, ledger row.
+- Docs commit: prompt logs, PLAN row 48, ledger row.
 
 ## How it was tested
 - What the test checks, in plain words: every tool that the learner can pick (wire, resistor, LED, remove) and every part in the parts tray (button, mic, amp, speaker, screen) has a short text that says what it is. The test fails if a text is missing or empty, or if it is too long to read in one glance.
