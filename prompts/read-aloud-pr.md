@@ -22,7 +22,7 @@ As a learner, in any project I want to build like a game: a level map I move alo
 - `components/build/build-for-me.tsx`: the voice stops when "Build it for me" starts.
 - `content/ui/build.json`: new `aloud` text (ASD-STE100).
 - `tests/read-aloud.test.ts` (new): see below.
-- `PLAN.md`: row 46 added at the end of "Plan vs. Reality". No other line changed.
+- `PLAN.md`: row 47 added at the end of "Plan vs. Reality". No other line changed.
 - `prompts/read-aloud.md`, `prompts/read-aloud-pr.md`, `ledger/LEDGER.md`: prompt log, this text, ledger entry.
 
 ## How it was tested

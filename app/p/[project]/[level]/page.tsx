@@ -2,12 +2,15 @@ import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { Suspense } from "react";
 import { BuildView, type LevelTask } from "@/components/build/build-view";
+import text from "@/content/ui/build.json";
 import { loadBenchSpec } from "@/lib/content/benches";
 import { carriesBoard, loadBoards, startBoard, startLevels } from "@/lib/content/boards";
 import { loadLevelClips } from "@/lib/content/clips";
+import { loadProjects } from "@/lib/content/load";
 import { loadMascot } from "@/lib/content/mascot";
 import { loadSketchStep } from "@/lib/content/sketches";
 import { rulesSchema, targetSchema } from "@/lib/content/schema";
+import { buildEyebrow } from "@/lib/game/build-header";
 import { passedLevels } from "@/lib/game/featured";
 import { isUnlocked } from "@/lib/game/map";
 import { joinRules } from "@/lib/circuit/check";
@@ -44,6 +47,9 @@ async function Level({ slug, position }: { slug: string; position: string }) {
   if (error) throw error;
   if (!data) notFound();
   const project = data.projects as unknown as { id: number; title: string };
+  // The board comes from the project's content file (issue #134).
+  const catalog = loadProjects().find((p) => p.slug === slug);
+  if (!catalog) notFound();
 
   // A level opens when the level before it passed (issue #19).
   if (!isUnlocked(data.position, await passedLevels(supabase, project.id))) redirect(`/p/${slug}`);
@@ -65,7 +71,7 @@ async function Level({ slug, position }: { slug: string; position: string }) {
       project={slug}
       levelId={data.id}
       position={data.position}
-      eyebrow={`${project.title.split(":")[0]} · Level ${data.position}`}
+      eyebrow={buildEyebrow(text.header.eyebrow, { title: project.title, board: catalog.board }, data.position)}
       title={data.title}
       goal={data.goal}
       tasks={tasks}

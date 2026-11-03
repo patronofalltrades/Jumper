@@ -31,6 +31,7 @@ import { SketchPanel } from "./sketch-panel";
 import { TaskList } from "./task-list";
 import { ConnectionList } from "./connection-list";
 import { readAloud, stopReading, useReadSteps } from "./read-aloud";
+import { Tour } from "./tour";
 import { cn } from "@/lib/utils";
 
 export type { LevelTask };
@@ -152,6 +153,18 @@ function BuildBoard({ user, project, levelId, position, eyebrow, title, goal, ta
   const building = progress.phase === "mistake" || (progress.phase === "task" && !explaining && !!task && !needsAck(task.target));
   // The Clear and Check row shows while the learner builds. A pop-up over the board, the Check card or the code panel hides it.
   const actions = progress.phase !== "intro" && !explaining && !conceptOpen && !(progress.phase === "ready_to_check" && levelCheck.state.open) && !codeOpen && !alive;
+  // The first-visit tour waits while a pop-up, the intro clip, the Check card, the code panel or the demo is open (issue #123).
+  const tourBusy =
+    watching ||
+    progress.phase === "intro" ||
+    progress.phase === "mistake" ||
+    explaining ||
+    conceptOpen ||
+    (progress.phase === "ready_to_check" && levelCheck.state.open) ||
+    (progress.phase === "task" && !!task && needsAck(task.target)) ||
+    codeOpen ||
+    alive ||
+    demoRunning;
 
   // Read the task aloud (issue #135). With "Read steps aloud" on, each new task is read by itself. The voice stops when
   // the learner leaves the level, or opens the Check card (the Build-it-for-me demo stops it in its own button).
@@ -314,6 +327,7 @@ function BuildBoard({ user, project, levelId, position, eyebrow, title, goal, ta
 
       {!laptop && !codeOpen && !demoRunning && popups}
       {!(codeOpen && !laptop) && <ToolBar start={start} startLevel={startLevel} />}
+      <Tour busy={tourBusy} />
       {clip && watching && (
         <ClipPlayer
           clip={clip}
