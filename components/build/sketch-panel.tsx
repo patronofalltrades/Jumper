@@ -10,7 +10,7 @@ import { sketchCircuit, type Circuit } from "@/lib/sketch/circuit";
 import { checkGoal, type GoalResult } from "@/lib/sketch/goal";
 import { fill, parseSketch, type SketchError } from "@/lib/sketch/parse";
 import { createRunner } from "@/lib/sketch/run";
-import { checkLine, stepSketch, type LineStep, type Names } from "@/lib/sketch/steps";
+import { checkLine, stepsMatch, stepSketch, type LineStep, type Names } from "@/lib/sketch/steps";
 import { cn } from "@/lib/utils";
 import { CodeEditor } from "./code-editor";
 
@@ -34,7 +34,9 @@ export function SketchPanel({ step, onClose, onDone }: { step: SketchStep; onClo
   const [mark, setMark] = useState<{ line: number } | null>(null);
   const frame = useRef(0);
   const progress = useSketch((s) => s.steps);
-  const steps = step.steps && progress?.of === step.task ? progress : null;
+  // The typed lines count only while the board still has their sketch. A log out, a replay or a new user changes the
+  // code of the board, and then the panel goes back to Free, so the lines of one user never go into the sketch of another.
+  const steps = step.steps && progress?.of === step.task && stepsMatch(step.steps, progress.answers, saved) ? progress : null;
   const stepsDone = !!steps && steps.answers.length === step.steps!.length;
 
   const stop = useCallback(() => {
@@ -86,7 +88,7 @@ export function SketchPanel({ step, onClose, onDone }: { step: SketchStep; onClo
   };
 
   const reset = () => {
-    if (!window.confirm(text.panel.resetConfirm)) return;
+    if (!window.confirm(steps ? text.steps.resetConfirm : text.panel.resetConfirm)) return;
     stop();
     setOutcome(null);
     setMark(null);

@@ -18,7 +18,11 @@ export type LineResult = { ok: true; names: Names } | { ok: false; message: stri
 
 type Why = { code: ErrorCode; values?: Record<string, string> } | { step: "wrong" | "extra" | "short" | "bad_name"; values?: Record<string, string> };
 
-const RESERVED = new Set([...WORDS, ...UNSUPPORTED, ...Object.keys(FIXED), ...Object.keys(FUNCTIONS)]);
+/** Words of C++ that the Arduino does not let you use as a name. The reader does not know them, so the check stops them. */
+const CPP = ["main", "class", "struct", "union", "enum", "new", "delete", "this", "auto", "namespace", "template", "typename", "public", "private", "protected", "virtual", "operator", "friend", "inline", "extern", "register", "signed", "sizeof", "typedef", "try", "catch", "throw", "nullptr", "NULL", "and", "or", "not"];
+const RESERVED = new Set([...WORDS, ...UNSUPPORTED, ...Object.keys(FIXED), ...Object.keys(FUNCTIONS), ...CPP]);
+/** The name of the learner for a name in the content. Only own keys: "toString" is not a name of the learner. */
+const nameOf = (names: Names, word: string) => (Object.hasOwn(names, word) ? names[word] : word);
 const quote = (t: Token) => `"${t.text}"`;
 
 /** The tokens of a line, without the end. A sign that Jumper does not know gives the reason of the reader. */
@@ -29,6 +33,27 @@ function tokensOf(line: string): Token[] | { message: string } {
     if (e instanceof ParseError) return { message: e.error.reason };
     throw e;
   }
+}
+
+// True when the line opens a block comment ("/" then "*") and does not close it: in the sketch, the comment hides the
+// lines after it.
+function openComment(line: string) {
+  for (let i = 0; i < line.length; i++) {
+    if (line.startsWith("//", i)) return false;
+    if (line.startsWith("/*", i)) {
+      const end = line.indexOf("*/", i + 2);
+      if (end === -1) return true;
+      i = end + 1;
+    }
+  }
+  return false;
+}
+
+/** The tokens of an answer in the content. An answer that the reader cannot read is a mistake in the content. */
+function answerTokens(answer: string): Token[] {
+  const tokens = tokensOf(answer);
+  if (!Array.isArray(tokens) || openComment(answer)) throw new Error(`Jumper cannot read the answer '${answer}' of a step: ${Array.isArray(tokens) ? text.steps.open_comment : tokens.message}`);
+  return tokens;
 }
 
 /** The place of the new name in a line that makes a variable: `int x` → 1, `const int x` → 2. Else -1. */
@@ -53,7 +78,7 @@ function match(typed: Token[], want: Token[], names: Names): { names: Names } | 
       next[w.text] = t.text;
       continue;
     }
-    const expected = w.type === "word" ? (names[w.text] ?? w.text) : w.text;
+    const expected = w.type === "word" ? nameOf(names, w.text) : w.text;
     if (t.type !== w.type || t.text !== expected) return { at: i };
   }
   return { names: next };
@@ -63,7 +88,7 @@ function match(typed: Token[], want: Token[], names: Names): { names: Names } | 
 function reason(typed: Token[], want: Token[], at: number, names: Names): Why {
   const t = typed[at];
   const w = want[at];
-  const expected = w.type === "word" ? (names[w.text] ?? w.text) : w.text;
+  const expected = w.type === "word" ? nameOf(names, w.text) : w.text;
   if (t.type === "word" && w.type === "word" && t.text.toLowerCase() === expected.toLowerCase()) return { code: "unknown_name_case", values: { name: t.text, suggest: expected } };
   if (t.text === "=" && w.text === "==") return { code: "use_double_equals" };
   if (t.type === "word" && !RESERVED.has(t.text) && !Object.values(names).includes(t.text) && declared(want) !== at) return { code: "unknown_name", values: { name: t.text } };
@@ -74,12 +99,14 @@ const say = (why: Why) => ("code" in why ? fill(text.errors[why.code], why.value
 
 /** Checks one typed line against its step. Gives the names of the variables after the line, or the reason of a fail. */
 export function checkLine(typed: string, step: LineStep, names: Names = {}): LineResult {
+  const answers = [step.line, ...(step.accept ?? [])].map(answerTokens);
   const tokens = tokensOf(typed);
   if (!Array.isArray(tokens)) return { ok: false, message: tokens.message };
+  if (openComment(typed)) return { ok: false, message: text.steps.open_comment };
   if (tokens.length === 0) return { ok: false, message: text.steps.empty };
 
-  for (const answer of [step.line, ...(step.accept ?? [])]) {
-    const result = match(tokens, tokensOf(answer) as Token[], names);
+  for (const answer of answers) {
+    const result = match(tokens, answer, names);
     if ("names" in result) return { ok: true, names: result.names };
   }
 
@@ -88,10 +115,15 @@ export function checkLine(typed: string, step: LineStep, names: Names = {}): Lin
   if (unsupported) return { ok: false, message: say({ code: "unsupported_word", values: { name: unsupported.text } }) };
   const sign = tokens.find((t) => t.type === "other");
   if (sign) return { ok: false, message: say({ code: "unsupported_sign", values: { sign: sign.text } }) };
-  const want = tokensOf(step.line) as Token[];
+  const want = answers[0];
   const result = match(tokens, want, names);
   if ("names" in result) return { ok: true, names: result.names };
   return { ok: false, message: say(result.why ?? reason(tokens, want, result.at, names)) };
+}
+
+/** True while the code of the board is the sketch of the typed lines. Else (log out, a replay, a new user) the panel uses Free. */
+export function stepsMatch(steps: LineStep[], answers: string[], code: string | null): boolean {
+  return code === stepSketch(steps, answers);
 }
 
 /** The sketch of the lines that the learner typed: each line has the indent of its step, and no spaces at its ends. */

@@ -15,8 +15,13 @@
    - Frame lines (`void setup() {`, `}`): "Type every line (Recommended)"
    - A learner who cannot get a line right: "Message + hint (Recommended)"
 
+3. Hanif's words, before the merge (Nov 3):
+
+   "do adversarial testing on this before I merge"
+
 Claude's work for #144 (not Hanif's words):
 
 - Red first: `tests/sketch-steps.test.ts` failed because `lib/sketch/steps` did not exist ("Cannot find package '@/lib/sketch/steps'").
 - Green: `lib/sketch/steps.ts` (`checkLine`, `stepSketch`), the `steps` of levels 2, 3 and 4 in `content/sketches/arduino-foundations.json`, the text in `content/ui/sketch.json` (`steps`), the Free / Step by step switch and the step card in `components/build/sketch-panel.tsx`, and a read-only mode in `components/build/code-editor.tsx`. 17 of 17 new tests pass; 714 of 714 Vitest tests pass.
 - Browser check on a temporary page (deleted): screenshots in `prompts/sketch-step-by-step-screens/`.
+- Adversarial testing (after prompt 3): a fuzz of 24,254 small changes to the lines, odd inputs, a bad content answer, and a browser repro of Log out. 4 bugs found and fixed (see the ledger, "Corrections and agent issues", Nov 3, #144). Red: 8 new tests failed; green: 25 of 25 in `tests/sketch-steps.test.ts`, 722 of 722 Vitest tests.
