@@ -13,6 +13,8 @@ Hanif's words only. Claude notes are in `ledger/LEDGER.md`.
 5. Dialog answers: "(c) Local SQL + CI job (Recommended)" and "Use Features/UserVisibilityTest".
 6. "send the PR body here"
 7. "red done" (after the CI red run on PR #142)
+8. "resolve ledger"
+9. "add these to the PR body" (with 3 CI screenshots)
 
 ## Decisions by Hanif
 

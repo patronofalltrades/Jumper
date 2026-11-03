@@ -24,21 +24,23 @@ closes #137
 
 The commit "RED: Data isolation test with the snapshots policy broken on purpose" sets the policy to `using (true)`. The `SQL tests (row-level security)` CI check fails:
 
-_(screenshot: CI red)_
+![CI red: SQL tests log](prompts/data-isolation-test-screens/ci-red-log.png)
+
+![CI red: checks of the PR](prompts/data-isolation-test-screens/ci-red-checks.png)
 
 On a computer:
 
-_(screenshot: drag in `prompts/data-isolation-test-screens/local-red.png`)_
+![local red](prompts/data-isolation-test-screens/local-red.png)
 
 ### Green (the policy is back)
 
 The next commit puts the policy back. The CI check passes:
 
-_(screenshot: CI green)_
+![CI green: SQL tests log](prompts/data-isolation-test-screens/ci-green-log.webp)
 
 On a computer:
 
-_(screenshot: drag in `prompts/data-isolation-test-screens/local-green.png`)_
+![local green](prompts/data-isolation-test-screens/local-green.png)
 
 ## What changed
 
