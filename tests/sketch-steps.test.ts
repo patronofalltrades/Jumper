@@ -7,7 +7,7 @@ import { loadSketchStep } from "@/lib/content/sketches";
 import { sketchCircuit } from "@/lib/sketch/circuit";
 import { checkGoal } from "@/lib/sketch/goal";
 import { parseSketch } from "@/lib/sketch/parse";
-import { checkLine, stepSketch, type LineStep, type Names } from "@/lib/sketch/steps";
+import { checkLine, stepsMatch, stepSketch, type LineStep, type Names } from "@/lib/sketch/steps";
 import text from "@/content/ui/sketch.json";
 
 // Issue #144: Step by step. The learner reads the goal of one line, types the line, and Jumper checks it.
@@ -88,6 +88,38 @@ const bench = createBench(await loadBenchSpec("arduino-foundations"));
 const boards = await loadBoards("arduino-foundations");
 const finished = (position: number): Part[] => [...startBoard(boards, position), ...boards.levels[position]];
 
+describe("adversarial lines (review before merge)", () => {
+  it("refuses a /* with no */, because it hides the lines after it in the sketch", () => {
+    expect(message("digitalWrite(ledPin, LOW); /*", OFF)).toBe(text.steps.open_comment);
+    expect(message("/* digitalWrite(ledPin, LOW);", OFF)).toBe(text.steps.open_comment);
+    pass("digitalWrite(ledPin, LOW); /* off */", OFF);
+    pass("digitalWrite(ledPin, LOW); // a /* in a comment", OFF);
+  });
+
+  it("refuses words of C++ that the Arduino does not let you use as a name", () => {
+    for (const name of ["class", "main", "new", "this", "auto", "struct"]) expect(message(`const int ${name} = 13;`, step("const int ledPin = 13;"), {})).toBe(text.steps.bad_name.replace("{name}", name));
+  });
+
+  it("does not take the names of a JavaScript object for names of the learner", () => {
+    pass("digitalWrite(toString, LOW);", step("digitalWrite(toString, LOW);"), {});
+    pass("const int constructor2 = 13;", step("const int ledPin = 13;"), {});
+  });
+
+  it("stops at a step whose answer Jumper cannot read, and does not let each line pass", () => {
+    expect(() => checkLine("anything at all", step("delay(500);", { accept: ['delay("500");'] }))).toThrow(/delay\("500"\)/);
+  });
+
+  it("uses the typed lines only while the sketch on the board is still the sketch of the lines", () => {
+    const steps = [step("void setup() {"), step("}")];
+    expect(stepsMatch(steps, ["void setup(){"], "void setup(){")).toBe(true);
+    expect(stepsMatch(steps, [], "")).toBe(true);
+    // Log out, a replay or a new user: the code of the board is a different code, so the panel goes back to Free.
+    expect(stepsMatch(steps, ["void setup(){"], null)).toBe(false);
+    expect(stepsMatch(steps, [], null)).toBe(false);
+    expect(stepsMatch(steps, ["void setup(){"], "void setup() {\n}")).toBe(false);
+  });
+});
+
 describe("the steps of each level", () => {
   /** Types each answer in its step, in order, and gives the sketch. */
   const typeAll = (steps: LineStep[], answers: string[]) => {
@@ -126,5 +158,35 @@ describe("the steps of each level", () => {
       const code = s.line.trim();
       if (code.length > 1) expect(`${s.goal} ${s.hint ?? ""}`).not.toContain(code);
     }
+  });
+
+  it.each([2, 3, 4])("level %i: no small change to a line passes the check and then breaks the sketch", async (position) => {
+    const s = (await loadSketchStep("arduino-foundations", position))!;
+    const steps = s.steps!;
+    const changes = ["", ";", "}", "{", "0", " ", "/*", "*/", "//", "=", "!", "(", ")", "x", "HIGH", "LOW"];
+    const broken: string[] = [];
+    steps.forEach((target, i) => {
+      const line = target.line.trim();
+      const tries = new Set<string>();
+      for (let k = 0; k <= line.length; k++) for (const c of changes) tries.add(line.slice(0, k) + c + line.slice(k)).add(line.slice(0, k) + c + line.slice(k + 1));
+      for (const typed of tries) {
+        let names: Names = {};
+        const answers: string[] = [];
+        const all = steps.every((st, j) => {
+          let answer = j === i ? typed : st.line.trim();
+          if (j !== i) for (const [from, to] of Object.entries(names)) answer = answer.replace(new RegExp(`\\b${from}\\b`, "g"), to);
+          const result = checkLine(answer, st, names);
+          if (result.ok) {
+            names = result.names;
+            answers.push(answer);
+          }
+          return result.ok;
+        });
+        if (!all) continue;
+        const parsed = parseSketch(stepSketch(steps, answers));
+        if (!parsed.ok || !checkGoal(parsed.program, sketchCircuit(bench, finished(position)), s.goal).passed) broken.push(`line ${i + 1}: ${typed}`);
+      }
+    });
+    expect(broken).toEqual([]);
   });
 });
