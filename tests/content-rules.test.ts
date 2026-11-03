@@ -125,7 +125,8 @@ describe("the task text follows the first-timer rules", async () => {
 describe("the build-mode text uses plain words", () => {
   const strings: [string, string][] = [];
   const walk = (o: unknown, path: string) => {
-    if (typeof o === "string") strings.push([path, o]);
+    // A {placeholder} is a name for the app, not a word for the learner.
+    if (typeof o === "string") strings.push([path, o.replace(/\{\w+\}/g, "")]);
     else if (o && typeof o === "object") for (const [k, v] of Object.entries(o)) if (k !== "_note") walk(v, `${path}.${k}`);
   };
   walk(text, "build");

@@ -9,11 +9,11 @@ const tasksOf = (position: number): PlanTask[] => level(position).tasks.map((t) 
 
 describe("taskOfFailure: the task of a failed Check (issue #91)", () => {
   it("finds the wire task whose two ends are the failed connection", () => {
-    expect(taskOfFailure(tasksOf(1), { code: "missing_ground", connection: { a: "esp.GND", b: "bbA.-" } })).toBe(4);
+    expect(taskOfFailure(tasksOf(1), { code: "missing_ground", connection: { a: "esp.GND", b: "bbA.-" } })).toBe(2);
   });
 
   it("finds the task in either order", () => {
-    expect(taskOfFailure(tasksOf(1), { code: "missing_ground", connection: { a: "bbA.-", b: "esp.GND" } })).toBe(4);
+    expect(taskOfFailure(tasksOf(1), { code: "missing_ground", connection: { a: "bbA.-", b: "esp.GND" } })).toBe(2);
   });
 
   it("finds the task when the other side of a button is used", () => {

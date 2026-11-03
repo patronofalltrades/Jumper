@@ -25,6 +25,7 @@ import { BuildDemo, BuildForMe, useDemoRunning } from "./build-for-me";
 import { readSavedLevel, useLevel } from "./autosave";
 import { useEmptyBoard, useLevelCheck, useProblemWatch, useSketchLock } from "./check";
 import { useFeedback } from "./feedback";
+import { useFilledTasks } from "./filled-tasks";
 import { GuideBar, SpotCard, useNoticeTimer } from "./guide";
 import { Hearts, PinnedPopup, PopupLayer, useLaptop, type LevelTask } from "./popups";
 import { SketchPanel } from "./sketch-panel";
@@ -112,11 +113,13 @@ export function BuildView({ mascot, ...props }: Props) {
   );
 }
 
-function BuildBoard({ user, project, levelId, position, eyebrow, title, goal, tasks, rules, bench: spec, start, carry, startLevel = 0, levels, clip: finished, sketch, mascot }: Props) {
+function BuildBoard({ user, project, levelId, position, eyebrow, title, goal, tasks: rawTasks, rules, bench: spec, start, carry, startLevel = 0, levels, clip: finished, sketch, mascot }: Props) {
   useKeys();
   useNoticeTimer();
   useFeedback();
-  const plan: Plan = useMemo(() => ({ tasks: tasks.map((t) => ({ target: t.target, xp: t.xp })), forbid: rules.forbid }), [tasks, rules]);
+  const plan: Plan = useMemo(() => ({ tasks: rawTasks.map((t) => ({ target: t.target, xp: t.xp })), forbid: rules.forbid }), [rawTasks, rules]);
+  // The task text names the holes of the arrow (issue #148).
+  const tasks = useFilledTasks(rawTasks, finished?.order);
   const bench = useMemo(() => createBench(spec), [spec]);
   const { error: saveError, otherTab } = useLevel({ user, project, levelId, position, bench, plan, start, carry });
   const levelCheck = useLevelCheck({ user, project, levelId, position, rules, needsSketch: !!sketch });
@@ -173,9 +176,15 @@ function BuildBoard({ user, project, levelId, position, eyebrow, title, goal, ta
   const [readSteps] = useReadSteps();
   const taskOpen = progress.phase === "task" && !explaining;
   const taskText = taskOpen ? tasks[progress.index]?.instruction : undefined;
+  // A new task is read once. The holes in its text can change with the board (issue #148); that is not a new task.
+  const latestText = useRef(taskText);
   useEffect(() => {
-    if (readSteps && taskText) readAloud(taskText);
-  }, [readSteps, taskText, progress.index]);
+    latestText.current = taskText;
+  });
+  const taskKey = taskOpen ? rawTasks[progress.index]?.instruction : undefined;
+  useEffect(() => {
+    if (readSteps && taskKey && latestText.current) readAloud(latestText.current);
+  }, [readSteps, taskKey, progress.index]);
   useEffect(() => {
     return () => stopReading();
   }, [levelId]);

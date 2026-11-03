@@ -8,7 +8,7 @@ import type { Part } from "@/lib/circuit/parts";
 import { partSchema } from "@/lib/content/schema";
 import { boardStore, type LevelSetup } from "@/lib/game/board-store";
 import { replayProgress } from "@/lib/game/check-flow";
-import type { Plan, Progress } from "@/lib/game/engine";
+import { fitProgress, type Plan, type Progress } from "@/lib/game/engine";
 import { levelKey, saveKey } from "@/lib/game/level-key";
 import { isOtherTabSave } from "@/lib/game/tab-save";
 
@@ -167,7 +167,7 @@ export function useLevel({ user, project, levelId, position, bench, plan, start,
     opened.set(key, new Date().toISOString());
     const before = carry ? read(keyOf(user, project, position - 1)) : null;
     const setup: LevelSetup = own
-      ? { bench, plan, parts: own.parts as Part[], base: (own.base ?? start) as Part[], progress: replayProgress(own.progress, own.done) as Progress, code: own.sketch?.code, codePassed: own.sketch?.passed }
+      ? { bench, plan, parts: own.parts as Part[], base: (own.base ?? start) as Part[], progress: fitProgress(bench, plan, own.parts as Part[], replayProgress(own.progress, own.done) as Progress), code: own.sketch?.code, codePassed: own.sketch?.passed }
       : { bench, plan, parts: before?.progress.phase === "ready_to_check" ? (before.parts as Part[]) : start };
     const open = levelKey(user, project, position);
     boardStore.getState().open(open, setup);

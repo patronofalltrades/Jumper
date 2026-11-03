@@ -20,7 +20,7 @@ describe("holePhrase", () => {
   });
 
   it("names a red or blue line with the column printed beside it, and its side when two lines of a color are free", () => {
-    expect(holePhrase(perch, [], "A-L+1")).toBe(`the left red + line of breadboard A next to column ${railNumber(1)}`);
+    expect(holePhrase(perch, [], "A-L+1")).toBe(`breadboard A's left red + line next to column ${railNumber(1)}`);
     expect(holePhrase(perch, [], "B-R-6", "B")).toBe(`the right blue − line next to column ${railNumber(6)}`);
   });
 
@@ -30,11 +30,12 @@ describe("holePhrase", () => {
 
   it("says 'the breadboard' on a bench with one breadboard, and left or right when two lines of a color are free", () => {
     expect(holePhrase(uno, [], "A-a3")).toBe("the breadboard, row a, column 3");
-    expect(holePhrase(uno, [], "A-L+1")).toBe(`the left red + line next to column ${railNumber(1)}`);
+    expect(holePhrase(uno, [], "A-L+1")).toBe(`the breadboard's left red + line next to column ${railNumber(1)}`);
+    expect(holePhrase(uno, [], "A-a4", "A")).toBe("row a, column 4");
   });
 
   it("names a pin socket of the Uno with its plain name", () => {
-    expect(holePhrase(uno, [], "uno-D13")).toBe("pin 13 (D13) of the Uno");
+    expect(holePhrase(uno, [], "uno-D13")).toBe("pin 13 (D13) on the Uno");
   });
 
   it("names a screw of the amplifier", () => {
@@ -47,7 +48,7 @@ describe("holePhrase", () => {
 describe("pinName", () => {
   it("puts the plain name first: pin 4 (GPIO 4)", () => {
     expect(pinName("GPIO4")).toBe("pin 4 (GPIO 4)");
-    expect(pinName("GND")).toBe("GND (ground)");
+    expect(pinName("GND")).toBe("ground (GND)");
   });
 });
 

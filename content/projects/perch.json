@@ -10,7 +10,7 @@
     {
       "position": 1,
       "title": "Set up the board",
-      "goal": "Put the board on two breadboards, and give the breadboards power.",
+      "goal": "First, give Perch power. Without power, no part can work. You need no experience to start.",
       "rules": {
         "require": [
           {
@@ -44,54 +44,24 @@
         {
           "position": 1,
           "kind": "place",
-          "instruction": "This is breadboard A (the one on the left), inside the blinking line. It is already on the table.",
-          "popup_why": "A breadboard is a board full of holes. Under the holes, metal strips join them in lines of 5. Put two things in the same line of 5, and they touch. The long red and blue lines at the edges are for power.",
+          "instruction": "Look at your bench: breadboard A on the left, breadboard B on the right, and the board across them.",
+          "popup_why": "A breadboard is a board full of holes. Under the holes, metal strips join them in lines of 5, so two things in the same line touch. The ESP32-S3 board across the two breadboards is the brain of Perch: a tiny computer. The long red and blue lines at the edges are for power.",
           "concept": "Breadboard: A board with many holes. You push parts and wires into the holes. You do not need glue or solder. Under each line of 5 holes, a metal strip joins the holes, so the parts in that line can talk.",
-          "target": {
-            "kind": "place",
-            "part": "bb400",
-            "id": "bbA",
-            "zone": "table-left"
-          },
-          "source_url": "https://learn.sparkfun.com/tutorials/how-to-use-a-breadboard/all",
-          "xp": 10
-        },
-        {
-          "position": 2,
-          "kind": "place",
-          "instruction": "This is breadboard B (the one on the right), inside the blinking line, next to breadboard A.",
-          "popup_why": "Our main board is very wide. On one breadboard, its pins would fill almost all the holes, and you would have no space for wires. With two breadboards, each side of the board gets its own breadboard.",
-          "concept": null,
-          "target": {
-            "kind": "place",
-            "part": "bb400",
-            "id": "bbB",
-            "zone": "table-right"
-          },
-          "source_url": "https://docs.espressif.com/projects/esp-dev-kits/en/latest/esp32s3/esp32-s3-devkitc-1/user_guide.html",
-          "xp": 10
-        },
-        {
-          "position": 3,
-          "kind": "place",
-          "instruction": "This is the ESP32-S3 board, inside the blinking line. It already sits across the two breadboards.",
-          "popup_why": "The ESP32-S3 is the brain of Perch. It is a tiny computer. One row of its pins goes into breadboard A, and the other row goes into breadboard B. Now each pin has free holes next to it for wires.",
-          "concept": "Pin: A small metal leg on a part. Each pin has one job, and its name tells you the job. For example, 3V3 gives power and GND is ground.",
           "target": {
             "kind": "place",
             "part": "esp32-s3-devkitc-1",
             "id": "esp",
             "zone": "across-bbA-bbB"
           },
-          "source_url": "https://docs.espressif.com/projects/esp-dev-kits/en/latest/esp32s3/esp32-s3-devkitc-1/user_guide.html",
+          "source_url": "https://learn.sparkfun.com/tutorials/how-to-use-a-breadboard/all",
           "xp": 10
         },
         {
-          "position": 4,
+          "position": 2,
           "kind": "wire",
-          "instruction": "Connect the 3V3 pin to the red + line on the left side of breadboard A.",
-          "popup_why": "You gave power to the red + line! The 3V3 pin pushes power out. Now the whole red line has power, so parts can take power from any hole on it.",
-          "concept": "Power and ground: Electricity moves in a circle. It goes out of the power pin (+), through a part, and back to the ground pin (−). If the circle is broken, nothing works.",
+          "instruction": "Power (3V3): connect {from} to {to}.",
+          "popup_why": "You gave power to the red + line! The 3V3 pin of the board pushes power out. Now the whole red line has power, so parts can take power from any hole on it.",
+          "concept": "Pin: A small metal leg on a part. Each pin has one job, and its name tells you the job. For example, 3V3 gives power and GND is ground.",
           "target": {
             "kind": "wire",
             "a": "esp.3V3",
@@ -101,11 +71,11 @@
           "xp": 10
         },
         {
-          "position": 5,
+          "position": 3,
           "kind": "wire",
-          "instruction": "Connect a GND pin to the blue − line on the left side of breadboard A.",
+          "instruction": "Ground (GND): connect {from} to {to}.",
           "popup_why": "You made the way back! GND is ground, the end of the circle. Now the blue − line is ground. Parts send their power back to it.",
-          "concept": null,
+          "concept": "Power and ground: Electricity moves in a circle. It goes out of the power pin (+), through a part, and back to the ground pin (−). If the circle is broken, nothing works.",
           "target": {
             "kind": "wire",
             "a": "esp.GND",
@@ -115,9 +85,9 @@
           "xp": 10
         },
         {
-          "position": 6,
+          "position": 4,
           "kind": "wire",
-          "instruction": "Connect the red + line on the left side of breadboard A to the red + line on the right side of breadboard B.",
+          "instruction": "Connect {from} to {to}.",
           "popup_why": "Now breadboard B has power too. The two breadboards are not joined inside, so this wire is a bridge that carries power across.",
           "concept": null,
           "target": {
@@ -129,9 +99,9 @@
           "xp": 10
         },
         {
-          "position": 7,
+          "position": 5,
           "kind": "wire",
-          "instruction": "Connect the blue − line on the left side of breadboard A to the blue − line on the right side of breadboard B.",
+          "instruction": "Connect {from} to {to}.",
           "popup_why": "Now the two breadboards share one ground. All the parts use the same way back, so they all agree on what 'off' means.",
           "concept": null,
           "target": {
@@ -210,7 +180,7 @@
         {
           "position": 1,
           "kind": "place",
-          "instruction": "Put the button across the gap in the middle of breadboard A (the one on the left).",
+          "instruction": "Put the first leg of the button in {from}, across the middle gap.",
           "popup_why": "Your button sits across the middle gap. The left legs and the right legs are in different lines, so they do not touch. When you press the button, it joins them.",
           "concept": "Button: A part that joins two wires only while you press it. Press: the wires touch. Let go: they come apart.",
           "target": {
@@ -225,7 +195,7 @@
         {
           "position": 2,
           "kind": "wire",
-          "instruction": "Connect pin 1 (GPIO 1) of the board to one side of the button.",
+          "instruction": "Pin 1 (GPIO 1): connect {from} to the button at {to}.",
           "popup_why": "Now the board can feel the button. The board listens on pin 1. Right now it hears 'not pressed'.",
           "concept": "GPIO pin: A pin that the board controls. It can listen (is the button pressed?) or talk (turn the light on). GPIO 1 is pin number 1.",
           "target": {
@@ -239,7 +209,7 @@
         {
           "position": 3,
           "kind": "wire",
-          "instruction": "Connect the other side of the button to the blue − line on the left side of breadboard A.",
+          "instruction": "Button side 2: connect {from} to {to}.",
           "popup_why": "The button is ready! When you press it, pin 1 touches ground, and the board hears 'pressed'. When you let go, the board hears 'not pressed'.",
           "concept": null,
           "target": {
@@ -253,7 +223,7 @@
         {
           "position": 4,
           "kind": "place",
-          "instruction": "Put the resistor on breadboard A.",
+          "instruction": "Put the legs of the resistor in {from} and {to}.",
           "popup_why": "The resistor is in. A resistor slows down electricity, like a narrow pipe slows down water. It keeps the light safe.",
           "concept": "Resistor: A small part that lets less electricity through. Without it, too much goes into the light, and the light burns out.",
           "target": {
@@ -268,7 +238,7 @@
         {
           "position": 5,
           "kind": "place",
-          "instruction": "Put the light (LED) on breadboard A. Put its long leg (+) in the same column as the free leg of the resistor. Put its short leg (−) in the next column, in the same row.",
+          "instruction": "Put the light's long leg (+) in {from}, short leg (−) in {to}.",
           "popup_why": "The light is in. Look at its legs: the long leg is + and the short leg is −. Electricity can only go in at the long leg and out at the short leg.",
           "concept": "LED: A small light. It works only one way round. The long leg goes toward power (+), and the short leg goes toward ground (−).",
           "target": {
@@ -283,7 +253,7 @@
         {
           "position": 6,
           "kind": "wire",
-          "instruction": "Connect pin 2 (GPIO 2) of the board to one leg of the resistor.",
+          "instruction": "Pin 2 (GPIO 2): connect {from} to the resistor at {to}.",
           "popup_why": "Now pin 2 can send power to the resistor. When the board turns pin 2 on, power goes out of it.",
           "concept": null,
           "target": {
@@ -297,7 +267,7 @@
         {
           "position": 7,
           "kind": "wire",
-          "instruction": "The other leg of the resistor must touch the long leg (+) of the light. Put them in the same line of 5, or connect them with a wire.",
+          "instruction": "Resistor to light: connect {from} to {to}.",
           "popup_why": "Now the power goes from pin 2, through the resistor, into the light. The resistor lets just enough through, so the light shines and stays safe.",
           "concept": null,
           "target": {
@@ -311,7 +281,7 @@
         {
           "position": 8,
           "kind": "wire",
-          "instruction": "Connect the short leg (−) of the light to the blue − line on the left side of breadboard A.",
+          "instruction": "Light short leg (−): connect {from} to {to}.",
           "popup_why": "You closed the circle! Power goes out of pin 2, through the resistor and the light, and back to ground. Now the board can turn the light on and off.",
           "concept": null,
           "target": {
@@ -375,7 +345,7 @@
         {
           "position": 1,
           "kind": "place",
-          "instruction": "Put the mic (INMP441) on breadboard B (the one on the right).",
+          "instruction": "Put the first pin of the mic in {from}.",
           "popup_why": "The mic is in. Each of its 6 pins sits in its own line, so each pin can get its own wire.",
           "concept": "Microphone: A part that hears sound. This mic turns sound into numbers, and sends the numbers to the board on 3 wires: a clock wire, a 'which side' wire and a data wire.",
           "target": {
@@ -390,7 +360,7 @@
         {
           "position": 2,
           "kind": "wire",
-          "instruction": "Connect VDD of the mic to the red + line on the right side of breadboard B.",
+          "instruction": "Mic power (VDD): connect {from} to {to}.",
           "popup_why": "The mic has power now. VDD is the power pin of the mic.",
           "concept": null,
           "target": {
@@ -404,7 +374,7 @@
         {
           "position": 3,
           "kind": "wire",
-          "instruction": "Connect GND of the mic to the blue − line on the right side of breadboard B.",
+          "instruction": "Mic ground (GND): connect {from} to {to}.",
           "popup_why": "The mic circle is closed. The mic and the board now share ground, so they understand each other.",
           "concept": null,
           "target": {
@@ -418,7 +388,7 @@
         {
           "position": 4,
           "kind": "wire",
-          "instruction": "Connect L/R of the mic to the blue − line on the right side of breadboard B.",
+          "instruction": "Mic side (L/R): connect {from} to {to}.",
           "popup_why": "You told the mic which side it is. L/R on ground means 'left'. A mic that does not know its side stays quiet.",
           "concept": null,
           "target": {
@@ -432,7 +402,7 @@
         {
           "position": 5,
           "kind": "wire",
-          "instruction": "Connect WS of the mic to pin 4 (GPIO 4).",
+          "instruction": "Mic select (WS): connect {from} to pin 4 at {to}.",
           "popup_why": "Now the board can say 'left' or 'right' to the mic, on the WS wire. WS means 'word select'.",
           "concept": null,
           "target": {
@@ -446,7 +416,7 @@
         {
           "position": 6,
           "kind": "wire",
-          "instruction": "Connect SCK of the mic to pin 5 (GPIO 5).",
+          "instruction": "Mic clock (SCK): connect {from} to pin 5 at {to}.",
           "popup_why": "This is the clock wire. The board ticks it very fast, like a drum. On each tick, the mic sends one tiny piece of sound.",
           "concept": "Clock: A wire that goes on, off, on, off, very fast. Two parts use it to keep the same beat, like two people who clap together.",
           "target": {
@@ -460,7 +430,7 @@
         {
           "position": 7,
           "kind": "wire",
-          "instruction": "Connect SD of the mic to pin 6 (GPIO 6).",
+          "instruction": "Mic data (SD): connect {from} to pin 6 at {to}.",
           "popup_why": "Perch can hear! SD is the data wire. The sound goes from the mic to the board on this wire.",
           "concept": null,
           "target": {
@@ -544,7 +514,7 @@
         {
           "position": 1,
           "kind": "place",
-          "instruction": "Put the amp (MAX98357A) on breadboard A (the one on the left), in rows a to e.",
+          "instruction": "Put the first pin of the amp in {from}.",
           "popup_why": "The amp is in. Each of its pins sits in its own line, so each pin can get its own wire.",
           "concept": "Amplifier (amp): A part that makes sound louder. The board is too weak to move a speaker. The amp takes the sound from the board and makes it strong enough.",
           "target": {
@@ -559,7 +529,7 @@
         {
           "position": 2,
           "kind": "wire",
-          "instruction": "Connect Vin of the amp to the red + line on the left side of breadboard A.",
+          "instruction": "Amp power (Vin): connect {from} to {to}.",
           "popup_why": "The amp has power now. Vin is the power pin of the amp.",
           "concept": null,
           "target": {
@@ -573,7 +543,7 @@
         {
           "position": 3,
           "kind": "wire",
-          "instruction": "Connect GND of the amp to the blue − line on the left side of breadboard A.",
+          "instruction": "Amp ground (GND): connect {from} to {to}.",
           "popup_why": "The amp circle is closed. The amp and the board now share ground.",
           "concept": null,
           "target": {
@@ -587,7 +557,7 @@
         {
           "position": 4,
           "kind": "wire",
-          "instruction": "Connect SD of the amp to its own Vin pin.",
+          "instruction": "Amp on switch (SD): connect {from} to {to}.",
           "popup_why": "You turned the amp on! SD is the on/off pin. On power, the amp is on. On ground, it is off.",
           "concept": null,
           "target": {
@@ -601,7 +571,7 @@
         {
           "position": 5,
           "kind": "wire",
-          "instruction": "Connect DIN of the amp to pin 7 (GPIO 7).",
+          "instruction": "Amp data (DIN): connect {from} to pin 7 at {to}.",
           "popup_why": "This is the data wire. The sound goes from the board to the amp on it. The mic sends sound in, and this wire sends sound out.",
           "concept": null,
           "target": {
@@ -615,7 +585,7 @@
         {
           "position": 6,
           "kind": "wire",
-          "instruction": "Connect BCLK of the amp to pin 15 (GPIO 15).",
+          "instruction": "Amp clock (BCLK): connect {from} to pin 15 at {to}.",
           "popup_why": "This is the clock wire of the amp, like the SCK wire of the mic. On each tick, one tiny piece of sound goes to the amp.",
           "concept": null,
           "target": {
@@ -629,7 +599,7 @@
         {
           "position": 7,
           "kind": "wire",
-          "instruction": "Connect LRC of the amp to pin 16 (GPIO 16).",
+          "instruction": "Amp side (LRC): connect {from} to pin 16 at {to}.",
           "popup_why": "This is the 'left or right' wire of the amp, like the WS wire of the mic.",
           "concept": null,
           "target": {
@@ -643,7 +613,7 @@
         {
           "position": 8,
           "kind": "place",
-          "instruction": "Put the speaker wires into the screw holder of the amp: + into +, then − into −.",
+          "instruction": "Put the speaker's + wire in {from} and − wire in {to}.",
           "popup_why": "Perch can talk! The speaker wires go into the screw holder, not the breadboard. The amp pushes the speaker in and out very fast, and that makes sound. Never put a speaker wire on ground.",
           "concept": "Speaker: A part that makes sound. It moves in and out very fast, and pushes the air. Your ears hear the moving air as sound.",
           "target": {
@@ -716,7 +686,7 @@
         {
           "position": 1,
           "kind": "place",
-          "instruction": "Put the screen (ST7789) on breadboard B (the one on the right), in rows f to j.",
+          "instruction": "Put the first pin of the screen in {from}.",
           "popup_why": "The screen is in. Each of its 8 pins sits in its own line, so each pin can get its own wire.",
           "concept": "Screen: A small square of 240 × 240 tiny dots. Each dot can be any color. The board tells each dot what color to be, many times each second, and that makes pictures.",
           "target": {
@@ -731,7 +701,7 @@
         {
           "position": 2,
           "kind": "wire",
-          "instruction": "Connect VCC of the screen to the red + line on the right side of breadboard B.",
+          "instruction": "Screen power (VCC): connect {from} to {to}.",
           "popup_why": "The screen has power now. VCC is the power pin of the screen.",
           "concept": null,
           "target": {
@@ -745,7 +715,7 @@
         {
           "position": 3,
           "kind": "wire",
-          "instruction": "Connect GND of the screen to the blue − line on the right side of breadboard B.",
+          "instruction": "Screen ground (GND): connect {from} to {to}.",
           "popup_why": "The screen circle is closed. The screen and the board now share ground.",
           "concept": null,
           "target": {
@@ -759,7 +729,7 @@
         {
           "position": 4,
           "kind": "wire",
-          "instruction": "Connect SCL of the screen to pin 21 (GPIO 21).",
+          "instruction": "Screen clock (SCL): connect {from} to pin 21 at {to}.",
           "popup_why": "This is the clock wire of the screen. On each tick, one tiny piece of the picture goes to the screen.",
           "concept": null,
           "target": {
@@ -773,7 +743,7 @@
         {
           "position": 5,
           "kind": "wire",
-          "instruction": "Connect SDA of the screen to pin 47 (GPIO 47).",
+          "instruction": "Screen data (SDA): connect {from} to pin 47 at {to}.",
           "popup_why": "This is the data wire. The picture goes from the board to the screen on it.",
           "concept": null,
           "target": {
@@ -787,7 +757,7 @@
         {
           "position": 6,
           "kind": "wire",
-          "instruction": "Connect RES of the screen to pin 45 (GPIO 45).",
+          "instruction": "Screen reset (RES): connect {from} to pin 45 at {to}.",
           "popup_why": "This is the restart wire. The board uses it to wake the screen up fresh when Perch turns on.",
           "concept": null,
           "target": {
@@ -801,7 +771,7 @@
         {
           "position": 7,
           "kind": "wire",
-          "instruction": "Connect DC of the screen to pin 40 (GPIO 40).",
+          "instruction": "Screen mode (DC): connect {from} to pin 40 at {to}.",
           "popup_why": "This wire tells the screen what comes next: an order (for example 'draw here') or the picture itself.",
           "concept": null,
           "target": {
@@ -815,7 +785,7 @@
         {
           "position": 8,
           "kind": "wire",
-          "instruction": "Connect CS of the screen to pin 41 (GPIO 41).",
+          "instruction": "Screen select (CS): connect {from} to pin 41 at {to}.",
           "popup_why": "This is the 'listen to me' wire. When the board uses it, the screen knows that the next data is for it.",
           "concept": null,
           "target": {
@@ -829,7 +799,7 @@
         {
           "position": 9,
           "kind": "wire",
-          "instruction": "Connect BLK of the screen to pin 42 (GPIO 42).",
+          "instruction": "Screen light (BLK): connect {from} to pin 42 at {to}.",
           "popup_why": "Perch has a face! BLK is the light behind the screen. Without it, the screen is dark and you see nothing. Now the board can turn the light on.",
           "concept": null,
           "target": {

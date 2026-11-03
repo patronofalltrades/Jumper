@@ -6,6 +6,7 @@ import { startBoard } from "@/lib/content/boards";
 import { loadProjects } from "@/lib/content/load";
 import { boardsSchema } from "@/lib/content/schema";
 import { loadLevelClips } from "@/lib/content/clips";
+import { holePhrase } from "@/lib/game/task-text";
 import { clipFrame, introClip, levelClip, type IntroScript } from "@/lib/game/walkthrough";
 
 const bench = perchBench();
@@ -14,6 +15,9 @@ const perch = loadProjects().find((p) => p.slug === "perch")!;
 const endOf = (n: number) => text.end.replace("{n}", String(n));
 const startOf = (n: number) => text.start.replace("{n}", String(n - 1));
 const ids = (parts: { id: string }[]) => parts.map((p) => p.id);
+/** The task text with each {from} and {to} as "some words" (issue #148). */
+const filled = (instruction: string) =>
+  new RegExp(`^${instruction.replace(/[.*+?^$()|[\]\\]/g, "\\$&").replace(/\\?\{(from|to)\\?\}/g, ".+")}$`);
 
 describe("levelClip", () => {
   for (const level of perch.levels) {
@@ -21,9 +25,9 @@ describe("levelClip", () => {
       const clip = levelClip(bench, boards, level, endOf(level.position), startOf(level.position));
       const tasks = clip.steps.filter((s) => s.kind === "task");
 
-      it("has one step for each task, in task order, with the instruction of the task as its caption", () => {
+      it("has one step for each task, in task order, with the instruction of the task as its caption, with its holes", () => {
         expect(tasks.map((s) => s.task)).toEqual(level.tasks.map((_, i) => i));
-        expect(tasks.map((s) => s.caption)).toEqual(level.tasks.map((t) => t.instruction));
+        tasks.forEach((s, i) => expect(s.caption).toMatch(filled(level.tasks[i].instruction)));
       });
 
       it("ends on the finished board, with the end caption", () => {
@@ -65,10 +69,19 @@ describe("levelClip", () => {
     });
   }
 
+  it("level 1: the caption of a wire task names the two holes of the wire in the clip (issue #148)", () => {
+    const clip = levelClip(bench, boards, perch.levels[0], endOf(1), startOf(1));
+    const step = clip.steps.find((s) => s.kind === "task" && s.task === 1)!;
+    const wire = clip.order[step.before] as { a: string; b: string };
+    expect(step.caption).toContain(holePhrase(bench, [], wire.a));
+    expect(step.caption).toContain("red + line");
+    expect(step.caption).not.toContain("{");
+  });
+
   it("level 1: the parts that are always on the bench add nothing, then one wire for each wire task", () => {
     const clip = levelClip(bench, boards, perch.levels[0], endOf(1), startOf(1));
-    expect(clip.steps.slice(0, 3).map((s) => s.after - s.before)).toEqual([0, 0, 0]);
-    expect(clip.steps.slice(3, 7).map((s) => ids(clip.order.slice(s.before, s.after)))).toEqual([["w1"], ["w2"], ["w3"], ["w4"]]);
+    expect(clip.steps.slice(0, 1).map((s) => s.after - s.before)).toEqual([0]);
+    expect(clip.steps.slice(1, 5).map((s) => ids(clip.order.slice(s.before, s.after)))).toEqual([["w1"], ["w2"], ["w3"], ["w4"]]);
   });
 
   it("level 2: the light sits in the line of the resistor, so the task 'resistor to light' adds no part", () => {

@@ -1,6 +1,8 @@
 import text from "@/content/ui/build.json";
 import { railColumn, type Bench } from "@/lib/circuit/bench";
-import { terminalAt, type Part } from "@/lib/circuit/parts";
+import { buildNets, endpointHole } from "@/lib/circuit/nets";
+import { isModule, terminalAt, type Part } from "@/lib/circuit/parts";
+import type { Target } from "./engine";
 
 // The holes in the text of a task (issue #148). A task says "Connect {from} to {to}." The app puts in the holes that
 // the arrow points at (taskSpot), so the text and the arrow always agree, also when the guide picks another free hole.
@@ -41,7 +43,7 @@ export function holePhrase(bench: Bench, parts: Part[], hole: string, named?: st
     return fill(t.terminal, { sign, part: (partNames[terminal.part.type] ?? terminal.part.type).toLowerCase() });
   }
   if (h.kind === "pin") return fill(t.pin, { pin: pinName(h.row), board: bench.board.name.replace(/^Arduino /, "") });
-  if (h.kind === "main") return fill(one ? t.mainOne : named === h.board ? t.mainSame : t.main, { board: h.board, row: h.row, column: h.n });
+  if (h.kind === "main") return fill(named === h.board ? t.mainSame : one ? t.mainOne : t.main, { board: h.board, row: h.row, column: h.n });
 
   const sign = h.row.endsWith("+") ? "+" : "-";
   const railNames: Record<string, string> = text.railName;
@@ -49,7 +51,7 @@ export function holePhrase(bench: Bench, parts: Part[], hole: string, named?: st
   const open = new Set(bench.holes.filter((x) => x.board === h.board && x.kind === "rail" && x.row.endsWith(sign) && !bench.covered.has(x.id)).map((x) => x.row));
   const sides: Record<string, string> = t.side;
   const line = open.size > 1 ? fill(sides[h.row[0]], { line: railNames[sign] }) : railNames[sign];
-  return fill(one ? t.railOne : named === h.board ? t.railSame : t.rail, { line, board: h.board, column: railNumber(h.n) });
+  return fill(named === h.board ? t.railSame : one ? t.railOne : t.rail, { line, board: h.board, column: railNumber(h.n) });
 }
 
 /** The breadboard of a hole, or undefined for a pin or a screw. */
@@ -66,4 +68,19 @@ export function taskText(bench: Bench, parts: Part[], instruction: string, taps:
   if (from) values.from = holePhrase(bench, parts, from);
   if (to) values.to = holePhrase(bench, parts, to, from ? boardOf(bench, from) : undefined);
   return fill(instruction, values);
+}
+
+/**
+ * The holes of a part, in the order of the task text: for a wire, the end in the line of the first end of the task
+ * (`target.a`) comes first. For a module, the hole of pin 1. For a resistor, an LED or a speaker, its two legs.
+ * The level clip uses them, so the caption names the holes of the part that it shows.
+ */
+export function partTaps(bench: Bench, before: Part[], target: Target, part: Part): string[] {
+  if (isModule(part)) return [part.at];
+  const { a, b } = part as { a: string; b: string };
+  if (target.kind !== "wire") return [a, b];
+  const nets = buildNets(bench, [...before, part]);
+  const first = endpointHole(bench, before, target.a);
+  const onFirst = (h: string) => first !== null && nets.get(h) !== undefined && nets.get(h) === nets.get(first);
+  return onFirst(b) && !onFirst(a) ? [b, a] : [a, b];
 }
