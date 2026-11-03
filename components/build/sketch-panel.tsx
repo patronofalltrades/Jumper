@@ -165,7 +165,8 @@ export function SketchPanel({ step, onClose, onDone }: { step: SketchStep; onClo
           </ul>
         </details>
       )}
-      <CodeWords />
+      {/* Hanif, Nov 3: the examples of "Code words" can be the line of a step, so the list shows only in Free. */}
+      {!steps && <CodeWords />}
 
       <div className="min-h-40 flex-1">
         <CodeEditor value={code} onChange={(next) => boardStore.getState().setCode(next)} errorAt={mark} label={text.panel.editor} readOnly={!!steps} />
