@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Runs the SQL tests in supabase/tests/ on a throwaway local Postgres 16 (issue #134).
+# Runs the SQL tests in supabase/tests/ on a throwaway local Postgres 16 (issue #137).
 # Never point it at the live Supabase project: each test file makes its own database from the migrations.
 #
 #   PGHOST=localhost PGUSER=postgres PGPASSWORD=postgres scripts/sql-tests.sh            (all tests)

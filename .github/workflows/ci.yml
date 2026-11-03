@@ -25,7 +25,7 @@ jobs:
       - name: Tests (Vitest)
         run: npm test
 
-  # The SQL tests in supabase/tests/ (issue #134), with the Data isolation test (PLAN.md section 4, test 1).
+  # The SQL tests in supabase/tests/ (issue #137), with the Data isolation test (PLAN.md section 4, test 1).
   # They run on a throwaway Postgres 16 in the job, never on the live Supabase project, so no secrets are necessary.
   sql:
     name: SQL tests (row-level security)

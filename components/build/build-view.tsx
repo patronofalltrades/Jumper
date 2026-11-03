@@ -30,6 +30,8 @@ import { Hearts, PinnedPopup, PopupLayer, useLaptop, type LevelTask } from "./po
 import { SketchPanel } from "./sketch-panel";
 import { TaskList } from "./task-list";
 import { ConnectionList } from "./connection-list";
+import { readAloud, stopReading, useReadSteps } from "./read-aloud";
+import { Tour } from "./tour";
 import { cn } from "@/lib/utils";
 
 export type { LevelTask };
@@ -51,6 +53,8 @@ const fill = (template: string, values: Record<string, string | number>) => temp
 /** The parts tray: modules and the speaker, in the order of content/ui/build.json. */
 const TRAY = Object.entries(text.tray.parts).map(([tool, label]) => ({ tool: tool as Tool, label }));
 const inTray = (tool: Tool) => TRAY.some((t) => t.tool === tool);
+/** What each tool and tray part is and does (issue #136). A hover title on laptop, and a line under the tray for the picked tool. */
+const ABOUT: Record<string, string> = text.about;
 
 /** "parts" opens the parts tray, with the part that the learner used last. */
 type ToolKey = Tool | "parts";
@@ -151,6 +155,34 @@ function BuildBoard({ user, project, levelId, position, eyebrow, title, goal, ta
   const building = progress.phase === "mistake" || (progress.phase === "task" && !explaining && !!task && !needsAck(task.target));
   // The Clear and Check row shows while the learner builds. A pop-up over the board, the Check card or the code panel hides it.
   const actions = progress.phase !== "intro" && !explaining && !conceptOpen && !(progress.phase === "ready_to_check" && levelCheck.state.open) && !codeOpen && !alive;
+  // The first-visit tour waits while a pop-up, the intro clip, the Check card, the code panel or the demo is open (issue #123).
+  const tourBusy =
+    watching ||
+    progress.phase === "intro" ||
+    progress.phase === "mistake" ||
+    explaining ||
+    conceptOpen ||
+    (progress.phase === "ready_to_check" && levelCheck.state.open) ||
+    (progress.phase === "task" && !!task && needsAck(task.target)) ||
+    codeOpen ||
+    alive ||
+    demoRunning;
+
+  // Read the task aloud (issue #135). With "Read steps aloud" on, each new task is read by itself. The voice stops when
+  // the learner leaves the level, or opens the Check card (the Build-it-for-me demo stops it in its own button).
+  const [readSteps] = useReadSteps();
+  const taskOpen = progress.phase === "task" && !explaining;
+  const taskText = taskOpen ? tasks[progress.index]?.instruction : undefined;
+  useEffect(() => {
+    if (readSteps && taskText) readAloud(taskText);
+  }, [readSteps, taskText, progress.index]);
+  useEffect(() => {
+    return () => stopReading();
+  }, [levelId]);
+  const checkOpen = levelCheck.state.open;
+  useEffect(() => {
+    if (checkOpen) stopReading();
+  }, [checkOpen]);
 
   const popups = (
     <PopupLayer
@@ -297,6 +329,7 @@ function BuildBoard({ user, project, levelId, position, eyebrow, title, goal, ta
 
       {!laptop && !codeOpen && !demoRunning && popups}
       {!(codeOpen && !laptop) && <ToolBar start={start} startLevel={startLevel} />}
+      <Tour busy={tourBusy} />
       {clip && watching && (
         <ClipPlayer
           clip={clip}
@@ -345,6 +378,10 @@ function ToolBar({ start, startLevel }: { start: Part[]; startLevel: number }) {
         )}
         {/* The row keeps its space for every tool, so the board does not move when the tool changes. */}
         <div className="h-11 max-sm:h-10">{inTray(tool) ? <Tray tool={tool} /> : <Swatches hidden={tool !== "wire"} />}</div>
+        {/* One line for the picked tool, under the board's controls. It never covers the holes. Two lines on a phone. */}
+        <p className="h-8 line-clamp-2 text-center text-xs leading-4 text-muted-foreground sm:h-5 sm:line-clamp-1" aria-live="polite">
+          {ABOUT[tool]}
+        </p>
         <div className={cn("grid gap-1 sm:gap-2", start.length ? "grid-cols-7" : "grid-cols-6")} role="toolbar" aria-label="Tools">
           {TOOLS.map((t) => (
             <ToolButton
@@ -353,6 +390,7 @@ function ToolBar({ start, startLevel }: { start: Part[]; startLevel: number }) {
               onClick={() => pickTool(t.tool)}
               label={t.label}
               shortcut={t.key}
+              about={ABOUT[t.tool]}
             >
               {t.icon}
             </ToolButton>
@@ -375,14 +413,15 @@ function ToolButton({
   pressed,
   label,
   shortcut,
+  about,
   children,
   ...props
-}: { pressed?: boolean; label: string; shortcut: string; children: ReactNode } & React.ComponentProps<"button">) {
+}: { pressed?: boolean; label: string; shortcut: string; about?: string; children: ReactNode } & React.ComponentProps<"button">) {
   return (
     <button
       type="button"
       aria-pressed={pressed}
-      title={`${label} (${shortcut})`}
+      title={about ? `${label} (${shortcut}). ${about}` : `${label} (${shortcut})`}
       className={cn(
         "flex min-h-14 flex-col items-center justify-center gap-0.5 rounded-xl border border-b-4 text-xs font-semibold max-sm:min-h-12 transition-[transform,border] outline-none focus-visible:ring-2 focus-visible:ring-ring active:translate-y-0.5 active:border-b-2 disabled:opacity-40",
         pressed ? "border-primary-deep bg-primary text-primary-foreground" : "border-border bg-card text-foreground",
@@ -431,6 +470,7 @@ function Tray({ tool }: { tool: Tool }) {
           type="button"
           aria-pressed={t.tool === tool}
           onClick={() => pickTool(t.tool)}
+          title={ABOUT[t.tool]}
           className="min-h-11 shrink-0 rounded-xl border border-b-4 border-border bg-card px-3 text-sm font-semibold outline-none focus-visible:ring-2 focus-visible:ring-ring active:translate-y-0.5 active:border-b-2 aria-pressed:border-primary-deep aria-pressed:bg-primary aria-pressed:text-primary-foreground"
         >
           {t.label}

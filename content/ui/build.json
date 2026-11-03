@@ -11,6 +11,14 @@
     "end": "This is the full build of level {n}. Now the board goes back to the start. You build it!",
     "stop": "Stop"
   },
+  "header": {
+    "eyebrow": "{project} · {board} · Level {n}"
+  },
+  "aloud": {
+    "read": "Read this step aloud",
+    "stop": "Stop reading",
+    "switch": "Read steps aloud"
+  },
   "guide": {
     "wire": {
       "start": "{act} a glowing hole. This is where the wire starts.",
@@ -104,6 +112,18 @@
       "speaker": "Speaker",
       "st7789-154": "Screen"
     }
+  },
+  "about": {
+    "_note": "What each tool and tray part is and does (issue #136). Use the real model names and the terms in content/terms/*.json.",
+    "wire": "A wire. It joins two holes, so that the parts in them can share power, ground or signals.",
+    "resistor": "A resistor. It lets less electricity through. It protects the LED from too much current.",
+    "led": "A light (LED). It works only one way round. The long leg (+) goes toward power, and the short leg (−) goes toward ground.",
+    "remove": "Takes a part or a wire off the board. Click or tap it.",
+    "pushbutton": "A button. It joins its two sides only while you press it.",
+    "inmp441": "INMP441: a digital microphone. It sends sound to the board on 3 wires (I²S).",
+    "max98357a": "MAX98357A: an amplifier. It makes the sound from the board loud enough for a speaker.",
+    "speaker": "Speaker: a part that makes sound. It moves air very fast, and your ears hear the moving air as sound.",
+    "st7789-154": "ST7789: a 1.54-inch screen with 240 × 240 tiny dots, each of any color. The board sends it pictures over SPI."
   },
   "putBack": {
     "button": "Put back the level {n} build",

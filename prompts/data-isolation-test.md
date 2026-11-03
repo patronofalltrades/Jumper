@@ -1,6 +1,6 @@
-# Data isolation test: User B cannot see User A's snapshot (issue #134)
+# Data isolation test: User B cannot see User A's snapshot (issue #137)
 
-Branch: `Features/UserVisibilityTest` (Hanif made it). Issue: [#134](https://github.com/patronofalltrades/Jumper/issues/134).
+Branch: `Features/UserVisibilityTest` (Hanif made it). Issue: [#137](https://github.com/patronofalltrades/Jumper/issues/137). PR: [#142](https://github.com/patronofalltrades/Jumper/pull/142).
 
 ## Key prompts
 

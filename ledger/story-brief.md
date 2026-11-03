@@ -185,6 +185,60 @@ Claude suggests this arc. Hanif can change it or drop it. The arc has two thread
 - Which unplanned feature do you think was the right call? Which one cost the most time?
 - What did you cut, and what did the cut order in the plan tell you?
 
+## Pilot user feedback (Nov 2, 2026)
+
+**Source.** Two pilot users sent short messages on Nov 2, 2026. They wrote in Bahasa Indonesia. Hanif gave Claude a report with an English translation. The quotes below are close translations, not the exact words of the users. One user said that they did not try all the features. Thus, use these results as a direction, not as a proof.
+
+**What the users liked.**
+- Fast learning. One user learned faster with Jumper than with wiring diagrams or YouTube videos. Quote (translated): "more to the point".
+- A clean interface. No user had a problem with the navigation or the layout.
+- The flow: hardware assembly only, in levels of difficulty. This makes Jumper different from general simulators.
+- Both users were positive. One user wrote (translated): "the app is cool". No user reported a bug, a crash, or a confusing step.
+
+**What the users did not have.** No user disliked a feature that exists. Each item is a missing capability. The users compare Jumper with circuit simulators (Wokwi, Tinkercad, Cirkit Designer) and with electronics math by hand.
+- No code and no simulation. The users cannot see if the circuit works.
+- No "why". The app shows where a wire goes, but not why a part connects to that pin, or what occurs if it connects to a different pin.
+- No voltages. The users must calculate the voltage drop by hand (for example, the voltage at an LED after a 220 Ω resistor).
+- The project does not say which microcontroller it uses (Arduino, ESP32).
+- The component library has no description of each part.
+
+**What the users asked for.**
+1. A code editor and a simulation mode, as in Wokwi, Tinkercad and Cirkit Designer.
+2. The datasheet and input/output reason for each pin connection, and what occurs with a wrong connection.
+3. The name of the microcontroller in each project.
+4. The voltage at points of the circuit while the learner builds.
+5. A voice that reads the assembly steps, for example "Install a 220 ohm resistor in the circuit".
+6. A description of each part in the component library.
+7. Story problems or assessments that use the finished build.
+
+**Patterns in the report.**
+- Both users asked for more "why", not more "what".
+- The users come with simulator habits. They expect simulation by default.
+- Jumper wins on clarity. New depth must keep the app direct.
+
+**Priority in the report.** Quick wins (content only): the microcontroller label, part descriptions, pin reasons. Medium: voltages, voice, story cases. Large: code and simulation. The report calls the large item a decision about the position of the product.
+
+**Each request against the road map (Claude's check of the repository, Nov 2).**
+
+| # | Request | Status in Jumper | Size for Nov 4 |
+| --- | --- | --- | --- |
+| 1 | Code and simulation | Partly built. Arduino Foundations has a code editor, and the sketch runs on the 3D board (Plan vs. Reality row 22). Perch comes alive after each level: LED, mic meter, voice, face (row 11, Done). Perch has no code step. No tool simulates voltage or current. The users did not mention these features, so maybe they did not find them. | Large. Not before Nov 4. |
+| 2 | Why this pin, and what occurs with a wrong pin | Partly built. Each task has a "why" pop-up (`popup_why`) and a Concept card. A failed Check gives a reason and where the wire goes now (rows 31 to 39). No task says what occurs with a wrong pin before the learner makes the mistake. | Medium (content in JSON). |
+| 3 | Name of the microcontroller | Partly built. The catalog cards and the level map show the board (ESP32-S3, Arduino Uno). Build mode does not show it. | Small. |
+| 4 | Voltage at points of the circuit | Not on the road map. The PRD says: "It does not simulate electrical behavior." The Arduino Foundations Ohm's law concept gives the numbers for one LED as text. | Large (new logic in `lib/circuit`). |
+| 5 | A voice that reads the steps | Not on the road map. Speech Synthesis is already in the TRD and in the app (Perch level 4 speaks), so no new dependency is necessary. | Small to medium. |
+| 6 | A description of each part | Partly built. The parts tray shows only names. The terms on the dashboard give definitions after a level passes. | Small (content in JSON). |
+| 7 | Story problems and assessments | Not on the road map. | Medium to large. |
+
+**Claude notes (not the users' voice, not Hanif's voice).**
+- Chapter 8 (written Oct 27) says that Feature 11 is not built. Row 11 of "Plan vs. Reality" now says Done. Use row 11.
+- These are 2 users only.
+
+**For Hanif.**
+- Which of the 7 requests did you build after the feedback, and why?
+- The users praised "to the point". How do you add the "why" without more text on the screen?
+- Two users asked for simulation, and Jumper has some of it. What does this tell you about discoverability?
+
 ## Recurring patterns
 
 Claude saw these in the ledger. Hanif can accept or reject each one.

@@ -1,4 +1,4 @@
-# PR text for issue #134 (Hanif opens the PR)
+# PR text for issue #137 (Hanif opens the PR)
 
 **Title:** Data isolation test: User B cannot see User A's snapshot (required test 1)
 
@@ -6,7 +6,7 @@
 
 **Body:**
 
-closes #134
+closes #137
 
 **12. Tests:** Data isolation and dashboard stat tests (section 4). The dashboard stat test is done (PR #32). This PR adds the Data isolation test.
 

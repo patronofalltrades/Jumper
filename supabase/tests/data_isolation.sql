@@ -1,4 +1,4 @@
--- Data isolation test (PLAN.md section 4, test 1; issue #134). It stops with an error at the first wrong result.
+-- Data isolation test (PLAN.md section 4, test 1; issue #137). It stops with an error at the first wrong result.
 --
 -- Given User A has saved a snapshot titled "Ears wired", when User B logs in and opens their snapshot list or
 -- requests A's snapshot by its ID, then B's list is empty and the direct request returns "not found".
