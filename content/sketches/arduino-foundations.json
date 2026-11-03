@@ -1,5 +1,5 @@
 {
-  "_note": "The code step of the Arduino Foundations levels (issue #58), by level position. It comes after the wiring tasks. task: the line in the task list. goal: what lib/sketch/goal.ts tests: \"blink\" (the LED is on for on_ms, then off for off_ms, again and again) or \"button\" (the LED is on only while the button is pressed). led: a part id on the board, or uno.L for the small LED marked L on the Uno (it is on pin 13). led_name: the name of the LED in the reason of a fail. starter: the first code, one string for each line. Write the text in ASD-STE100.",
+  "_note": "The code step of the Arduino Foundations levels (issue #58), by level position. It comes after the wiring tasks. task: the line in the task list. goal: what lib/sketch/goal.ts tests: \"blink\" (the LED is on for on_ms, then off for off_ms, again and again) or \"button\" (the LED is on only while the button is pressed). led: a part id on the board, or uno.L for the small LED marked L on the Uno (it is on pin 13). led_name: the name of the LED in the reason of a fail. starter: the first code, one string for each line. solution: the full sketch that \"Write it for me\" puts in the editor (issue #145), one string for each line. Write the text in ASD-STE100.",
   "levels": {
     "2": {
       "task": "Write the sketch: make the LED blink once each second.",
@@ -18,6 +18,21 @@
         "  digitalWrite(ledPin, HIGH); // The LED turns on.",
         "  delay(1000);                // Wait 1000 ms (1 second).",
         "  // To do: turn the LED off, then wait again.",
+        "}"
+      ],
+      "solution": [
+        "// Blink: the LED on pin 13 turns on and off, once each second.",
+        "const int ledPin = 13;",
+        "",
+        "void setup() {",
+        "  pinMode(ledPin, OUTPUT);",
+        "}",
+        "",
+        "void loop() {",
+        "  digitalWrite(ledPin, HIGH); // The LED turns on.",
+        "  delay(500);                 // Wait 500 ms.",
+        "  digitalWrite(ledPin, LOW);  // The LED turns off.",
+        "  delay(500);                 // Wait 500 ms again.",
         "}"
       ],
       "hints": [
@@ -52,6 +67,27 @@
         "  delay(10); // A short pause, so the Uno does not run with no pause.",
         "}"
       ],
+      "solution": [
+        "// Button: the L light on the Uno turns on while you press the button.",
+        "const int buttonPin = 2;",
+        "const int ledPin = 13; // The small LED marked L on the Uno.",
+        "",
+        "void setup() {",
+        "  pinMode(ledPin, OUTPUT);",
+        "  pinMode(buttonPin, INPUT_PULLUP); // The pin reads HIGH when nobody presses the button.",
+        "}",
+        "",
+        "void loop() {",
+        "  int state = digitalRead(buttonPin);",
+        "  // A pressed button joins pin 2 to ground, so the pin reads LOW.",
+        "  if (state == LOW) {",
+        "    digitalWrite(ledPin, HIGH);",
+        "  } else {",
+        "    digitalWrite(ledPin, LOW);",
+        "  }",
+        "  delay(10); // A short pause, so the Uno does not run with no pause.",
+        "}"
+      ],
       "hints": [
         "pinMode(buttonPin, INPUT_PULLUP); turns on the pull-up resistor inside the Uno. Then the pin reads HIGH when nobody presses the button.",
         "digitalWrite(ledPin, HIGH); turns the light on.",
@@ -74,6 +110,25 @@
         "",
         "void loop() {",
         "  // To do: read the button. If it reads LOW (pressed), turn the LED on. Else, turn it off.",
+        "  delay(10);",
+        "}"
+      ],
+      "solution": [
+        "// Button and LED: the LED on the breadboard turns on while you press the button.",
+        "const int buttonPin = 2;",
+        "const int ledPin = 13;",
+        "",
+        "void setup() {",
+        "  pinMode(ledPin, OUTPUT);",
+        "  pinMode(buttonPin, INPUT_PULLUP);",
+        "}",
+        "",
+        "void loop() {",
+        "  if (digitalRead(buttonPin) == LOW) { // Pressed.",
+        "    digitalWrite(ledPin, HIGH);",
+        "  } else {",
+        "    digitalWrite(ledPin, LOW);",
+        "  }",
         "  delay(10);",
         "}"
       ],

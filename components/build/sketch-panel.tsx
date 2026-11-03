@@ -18,6 +18,8 @@ import { CodeEditor } from "./code-editor";
 // 2. Else the goal check runs the sketch on its own clock, on the board as it is wired now, and gives a pass or the reason.
 // 3. The sketch also runs on the 3D board, on the clock of the app: the LEDs light from the pins. While it runs, a tap
 //    on the 3D button presses it. A sketch that does not do the goal does not cost a heart.
+// 4. "Write it for me" puts the full sketch of the level in the editor (issue #145). The learner presses Run, and the
+//    level goes on, but the code step gives no XP until the learner changes the code and it does the goal again.
 
 type Outcome = { kind: "error"; error: SketchError } | { kind: "goal"; result: GoalResult };
 
@@ -26,6 +28,7 @@ const starterOf = (step: SketchStep) => step.starter.join("\n");
 export function SketchPanel({ step, onClose, onDone }: { step: SketchStep; onClose: () => void; onDone: () => void }) {
   const saved = useBoard((s) => s.code);
   const code = saved ?? starterOf(step);
+  const helped = useBoard((s) => s.codeHelped);
   const running = useSketch((s) => s.running);
   const [outcome, setOutcome] = useState<Outcome | null>(null);
   const [mark, setMark] = useState<{ line: number } | null>(null);
@@ -87,6 +90,14 @@ export function SketchPanel({ step, onClose, onDone }: { step: SketchStep; onClo
     boardStore.getState().setCode(null);
   };
 
+  const writeForMe = () => {
+    if (!window.confirm(text.panel.writeForMeConfirm)) return;
+    stop();
+    setOutcome(null);
+    setMark(null);
+    boardStore.getState().writeForMe(step.solution.join("\n"));
+  };
+
   const bench = useBoard((s) => s.bench);
   const parts = useBoard((s) => s.parts);
   const buttons = useMemo(() => (running ? sketchCircuit(bench, parts).buttons : []), [running, bench, parts]);
@@ -123,6 +134,12 @@ export function SketchPanel({ step, onClose, onDone }: { step: SketchStep; onClo
         <CodeEditor value={code} onChange={(next) => boardStore.getState().setCode(next)} errorAt={mark} label={text.panel.editor} />
       </div>
 
+      {helped && (
+        <p role="status" className="rounded-xl bg-muted px-3 py-2 text-sm font-semibold">
+          {text.panel.noXp}
+        </p>
+      )}
+
       <Result outcome={outcome} onDone={onDone} />
 
       {running && (
@@ -137,13 +154,21 @@ export function SketchPanel({ step, onClose, onDone }: { step: SketchStep; onClo
         </div>
       )}
 
-      <div className="sticky bottom-0 -mx-3 mt-auto flex items-center justify-end gap-2 border-t border-border bg-card px-3 py-3 sm:-mx-4 sm:px-4">
+      <div className="sticky bottom-0 -mx-3 mt-auto flex flex-wrap items-center justify-end gap-2 border-t border-border bg-card px-3 py-3 sm:-mx-4 sm:px-4">
         <button
           type="button"
           onClick={reset}
           className="min-h-11 rounded-xl border border-b-4 border-border bg-card px-4 text-sm font-bold outline-none focus-visible:ring-2 focus-visible:ring-ring active:translate-y-0.5 active:border-b-2"
         >
           {text.panel.reset}
+        </button>
+        <button
+          type="button"
+          onClick={writeForMe}
+          disabled={helped}
+          className="min-h-11 rounded-xl border border-b-4 border-border bg-card px-4 text-sm font-bold outline-none focus-visible:ring-2 focus-visible:ring-ring active:translate-y-0.5 active:border-b-2 disabled:opacity-50"
+        >
+          {text.panel.writeForMe}
         </button>
         <button
           type="button"

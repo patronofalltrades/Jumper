@@ -34,8 +34,9 @@ export type Focus = { at: number };
 /** `base`: the board that the level opened with, before the learner placed a part. It defaults to `parts`. */
 /** `bench`: the bench of the project (content/benches/). It defaults to the bench of the store, Perch for the app store. */
 /** `code`, `codePassed`: the sketch of a level with a code step (issue #58), and whether it did the goal. */
+/** `codeHelped`: "Write it for me" wrote the sketch, and the learner did not change it after (issue #145). */
 /** `faded`: the ids of the parts that the scene draws faded. Only a walkthrough clip uses it (issue #103). */
-export type LevelSetup = { bench?: Bench; plan?: Plan; parts?: Part[]; base?: Part[]; progress?: Progress; readOnly?: boolean; code?: string | null; codePassed?: boolean; faded?: string[] };
+export type LevelSetup = { bench?: Bench; plan?: Plan; parts?: Part[]; base?: Part[]; progress?: Progress; readOnly?: boolean; code?: string | null; codePassed?: boolean; codeHelped?: boolean; faded?: string[] };
 
 export type BoardState = {
   bench: Bench;
@@ -70,6 +71,8 @@ export type BoardState = {
   code: string | null;
   /** True when the sketch did the goal of the level, after its last change. The level Check needs it. */
   codePassed: boolean;
+  /** True when "Write it for me" wrote the sketch and the learner did not change it after. The code step then gives no XP (issue #145). */
+  codeHelped: boolean;
   /** The task or connection row under the pointer: the scene shows its ghost (issue #113). It never changes the board. */
   hologram: HologramTarget | null;
 
@@ -105,10 +108,12 @@ export type BoardState = {
   /** "Put back the level {n} build" (issue #111): adds the parts of `start` that can go back, as one step that Undo takes back. */
   putBack: (start: Part[]) => { back: Part[]; blocked: Part[] };
   cancel: () => void;
-  /** A change to the sketch. The sketch must do the goal again. */
+  /** A change to the sketch. The sketch must do the goal again. The same text is no change: the editor sends back each new value. */
   setCode: (code: string | null) => void;
   /** The sketch did the goal. */
   passCode: () => void;
+  /** "Write it for me": the sketch of the level goes in the editor. It must still do the goal, and it gives no XP. */
+  writeForMe: (code: string) => void;
   /** "Show me" on the fail card: the camera moves to the problem. */
   showProblem: () => void;
 };
@@ -159,6 +164,7 @@ export function createBoardStore(defaultBench: Bench = perchBench()) {
       faded: [],
       code: null,
       codePassed: false,
+      codeHelped: false,
       hologram: null,
     });
 
@@ -189,6 +195,7 @@ export function createBoardStore(defaultBench: Bench = perchBench()) {
           faded: setup.faded ?? [],
           code: setup.code ?? null,
           codePassed: setup.codePassed ?? false,
+          codeHelped: setup.codeHelped ?? false,
           hologram: null,
         });
       },
@@ -204,8 +211,11 @@ export function createBoardStore(defaultBench: Bench = perchBench()) {
       setHover: (hover) => set({ hover }),
       setHologram: (hologram) => set({ hologram }),
       cancel: () => set({ pending: null, notice: null }),
-      setCode: (code) => set({ code, codePassed: false }),
+      setCode: (code) => {
+        if (code !== get().code) set({ code, codePassed: false, codeHelped: false });
+      },
       passCode: () => set({ codePassed: true }),
+      writeForMe: (code) => set({ code, codePassed: false, codeHelped: true }),
       showProblem: () => set({ focus: { at: Date.now() } }),
 
       tapHole: (hole, preview = false) => {
