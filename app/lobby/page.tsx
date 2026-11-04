@@ -1,20 +1,18 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
-import { LogOutForm } from "@/components/auth/log-out-form";
 import { BoardArt } from "@/components/art/board-art";
 import { Backdrop } from "@/components/backdrop";
 import { CardRow } from "@/components/card-row";
 import { InviteActions } from "@/components/collaborate/invite-actions";
 import { Dock } from "@/components/dock";
-import { ContinueCard, DarkCard, pairs, ProjectCard, TabSwitch, type Tab } from "@/components/lobby-cards";
-import { Logo } from "@/components/logo";
+import { LobbyHeader } from "@/components/lobby-header";
+import { ContinueCard, DarkCard, pairs, ProjectCard, type Tab } from "@/components/lobby-cards";
+import text from "@/content/ui/lobby.json";
 import collab from "@/content/ui/collaborate.json";
 import featureList from "@/content/features.json";
 import { loadCatalog, shortName } from "@/lib/game/featured";
-import { avatarSrc } from "@/lib/profile/form";
 import { createClient } from "@/lib/supabase/server";
 
 // The Coming soon cards. The list is empty while every planned feature is built; a new entry shows as a card again.
@@ -51,30 +49,11 @@ async function Lobby({ tab }: { tab: Tab }) {
 
   return (
     <>
-      <header className="grid grid-cols-[1fr_auto] items-center gap-x-4 gap-y-5 px-4 sm:grid-cols-[1fr_auto_1fr] sm:px-8">
-        <Logo onDark />
-        <TabSwitch tab={tab} />
-        <div className="col-start-2 row-start-1 flex items-center justify-end gap-2 sm:col-start-3">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1.5 font-mono text-sm font-semibold text-white">
-            <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M13 2 4 14h7l-1 8 9-12h-7l1-8Z" fill="var(--probe)" />
-            </svg>
-            {profile?.xp ?? 0} XP
-          </span>
-          <Link href="/profile" aria-label="Profile" className="shrink-0 rounded-full ring-white/30 hover:ring-2">
-            <Image src={avatarSrc(profile?.avatar)} alt="" width={36} height={36} className="size-9 rounded-full" />
-          </Link>
-          <LogOutForm>
-            <button type="submit" className="rounded-full px-3 py-1.5 text-sm font-semibold text-white/80 hover:bg-white/10 hover:text-white">
-              Log out
-            </button>
-          </LogOutForm>
-        </div>
-      </header>
+      <LobbyHeader tab={tab} xp={profile?.xp ?? 0} avatar={profile?.avatar} />
 
       <h1 className="sr-only">Lobby</h1>
       {tab === "projects" ? (
-        <CardRow label="Projects">
+        <CardRow label={text.tabs.projects}>
           {[
             ...(await inviteCards(supabase, auth.claims.sub)),
             hero,
@@ -86,7 +65,7 @@ async function Lobby({ tab }: { tab: Tab }) {
               </div>
             )),
             ...features.map((feature) => (
-              <DarkCard key={feature.title} label="Coming soon" title={feature.title}>
+              <DarkCard key={feature.title} label={text.soon} title={feature.title}>
                 <p className="text-sm text-white/70">{feature.description}</p>
               </DarkCard>
             )),
@@ -94,7 +73,7 @@ async function Lobby({ tab }: { tab: Tab }) {
         </CardRow>
       ) : (
         <>
-          <CardRow label="My builds">{[hero, ...(await builds(supabase, auth.claims.sub))].filter(Boolean)}</CardRow>
+          <CardRow label={text.tabs.builds}>{[hero, ...(await builds(supabase, auth.claims.sub))].filter(Boolean)}</CardRow>
           {await sharedRow(supabase, auth.claims.sub)}
         </>
       )}
@@ -166,7 +145,7 @@ async function sharedRow(supabase: Client, sub: string) {
       ];
   return (
     <section className="flex flex-col gap-3">
-      <h2 className="px-4 text-xl font-extrabold tracking-tight text-white sm:px-8">{collab.lobby.shared_label}</h2>
+      <h2 className="px-4 text-xl font-bold tracking-tight text-white sm:px-8">{collab.lobby.shared_label}</h2>
       <CardRow label={collab.lobby.shared_label}>{cards}</CardRow>
     </section>
   );

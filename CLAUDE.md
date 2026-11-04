@@ -18,6 +18,7 @@ Each project uses the same build mode. A new project adds data (levels, tasks, p
 | Game state | Zustand |
 | Styles | Tailwind CSS, with design tokens from the prototype |
 | UI components | [shadcn/ui](https://ui.shadcn.com/) (on Radix UI and Tailwind CSS) for forms, dialogs, sheets and toasts. Add components with `npx shadcn@latest add <component>`. Hanif approved shadcn/ui and its packages on October 18, 2026, and added it to the TRD. |
+| Motion and icons | `framer-motion` and `lucide-react`, for the glass navigation. Hanif approved them on November 4, 2026 (issue #152). |
 | Charts | Recharts |
 | Validation | Zod |
 | Authentication | Supabase Auth (email and password), with `@supabase/supabase-js` and `@supabase/ssr`. Variables: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`. `SUPABASE_SECRET_KEY` only for the seed script and CI, never in the browser. |
@@ -66,7 +67,7 @@ Use these skills when you work on Jumper. They do not replace the house rules. I
 | Ponytail | [dietrichgebert/ponytail](https://github.com/dietrichgebert/ponytail) | Write the minimum code that works. Before you write code, check if the codebase, the standard library or the browser already does it. Add one small test for logic. |
 | ECC | [affaan-m/ECC](https://github.com/affaan-m/ECC) | Agent workflows, commands and reviews for Claude Code. |
 | task-observer | [rebelytics/one-skill-to-rule-them-all](https://github.com/rebelytics/one-skill-to-rule-them-all) | Watch each session. Log corrections and repeated work as suggestions to improve or add skills. |
-| frontend-design | `frontend-design@claude-plugins-official` | Make screens with high design quality. Use the design direction in the PRD (workbench look, Duolingo game feel) and the tokens from the prototype. |
+| frontend-design | `frontend-design@claude-plugins-official` | Make screens with high design quality. Use the design direction in the PRD (Emerald Sun look, Duolingo game feel) and the tokens in `app/globals.css`. |
 | Matt Pocock skills | [mattpocock/skills](https://github.com/mattpocock/skills) | Small engineering skills for TypeScript work, for example planning, tests and refactors. |
 | Superpowers | `superpowers@claude-plugins-official` | Brainstorm, plan, debug in steps, and write tests first (red, then green). |
 | Supabase Server | [supabase/server](https://github.com/supabase/server) | Guidance from Supabase for server code. Our app uses `@supabase/ssr`, not `@supabase/server`; where the skill suggests `@supabase/server`, use the TRD stack. |
