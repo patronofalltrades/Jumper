@@ -46,7 +46,7 @@ export function CardRow({ children, label }: { children: ReactNode; label: strin
               onClick={() => goTo(i)}
               aria-label={`Go to card ${i + 1}`}
               aria-current={i === active}
-              className={cn("size-2 rounded-full transition-all", i === active ? "w-4 bg-white" : "bg-white/55")}
+              className={cn("size-2 rounded-full transition-all", i === active ? "w-4 bg-[#22d66b]" : "bg-white/45")}
             />
           ))}
         </div>
