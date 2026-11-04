@@ -3,6 +3,7 @@ import { checkModule, checkPlacement, isModule, nextPartId, partPins, type Modul
 import { startBoard } from "@/lib/content/boards";
 import type { Boards } from "@/lib/content/schema";
 import { needsAck, startProgress, step, taskSpot, type Plan, type Progress, type Target } from "./engine";
+import { partTaps, taskText } from "./task-text";
 
 // The walkthrough clips (issue #48): a 3D replay of a level. The board adds the parts of the level one at a time, from
 // content/boards/<project>.json, in task order. Each step shows the instruction of its task as a caption.
@@ -30,7 +31,7 @@ export type ClipStep = {
  * `video` is the id of its recorded video in content/videos.json (issue #49), if it has one. `bench` is the bench of
  * the project (content/benches/), so the clip window draws the right board; without it, the window uses the Perch bench.
  */
-export type Clip = { order: Part[]; plan: Plan; steps: ClipStep[]; faded: string[]; video?: string; bench?: BenchSpec };
+export type Clip = { order: Part[]; plan: Plan; steps: ClipStep[]; faded: string[]; video?: string; bench?: BenchSpec; instructions?: string[] };
 
 export type ClipLevel = { position: number; tasks: { instruction: string; popup_why: string; target: Target; xp: number }[] };
 
@@ -49,7 +50,7 @@ export type IntroScript = {
 export function levelClip(bench: Bench, boards: Boards, level: ClipLevel, end: string, start: string): Clip {
   const plan: Plan = { tasks: level.tasks.map((t) => ({ target: t.target, xp: t.xp })), forbid: [] };
   const text = { tasks: level.tasks.map((t) => t.instruction), start, end };
-  return playClip(bench, plan, startBoard(boards, level.position), boards.levels[level.position] ?? [], text, (part) => [part], `Level ${level.position}`);
+  return { ...playClip(bench, plan, startBoard(boards, level.position), boards.levels[level.position] ?? [], text, (part) => [part], `Level ${level.position}`), instructions: text.tasks };
 }
 
 /**
@@ -63,7 +64,8 @@ export function carriedClip(bench: Bench, clip: Clip, carried: Part[]): Clip | n
   const base = clip.order.slice(0, clip.faded.length);
   if (JSON.stringify(carried) === JSON.stringify(base)) return clip;
   const caption = (kind: ClipStep["kind"], task: number | null = null) => clip.steps.find((s) => s.kind === kind && s.task === task)?.caption ?? "";
-  const text = { tasks: clip.plan.tasks.map((_, i) => caption("task", i)), start: caption("board"), end: caption("end") };
+  // The task text with its {from} and {to}, so each caption names the holes of the carried board (issue #148).
+  const text = { tasks: clip.instructions ?? clip.plan.tasks.map((_, i) => caption("task", i)), start: caption("board"), end: caption("end") };
   const choices = (part: Part, board: Part[], at: Progress): Part[] => {
     // A part of the level can have the id of a part that the learner added: then it gets the next free id.
     const own = board.some((p) => p.id === part.id) ? { ...part, id: nextPartId(board, part.type) } : part;
@@ -74,7 +76,7 @@ export function carriedClip(bench: Bench, clip: Clip, carried: Part[]): Clip | n
     return checkPlacement(bench, board, own.type, own.a, own.b) ? guided : [own, ...guided];
   };
   try {
-    return { ...playClip(bench, clip.plan, carried, clip.order.slice(base.length), text, choices, "Carried board"), video: clip.video, bench: clip.bench };
+    return { ...playClip(bench, clip.plan, carried, clip.order.slice(base.length), text, choices, "Carried board"), video: clip.video, bench: clip.bench, instructions: clip.instructions };
   } catch {
     return null;
   }
@@ -128,9 +130,13 @@ function playClip(
       progress = placed.progress;
     }
     // The first task gets the part. The tasks that the part also finished come after it, with no part.
+    // The caption names the holes of the part (issue #148), or the holes of the guide for a task with no part.
     for (let i = at.index; i < progress.index; i++) {
       const before = i === at.index ? parts.length : order.length;
-      steps.push({ kind: "task", task: i, caption: text.tasks[i], before, after: order.length, progress: { ...at, index: i } });
+      const target = plan.tasks[i].target;
+      const added = order.slice(before);
+      const taps = added.length ? partTaps(bench, parts, target, added[0]) : taskSpot(bench, order, target, at.swaps, order).taps;
+      steps.push({ kind: "task", task: i, caption: taskText(bench, order, text.tasks[i], taps), before, after: order.length, progress: { ...at, index: i } });
     }
   }
   if (next < own.length) throw new Error(`${label}: ${own.length - next} parts are not in a task`);

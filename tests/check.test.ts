@@ -228,10 +228,10 @@ describe("stray pin", () => {
     const result = checkLevel(bench, board, upTo(2));
     if (result.passed) throw new Error("expected a failed Check");
     expect(strayText(bench, board, result.connection)).toBe(
-      "Oops! The resistor touches GPIO 37 on the board. This level does not use GPIO 37. Move the resistor to a line with no board pin.",
+      "Oops! The resistor touches pin 37 (GPIO 37) on the board. This level does not use pin 37 (GPIO 37). Move the resistor to a line with no board pin.",
     );
-    expect(strayRow(bench, board, result.connection)).toBe("The resistor must not touch GPIO 37");
-    expect(strayText(bench, board, { a: "led1.cathode", b: "esp.GPIO0" })).toContain("The light (LED) touches GPIO 0");
+    expect(strayRow(bench, board, result.connection)).toBe("The resistor must not touch pin 37 (GPIO 37)");
+    expect(strayText(bench, board, { a: "led1.cathode", b: "esp.GPIO0" })).toContain("The light (LED) touches pin 0 (GPIO 0)");
   });
 });
 

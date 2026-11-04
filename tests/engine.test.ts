@@ -108,8 +108,8 @@ describe("task engine", () => {
   it("does not accept Got it on a wire task", () => {
     const l = learner(1);
     l.start();
-    expect(l.progress.index).toBe(3);
-    expect(l.send({ type: "ack", parts: [] })).toMatchObject({ effect: null, progress: { index: 3 } });
+    expect(l.progress.index).toBe(1);
+    expect(l.send({ type: "ack", parts: [] })).toMatchObject({ effect: null, progress: { index: 1 } });
   });
 
   it("snaps a correct wire and opens the next task", () => {
@@ -117,7 +117,7 @@ describe("task engine", () => {
     l.start();
     l.put(wire("w1", "B-c6", "A-L+4"));
     expect(l.effects.at(-1)).toBe("snap");
-    expect(l.progress).toMatchObject({ phase: "task", index: 4, mistakes: 0 });
+    expect(l.progress).toMatchObject({ phase: "task", index: 2, mistakes: 0 });
   });
 
   it("buzzes a forbidden wire and opens a Mistake pop-up with the text of the forbid rule", () => {
@@ -189,14 +189,14 @@ describe("task engine", () => {
 
 describe("task spot", () => {
   it("glows the free holes of both ends of a wire task", () => {
-    const spot = taskSpot(bench, [], planOf(1).tasks[3].target);
+    const spot = taskSpot(bench, [], planOf(1).tasks[1].target);
     // 3V3 is in B-a5 and B-a6: their lines, and the + rail of A.
     expect(spot.holes).toEqual(expect.arrayContaining(["B-a5", "B-e5", "B-b6", "A-L+1", "A-L+25"]));
     expect(spot.holes).not.toContain("A-L-1");
   });
 
   it("shows a free hole to tap at each end of a wire task, the second one near the first", () => {
-    const spot = taskSpot(bench, [], planOf(1).tasks[3].target);
+    const spot = taskSpot(bench, [], planOf(1).tasks[1].target);
     const [first, second] = spot.taps.map((h) => bench.byId.get(h)!);
     // First: an empty hole in the line of 3V3, not the pin hole. Second: a hole on the + rail of A.
     expect(first.strip).toBe(bench.byId.get("B-a5")!.strip);
@@ -206,10 +206,10 @@ describe("task spot", () => {
   });
 
   it("outlines a part that is always on the bench", () => {
-    const spot = taskSpot(bench, [], planOf(1).tasks[0].target);
+    const spot = taskSpot(bench, [], { kind: "place", part: "bb400", id: "bbA", zone: "table-left" });
     expect(spot.taps).toEqual([]);
     expect(spot.area).toMatchObject({ x0: expect.any(Number), x1: expect.any(Number) });
-    expect(taskSpot(bench, [], planOf(1).tasks[2].target).area).toEqual(bench.board.outline);
+    expect(taskSpot(bench, [], planOf(1).tasks[0].target).area).toEqual(bench.board.outline);
   });
 
   it("glows only the holes where pin 1 of a module can go", () => {
@@ -294,7 +294,7 @@ describe("going back (issue #63)", () => {
     l.set([w1]);
     l.put(w2);
     expect(l.effects.at(-1)).toBe("snap");
-    expect(l.progress).toMatchObject({ phase: "task", mistakes: 0, xp, tasksDone, index: 5 });
+    expect(l.progress).toMatchObject({ phase: "task", mistakes: 0, xp, tasksDone, index: 3 });
   });
 
   it("moves the task back when a wire goes, and the task list agrees with the pop-up", () => {
@@ -302,10 +302,10 @@ describe("going back (issue #63)", () => {
     l.start();
     l.put(w1, w2);
     l.remove("w1");
-    expect(l.progress).toMatchObject({ phase: "task", index: 3, tasksDone: 5 });
-    expect(marks(l)).toEqual(["done", "done", "done", "now", "done", "todo", "todo"]);
+    expect(l.progress).toMatchObject({ phase: "task", index: 1, tasksDone: 3 });
+    expect(marks(l)).toEqual(["done", "now", "done", "todo", "todo"]);
     l.put(w1);
-    expect(l.progress).toMatchObject({ phase: "task", index: 5, mistakes: 0, tasksDone: 5 });
+    expect(l.progress).toMatchObject({ phase: "task", index: 3, mistakes: 0, tasksDone: 3 });
   });
 
   it("puts a removed wire back without a mistake", () => {
@@ -314,7 +314,7 @@ describe("going back (issue #63)", () => {
     l.put(w1, w2);
     l.remove("w2");
     l.put(w2);
-    expect(l.progress).toMatchObject({ phase: "task", index: 5, mistakes: 0, tasksDone: 5 });
+    expect(l.progress).toMatchObject({ phase: "task", index: 3, mistakes: 0, tasksDone: 3 });
   });
 
   it("goes back from ready_to_check to the first task that is not done, and forward again when the board is full", () => {
@@ -323,9 +323,9 @@ describe("going back (issue #63)", () => {
     l.put(w1, w2, w3, w4);
     expect(l.progress.phase).toBe("ready_to_check");
     l.remove("w2");
-    expect(l.progress).toMatchObject({ phase: "task", index: 4, mistakes: 0 });
+    expect(l.progress).toMatchObject({ phase: "task", index: 2, mistakes: 0 });
     l.put(w2);
-    expect(l.progress).toMatchObject({ phase: "ready_to_check", index: 7, mistakes: 0, tasksDone: 7 });
+    expect(l.progress).toMatchObject({ phase: "ready_to_check", index: 5, mistakes: 0, tasksDone: 5 });
     expect(l.effects.at(-1)).toBe("snap");
   });
 
@@ -334,11 +334,11 @@ describe("going back (issue #63)", () => {
     l.start();
     l.put(w1, w2, w3, w4);
     const xp = l.progress.xp;
-    l.send({ type: "redo", task: 4 });
-    expect(l.progress).toMatchObject({ phase: "task", index: 4, mistakes: 0, tasksDone: 7, xp });
+    l.send({ type: "redo", task: 2 });
+    expect(l.progress).toMatchObject({ phase: "task", index: 2, mistakes: 0, tasksDone: 5, xp });
     l.remove("w2");
     l.put(w2);
-    expect(l.progress).toMatchObject({ phase: "ready_to_check", index: 7, mistakes: 0, tasksDone: 7, xp });
+    expect(l.progress).toMatchObject({ phase: "ready_to_check", index: 5, mistakes: 0, tasksDone: 5, xp });
     expect(l.effects.at(-1)).toBe("snap");
   });
 
@@ -363,9 +363,9 @@ describe("going back (issue #63)", () => {
     const l = learner(1);
     l.start();
     l.put(w1, w2);
-    expect(l.progress).toMatchObject({ index: 5, reached: 5 });
+    expect(l.progress).toMatchObject({ index: 3, reached: 3 });
     l.remove("w2");
-    expect(l.progress).toMatchObject({ index: 4, reached: 5 });
+    expect(l.progress).toMatchObject({ index: 2, reached: 3 });
   });
 });
 
@@ -438,7 +438,7 @@ describe("a correct part placed early (issue #72)", () => {
 
   it("S6: an early wire with a Got it task between: the engine stops on Got it, and finishes the early task after it", () => {
     const t = planOf(1).tasks;
-    const plan: Plan = { tasks: [t[3], t[0], t[4]], forbid: planOf(1).forbid };
+    const plan: Plan = { tasks: [t[1], t[0], t[2]], forbid: planOf(1).forbid };
     const l = learner(1, [], plan);
     l.start();
     expect(l.progress.index).toBe(0);

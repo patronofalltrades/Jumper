@@ -61,12 +61,12 @@
     "part_pin": "A part already has a pin in this hole. Use an empty hole in the same line of 5.",
     "under_part": "You cannot use this hole. A part is on top of it.",
     "off_board": "The part does not fit here. Some pins are off the breadboard. Move pin 1.",
-    "rail_pin": "Put the pins of this part in the middle of the breadboard, not on a rail.",
+    "rail_pin": "Put the pins of this part in the middle of the breadboard, not on a red or blue line.",
     "needs_gap": "This part must go across the center gap, with pins on the two sides. Move pin 1.",
     "on_gap": "This part must stay on one side of the center gap. Move pin 1.",
     "on_part": "The part would go on top of another part. Use a different place.",
     "esp_line": "A pin of this part would touch a pin of the board. Move the part to lines that have no board pin.",
-      "socket_leg": "Put the legs of this part in the breadboard. Use a wire to go from the breadboard to a pin of the board."
+    "socket_leg": "Put the legs of this part in the breadboard. Use a wire to go from the breadboard to a pin of the board."
   },
   "hole": {
     "pin": "{board} pin: {pin}",
@@ -81,23 +81,23 @@
     "connectedRail": "Connected to the {rail}.",
     "empty": "Nothing connects to this line yet.",
     "pinTip": "To use this pin, put a wire in an empty hole in the same line of 5.",
-      "socketTip": "To use this pin, put one end of a wire into it.",
-    "railEmpty": "Nothing connects to this rail yet.",
+    "socketTip": "To use this pin, put one end of a wire into it.",
+    "railEmpty": "Nothing connects to this line yet.",
     "part": "{part} pin: {pin}",
     "partTip": "To use this pin, put a wire in an empty hole in the same line of 5.",
     "terminalTip": "This is a screw terminal. Put a speaker lead or a wire into it."
   },
   "pins": {
-    "3V3": "3V3 (3.3 V power)",
-    "5V": "5V (5 V power)",
-    "GND": "GND (ground)",
-    "RST": "RST (reset)",
-    "GPIO43": "TX (GPIO 43)",
-    "GPIO44": "RX (GPIO 44)",
-    "gpio": "GPIO {n}",
-      "VIN": "VIN (power in)",
-      "digital": "pin {n} (D{n})",
-      "analog": "analog pin A{n}"
+    "3V3": "3.3 V power (3V3)",
+    "5V": "5 V power (5V)",
+    "GND": "ground (GND)",
+    "RST": "reset (RST)",
+    "GPIO43": "pin 43 (TX, GPIO 43)",
+    "GPIO44": "pin 44 (RX, GPIO 44)",
+    "gpio": "pin {n} (GPIO {n})",
+    "VIN": "power in (VIN)",
+    "digital": "pin {n} (D{n})",
+    "analog": "analog pin A{n}"
   },
   "railName": {
     "+": "red + line",
@@ -120,7 +120,7 @@
     "led": "A light (LED). It works only one way round. The long leg (+) goes toward power, and the short leg (−) goes toward ground.",
     "remove": "Takes a part or a wire off the board. Click or tap it.",
     "pushbutton": "A button. It joins its two sides only while you press it.",
-    "inmp441": "INMP441: a digital microphone. It sends sound to the board on 3 wires (I²S).",
+    "inmp441": "INMP441: a digital microphone. It sends sound to the board on 3 wires: clock, side and data.",
     "max98357a": "MAX98357A: an amplifier. It makes the sound from the board loud enough for a speaker.",
     "speaker": "Speaker: a part that makes sound. It moves air very fast, and your ears hear the moving air as sound.",
     "st7789-154": "ST7789: a 1.54-inch screen with 240 × 240 tiny dots, each of any color. The board sends it pictures over SPI."
@@ -269,5 +269,22 @@
     "lockedHint": "Pass level {n} to open this level.",
     "start": "Start",
     "xp": "{n} XP"
+  },
+  "spot": {
+    "_note": "The holes in a task (issue #148). The app puts these in {from} and {to} of the task text, from the holes that the arrow points at. {board} is the letter of the breadboard, {row} is a to j, {column} is the number printed at the edge.",
+    "main": "breadboard {board}, row {row}, column {column}",
+    "mainOne": "the breadboard, row {row}, column {column}",
+    "mainSame": "row {row}, column {column}",
+    "rail": "breadboard {board}'s {line} next to column {column}",
+    "railOne": "the breadboard's {line} next to column {column}",
+    "railSame": "the {line} next to column {column}",
+    "side": {
+      "L": "left {line}",
+      "R": "right {line}"
+    },
+    "pin": "{pin} on the {board}",
+    "terminal": "the {sign} screw of the {part}",
+    "joined": "already joined in {hole}",
+    "glow": "the hole that glows"
   }
 }

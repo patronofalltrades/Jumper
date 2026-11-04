@@ -29,18 +29,8 @@ function useTouch() {
   return useSyncExternalStore(subscribeTouch, () => document.documentElement.dataset.touch === "true", () => false);
 }
 
-/** A plain name for a pin of the main board: "GPIO4" → "GPIO 4", "D13" → "pin 13 (D13)", "A0" → "analog pin A0". */
-export function pinName(name: string) {
-  const names: Record<string, string> = text.pins;
-  const gpio = /^GPIO(\d+)$/.exec(name);
-  const digital = /^D(\d+)$/.exec(name);
-  const analog = /^A(\d+)$/.exec(name);
-  if (names[name]) return names[name];
-  if (gpio) return fill(text.pins.gpio, { n: gpio[1] });
-  if (digital) return fill(text.pins.digital, { n: digital[1] });
-  if (analog) return fill(text.pins.analog, { n: analog[1] });
-  return name;
-}
+export { pinName } from "@/lib/game/task-text";
+import { pinName } from "@/lib/game/task-text";
 
 const problems: Record<string, string> = text.problem;
 const partNames: Record<string, string> = text.tray.parts;

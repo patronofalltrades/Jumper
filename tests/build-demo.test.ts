@@ -49,10 +49,13 @@ describe("demoFrames", () => {
       const frames = demoFrames(clip, base, false, END);
       const tasks = frames.filter((f) => f.task !== null);
 
-      it("shows each task in task order, with the instruction of the task as its caption", () => {
+      it("shows each task in task order, with the instruction of the task as its caption, with its holes (issue #148)", () => {
         const order = [...new Set(tasks.map((f) => f.task))];
         expect(order).toEqual(level.tasks.map((_, i) => i));
-        expect(order.map((i) => tasks.find((f) => f.task === i)!.caption)).toEqual(level.tasks.map((t) => t.instruction));
+        const caption = (i: number) => tasks.find((f) => f.task === i)!.caption;
+        const filled = (instruction: string) => new RegExp(`^${instruction.replace(/[.*+?^$()|[\]\\]/g, "\\$&").replace(/\{(from|to)\}/g, ".+")}$`);
+        const joined = (instruction: string) => new RegExp(`^${instruction.split(":")[0]}: already joined in .+\\.$`);
+        for (const i of order) expect([filled, joined].some((f) => f(level.tasks[i!].instruction).test(caption(i!))), caption(i!)).toBe(true);
       });
 
       it("starts on the start board and adds the parts of the level one step at a time, in order", () => {

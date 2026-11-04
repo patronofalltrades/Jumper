@@ -6,6 +6,7 @@ import { loadBoards, startBoard, startLevels } from "@/lib/content/boards";
 import { loadLevelClips } from "@/lib/content/clips";
 import { loadProjects } from "@/lib/content/load";
 import { demoBoard, demoFrames } from "@/lib/game/build-demo";
+import { holePhrase } from "@/lib/game/task-text";
 import { carriedClip, type Clip } from "@/lib/game/walkthrough";
 
 // Issue #110: with `carry`, the level clip starts from the learner's own board, with parts maybe in other holes.
@@ -67,7 +68,11 @@ describe("carriedClip", async () => {
     await expectPlayable(clip, carried, 4);
     const amp = clip.order.find((p) => p.id === "amp1")!;
     expect(isModule(amp) && amp.at).not.toBe("A-c11");
-    expect(clip.steps.filter((s) => s.kind === "task").map((s) => s.caption)).toEqual(perch.levels[3].tasks.map((t) => t.instruction));
+    // The caption of the amplifier names its hole on the carried board, not the hole of the finished board (issue #148).
+    const captions = clip.steps.filter((s) => s.kind === "task").map((s) => s.caption);
+    expect(captions[0]).toContain(holePhrase(bench, clip.order, isModule(amp) ? amp.at : ""));
+    expect(captions[0]).not.toBe(finished.steps.find((s) => s.kind === "task" && s.task === 0)!.caption);
+    for (const c of captions) expect(c).not.toContain("{");
   });
 
   it("gives a new id to a part of the level that has the id of a part that the learner added", async () => {

@@ -79,7 +79,7 @@ export const needsAck = (target: Target) => target.kind === "place" && !toolFor(
 /** The two sides of a button or a resistor are the same. The learner can use either side as "1". */
 const SYMMETRIC: PartType[] = ["resistor", "pushbutton"];
 
-function resolve(endpoint: string, swaps: string[]) {
+export function resolve(endpoint: string, swaps: string[]) {
   const [owner, pin] = endpoint.split(".");
   if (!swaps.includes(owner) || (pin !== "1" && pin !== "2")) return endpoint;
   return `${owner}.${pin === "1" ? "2" : "1"}`;
@@ -199,6 +199,23 @@ function doneTasks(bench: Bench, plan: Plan, parts: Part[], reached: number, swa
     return state.done;
   });
   return { done, swaps, gap: done.findIndex((d, i) => i < reached && !d) };
+}
+
+/**
+ * A saved progress on the task list of the level now (issue #148). When the content gets fewer or other tasks, the board
+ * keeps its parts, and the engine reads it again: the task of now is the first task below `reached` that the board does
+ * not do. XP stays. `tasksDone` is not more than the number of tasks. A progress that already fits comes back as it is.
+ */
+export function fitProgress(bench: Bench, plan: Plan, parts: Part[], progress: Progress): Progress {
+  if (progress.phase === "intro") return progress;
+  const total = plan.tasks.length;
+  const reached = Math.min(progress.reached, total);
+  const now = doneTasks(bench, plan, parts, reached, progress.swaps);
+  const index = now.gap === -1 ? reached : now.gap;
+  const phase = progress.phase === "mistake" ? "mistake" : index >= total ? "ready_to_check" : "task";
+  const tasksDone = Math.min(progress.tasksDone, total);
+  if (index === progress.index && reached === progress.reached && phase === progress.phase && tasksDone === progress.tasksDone) return progress;
+  return { ...progress, phase, index, reached, tasksDone, swaps: now.swaps };
 }
 
 /** Finishes the task at `progress.reached` for the first time, and the tasks after it that the bench already does. */

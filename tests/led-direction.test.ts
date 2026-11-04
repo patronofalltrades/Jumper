@@ -150,9 +150,9 @@ describe("Perch level 2: the direction of the LED", () => {
     expect(l.progress.mistake?.message).toBe(messageOf(l.level, "led_shorted"));
   });
 
-  it("has the 'same line of 5' tip in task 7", () => {
+  it("names the two holes of task 7 (resistor to light), from the arrow (issue #148)", () => {
     const task7 = perchLevels.find((l) => l.position === 2)!.tasks.find((t) => t.position === 7)!;
-    expect(task7.instruction).toMatch(/same line of 5, or connect them with a wire/);
+    expect(task7.instruction).toMatch(/\{from\}.*\{to\}/);
   });
 });
 
@@ -199,8 +199,9 @@ describe("the LED place text", () => {
     const withLed = [...perchLevels, ...arduinoLevels].filter((l) => l.tasks.some((t) => t.target.kind === "place" && t.target.part === "led"));
     for (const l of withLed) {
       const task = l.tasks.find((t) => t.target.kind === "place" && t.target.part === "led")!;
-      expect(task.instruction, l.title).toMatch(/long leg \(\+\) in the same column as the free leg of the resistor/);
-      expect(task.instruction, l.title).toMatch(/short leg \(−\) in the next column/);
+      // The holes come from the guide (issue #148): the long leg goes in the column of the free leg of the resistor.
+      expect(task.instruction, l.title).toMatch(/long leg \(\+\) in \{from\}/);
+      expect(task.instruction, l.title).toMatch(/short leg \(−\) in \{to\}/);
       expect(l.rules.forbid.find((f) => f.code === "reversed_led")?.place_message, l.title).toMatch(/\{long_column\}/);
     }
     expect(build.guide.led.start).toMatch(/same column as the free leg of the resistor/);

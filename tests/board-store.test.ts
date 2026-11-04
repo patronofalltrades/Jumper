@@ -263,7 +263,7 @@ describe("board store: undo, remove and put back (issue #63)", () => {
       parts: startBoard(perchBoards, 1),
     });
     store.getState().start();
-    for (let i = 0; i < 3; i++) store.getState().ack();
+    store.getState().ack();
     return store;
   };
   const [w1, w2, w3, w4] = perchBoards.levels[1].filter((p) => p.type === "wire").map((p) => p as { a: string; b: string });
@@ -316,7 +316,7 @@ describe("board store: undo, remove and put back (issue #63)", () => {
     expect(store.getState().progress.phase).toBe("ready_to_check");
     for (let i = 0; i < 4; i++) store.getState().undo();
     expect(store.getState().history).toEqual([]);
-    expect(store.getState().progress).toMatchObject({ phase: "task", index: 3, mistakes: 0 });
+    expect(store.getState().progress).toMatchObject({ phase: "task", index: 1, mistakes: 0 });
   });
 
   it("shows the 'what happened' pop-up only for a task done the first time", () => {
@@ -375,12 +375,12 @@ describe("board store: Clear (issue #114)", () => {
       parts: startBoard(perchBoards, 1),
     });
     store.getState().start();
-    for (let i = 0; i < 3; i++) store.getState().ack();
+    store.getState().ack();
     for (const w of perchBoards.levels[1].filter((p) => p.type === "wire") as { a: string; b: string }[]) tap(store, w.a, w.b);
     const done = store.getState().progress;
     expect(done.phase).toBe("ready_to_check");
     store.getState().clear();
     expect(store.getState().parts).toEqual(startBoard(perchBoards, 1));
-    expect(store.getState().progress).toMatchObject({ phase: "task", index: 3, xp: done.xp, tasksDone: done.tasksDone, mistakes: done.mistakes, mistake: null });
+    expect(store.getState().progress).toMatchObject({ phase: "task", index: 1, xp: done.xp, tasksDone: done.tasksDone, mistakes: done.mistakes, mistake: null });
   });
 });

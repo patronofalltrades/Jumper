@@ -233,11 +233,10 @@ describe("the board store on the Uno bench", () => {
     expect(store.getState().bench).toBe(bench);
     store.getState().start();
     store.getState().ack();
-    store.getState().ack();
     store.getState().tapHole("uno-5V");
     store.getState().tapHole("A-L+7");
     expect(store.getState().parts).toMatchObject([{ type: "wire", a: "uno-5V", b: "A-L+7" }]);
-    expect(store.getState().progress.tasksDone).toBe(3);
+    expect(store.getState().progress.tasksDone).toBe(2);
     expect(store.getState().flash?.kind).toBe("snap");
   });
 
