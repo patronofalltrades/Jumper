@@ -81,8 +81,8 @@ export default async function LandingPage({ searchParams }: PageProps<"/">) {
             </h1>
             <p className="text-lg text-white/65">{text.pitch.body}</p>
             <div className="flex w-full max-w-sm flex-col gap-3">
-              <PathButton href="/signup" title={text.pitch.new.title} body={text.pitch.new.body} primary />
-              <PathButton href="/signup" title={text.pitch.wired.title} body={text.pitch.wired.body} />
+              <PathButton href="/start" title={text.pitch.new.title} body={text.pitch.new.body} primary />
+              <PathButton href="/start?build=perch" title={text.pitch.wired.title} body={text.pitch.wired.body} />
               <Link href="/login" className="min-h-11 content-center font-medium text-white/80 underline-offset-4 hover:underline">
                 {text.haveAccount}
               </Link>
@@ -181,7 +181,7 @@ export default async function LandingPage({ searchParams }: PageProps<"/">) {
             </ol>
             <div className="flex flex-col items-center gap-4">
               <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-3">
-                <Link href="/signup" className={PRIMARY}>
+                <Link href="/start" className={PRIMARY}>
                   {text.end.button}
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                     <path d="M5 12h14M13 6l6 6-6 6" />

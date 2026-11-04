@@ -47,7 +47,7 @@ export function CourseTabs({ courses }: { courses: CourseTab[] }) {
           <p className="text-white/65">{course.tagline}</p>
           {course.available ? (
             <Link
-              href="/signup"
+              href={`/start?build=${course.slug}`}
               className="mt-2 inline-flex min-h-12 w-fit items-center gap-2.5 rounded-full border-b-4 border-[#15a352] bg-[#22d66b] px-6 font-semibold text-[#04140a] active:translate-y-0.5 active:border-b-2"
             >
               {c.play.replace("{name}", course.name)}

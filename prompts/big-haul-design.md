@@ -27,3 +27,6 @@ https://claude.ai/artifact/EzZgPoHB7CkzckDGAFpTsE (private; share it from its Sh
 8. "https://brilliant.org/ use this as inspiration"
 9. A Superpower "How it works" screenshot: "use this as inspiration for the "make your first light turn on" section"
 10. "yes, build the canvas hero into the branch. use actual arduino picture, connecting pins, and perch face for the new section"
+11. "PR is open, build the onboarding next"
+
+Hanif's choices (session form): first-wire XP: "No XP, practice wire"; answers: "Pick the start project only".
