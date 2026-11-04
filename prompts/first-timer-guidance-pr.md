@@ -27,9 +27,26 @@ Plain English: the content-rules test plays each level of Perch and Arduino Foun
 4. The later rows of the task list name the holes that the guide will show. They change when the learner uses other holes.
 5. A wire task whose two ends already share a line of 5 says "already joined in …".
 
+## Checked before the merge (Nov 4, Hanif: "check first before merging")
+- An independent review (a second agent, read-only) of the diff. Fixed from it: a done row of the task list, and the Redo card, named new free holes ("already joined in …", "column 2 to column 2"). Now a done row names the holes of its own part or wire (`doneTaps`, `7a0a353`). A hole that the guide cannot find says "the hole that glows", never `{from}`.
+- Browser play-through, Chromium 1280 × 800: Perch levels 1 and 2 and Arduino levels 1 and 2, played by the **words only** (the script reads each task, turns the words into holes, and taps them). Every step snapped in, 0 mistakes, each level reached Check. After each level, every row names the holes that the script tapped.
+- An old browser save of Perch level 1 (7 tasks) opens on the new list: mid-level → "2 of 5 done", the next task is Ground; ready to Check → "5 of 5"; ready with a wire gone → that wire's task. XP stays.
+- Read aloud speaks the filled text. The "Watch how" 3D clip captions name the holes of the clip parts.
+- The phone sheet (390 × 844) shows the full wire text; it scrolls by 19 px, with the buttons sticky.
+- Database: `tasks.instruction` has no length check; `record_attempt` caps the task XP with `least(...)` and needs `tasks_done >= count(tasks)`. The build page reads the tasks from Supabase, so the new app with the old rows still sends 7 for Perch level 1.
+- Fixed from the play-through: the "What happened" text of Perch level 1 task 4 said "a bridge that carries power across" from breadboard A, but the guide starts that wire in the 3V3 line of breadboard B (`cf9d59e`).
+
+## After the merge (in this order)
+1. Wait for the Vercel deploy of `main`.
+2. Run `supabase/seed.ts`. Not before the deploy: the old app would show `{from}` from the new rows.
+3. Run `npm run videos` to record the walkthrough videos again. The videos in `public/videos/` have the old captions, and the level 1 videos show the old "Got it" steps. Do not remove a video from `content/videos.json`: a level with no video has no clip, no "Watch how" and no "Build it for me".
+
+## Known limit
+- A browser save made in the middle of Perch or Arduino level 1 **before** this change: the next 2 tasks give no "What happened" pop-up, and the task count in the header is 2 ahead until the level ends. The final XP is right. The app cannot tell such a save from a save where the learner took a wire away, so it does not guess.
+
 ## Not checked
 - The live Vercel app, a real log-in, Supabase, and a real phone.
-- `supabase/seed.ts` must run after the merge, so the `tasks` table has the new text (the build page reads the tasks from Supabase).
+- The fail card in a browser: a Check needs a Supabase session. Its Redo line uses the same filled tasks as the task list.
 - The guide's choice of holes did not change. In Perch level 2 the guide can send the short leg of the light to a ground hole in the line of the button. The text now shows this choice; the guide itself is not in this issue.
 - The timed test with a person who has no electronics background.
 
