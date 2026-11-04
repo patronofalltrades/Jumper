@@ -10,7 +10,7 @@ import { isProblemFixed, problemOf } from "@/lib/circuit/problem";
 import { boardStore, useBoard } from "@/lib/game/board-store";
 import { aliveProject, effectsFor } from "@/lib/game/alive";
 import { aliveStore } from "@/lib/game/alive-store";
-import { opensLevelComplete, withFreshSession } from "@/lib/game/check-flow";
+import { codeXp, opensLevelComplete, withFreshSession } from "@/lib/game/check-flow";
 import { freshSession, markCompleting, readSavedLevel, rememberPass } from "./autosave";
 
 // The level Check (PLAN.md feature 5a). The browser checks the board with the level rules, then the server saves the
@@ -54,7 +54,7 @@ export function useLevelCheck({ user, project, levelId, position, rules, needsSk
   const [state, setState] = useState<LevelCheck>({ open: true, busy: false, failed: null, error: null });
 
   const check = async () => {
-    const { bench, parts, base, progress, codePassed } = boardStore.getState();
+    const { bench, parts, base, progress, code, codePassed, helpedCode } = boardStore.getState();
     if (progress.phase !== "ready_to_check" || state.busy || isEmptyBoard(parts, base) || (needsSketch && !codePassed)) return;
     const session = readSavedLevel(user, project, position)?.session;
     if (!session) return setState({ open: true, busy: false, failed: null, error: text.play.check.noSession });
@@ -71,6 +71,8 @@ export function useLevelCheck({ user, project, levelId, position, rules, needsSk
         tasksDone: progress.tasksDone,
         mistakes: progress.mistakes,
         xp: progress.xp,
+        // A replay gives no XP: the server gives the code XP only on the first pass of the level.
+        codeXp: needsSketch ? codeXp({ code, codePassed, helpedCode }) : 0,
       });
     const { result: saved } = await withFreshSession(session, attempt, () => freshSession(user, project, position, levelId, session));
     const done = opensLevelComplete(result.passed, saved.completed);

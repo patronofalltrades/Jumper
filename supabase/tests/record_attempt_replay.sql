@@ -105,8 +105,8 @@ begin
   assert profile_xp = 80, format('user B first pass XP (20 + 50 + 10 bonus): %s', profile_xp);
 
   reset role;
-  assert not has_function_privilege('anon', 'public.record_attempt(uuid,boolean,text,int,int,int)', 'execute'), 'anon can call record_attempt';
-  assert has_function_privilege('authenticated', 'public.record_attempt(uuid,boolean,text,int,int,int)', 'execute'), 'authenticated cannot call record_attempt';
+  assert not has_function_privilege('anon', 'public.record_attempt(uuid,boolean,text,int,int,int,int)', 'execute'), 'anon can call record_attempt';
+  assert has_function_privilege('authenticated', 'public.record_attempt(uuid,boolean,text,int,int,int,int)', 'execute'), 'authenticated cannot call record_attempt';
   raise notice 'record_attempt replay test: all checks pass';
 end $$;
 

@@ -35,3 +35,14 @@ export function replayStart(openedAt: string | undefined, now: number): string |
 
 /** A level that was passed gives no XP when it is played again, so its XP counter starts at 0. */
 export const replayProgress = <P extends { xp: number }>(progress: P, passed: boolean | undefined): P => (passed ? { ...progress, xp: 0 } : progress);
+
+/** The XP of the code step of a level (issue #145). The server gives it on the first pass only, and never more (record_attempt). */
+export const CODE_XP = 20;
+
+type CodeState = { code: string | null; codePassed: boolean; helpedCode: string | null };
+
+/** True when the code is the sketch that "Write it for me" wrote. Undo and redo, or a paste, can give it back too. */
+export const isHelped = ({ code, helpedCode }: Pick<CodeState, "code" | "helpedCode">) => helpedCode !== null && code === helpedCode;
+
+/** +20 XP for a sketch that did the goal and that the learner wrote. 0 when it is the sketch of "Write it for me". */
+export const codeXp = (state: CodeState) => (state.codePassed && !isHelped(state) ? CODE_XP : 0);
