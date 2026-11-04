@@ -19,6 +19,7 @@ import type { SketchStep } from "@/lib/content/schema";
 import { carriedClip, type Clip } from "@/lib/game/walkthrough";
 import { MascotContext } from "@/components/art/mascot";
 import type { MascotId } from "@/lib/game/project-mascot";
+import type { Track } from "@/lib/game/music";
 import { AliveStage } from "./alive-stage";
 import { BoardActions } from "./board-actions";
 import { BuildDemo, BuildForMe, useDemoRunning } from "./build-for-me";
@@ -31,6 +32,7 @@ import { Hearts, PinnedPopup, PopupLayer, useLaptop, type LevelTask } from "./po
 import { SketchPanel } from "./sketch-panel";
 import { TaskList } from "./task-list";
 import { ConnectionList } from "./connection-list";
+import { useLevelMusic } from "./music";
 import { readAloud, stopReading, useReadSteps } from "./read-aloud";
 import { Tour } from "./tour";
 import { cn } from "@/lib/utils";
@@ -103,6 +105,8 @@ type Props = {
   sketch: SketchStep | null;
   /** The mascot of the project (feature/mascots): the pop-ups show it. Volt when the project names none. */
   mascot: MascotId;
+  /** The music of the level (content/music.json), or null when it has none. */
+  music: Track | null;
 };
 
 export function BuildView({ mascot, ...props }: Props) {
@@ -113,7 +117,7 @@ export function BuildView({ mascot, ...props }: Props) {
   );
 }
 
-function BuildBoard({ user, project, levelId, position, eyebrow, title, goal, tasks: rawTasks, rules, bench: spec, start, carry, startLevel = 0, levels, clip: finished, sketch, mascot }: Props) {
+function BuildBoard({ user, project, levelId, position, eyebrow, title, goal, tasks: rawTasks, rules, bench: spec, start, carry, startLevel = 0, levels, clip: finished, sketch, mascot, music }: Props) {
   useKeys();
   useNoticeTimer();
   useFeedback();
@@ -188,6 +192,8 @@ function BuildBoard({ user, project, levelId, position, eyebrow, title, goal, ta
   useEffect(() => {
     return () => stopReading();
   }, [levelId]);
+  // The music plays while the learner builds: not over the intro clip, "It's alive" or the Build-it-for-me demo.
+  useLevelMusic(music, progress.phase !== "intro" && !watching && !alive && !demoRunning);
   const checkOpen = levelCheck.state.open;
   useEffect(() => {
     if (checkOpen) stopReading();
@@ -291,7 +297,7 @@ function BuildBoard({ user, project, levelId, position, eyebrow, title, goal, ta
           {progress.phase !== "intro" && !alive && (
             <div className={cn("pointer-events-none absolute inset-x-0 top-3 z-10 flex flex-col gap-2 px-3", progress.phase === "ready_to_check" && actions ? "bottom-32" : actions ? "bottom-20" : "bottom-3")}>
               {building && <GuideBar />}
-              <TaskList tasks={tasks} laptop={laptop} code={sketch && { instruction: sketch.task, open: openCode }} small={codeOpen} />
+              <TaskList tasks={tasks} laptop={laptop} code={sketch && { instruction: sketch.task, open: openCode }} small={codeOpen} music={music} />
               {/* After the first failed Check, every connection of the level, right or wrong (issue #92). */}
               {progress.fails > 0 && <ConnectionList rules={rules} laptop={laptop} small={codeOpen} />}
             </div>

@@ -10,9 +10,11 @@ import { loadProjects } from "@/lib/content/load";
 import { loadMascot } from "@/lib/content/mascot";
 import { loadSketchStep } from "@/lib/content/sketches";
 import { rulesSchema, targetSchema } from "@/lib/content/schema";
+import music from "@/content/music.json";
 import { buildEyebrow } from "@/lib/game/build-header";
 import { passedLevels } from "@/lib/game/featured";
 import { isUnlocked } from "@/lib/game/map";
+import { levelTrack } from "@/lib/game/music";
 import { joinRules } from "@/lib/circuit/check";
 import { createClient } from "@/lib/supabase/server";
 
@@ -84,6 +86,7 @@ async function Level({ slug, position }: { slug: string; position: string }) {
       clip={(await loadLevelClips(slug)).get(data.position) ?? null}
       sketch={await loadSketchStep(slug, data.position)}
       mascot={loadMascot(slug)}
+      music={levelTrack(music, slug, data.position)}
     />
   );
 }

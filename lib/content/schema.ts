@@ -43,6 +43,8 @@ export const projectSchema = z
     slug: z.string().regex(/^[a-z0-9-]+$/),
     title: z.string().min(1),
     tagline: z.string().min(1),
+    /** A few sentences about the project, for the top of its level path. */
+    description: z.string().min(1).optional(),
     board: z.string().min(1),
     mascot: z.enum(MASCOT_IDS).optional(),
     status: z.enum(["available", "coming_soon"]),

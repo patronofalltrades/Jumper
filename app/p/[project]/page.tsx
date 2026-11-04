@@ -8,6 +8,7 @@ import { LevelPath, type PathLevel } from "@/components/build/level-path";
 import { Dock } from "@/components/dock";
 import text from "@/content/ui/build.json";
 import { loadLevelClips } from "@/lib/content/clips";
+import { loadProjects } from "@/lib/content/load";
 import { passedLevels, shortName } from "@/lib/game/featured";
 import { loadMascot } from "@/lib/content/mascot";
 import { mapProgressKey } from "@/lib/game/map-progress";
@@ -65,6 +66,8 @@ async function LevelMap({ slug }: { slug: string }) {
 
   // The project's mascot stands on the level to play now (feature/mascots).
   const character = loadMascot(project.slug);
+  // The description of the project comes from its content file.
+  const description = loadProjects().find((p) => p.slug === project.slug)?.description;
   const clips = await loadLevelClips(project.slug);
   const levels: PathLevel[] = project.levels.map((level) => ({
     position: level.position,
@@ -82,6 +85,13 @@ async function LevelMap({ slug }: { slug: string }) {
       >
         ← {text.map.back}
       </Link>
+
+      {description && (
+        <div className="flex flex-col gap-1.5">
+          <h2 className="text-lg leading-tight font-bold tracking-tight">{project.title}</h2>
+          <p className="text-[15px] leading-relaxed text-muted-foreground">{description}</p>
+        </div>
+      )}
 
       <LevelPath
         storageKey={mapProgressKey(auth.claims.sub, project.slug)}
