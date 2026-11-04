@@ -2,6 +2,7 @@ import { Cpu, Layers, LogOut, Zap } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { LogOutForm } from "@/components/auth/log-out-form";
+import { TourStep } from "@/components/lobby-tour";
 import type { Tab } from "@/components/lobby-cards";
 import { GlassLogo } from "@/components/logo";
 import { GlassmorphismNavBar } from "@/components/ui/glassmorphism-navigation";
@@ -21,8 +22,9 @@ export function LobbyHeader({
 }) {
   return (
     <header className="sticky top-0 z-30 flex justify-center px-3 pt-1 sm:pt-0">
-      {/* data-tour: the lobby tour for new users points at the top bar, the XP and the profile (components/lobby-tour.tsx). */}
-      <div data-tour="nav">
+      {/* TourStep: the lobby tour for new users points at the top bar, the XP and the profile (components/lobby-tour.tsx). */}
+      <TourStep id="nav">
+      <div>
       <GlassmorphismNavBar
         key={tab}
         active={tab === "builds" ? text.tabs.builds : text.tabs.projects}
@@ -41,29 +43,32 @@ export function LobbyHeader({
         start={<GlassLogo href="/lobby" label="Jumper lobby" />}
         end={
           <div className="flex items-center gap-1.5 pr-1">
-            <span data-tour="xp" className="inline-flex min-h-9 items-center gap-1.5 rounded-full bg-[#f5c518] px-3 font-mono text-sm font-semibold text-[#1a1400]">
-              <Zap
-                size={14}
-                strokeWidth={2.5}
-                fill="currentColor"
-                aria-hidden="true"
-              />
-              {text.xp.replace("{xp}", String(xp))}
-            </span>
-            <Link
-              href="/profile"
-              data-tour="profile"
-              aria-label={text.profile}
-              className="shrink-0 rounded-full ring-[#22d66b]/60 hover:ring-2"
-            >
-              <Image
-                src={avatarSrc(avatar)}
-                alt=""
-                width={36}
-                height={36}
-                className="size-9 rounded-full"
-              />
-            </Link>
+            <TourStep id="xp">
+  <span className="inline-flex min-h-9 items-center gap-1.5 rounded-full bg-[#f5c518] px-3 font-mono text-sm font-semibold text-[#1a1400]">
+                <Zap
+                  size={14}
+                  strokeWidth={2.5}
+                  fill="currentColor"
+                  aria-hidden="true"
+                />
+                {text.xp.replace("{xp}", String(xp))}
+              </span>
+            </TourStep>
+            <TourStep id="profile">
+  <Link
+                href="/profile"
+                aria-label={text.profile}
+                className="shrink-0 rounded-full ring-[#22d66b]/60 hover:ring-2"
+              >
+                <Image
+                  src={avatarSrc(avatar)}
+                  alt=""
+                  width={36}
+                  height={36}
+                  className="size-9 rounded-full"
+                />
+              </Link>
+            </TourStep>
             <LogOutForm>
               <button
                 type="submit"
@@ -83,6 +88,7 @@ export function LobbyHeader({
         }
       />
       </div>
+      </TourStep>
     </header>
   );
 }

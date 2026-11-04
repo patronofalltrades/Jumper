@@ -51,7 +51,7 @@ async function Lobby({ tab }: { tab: Tab }) {
   const hero = featured && <ContinueCard featured={featured} name={name} />;
 
   return (
-    <>
+    <LobbyTour>
       <LobbyHeader tab={tab} xp={profile?.xp ?? 0} avatar={profile?.avatar} />
 
       <h1 className="sr-only">Lobby</h1>
@@ -83,8 +83,7 @@ async function Lobby({ tab }: { tab: Tab }) {
         </>
       )}
       <Dock active={tab === "builds" ? "builds" : "lobby"} />
-      <LobbyTour />
-    </>
+    </LobbyTour>
   );
 }
 

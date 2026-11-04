@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { BoardArt } from "@/components/art/board-art";
 import { PerchArt } from "@/components/art/perch-art";
+import { TourStep } from "@/components/lobby-tour";
 import { GLASS, PRIMARY, SOLID } from "@/components/ui/surfaces";
 import text from "@/content/ui/lobby.json";
 import { shortName, type Featured, type ProjectRow } from "@/lib/game/featured";
@@ -30,32 +31,34 @@ export function ContinueCard({ featured, name }: { featured: Featured; name: str
   const { project, level, levelTitle, started, mapHref, href } = featured;
   const short = shortName(project.title);
   return (
-    <article data-tour="start" className={cn(CARD, GLASS, "group isolate min-h-[26rem] w-full sm:w-[84vw] sm:max-w-[32rem]")}>
-      <div className="absolute -top-16 -left-16 -z-10 size-56 rounded-full bg-[#22d66b] opacity-25 blur-3xl" aria-hidden="true" />
-      <div className="absolute -right-12 -bottom-16 -z-10 size-56 rounded-full bg-[#f5c518] opacity-20 blur-3xl" aria-hidden="true" />
-      {/* The body opens the level map. The link covers the whole card, and the play button sits above it, so no link is inside a link. */}
-      <Link
-        href={mapHref}
-        className="flex flex-col items-start outline-none after:absolute after:inset-0 after:rounded-[1.25rem] focus-visible:after:ring-2 focus-visible:after:ring-[#22d66b]"
-      >
-        <span className="text-sm font-medium text-white/65">{fill(text.hi, { name })}</span>
-        <h2 className="mt-3 text-5xl leading-[0.95] font-bold tracking-tight sm:text-6xl">
-          {started ? text.continue : text.start}
-          <br />
-          <span className="text-[#22d66b]">{short}</span>
-        </h2>
-        {/* The text stays in front of the picture, and a long level name wraps before it gets to the picture. */}
-        <span className="relative z-10 mt-5 rounded-full bg-[#22d66b] px-3 py-1 text-sm font-semibold text-[#04140a]">{fill(text.level, { level })}</span>
-        {levelTitle && <p className="relative z-10 mt-2 text-base text-balance text-white/70 sm:max-w-[15rem]">{levelTitle}</p>}
-        <p className="relative z-10 mt-2 font-mono text-xs font-medium tracking-wide text-white/45 uppercase">{project.board}</p>
-      </Link>
-      <PerchArt className="pointer-events-none absolute -right-8 -bottom-6 w-56 transition-transform group-hover:-rotate-3 sm:w-64" />
-      <Link href={href} className={cn(PRIMARY, "relative z-10 mt-auto w-fit pr-8 pl-6 outline-none focus-visible:ring-2 focus-visible:ring-white")}>
-        <PlayIcon size={20} />
-        <span aria-hidden="true">{started ? text.continue : text.start}</span>
-        <span className="sr-only">{started ? `${text.continue} ${short}, level ${level}` : `${text.start} ${short}`}</span>
-      </Link>
-    </article>
+    <TourStep id="start" wideSide="right">
+  <article className={cn(CARD, GLASS, "group isolate min-h-[26rem] w-full sm:w-[84vw] sm:max-w-[32rem]")}>
+        <div className="absolute -top-16 -left-16 -z-10 size-56 rounded-full bg-[#22d66b] opacity-25 blur-3xl" aria-hidden="true" />
+        <div className="absolute -right-12 -bottom-16 -z-10 size-56 rounded-full bg-[#f5c518] opacity-20 blur-3xl" aria-hidden="true" />
+        {/* The body opens the level map. The link covers the whole card, and the play button sits above it, so no link is inside a link. */}
+        <Link
+          href={mapHref}
+          className="flex flex-col items-start outline-none after:absolute after:inset-0 after:rounded-[1.25rem] focus-visible:after:ring-2 focus-visible:after:ring-[#22d66b]"
+        >
+          <span className="text-sm font-medium text-white/65">{fill(text.hi, { name })}</span>
+          <h2 className="mt-3 text-5xl leading-[0.95] font-bold tracking-tight sm:text-6xl">
+            {started ? text.continue : text.start}
+            <br />
+            <span className="text-[#22d66b]">{short}</span>
+          </h2>
+          {/* The text stays in front of the picture, and a long level name wraps before it gets to the picture. */}
+          <span className="relative z-10 mt-5 rounded-full bg-[#22d66b] px-3 py-1 text-sm font-semibold text-[#04140a]">{fill(text.level, { level })}</span>
+          {levelTitle && <p className="relative z-10 mt-2 text-base text-balance text-white/70 sm:max-w-[15rem]">{levelTitle}</p>}
+          <p className="relative z-10 mt-2 font-mono text-xs font-medium tracking-wide text-white/45 uppercase">{project.board}</p>
+        </Link>
+        <PerchArt className="pointer-events-none absolute -right-8 -bottom-6 w-56 transition-transform group-hover:-rotate-3 sm:w-64" />
+        <Link href={href} className={cn(PRIMARY, "relative z-10 mt-auto w-fit pr-8 pl-6 outline-none focus-visible:ring-2 focus-visible:ring-white")}>
+          <PlayIcon size={20} />
+          <span aria-hidden="true">{started ? text.continue : text.start}</span>
+          <span className="sr-only">{started ? `${text.continue} ${short}, level ${level}` : `${text.start} ${short}`}</span>
+        </Link>
+      </article>
+    </TourStep>
   );
 }
 

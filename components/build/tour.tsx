@@ -4,12 +4,11 @@ import { useEffect, useState } from "react";
 import { Volt } from "@/components/art/volt";
 import { Button } from "@/components/ui/button";
 import text from "@/content/ui/tour.json";
-import { cardSide, markTourSeen, nextIndex, shouldShowTour, tourPlan, tourSeen, TOUR_KEY, TOUR_STEPS, type TourStorage } from "@/lib/game/tour";
+import { cardSide, markTourSeen, nextIndex, shouldShowTour, tourPlan, tourSeen, TOUR_STEPS, type TourStep, type TourStorage } from "@/lib/game/tour";
 import { cn } from "@/lib/utils";
 
-// A first-visit tour: a card that points at one control at a time, with Next and Skip. Build mode (issue #123) and the
-// lobby (components/lobby-tour.tsx) use it, each with its own steps, text and flag.
-// It shows once in each browser (lib/game/tour.ts). In build mode it waits while a pop-up, the intro clip or the Check card is open.
+// The first-visit tour of build mode (issue #123): a card that points at one control at a time, with Next and Skip.
+// It shows once in each browser (lib/game/tour.ts). It waits while a pop-up, the intro clip or the Check card is open.
 // The card goes under the control, or above it, so it does not cover the control (cardSide).
 
 const fill = (template: string, values: Record<string, string | number>) => template.replace(/\{(\w+)\}/g, (_, k: string) => String(values[k]));
@@ -29,44 +28,31 @@ export function browserStorage(): TourStorage | null {
   }
 }
 
-const controlOf = (step: string) => document.querySelector<HTMLElement>(`[data-tour="${step}"]`);
+const controlOf = (step: TourStep) => document.querySelector<HTMLElement>(`[data-tour="${step}"]`);
 
 /** The steps whose control is on the page now. */
-const presentSteps = (steps: readonly string[]) => new Set(steps.filter((step) => controlOf(step)));
-
-type Copy = { title: string; text: string };
-
-/** The build tour, when no other tour is given. */
-const BUILD = { steps: TOUR_STEPS, storageKey: TOUR_KEY, label: text.label, copy: text.steps as Record<string, Copy> };
+const presentSteps = () => new Set(TOUR_STEPS.filter((step) => controlOf(step)));
 
 /**
  * `busy`: a pop-up, the level intro clip or the Check card is open. The tour waits until it is not busy.
- * `tour`: the steps, the flag key, the label and the text of each step. The build tour when not given.
  * It renders nothing until the flag is read in the browser, so the server and the first render match.
  */
-export function Tour({
-  busy = false,
-  tour = BUILD,
-}: {
-  busy?: boolean;
-  tour?: { steps: readonly string[]; storageKey: string; label: string; copy: Record<string, Copy> };
-}) {
-  const { steps: tourSteps, storageKey, label, copy: copyOf } = tour;
+export function Tour({ busy }: { busy: boolean }) {
   const [seen, setSeen] = useState(true);
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- the flag is in the browser only
-    setSeen(tourSeen(browserStorage(), storageKey));
-  }, [storageKey]);
+    setSeen(tourSeen(browserStorage()));
+  }, []);
   const show = shouldShowTour(seen, busy);
 
   // The steps of this visit, and the step on the screen now. The plan is made when the tour first shows.
-  const [plan, setPlan] = useState<string[] | null>(null);
+  const [plan, setPlan] = useState<TourStep[] | null>(null);
   const [index, setIndex] = useState(0);
   const [box, setBox] = useState<Box | null>(null);
 
   // The tour is over: keep the flag, and hide the card.
   const finish = () => {
-    markTourSeen(browserStorage(), storageKey);
+    markTourSeen(browserStorage());
     setSeen(true);
   };
   const next = () => {
@@ -78,11 +64,10 @@ export function Tour({
 
   useEffect(() => {
     if (!show || plan) return;
-    const steps = tourPlan(presentSteps(tourSteps), tourSteps);
+    const steps = tourPlan(presentSteps());
     // eslint-disable-next-line react-hooks/set-state-in-effect -- the plan is made once, when the tour first shows
     if (steps.length) setPlan(steps);
     else finish();
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- the steps and the key of a tour do not change; finish() reads only the key
   }, [show, plan]);
 
   // Point at the control of this step, and follow it when the window changes size.
@@ -93,30 +78,18 @@ export function Tour({
       const control = controlOf(step);
       // A control that is not on the page (the Check row under a pop-up) is left out: the tour goes on.
       if (!control) return next();
-      // A control out of view (a card far along the lobby row) comes into view first.
-      control.scrollIntoView({ block: "nearest", inline: "nearest" });
       const { top, bottom, left, width, height } = control.getBoundingClientRect();
       setBox({ top, bottom, left, width, height });
     };
     place();
-    const follow = () => {
-      const control = controlOf(step);
-      if (!control) return;
-      const { top, bottom, left, width, height } = control.getBoundingClientRect();
-      setBox({ top, bottom, left, width, height });
-    };
-    window.addEventListener("resize", follow);
-    window.addEventListener("scroll", follow, true);
-    return () => {
-      window.removeEventListener("resize", follow);
-      window.removeEventListener("scroll", follow, true);
-    };
+    window.addEventListener("resize", place);
+    return () => window.removeEventListener("resize", place);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- next() reads the plan and the index that this effect already has
   }, [show, plan, index]);
 
   if (!show || !plan) return null;
   const step = plan[index];
-  const copy = copyOf[step];
+  const copy = text.steps[step];
   const last = index === plan.length - 1;
   const side = box ? cardSide(box, window.innerHeight, CARD_HEIGHT) : "bottom";
 
@@ -131,7 +104,7 @@ export function Tour({
       )}
       <section
         role="dialog"
-        aria-label={label}
+        aria-label={text.label}
         aria-describedby="tour-text"
         className={cn(
           "fixed inset-x-3 z-50 flex flex-col gap-2 rounded-2xl border border-border bg-card p-3 shadow-panel sm:left-1/2 sm:w-96 sm:-translate-x-1/2",
