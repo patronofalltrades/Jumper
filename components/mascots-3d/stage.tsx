@@ -9,7 +9,7 @@ import { LAND_CHEER, bandPose, dropHeight, landTime } from "@/lib/game/band";
 import type { Pose } from "@/lib/game/mascot";
 import type { MascotId } from "@/lib/game/project-mascot";
 
-// The 3D scenes of the mascots on the landing page: the band in the hero, and one mascot in the project tabs.
+// The 3D mascot band in the hero of the landing page.
 // The pure rules of the motion are in lib/game/band.ts. Loaded with next/dynamic (no server render), like the landing board.
 
 /** A studio light for soft vinyl: a soft key, a cool fill, a green rim, and soft reflections without a file to load. */
@@ -148,28 +148,3 @@ export default function BandScene() {
   );
 }
 
-/** One mascot on a small stage, for a project tab. It drops in when the project changes and cheers when selected. */
-export function MascotStage({ id }: { id: MascotId }) {
-  const still = useStill();
-  const { selected, handlers } = useSelect();
-  // The mascot cheers after it lands, then waits. A new project starts the drop again.
-  const [landed, setLanded] = useState<MascotId | null>(null);
-  useEffect(() => {
-    const timer = setTimeout(() => setLanded(id), (landTime(1) + LAND_CHEER) * 1000);
-    return () => clearTimeout(timer);
-  }, [id]);
-  const pose: Pose = selected === 0 ? "cheer" : landed === id || still ? "idle" : "cheer";
-  return (
-    <Canvas dpr={[1, 2]} camera={{ fov: 30, near: 0.1, far: 100 }} gl={{ antialias: true, alpha: true }}>
-      <Fit halfW={3.4} halfH={4.1} centerY={3.2} tilt={0.15} />
-      <Studio />
-      <group {...handlers(0)}>
-        <Drop key={id} index={0} still={still}>
-          <Mascot3D id={id} pose={pose} still={still} />
-        </Drop>
-      </group>
-      <Plinth radius={2.9} />
-      <ContactShadows position={[0, 0.01, 0]} opacity={0.55} scale={8} blur={2.4} far={6} resolution={256} color="#000000" />
-    </Canvas>
-  );
-}

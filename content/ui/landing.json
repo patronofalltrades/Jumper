@@ -112,7 +112,6 @@
     "play": "Play {name}",
     "soon": "Coming soon",
     "levels": "{count} levels",
-    "guide": "Your guide: {name}",
     "show": ["arduino-foundations", "perch", "desk-weather-station", "line-following-robot"]
   },
   "parts": {
