@@ -14,6 +14,8 @@ const attempt = z
     tasksDone: z.number().int().nonnegative(),
     mistakes: z.number().int().nonnegative(),
     xp: z.number().int().nonnegative(),
+    /** The XP of the code step (issue #145): 20 for a sketch that the learner wrote, else 0. The server gives 20 at most. */
+    codeXp: z.number().int().nonnegative().max(20).default(0),
   })
   .refine((a) => a.passed === (a.mistakeType === null));
 
@@ -24,10 +26,10 @@ export type AttemptResult = { completed?: boolean; fails?: number; closed?: bool
 const SESSION_CLOSED = "JS001";
 
 /** Saves one Check. Gives the failed Checks of the session so far, and whether the session is completed. */
-export async function recordAttempt(input: z.infer<typeof attempt>): Promise<AttemptResult> {
+export async function recordAttempt(input: z.input<typeof attempt>): Promise<AttemptResult> {
   const parsed = attempt.safeParse(input);
   if (!parsed.success) return { error: "The check data is not correct." };
-  const { session, passed, mistakeType, tasksDone, mistakes, xp } = parsed.data;
+  const { session, passed, mistakeType, tasksDone, mistakes, xp, codeXp } = parsed.data;
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("record_attempt", {
     p_session: session,
@@ -36,6 +38,7 @@ export async function recordAttempt(input: z.infer<typeof attempt>): Promise<Att
     p_tasks_done: tasksDone,
     p_mistakes: mistakes,
     p_task_xp: xp,
+    p_code_xp: codeXp,
   });
   if (error?.code === SESSION_CLOSED) return { closed: true };
   if (error) return { error: "We could not save your Check. Try again." };

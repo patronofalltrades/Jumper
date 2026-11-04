@@ -5,6 +5,7 @@ import buildText from "@/content/ui/build.json";
 import text from "@/content/ui/sketch.json";
 import type { SketchStep } from "@/lib/content/schema";
 import { boardStore, useBoard } from "@/lib/game/board-store";
+import { isHelped } from "@/lib/game/check-flow";
 import { sketchStore, useSketch } from "@/lib/game/sketch-store";
 import { sketchCircuit, type Circuit } from "@/lib/sketch/circuit";
 import { checkGoal, type GoalResult } from "@/lib/sketch/goal";
@@ -20,6 +21,8 @@ import { CodeWords } from "./code-words";
 // 2. Else the goal check runs the sketch on its own clock, on the board as it is wired now, and gives a pass or the reason.
 // 3. The sketch also runs on the 3D board, on the clock of the app: the LEDs light from the pins. While it runs, a tap
 //    on the 3D button presses it. A sketch that does not do the goal does not cost a heart.
+// 4. "Write it for me" puts the full sketch of the level in the editor (issue #145). The learner presses Run, and the
+//    level goes on, but the code step gives no XP while the code is that sketch (also after undo and redo, or a paste).
 // Step by step (issue #144): the learner reads the goal of one line, types the line, and Jumper checks it. The editor
 // shows the lines so far and is read-only. After the last line, Run works as in Free. Free keeps the lines.
 
@@ -30,6 +33,7 @@ const starterOf = (step: SketchStep) => step.starter.join("\n");
 export function SketchPanel({ step, onClose, onDone }: { step: SketchStep; onClose: () => void; onDone: () => void }) {
   const saved = useBoard((s) => s.code);
   const code = saved ?? starterOf(step);
+  const helped = useBoard(isHelped);
   const running = useSketch((s) => s.running);
   const [outcome, setOutcome] = useState<Outcome | null>(null);
   const [mark, setMark] = useState<{ line: number } | null>(null);
@@ -97,6 +101,15 @@ export function SketchPanel({ step, onClose, onDone }: { step: SketchStep; onClo
     else boardStore.getState().setCode(null);
   };
 
+  const writeForMe = () => {
+    if (!window.confirm(text.panel.writeForMeConfirm)) return;
+    stop();
+    setOutcome(null);
+    setMark(null);
+    // The full sketch goes in the editor, so Step by step ends and the panel shows Free.
+    sketchStore.getState().setSteps(null);
+    boardStore.getState().writeForMe(step.solution.join("\n"));
+  };
   /** Step by step starts at line 1, with an empty sketch. */
   const startSteps = () => {
     sketchStore.getState().setSteps({ of: step.task, answers: [], names: {} });
@@ -172,6 +185,12 @@ export function SketchPanel({ step, onClose, onDone }: { step: SketchStep; onClo
         <CodeEditor value={code} onChange={(next) => boardStore.getState().setCode(next)} errorAt={mark} label={text.panel.editor} readOnly={!!steps} />
       </div>
 
+      {helped && (
+        <p role="status" className="rounded-xl bg-muted px-3 py-2 text-sm font-semibold">
+          {text.panel.noXp}
+        </p>
+      )}
+
       <Result outcome={outcome} onDone={onDone} />
 
       {running && (
@@ -186,13 +205,21 @@ export function SketchPanel({ step, onClose, onDone }: { step: SketchStep; onClo
         </div>
       )}
 
-      <div className="sticky bottom-0 -mx-3 mt-auto flex items-center justify-end gap-2 border-t border-border bg-card px-3 py-3 sm:-mx-4 sm:px-4">
+      <div className="sticky bottom-0 -mx-3 mt-auto flex flex-wrap items-center justify-end gap-2 border-t border-border bg-card px-3 py-3 sm:-mx-4 sm:px-4">
         <button
           type="button"
           onClick={reset}
           className="min-h-11 rounded-xl border border-b-4 border-border bg-card px-4 text-sm font-bold outline-none focus-visible:ring-2 focus-visible:ring-ring active:translate-y-0.5 active:border-b-2"
         >
           {text.panel.reset}
+        </button>
+        <button
+          type="button"
+          onClick={writeForMe}
+          disabled={helped}
+          className="min-h-11 rounded-xl border border-b-4 border-border bg-card px-4 text-sm font-bold outline-none focus-visible:ring-2 focus-visible:ring-ring active:translate-y-0.5 active:border-b-2 disabled:opacity-50"
+        >
+          {text.panel.writeForMe}
         </button>
         <button
           type="button"
