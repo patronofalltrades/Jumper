@@ -21,6 +21,8 @@ export function LobbyHeader({
 }) {
   return (
     <header className="sticky top-0 z-30 flex justify-center px-3 pt-1 sm:pt-0">
+      {/* data-tour: the lobby tour for new users points at the top bar, the XP and the profile (components/lobby-tour.tsx). */}
+      <div data-tour="nav">
       <GlassmorphismNavBar
         key={tab}
         active={tab === "builds" ? text.tabs.builds : text.tabs.projects}
@@ -39,7 +41,7 @@ export function LobbyHeader({
         start={<GlassLogo href="/lobby" label="Jumper lobby" />}
         end={
           <div className="flex items-center gap-1.5 pr-1">
-            <span className="inline-flex min-h-9 items-center gap-1.5 rounded-full bg-[#f5c518] px-3 font-mono text-sm font-semibold text-[#1a1400]">
+            <span data-tour="xp" className="inline-flex min-h-9 items-center gap-1.5 rounded-full bg-[#f5c518] px-3 font-mono text-sm font-semibold text-[#1a1400]">
               <Zap
                 size={14}
                 strokeWidth={2.5}
@@ -50,6 +52,7 @@ export function LobbyHeader({
             </span>
             <Link
               href="/profile"
+              data-tour="profile"
               aria-label={text.profile}
               className="shrink-0 rounded-full ring-[#22d66b]/60 hover:ring-2"
             >
@@ -79,6 +82,7 @@ export function LobbyHeader({
           </div>
         }
       />
+      </div>
     </header>
   );
 }
