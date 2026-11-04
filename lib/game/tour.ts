@@ -69,21 +69,3 @@ export function resetTour(storage: TourStorage | null, key: string = TOUR_KEY): 
     // The browser blocks storage: there is no flag to remove.
   }
 }
-
-/** The place of a control on the screen, in pixels from the top of the window. */
-export type Band = { top: number; bottom: number };
-
-/** The space between the control and the card. */
-const GAP = 22;
-
-/**
- * Where the card goes: under the control, or above it. The card goes under when it fits, so it does not cover the control.
- * When neither side fits, it goes on the side with more room.
- */
-export function cardSide(target: Band, viewportHeight: number, cardHeight: number): "top" | "bottom" {
-  const below = viewportHeight - target.bottom - GAP;
-  const above = target.top - GAP;
-  if (below >= cardHeight) return "bottom";
-  if (above >= cardHeight) return "top";
-  return above > below ? "top" : "bottom";
-}

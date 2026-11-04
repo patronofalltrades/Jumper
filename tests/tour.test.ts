@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import text from "@/content/ui/tour.json";
-import { LOBBY_TOUR_KEY, LOBBY_TOUR_STEPS, TOUR_KEY, TOUR_KEYS, TOUR_STEPS, cardSide, markTourSeen, nextIndex, resetTour, shouldShowTour, tourPlan, tourSeen, type TourStorage } from "@/lib/game/tour";
+import { LOBBY_TOUR_KEY, LOBBY_TOUR_STEPS, TOUR_KEY, TOUR_KEYS, TOUR_STEPS, markTourSeen, nextIndex, resetTour, shouldShowTour, tourPlan, tourSeen, type TourStorage } from "@/lib/game/tour";
 
 /** A browser storage that keeps its entries in a Map. */
 const memory = (): TourStorage & { entries: Map<string, string> } => {
@@ -92,24 +92,6 @@ describe("tourSeen, markTourSeen and resetTour", () => {
 
   it("counts as seen when there is no storage at all", () => {
     expect(tourSeen(null)).toBe(true);
-  });
-});
-
-describe("cardSide", () => {
-  const H = 844;
-  const CARD = 220;
-
-  it("puts the card under a target near the top of the screen", () => {
-    expect(cardSide({ top: 60, bottom: 100 }, H, CARD)).toBe("bottom");
-  });
-
-  it("puts the card above a target at the bottom of the screen, so it does not cover the target", () => {
-    expect(cardSide({ top: 772, bottom: 828 }, H, CARD)).toBe("top");
-  });
-
-  it("uses the side with more room when neither side has room for the card", () => {
-    expect(cardSide({ top: 300, bottom: 700 }, H, CARD)).toBe("top");
-    expect(cardSide({ top: 100, bottom: 600 }, H, CARD)).toBe("bottom");
   });
 });
 

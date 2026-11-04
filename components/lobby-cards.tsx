@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { BoardArt } from "@/components/art/board-art";
 import { PerchArt } from "@/components/art/perch-art";
-import { TourStep } from "@/components/lobby-tour";
+import { TourStep } from "@/components/tour";
 import { GLASS, PRIMARY, SOLID } from "@/components/ui/surfaces";
 import text from "@/content/ui/lobby.json";
 import { shortName, type Featured, type ProjectRow } from "@/lib/game/featured";

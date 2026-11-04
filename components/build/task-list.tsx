@@ -13,6 +13,7 @@ import type { LevelTask } from "./popups";
 import type { Track } from "@/lib/game/music";
 import { MusicSwitch } from "./music";
 import { ReadStepsSwitch, SpeakButton, useSpeechSupported } from "./read-aloud";
+import { TourStep } from "@/components/tour";
 
 // The task list (issue #52): every task of the level, with a tick for each task that the board does now.
 // Laptop: it starts open. Phone: it starts as a small chip, and a tap opens it over the board.
@@ -52,9 +53,9 @@ export function TaskList({ tasks, laptop, code, small = false, music = null }: {
   const done = marks.filter((m) => m === "done").length;
 
   return (
+    <TourStep id="tasks">
     <section
       aria-label={text.tasks.list}
-      data-tour="tasks"
       className={cn("pointer-events-auto flex min-h-0 flex-col self-start rounded-2xl border border-border bg-card shadow-panel", open && "w-full sm:w-72")}
     >
       <PanelHeader
@@ -113,6 +114,7 @@ export function TaskList({ tasks, laptop, code, small = false, music = null }: {
         </div>
       )}
     </section>
+    </TourStep>
   );
 }
 

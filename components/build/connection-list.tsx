@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 import { HologramRow } from "./hologram-row";
 import { endpointName, strayRow } from "./names";
 import { PanelHeader, usePanelOpen } from "./panel-header";
+import { TourStep } from "@/components/tour";
 
 // The connection list (issue #92): each connection of the level, right or wrong, for the best way round of the
 // resistors and buttons. It shows after a failed Check, and it updates each time the board changes. Its look is the task list.
@@ -30,9 +31,9 @@ export function ConnectionList({ rules, laptop, small = false }: { rules: Rules;
   const [open, toggle] = usePanelOpen(panelStartsOpen(laptop, small));
 
   return (
+    <TourStep id="connections">
     <section
       aria-label={text.connections.list}
-      data-tour="connections"
       className={cn("pointer-events-auto flex min-h-0 flex-col self-start rounded-2xl border border-border bg-card shadow-panel", open && "w-full sm:w-72")}
     >
       <PanelHeader
@@ -50,6 +51,7 @@ export function ConnectionList({ rules, laptop, small = false }: { rules: Rules;
       </ol>
       )}
     </section>
+    </TourStep>
   );
 }
 

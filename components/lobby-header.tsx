@@ -2,7 +2,7 @@ import { Cpu, Layers, LogOut, Zap } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { LogOutForm } from "@/components/auth/log-out-form";
-import { TourStep } from "@/components/lobby-tour";
+import { TourStep } from "@/components/tour";
 import type { Tab } from "@/components/lobby-cards";
 import { GlassLogo } from "@/components/logo";
 import { GlassmorphismNavBar } from "@/components/ui/glassmorphism-navigation";

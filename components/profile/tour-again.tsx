@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { browserStorage } from "@/components/build/tour";
+import { browserStorage } from "@/components/tour";
 import { Button } from "@/components/ui/button";
 import text from "@/content/ui/profile.json";
 import { resetTour, TOUR_KEYS } from "@/lib/game/tour";

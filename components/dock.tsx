@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { TourStep } from "@/components/lobby-tour";
+import { TourStep } from "@/components/tour";
 import type { LobbyTourStep } from "@/lib/game/tour";
 import { cn } from "@/lib/utils";
 

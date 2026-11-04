@@ -7,6 +7,7 @@ import text from "@/content/ui/build.json";
 import sketchText from "@/content/ui/sketch.json";
 import { boardStore } from "@/lib/game/board-store";
 import { EMPTY_NOTE } from "./check";
+import { TourStep } from "@/components/tour";
 
 const BIG = "min-h-12 rounded-xl border-b-4 px-8 max-sm:min-h-11 max-sm:px-5 text-base font-extrabold tracking-wide uppercase shadow-panel outline-none focus-visible:ring-2 focus-visible:ring-ring active:translate-y-0.5 active:border-b-2";
 
@@ -43,8 +44,8 @@ export function BoardActions({ ready, empty, locked, onCheck, onOpenCode, extra 
       )}
       <div className="flex flex-wrap items-center justify-center gap-2 max-sm:flex-nowrap">
         <ClearButton disabled={empty} />
+        <TourStep id="check">
         <button
-          data-tour="check"
           type="button"
           onClick={onCheck}
           disabled={!ready || empty || locked}
@@ -53,6 +54,7 @@ export function BoardActions({ ready, empty, locked, onCheck, onOpenCode, extra 
         >
           {text.play.check.button}
         </button>
+        </TourStep>
         {extra}
       </div>
     </div>
@@ -64,11 +66,13 @@ function ClearButton({ disabled }: { disabled: boolean }) {
   const t = text.play.clear;
   return (
     <Dialog>
+      <TourStep id="clear">
       <DialogTrigger asChild>
-        <button data-tour="clear" type="button" disabled={disabled} className={`${BIG} border border-border bg-card text-foreground disabled:text-muted-foreground disabled:opacity-60`}>
+        <button type="button" disabled={disabled} className={`${BIG} border border-border bg-card text-foreground disabled:text-muted-foreground disabled:opacity-60`}>
           {t.button}
         </button>
       </DialogTrigger>
+      </TourStep>
       <DialogContent>
         <DialogTitle>{t.title}</DialogTitle>
         <DialogDescription>{t.text}</DialogDescription>
