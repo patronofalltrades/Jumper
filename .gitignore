@@ -48,3 +48,6 @@ next-env.d.ts
 # playwright
 /test-results/
 /playwright-report/
+
+# ledger (local only, never commit)
+/ledger/

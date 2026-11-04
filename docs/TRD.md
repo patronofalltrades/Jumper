@@ -161,7 +161,7 @@ supabase/
   seed.ts       loads content/projects/ into the projects, levels and tasks tables
 tests/          Vitest unit and integration tests
 docs/           PRD.md and TRD.md
-ledger/         the project ledger (LEDGER.md) and the raw logs
+ledger/         the project ledger and raw logs (local only, in .gitignore)
 prompts/        the key prompts and the pull request text of each feature
 reference/      breadboard-prototype.html
 .claude/        agent hooks and settings
