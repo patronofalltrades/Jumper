@@ -29,8 +29,20 @@ export function featuredHrefs(slug: string, level: number) {
   return { mapHref: `/p/${slug}`, href: `/p/${slug}/${level}` };
 }
 
-/** The catalog in position order, and the first available project with the level that Continue opens. */
-export async function loadCatalog(supabase: Supabase): Promise<{ catalog: ProjectRow[]; featured: Featured | null }> {
+/**
+ * The project of the Continue card: the onboarding choice (issue #152) for a learner who has not started a level yet,
+ * else the first available project. A Coming soon project is never featured.
+ */
+export function pickFeatured<T extends { slug: string; status: string }>(catalog: T[], preferred: string | null, started: boolean): T | undefined {
+  const available = catalog.filter((p) => p.status === "available");
+  return (!started && available.find((p) => p.slug === preferred)) || available[0];
+}
+
+/**
+ * The catalog in position order, and the featured project with the level that Continue opens.
+ * `preferred` is the start project from the onboarding cookie.
+ */
+export async function loadCatalog(supabase: Supabase, preferred: string | null = null): Promise<{ catalog: ProjectRow[]; featured: Featured | null }> {
   const { data, error } = await supabase
     .from("projects")
     .select("id, slug, title, tagline, board, status, levels(count)")
@@ -38,7 +50,8 @@ export async function loadCatalog(supabase: Supabase): Promise<{ catalog: Projec
   if (error) throw error;
 
   const catalog = (data ?? []) as ProjectRow[];
-  const project = catalog.find((p) => p.status === "available");
+  const started = preferred ? await hasSessions(supabase) : true;
+  const project = pickFeatured(catalog, preferred, started);
   if (!project) return { catalog, featured: null };
 
   const target = continueTarget(await latestSession(supabase, project.id), project.levels[0]?.count ?? 1);
@@ -53,6 +66,13 @@ export async function loadCatalog(supabase: Supabase): Promise<{ catalog: Projec
     catalog,
     featured: { project, ...target, levelTitle: level?.title ?? null, ...featuredHrefs(project.slug, target.level) },
   };
+}
+
+// True when this user has started any level (row-level security gives only the user's own sessions).
+async function hasSessions(supabase: Supabase): Promise<boolean> {
+  const { count, error } = await supabase.from("sessions").select("id", { count: "exact", head: true });
+  if (error) throw error;
+  return (count ?? 0) > 0;
 }
 
 // The most recent session of this user in one project, with the position of its level.

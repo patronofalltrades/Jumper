@@ -268,7 +268,17 @@
     },
     "lockedHint": "Pass level {n} to open this level.",
     "start": "Start",
-    "xp": "{n} XP"
+    "xp": "{n} XP",
+    "here": "{name} · {board} · Level {n} of {count}",
+    "now": "Level {n} · {title}",
+    "allDone": "All levels passed",
+    "progress": "{name}: {pct}% done",
+    "finish": "Finish",
+    "finishLabel": "The end: you pass all the levels of {name}",
+    "passedLabel": "Level {n}, {title}, passed. Play it again.",
+    "startLabel": "Start level {n}, {title}",
+    "lockedLabel": "Level {n}, {title}, locked. Pass level {prev} to open it.",
+    "listLabel": "The levels of {name}"
   },
   "spot": {
     "_note": "The holes in a task (issue #148). The app puts these in {from} and {to} of the task text, from the holes that the arrow points at. {board} is the letter of the breadboard, {row} is a to j, {column} is the number printed at the edge.",

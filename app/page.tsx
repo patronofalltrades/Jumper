@@ -8,15 +8,14 @@ import { Backdrop } from "@/components/backdrop";
 import { CourseTabs, type CourseTab } from "@/components/landing/course-tabs";
 import type { CardText } from "@/components/landing/hero-cards";
 import { HeroTrack } from "@/components/landing/hero-track";
-import { LandingBoard } from "@/components/landing/landing-board";
+import { MascotBand } from "@/components/landing/mascot-band";
 import { GlassLogo } from "@/components/logo";
 import { TutorSection } from "@/components/landing/tutor-section";
 import { GlassmorphismNavBar } from "@/components/ui/glassmorphism-navigation";
 import { GLASS, PRIMARY } from "@/components/ui/surfaces";
 import text from "@/content/ui/landing.json";
-import { loadBoards } from "@/lib/content/boards";
 import { loadProjects } from "@/lib/content/load";
-import { wiringOrder } from "@/lib/game/landing";
+import { projectMascot } from "@/lib/game/project-mascot";
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = { title: text.meta.title, description: text.meta.description };
@@ -25,14 +24,12 @@ export const metadata: Metadata = { title: text.meta.title, description: text.me
 // Layout from the duolingo.com home page (issue #152). The catalog comes from content/projects/, not the database.
 export default async function LandingPage({ searchParams }: PageProps<"/">) {
   const projects = loadProjects();
-  const featured = projects.find((p) => p.status === "available");
-  const order = featured ? wiringOrder(await loadBoards(featured.slug)) : [];
   const available = projects.filter((p) => p.status === "available");
   const courses: CourseTab[] = text.courses.show.flatMap((slug) => {
     const p = projects.find((project) => project.slug === slug);
     if (!p) return [];
     const open = p.status === "available";
-    return [{ slug, name: p.title.split(":")[0], title: p.title, board: p.board, tagline: p.tagline, available: open, items: open ? p.levels.map((l) => l.title) : p.tagline.split(", ") }];
+    return [{ slug, name: p.title.split(":")[0], title: p.title, board: p.board, tagline: p.tagline, available: open, mascot: projectMascot(p.mascot), items: open ? p.levels.map((l) => l.title) : p.tagline.split(", ") }];
   });
 
   return (
@@ -59,8 +56,8 @@ export default async function LandingPage({ searchParams }: PageProps<"/">) {
         <Suspense>{searchParams.then(({ deleted }) => deleted === "1" && <DeletedNotice />)}</Suspense>
 
         <section className="mx-auto grid w-full max-w-6xl items-center gap-6 px-4 pt-8 pb-16 sm:px-8 sm:pt-14 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] lg:gap-10">
-          <div className={cn(GLASS, "h-[22rem] overflow-hidden sm:h-[30rem]")}>
-            <LandingBoard order={order} />
+          <div className={cn(GLASS, "h-[22rem] overflow-hidden sm:h-[32rem]")}>
+            <MascotBand />
           </div>
           <div className={cn(GLASS, "flex flex-col items-center gap-6 px-6 py-8 text-center sm:px-10 sm:py-10")}>
             <span className="rounded-full bg-[#22d66b] px-3.5 py-1.5 text-sm font-semibold text-[#04140a]">{text.pitch.badge}</span>
@@ -69,8 +66,8 @@ export default async function LandingPage({ searchParams }: PageProps<"/">) {
             </h1>
             <p className="text-lg text-white/65">{text.pitch.body}</p>
             <div className="flex w-full max-w-sm flex-col gap-3">
-              <PathButton href="/signup" title={text.pitch.new.title} body={text.pitch.new.body} primary />
-              <PathButton href="/signup" title={text.pitch.wired.title} body={text.pitch.wired.body} />
+              <PathButton href="/start" title={text.pitch.new.title} body={text.pitch.new.body} primary />
+              <PathButton href="/start?build=perch" title={text.pitch.wired.title} body={text.pitch.wired.body} />
               <Link href="/login" className="min-h-11 content-center font-medium text-white/80 underline-offset-4 hover:underline">
                 {text.haveAccount}
               </Link>
@@ -176,7 +173,7 @@ export default async function LandingPage({ searchParams }: PageProps<"/">) {
             </ol>
             <div className="flex flex-col items-center gap-4">
               <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-3">
-                <Link href="/signup" className={PRIMARY}>
+                <Link href="/start" className={PRIMARY}>
                   {text.end.button}
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                     <path d="M5 12h14M13 6l6 6-6 6" />

@@ -2,13 +2,15 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { ProjectMascot } from "@/components/landing/mascot-band";
 import text from "@/content/ui/landing.json";
+import type { MascotId } from "@/lib/game/project-mascot";
 import { cn } from "@/lib/utils";
 
 // The project tabs of the landing page (issue #152), after the topic tabs of brilliant.org. An available project lists
 // its real levels; a Coming soon project lists what it teaches.
 
-export type CourseTab = { slug: string; name: string; title: string; board: string; tagline: string; available: boolean; items: string[] };
+export type CourseTab = { slug: string; name: string; title: string; board: string; tagline: string; available: boolean; mascot: MascotId; items: string[] };
 
 const c = text.courses;
 
@@ -47,7 +49,7 @@ export function CourseTabs({ courses }: { courses: CourseTab[] }) {
           <p className="text-white/65">{course.tagline}</p>
           {course.available ? (
             <Link
-              href="/signup"
+              href={`/start?build=${course.slug}`}
               className="mt-2 inline-flex min-h-12 w-fit items-center gap-2.5 rounded-full border-b-4 border-[#15a352] bg-[#22d66b] px-6 font-semibold text-[#04140a] active:translate-y-0.5 active:border-b-2"
             >
               {c.play.replace("{name}", course.name)}
@@ -58,6 +60,7 @@ export function CourseTabs({ courses }: { courses: CourseTab[] }) {
           ) : (
             <span className="mt-2 w-fit rounded-full border border-dashed border-white/25 px-4 py-1.5 text-sm font-semibold text-white/80">{c.soon}</span>
           )}
+          <ProjectMascot id={course.mascot} />
         </div>
         <ol className="flex flex-col gap-2.5">
           {course.items.map((item, i) => (

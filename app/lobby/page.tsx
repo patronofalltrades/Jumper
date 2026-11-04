@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { BoardArt } from "@/components/art/board-art";
@@ -13,6 +14,7 @@ import text from "@/content/ui/lobby.json";
 import collab from "@/content/ui/collaborate.json";
 import featureList from "@/content/features.json";
 import { loadCatalog, shortName } from "@/lib/game/featured";
+import { START_COOKIE } from "@/lib/game/onboarding";
 import { createClient } from "@/lib/supabase/server";
 
 // The Coming soon cards. The list is empty while every planned feature is built; a new entry shows as a card again.
@@ -42,7 +44,7 @@ async function Lobby({ tab }: { tab: Tab }) {
 
   const [{ data: profile }, { catalog, featured }] = await Promise.all([
     supabase.from("profiles").select("display_name, xp, avatar").eq("id", auth.claims.sub).maybeSingle(),
-    loadCatalog(supabase),
+    loadCatalog(supabase, await startChoice()),
   ]);
   const name = profile?.display_name || auth.claims.email?.split("@")[0] || "there";
   const hero = featured && <ContinueCard featured={featured} name={name} />;
@@ -83,6 +85,11 @@ async function Lobby({ tab }: { tab: Tab }) {
 }
 
 type Client = Awaited<ReturnType<typeof createClient>>;
+
+// The start project from the onboarding (issue #152). loadCatalog checks that it is an available project.
+async function startChoice() {
+  return (await cookies()).get(START_COOKIE)?.value ?? null;
+}
 const fill = (template: string, values: Record<string, string>) => template.replace(/\{(\w+)\}/g, (_, k: string) => values[k]);
 
 // The invites for the email of this user, as dark cards with Accept and Decline (issue #88). The query asks for the
