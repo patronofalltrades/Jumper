@@ -9,6 +9,7 @@ import { CardRow } from "@/components/card-row";
 import { InviteActions } from "@/components/collaborate/invite-actions";
 import { Dock } from "@/components/dock";
 import { LobbyHeader } from "@/components/lobby-header";
+import { LobbyTour } from "@/components/lobby-tour";
 import { ContinueCard, DarkCard, pairs, ProjectCard, type Tab } from "@/components/lobby-cards";
 import text from "@/content/ui/lobby.json";
 import collab from "@/content/ui/collaborate.json";
@@ -50,7 +51,7 @@ async function Lobby({ tab }: { tab: Tab }) {
   const hero = featured && <ContinueCard featured={featured} name={name} />;
 
   return (
-    <>
+    <LobbyTour>
       <LobbyHeader tab={tab} xp={profile?.xp ?? 0} avatar={profile?.avatar} />
 
       <h1 className="sr-only">Lobby</h1>
@@ -82,7 +83,7 @@ async function Lobby({ tab }: { tab: Tab }) {
         </>
       )}
       <Dock active={tab === "builds" ? "builds" : "lobby"} />
-    </>
+    </LobbyTour>
   );
 }
 

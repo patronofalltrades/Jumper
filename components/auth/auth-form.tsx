@@ -17,7 +17,7 @@ const COPY = {
     pending: "Logging in…",
     switchText: "New to Jumper?",
     switchLink: "Create an account",
-    switchHref: "/signup",
+    switchHref: "/start",
   },
   signup: {
     title: "Create your account",

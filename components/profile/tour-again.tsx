@@ -4,9 +4,9 @@ import { useState } from "react";
 import { browserStorage } from "@/components/build/tour";
 import { Button } from "@/components/ui/button";
 import text from "@/content/ui/profile.json";
-import { resetTour } from "@/lib/game/tour";
+import { resetTour, TOUR_KEYS } from "@/lib/game/tour";
 
-// "Show the tour again" (issue #123): clears the flag of the first-visit tour in this browser.
+// "Show the tours again" (issue #123): clears the flags of the first-visit tours (the lobby and build mode) in this browser.
 export function TourAgain() {
   const [done, setDone] = useState(false);
   return (
@@ -21,7 +21,8 @@ export function TourAgain() {
           variant="outline"
           className="min-h-11"
           onClick={() => {
-            resetTour(browserStorage());
+            const storage = browserStorage();
+            for (const key of TOUR_KEYS) resetTour(storage, key);
             setDone(true);
           }}
         >
