@@ -6,6 +6,8 @@ import { Suspense } from "react";
 import { PerchFace } from "@/components/art/perch-face";
 import { Backdrop } from "@/components/backdrop";
 import { CourseTabs, type CourseTab } from "@/components/landing/course-tabs";
+import type { CardText } from "@/components/landing/hero-cards";
+import { HeroTrack } from "@/components/landing/hero-track";
 import { MascotBand } from "@/components/landing/mascot-band";
 import { GlassLogo } from "@/components/logo";
 import { TutorSection } from "@/components/landing/tutor-section";
@@ -74,6 +76,13 @@ export default async function LandingPage({ searchParams }: PageProps<"/">) {
             </p>
           </div>
         </section>
+
+        {/* The task-card track: a learner's tasks, one after the other (after the brilliant.org hero). */}
+        <div className="mx-auto -mt-6 w-full max-w-6xl px-4 pb-12 sm:px-8 sm:pb-16">
+          <div className={cn(GLASS, "overflow-hidden")}>
+            <HeroTrack cards={text.hero.cards as CardText[]} check={text.hero.check} code={text.hero.code} />
+          </div>
+        </div>
 
         <section id="how" className="mx-auto w-full max-w-6xl scroll-mt-24 border-t border-white/10 px-4 py-20 sm:px-8 sm:py-24">
           <TutorSection />

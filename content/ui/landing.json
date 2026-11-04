@@ -1,5 +1,5 @@
 {
-  "_note": "Text for the landing page (/), in ASD-STE100. The hero shows the 3D mascot band (components/mascots-3d). Layout from the design canvas of issue #152 (duolingo.com hero, brilliant.org tutor and course tabs, a 4-step 'How it works' row). The project levels come from content/projects/.",
+  "_note": "Text for the landing page (/), in ASD-STE100. The hero shows the 3D mascot band (components/mascots-3d). Layout from the design canvas of issue #152 (duolingo.com hero, brilliant.org tutor and course tabs, a 4-step 'How it works' row). The project levels come from content/projects/. hero: the text on the task cards of the animated track under the hero (components/landing/hero-cards.tsx).",
   "meta": {
     "title": "Jumper · Learn hardware on a 3D breadboard",
     "description": "Connect real boards on a 3D breadboard. Jumper guides you like a game."
@@ -15,8 +15,14 @@
     "title_start": "Wire it up.",
     "title_end": "Watch it come alive.",
     "body": "Build a desk robot that hears, talks and smiles, one glowing wire at a time. Real boards, a 3D breadboard, and no parts to buy.",
-    "new": { "title": "I am new to hardware", "body": "Start with your first LED" },
-    "wired": { "title": "I have wired a board before", "body": "Go straight to Perch, on the ESP32-S3" },
+    "new": {
+      "title": "I am new to hardware",
+      "body": "Start with your first LED"
+    },
+    "wired": {
+      "title": "I have wired a board before",
+      "body": "Go straight to Perch, on the ESP32-S3"
+    },
     "facts": "{available} projects to play now · {soon} coming soon · parts from real kits"
   },
   "volt": "Hi, I am Volt! I help you wire your first board.",
@@ -33,26 +39,70 @@
     "title_start": "Meet Volt, your",
     "title_end": "bench tutor",
     "body": "Volt shows you each step on the board, tells you why, and helps when you are stuck. For the wiring, and for the code that runs on the board.",
-    "modes": { "wiring": "Wiring", "code": "Code" },
-    "path": { "title": "Level 3 · Ears", "progress": "40%", "label": "Perch: levels 1 and 2 are done, level 3 is next" },
+    "modes": {
+      "wiring": "Wiring",
+      "code": "Code"
+    },
+    "path": {
+      "title": "Level 3 · Ears",
+      "progress": "40%",
+      "label": "Perch: levels 1 and 2 are done, level 3 is next"
+    },
     "code": {
       "title": "Light an LED · Step by step",
       "run": "Run",
-      "lines": ["const int ledPin = 13;", "void setup() {", "  pinMode(ledPin, OUTPUT);", "}"],
+      "lines": [
+        "const int ledPin = 13;",
+        "void setup() {",
+        "  pinMode(ledPin, OUTPUT);",
+        "}"
+      ],
       "highlight": 2,
       "explain": "Make the LED pin an output, so it can give power to the LED."
     },
     "wiring": [
-      { "chip": "WHY", "title": "A guide on the board, not a manual", "body": "A pop-up on the 3D board tells you what to connect, where, and why. The correct holes glow." },
-      { "chip": "L1", "title": "Start at the right level", "body": "New to circuits? Start with Arduino Foundations. Wired before? Go straight to Perch." },
-      { "chip": "HELP", "title": "Help when you are stuck", "body": "Watch a short clip of each level, or let Volt read the step aloud." },
-      { "chip": "XP", "title": "Know what to practice next", "body": "Your dashboard shows the mistakes that you make most, so you know what to do again." }
+      {
+        "chip": "WHY",
+        "title": "A guide on the board, not a manual",
+        "body": "A pop-up on the 3D board tells you what to connect, where, and why. The correct holes glow."
+      },
+      {
+        "chip": "L1",
+        "title": "Start at the right level",
+        "body": "New to circuits? Start with Arduino Foundations. Wired before? Go straight to Perch."
+      },
+      {
+        "chip": "HELP",
+        "title": "Help when you are stuck",
+        "body": "Watch a short clip of each level, or let Volt read the step aloud."
+      },
+      {
+        "chip": "XP",
+        "title": "Know what to practice next",
+        "body": "Your dashboard shows the mistakes that you make most, so you know what to do again."
+      }
     ],
     "codeCards": [
-      { "chip": "RUN", "title": "Write real Arduino code", "body": "Type the sketch and press Run. The 3D board does what your code says." },
-      { "chip": "1/4", "title": "One line at a time", "body": "Step by step mode explains each line in simple words before you type it." },
-      { "chip": "ABC", "title": "Code words", "body": "Tap a word in the code to see what it means." },
-      { "chip": "AUTO", "title": "Write it for me", "body": "Stuck? Volt writes the sketch, and you still pass the level. Only the code XP is lost." }
+      {
+        "chip": "RUN",
+        "title": "Write real Arduino code",
+        "body": "Type the sketch and press Run. The 3D board does what your code says."
+      },
+      {
+        "chip": "1/4",
+        "title": "One line at a time",
+        "body": "Step by step mode explains each line in simple words before you type it."
+      },
+      {
+        "chip": "ABC",
+        "title": "Code words",
+        "body": "Tap a word in the code to see what it means."
+      },
+      {
+        "chip": "AUTO",
+        "title": "Write it for me",
+        "body": "Stuck? Volt writes the sketch, and you still pass the level. Only the code XP is lost."
+      }
     ]
   },
   "courses": {
@@ -68,12 +118,30 @@
     "title": "Real parts. Real pins.",
     "body": "Each part is a model of a real part. The pins follow a published breadboard kit, so what you learn works on your desk.",
     "items": [
-      { "name": "ESP32-S3-DevKitC-1", "job": "board" },
-      { "name": "Arduino Uno", "job": "board" },
-      { "name": "INMP441", "job": "mic" },
-      { "name": "MAX98357A", "job": "amplifier" },
-      { "name": "ST7789 1.54\"", "job": "screen" },
-      { "name": "220 Ω resistor", "job": "LED" }
+      {
+        "name": "ESP32-S3-DevKitC-1",
+        "job": "board"
+      },
+      {
+        "name": "Arduino Uno",
+        "job": "board"
+      },
+      {
+        "name": "INMP441",
+        "job": "mic"
+      },
+      {
+        "name": "MAX98357A",
+        "job": "amplifier"
+      },
+      {
+        "name": "ST7789 1.54\"",
+        "job": "screen"
+      },
+      {
+        "name": "220 Ω resistor",
+        "job": "LED"
+      }
     ]
   },
   "steps": {
@@ -81,14 +149,78 @@
     "title": "Make your first light turn on.",
     "body": "Four steps. No parts. No soldering iron.",
     "items": [
-      { "title": "Pick your board", "body": "Start with an Arduino Uno and one LED, on a 3D breadboard.", "image": "/landing/step-1-uno.webp", "alt": "An Arduino Uno beside a breadboard in Jumper", "tag": "Arduino Foundations · Level 2" },
-      { "title": "Connect the pins", "body": "Volt tells you what to connect and why. The correct holes glow.", "image": "/landing/step-2-wire.webp", "alt": "A blue wire from pin 13 of the Uno to the resistor, and the LED on the breadboard", "tag": "Connect pin 13 to the resistor" },
-      { "title": "Press Check", "body": "Jumper checks each connection. A mistake tells you what to repair.", "image": "/landing/step-3-check.webp", "alt": "The Check button and the message: All correct! The level is done.", "tag": "Check passed · +50 XP" },
-      { "title": "Watch it come alive", "body": "Your LED turns on. Then Perch hears, talks and shows a face.", "alt": "Perch, the desk device, with a happy face on its screen", "tag": "It is alive!" }
+      {
+        "title": "Pick your board",
+        "body": "Start with an Arduino Uno and one LED, on a 3D breadboard.",
+        "image": "/landing/step-1-uno.webp",
+        "alt": "An Arduino Uno beside a breadboard in Jumper",
+        "tag": "Arduino Foundations · Level 2"
+      },
+      {
+        "title": "Connect the pins",
+        "body": "Volt tells you what to connect and why. The correct holes glow.",
+        "image": "/landing/step-2-wire.webp",
+        "alt": "A blue wire from pin 13 of the Uno to the resistor, and the LED on the breadboard",
+        "tag": "Connect pin 13 to the resistor"
+      },
+      {
+        "title": "Press Check",
+        "body": "Jumper checks each connection. A mistake tells you what to repair.",
+        "image": "/landing/step-3-check.webp",
+        "alt": "The Check button and the message: All correct! The level is done.",
+        "tag": "Check passed · +50 XP"
+      },
+      {
+        "title": "Watch it come alive",
+        "body": "Your LED turns on. Then Perch hears, talks and shows a face.",
+        "alt": "Perch, the desk device, with a happy face on its screen",
+        "tag": "It is alive!"
+      }
     ]
   },
   "end": {
     "button": "Wire my first LED",
-    "points": ["Free", "No parts to buy", "Works on your phone"]
+    "points": [
+      "Free",
+      "No parts to buy",
+      "Works on your phone"
+    ]
+  },
+  "hero": {
+    "check": "Check",
+    "cards": [
+      {
+        "kind": "place",
+        "label": "Level 2 · Task 4",
+        "title": "Put the LED in the breadboard."
+      },
+      {
+        "kind": "wire",
+        "label": "Level 2 · Task 5",
+        "title": "Connect the board pin to the LED."
+      },
+      {
+        "kind": "code",
+        "label": "Level 2 · Code",
+        "title": "Complete the code to turn on the light."
+      },
+      {
+        "kind": "check",
+        "label": "Level 2 · Check",
+        "title": "Press Check. Jumper tests your circuit."
+      },
+      {
+        "kind": "face",
+        "label": "Level 5 · Face",
+        "title": "Perch wakes up and shows its face."
+      }
+    ],
+    "code": {
+      "line1": "void loop() {",
+      "before": "digitalWrite(LED, ",
+      "blank": "HIGH",
+      "after": ");",
+      "line3": "}"
+    }
   }
 }
