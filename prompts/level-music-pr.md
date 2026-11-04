@@ -17,7 +17,7 @@ User story (PLAN.md row 5): As a learner, in any project I want to build like a 
 
 **PR body:**
 
-closes #170
+closes #162
 
 ## What this does
 

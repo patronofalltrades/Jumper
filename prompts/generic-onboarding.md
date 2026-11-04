@@ -1,4 +1,4 @@
-# Prompt log: generic onboarding questions
+# Prompt log: generic onboarding questions (issue #164)
 
 1. Hanif's prompt (his words): "this still exists and I don't want it there. I want it to be more generic and the onboarding questions should be more generic" (with a screenshot of the first onboarding question, "What do you want to build?", which listed Perch, My first circuits, A desk weather station and A focus timer with a buzzer).
 
