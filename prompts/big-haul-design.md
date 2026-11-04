@@ -31,3 +31,4 @@ https://claude.ai/artifact/EzZgPoHB7CkzckDGAFpTsE (private; share it from its Sh
 11. "PR is open, build the onboarding next"
 
 Hanif's choices (session form): first-wire XP: "No XP, practice wire"; answers: "Pick the start project only".
+12. "you build the lobby with the tile path"
