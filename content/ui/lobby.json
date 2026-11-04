@@ -12,17 +12,5 @@
   "soon": "Coming soon",
   "xp": "{xp} XP",
   "profile": "Profile",
-  "logOut": "Log out",
-  "path": {
-    "title": "Your path",
-    "level": "Level {level} · {title}",
-    "progress": "{project}: {percent}% done",
-    "done": "Level {level}, {title}: passed. Play it again.",
-    "open": "Start level {level}, {title}",
-    "locked": "Level {level}, {title}: locked. Pass the level before it first.",
-    "start": "Start",
-    "end": "Project done",
-    "endLabel": "The end of {project}: all levels passed",
-    "map": "Open the level map"
-  }
+  "logOut": "Log out"
 }
