@@ -20,7 +20,7 @@ Plain English: the content-rules test plays each level of Perch and Arduino Foun
 - Browser, local only: a temporary public route (removed before the commit) with placeholder Supabase values showed Perch levels 1 and 2 and Arduino Foundations levels 1 and 2 in Chromium at 1280 × 800, and Perch levels 1 and 2 and Arduino level 2 at 390 × 844 with touch. The hole card under the arrow said "Breadboard B · row b, column 5", the same hole as the task text. No page errors. The check found two bugs, fixed in `6be8173`: rows of later tasks showed `{from}` before their part was on the board, and "Resistor to light" said "column 4 to column 4".
 - A real change that makes the test fail: put back the old Perch Level 1 task 6 text ("Connect the red + line on the left side of breadboard A to the red + line on the right side of breadboard B."), and the content-rules test fails (24 words, no `{from}`).
 
-## Choices for Hanif to confirm
+## Choices that Hanif confirmed (Nov 4: "1. Yes 2. Yes 3. Yes 4. Yes")
 1. The LED and the speaker stay one task with two holes (one action, two taps, as a wire). The issue asked for one task for each leg; that needs an engine change.
 2. A wire to a GPIO pin says "pin 7 at …" to stay in 20 words. "(GPIO 7)" is in the "What happened" text and the hole card.
 3. Perch breadboards have two free lines of each color, so the text says "left" or "right".
