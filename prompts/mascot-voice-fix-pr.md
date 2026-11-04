@@ -28,7 +28,7 @@ PLAN.md row 47 (row 5): As a learner, in any project I want to build like a game
 
 **Body:**
 
-closes #N
+closes #166
 
 ## User stories
 
