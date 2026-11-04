@@ -16,8 +16,9 @@ import type { MascotId } from "@/lib/game/project-mascot";
 function Studio() {
   return (
     <>
-      <ambientLight intensity={0.45} />
-      <directionalLight position={[-6, 10, 8]} intensity={2.2} />
+      <ambientLight intensity={0.9} />
+      <directionalLight position={[-6, 10, 8]} intensity={3} />
+      <directionalLight position={[0, 4, 14]} intensity={1.1} />
       <directionalLight position={[8, 6, -8]} intensity={2.4} color="#ffe2b0" />
       <directionalLight position={[6, 2, 6]} intensity={0.5} color="#cfe8ff" />
       <Environment resolution={256} frames={1}>
@@ -35,7 +36,7 @@ function Plinth({ radius }: { radius: number }) {
     <group position={[0, -0.13, 0]}>
       <mesh>
         <cylinderGeometry args={[radius, radius, 0.26, 96]} />
-        <meshStandardMaterial color="#050d09" roughness={1} envMapIntensity={0.05} />
+        <meshBasicMaterial color="#07120c" />
       </mesh>
       <mesh position={[0, 0.13, 0]} rotation={[Math.PI / 2, 0, 0]}>
         <torusGeometry args={[radius, 0.035, 8, 128]} />
@@ -130,8 +131,8 @@ export default function BandScene() {
   const { selected, handlers } = useSelect();
   const [poses, setPoses] = useState<Pose[]>(BAND.map(() => "idle"));
   return (
-    <Canvas dpr={[1, 2]} camera={{ fov: 30, near: 0.1, far: 200 }} gl={{ antialias: true, alpha: true }}>
-      <Fit halfW={8.9} halfH={4.4} centerY={3.1} />
+    <Canvas dpr={[1, 2]} camera={{ fov: 30, near: 0.1, far: 200 }} gl={{ antialias: true, alpha: true, toneMappingExposure: 1.25 }}>
+      <Fit halfW={8} halfH={3.9} centerY={3.3} />
       <Studio />
       <BandPoses selected={selected} still={still} onChange={setPoses} />
       {BAND.map((m, i) => (
