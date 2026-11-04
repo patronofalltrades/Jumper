@@ -68,6 +68,7 @@ Each layer uses a standard tool with a free tier. Claude Code knows these tools 
 | UI components | shadcn/ui, on Radix UI and Tailwind CSS | The components go into the repository as source code. Thus we can change them. They give accessible forms, dialogs, sheets and toasts. | Hand-written components |
 | Motion | framer-motion (Hanif approved it on November 4, 2026, issue #152) | The glass navigation of the landing page moves its highlight with a spring. | CSS transitions |
 | Icons | lucide-react (Hanif approved it on November 4, 2026, issue #152) | The icons of the glass navigation on a phone. | Inline SVG |
+| Animation clips | Remotion: `remotion` and `@remotion/player` (Hanif approved them on November 4, 2026) | The task-card track under the hero of the landing page. Each frame comes from the code, so the clip has no video file and its text comes from `content/`. Free for a person or a team of 3 or fewer people. | CSS keyframes, a recorded video |
 | Charts | Recharts | Simple React charts for the dashboard | Chart.js |
 | Validation | Zod | One schema checks forms and the JSON for wiring and rules. | Checks written by hand |
 | Authentication | Supabase Auth, email and password, through `@supabase/supabase-js` and `@supabase/ssr` | Users sign up in the app. `@supabase/ssr` keeps the session in cookies, so server pages and `proxy.ts` can read it. The live Demo Day sign-up needs this. | Auth.js |
