@@ -9,6 +9,7 @@ Hanif's key prompts, in his words, on branch `Features/BigHaulDesign`.
 5. "use these as UI inspiration for fonts, components, and colors" (3 screenshots of the "Emerald Sun" shadcn/ui theme: Outfit, radius 1.25rem, emerald, sun yellow, near-black)
 6. "Opened issue 152 Branch: Features/BigHaulDesign"
 7. "use this as inspiration for the lobby level list" (a Mimo screenshot: square level tiles joined by a path)
+8. "Can you check this page? take inspiration from our most recent hero page redesign" (with a screenshot of the live /lobby: the old flat shapes behind the cards)
 
 ## Hanif's choices (session forms)
 

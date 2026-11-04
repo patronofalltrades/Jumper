@@ -7,8 +7,10 @@ import { PerchFace } from "@/components/art/perch-face";
 import { Backdrop } from "@/components/backdrop";
 import { CourseTabs, type CourseTab } from "@/components/landing/course-tabs";
 import { LandingBoard } from "@/components/landing/landing-board";
+import { GlassLogo } from "@/components/logo";
 import { TutorSection } from "@/components/landing/tutor-section";
 import { GlassmorphismNavBar } from "@/components/ui/glassmorphism-navigation";
+import { GLASS, PRIMARY } from "@/components/ui/surfaces";
 import text from "@/content/ui/landing.json";
 import { loadBoards } from "@/lib/content/boards";
 import { loadProjects } from "@/lib/content/load";
@@ -16,13 +18,6 @@ import { wiringOrder } from "@/lib/game/landing";
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = { title: text.meta.title, description: text.meta.description };
-
-// The landing page sits on the night backdrop in both themes (Emerald Sun, issue #152), so its colors are fixed:
-// emerald and sun on near-black, with frosted-glass panels.
-const GLASS =
-  "rounded-[1.25rem] border border-white/10 bg-night-2/55 shadow-[0_24px_70px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-xl backdrop-saturate-[1.8]";
-const PRIMARY =
-  "inline-flex min-h-13 items-center justify-center gap-3 rounded-full border-b-4 border-[#15a352] bg-[#22d66b] px-7 text-base font-semibold text-[#04140a] shadow-[0_0_40px_rgba(34,214,107,0.35)] transition-[transform,border] active:translate-y-0.5 active:border-b-2";
 
 // The landing page for visitors who are not logged in (issue #46). The proxy sends a logged-in user to the lobby.
 // Layout from the duolingo.com home page (issue #152). The catalog comes from content/projects/, not the database.
@@ -49,16 +44,7 @@ export default async function LandingPage({ searchParams }: PageProps<"/">) {
             { name: text.nav.how, href: "#how", icon: <BookOpen size={18} strokeWidth={2.5} /> },
             { name: text.nav.projects, href: "#projects", icon: <Cpu size={18} strokeWidth={2.5} /> },
           ]}
-          start={
-            <Link href="/" className="flex min-h-11 items-center gap-2 pr-2 pl-1 sm:pr-3" aria-label="Jumper home">
-              <span className="flex size-8 items-center justify-center rounded-full bg-[#22d66b]">
-                <svg width="15" height="15" viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M13 2 4 14h7l-1 8 9-12h-7l1-8Z" fill="#04140a" />
-                </svg>
-              </span>
-              <span className="hidden text-xl font-bold tracking-tight min-[400px]:inline">jumper</span>
-            </Link>
-          }
+          start={<GlassLogo href="/" label="Jumper home" />}
           end={
             <Link href="/login" className="flex min-h-11 items-center rounded-full bg-[#f5c518] px-4 text-sm font-semibold text-[#1a1400] sm:px-5">
               {text.logIn}
