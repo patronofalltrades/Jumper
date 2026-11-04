@@ -15,7 +15,7 @@ User story (PLAN.md row 1): As a new visitor, I want to create an account, log i
 
 ## What changed
 
-- `/signup` sends a visitor with no start cookie (`jumper_start`) to `/start` (the onboarding) first.
+- `proxy.ts`: a visitor with no start cookie (`jumper_start`) who opens `/signup` goes to `/start` (the onboarding) first.
 - "Create an account" on the log-in page opens `/start`.
 - New pure function `needsOnboarding` in `lib/game/onboarding.ts`.
 - `PLAN.md`: row 64 in the "Plan vs. Reality" table.
@@ -28,10 +28,16 @@ User story (PLAN.md row 1): As a new visitor, I want to create an account, log i
 - Green screenshot: <paste>
 - A real change that makes the test fail: if `needsOnboarding` always returns false, a new visitor can open `/signup` with no onboarding, and the test fails.
 
+## Bug that the agent made
+
+- What occurred: the first version read `cookies()` in the sign-up page. The app uses Cache Components, so the Vercel build stopped on `/signup` ("uncached or runtime data during prerendering").
+- How Hanif found it: the Vercel check on this PR failed.
+- How we repaired it: the check moved to `proxy.ts`, with the other log-in redirects. The sign-up page is static again, and `next build` passes.
+
 ## Checks
 
-- `npm run typecheck`, `npx eslint .` and `npm test` pass.
-- On the dev server: `/signup` with no cookie gives a 307 redirect to `/start`. With `jumper_start=perch`, it gives 200 and the form.
+- `npm run typecheck`, `npx eslint .`, `npm test` and `npx next build` pass.
+- On `next start`: `/signup` with no cookie gives a 307 redirect to `/start`. With `jumper_start=perch`, it gives 200 and the form.
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
 

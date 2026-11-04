@@ -1,10 +1,12 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { isVisitorPage, needsLogin } from "@/lib/auth/rules";
+import { needsOnboarding, START_COOKIE } from "@/lib/game/onboarding";
 
 // Refreshes the Supabase session cookie on each request, and sends visitors
 // without a session to /login. A logged-in user on the landing page or an account
-// form goes to the lobby. Pages still check the user on the server.
+// form goes to the lobby. A new visitor who did not do the onboarding goes from /signup to /start (issue #168).
+// Pages still check the user on the server.
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
 
@@ -29,6 +31,7 @@ export async function proxy(request: NextRequest) {
 
   if (!loggedIn && needsLogin(pathname)) return redirectTo(request, response, "/login");
   if (loggedIn && isVisitorPage(pathname)) return redirectTo(request, response, "/lobby");
+  if (pathname === "/signup" && needsOnboarding(request.cookies.get(START_COOKIE)?.value)) return redirectTo(request, response, "/start");
   return response;
 }
 
