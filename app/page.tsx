@@ -6,15 +6,14 @@ import { Suspense } from "react";
 import { PerchFace } from "@/components/art/perch-face";
 import { Backdrop } from "@/components/backdrop";
 import { CourseTabs, type CourseTab } from "@/components/landing/course-tabs";
-import { LandingBoard } from "@/components/landing/landing-board";
+import { MascotBand } from "@/components/landing/mascot-band";
 import { GlassLogo } from "@/components/logo";
 import { TutorSection } from "@/components/landing/tutor-section";
 import { GlassmorphismNavBar } from "@/components/ui/glassmorphism-navigation";
 import { GLASS, PRIMARY } from "@/components/ui/surfaces";
 import text from "@/content/ui/landing.json";
-import { loadBoards } from "@/lib/content/boards";
 import { loadProjects } from "@/lib/content/load";
-import { wiringOrder } from "@/lib/game/landing";
+import { projectMascot } from "@/lib/game/project-mascot";
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = { title: text.meta.title, description: text.meta.description };
@@ -23,14 +22,12 @@ export const metadata: Metadata = { title: text.meta.title, description: text.me
 // Layout from the duolingo.com home page (issue #152). The catalog comes from content/projects/, not the database.
 export default async function LandingPage({ searchParams }: PageProps<"/">) {
   const projects = loadProjects();
-  const featured = projects.find((p) => p.status === "available");
-  const order = featured ? wiringOrder(await loadBoards(featured.slug)) : [];
   const available = projects.filter((p) => p.status === "available");
   const courses: CourseTab[] = text.courses.show.flatMap((slug) => {
     const p = projects.find((project) => project.slug === slug);
     if (!p) return [];
     const open = p.status === "available";
-    return [{ slug, name: p.title.split(":")[0], title: p.title, board: p.board, tagline: p.tagline, available: open, items: open ? p.levels.map((l) => l.title) : p.tagline.split(", ") }];
+    return [{ slug, name: p.title.split(":")[0], title: p.title, board: p.board, tagline: p.tagline, available: open, mascot: projectMascot(p.mascot), items: open ? p.levels.map((l) => l.title) : p.tagline.split(", ") }];
   });
 
   return (
@@ -57,8 +54,8 @@ export default async function LandingPage({ searchParams }: PageProps<"/">) {
         <Suspense>{searchParams.then(({ deleted }) => deleted === "1" && <DeletedNotice />)}</Suspense>
 
         <section className="mx-auto grid w-full max-w-6xl items-center gap-6 px-4 pt-8 pb-16 sm:px-8 sm:pt-14 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] lg:gap-10">
-          <div className={cn(GLASS, "h-[22rem] overflow-hidden sm:h-[30rem]")}>
-            <LandingBoard order={order} />
+          <div className={cn(GLASS, "h-[22rem] overflow-hidden sm:h-[32rem]")}>
+            <MascotBand />
           </div>
           <div className={cn(GLASS, "flex flex-col items-center gap-6 px-6 py-8 text-center sm:px-10 sm:py-10")}>
             <span className="rounded-full bg-[#22d66b] px-3.5 py-1.5 text-sm font-semibold text-[#04140a]">{text.pitch.badge}</span>
