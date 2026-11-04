@@ -1,4 +1,4 @@
-# Prompt log: onboarding for each new user
+# Prompt log: onboarding for each new user (issue #168)
 
 1. Hanif's prompt (his words): "Anytime a new user signs up, you must show them the onboarding flow"
 
