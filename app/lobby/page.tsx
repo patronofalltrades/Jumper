@@ -9,12 +9,11 @@ import { CardRow } from "@/components/card-row";
 import { InviteActions } from "@/components/collaborate/invite-actions";
 import { Dock } from "@/components/dock";
 import { LobbyHeader } from "@/components/lobby-header";
-import { TilePath } from "@/components/lobby/tile-path";
 import { ContinueCard, DarkCard, pairs, ProjectCard, type Tab } from "@/components/lobby-cards";
 import text from "@/content/ui/lobby.json";
 import collab from "@/content/ui/collaborate.json";
 import featureList from "@/content/features.json";
-import { loadCatalog, passedLevels, shortName, type Featured } from "@/lib/game/featured";
+import { loadCatalog, shortName } from "@/lib/game/featured";
 import { START_COOKIE } from "@/lib/game/onboarding";
 import { createClient } from "@/lib/supabase/server";
 
@@ -57,7 +56,6 @@ async function Lobby({ tab }: { tab: Tab }) {
       <h1 className="sr-only">Lobby</h1>
       {tab === "projects" ? (
         <>
-          {featured && (await pathOf(supabase, featured))}
           <CardRow label={text.tabs.projects}>
           {[
             ...(await inviteCards(supabase, auth.claims.sub)),
@@ -89,17 +87,6 @@ async function Lobby({ tab }: { tab: Tab }) {
 }
 
 type Client = Awaited<ReturnType<typeof createClient>>;
-
-// The tile path of the featured project (issue #152): its levels and the levels that this learner passed.
-async function pathOf(supabase: Client, featured: Featured) {
-  const [{ data: levels, error }, passed] = await Promise.all([
-    supabase.from("levels").select("position, title").eq("project_id", featured.project.id).order("position"),
-    passedLevels(supabase, featured.project.id),
-  ]);
-  if (error) throw error;
-  if (!levels?.length) return null;
-  return <TilePath slug={featured.project.slug} project={shortName(featured.project.title)} levels={levels} passed={passed} />;
-}
 
 // The start project from the onboarding (issue #152). loadCatalog checks that it is an available project.
 async function startChoice() {
