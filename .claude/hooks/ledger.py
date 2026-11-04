@@ -3,12 +3,11 @@
 
   ledger.py prompt     UserPromptSubmit: log Hanif's prompt, remind Claude of the rules
   ledger.py comment    PostToolUse (GitHub comment tools): log it, tell Claude to flag it
-  ledger.py precommit  PreToolUse (Bash): before a git commit, log it and stage the ledger
+  ledger.py precommit  PreToolUse (Bash): before a git commit, log it to the local ledger
 
-Entries wait in .git/jumper-ledger-pending.md, which git does not track, so the
-working tree stays clean between commits. Before each commit they move to
-ledger/raw/<date>-<session>.md and that file is staged, so it rides in the same
-commit. Each session has its own file, so branches never conflict.
+Entries wait in .git/jumper-ledger-pending.md. Before each commit they move to
+ledger/raw/<date>-<session>.md. The ledger/ folder is in .gitignore: it stays
+on the local machine and is never committed or pushed.
 """
 import json
 import os
@@ -23,7 +22,7 @@ RULES = (
     "Jumper rules: (1) never push to main, merge, or approve a PR; "
     "(2) flag every GitHub comment you post to Hanif in your reply, with its link; "
     "(3) if unsure, stop and ask Hanif before you act; "
-    "(4) add Hanif's decisions, corrections and observations to ledger/LEDGER.md."
+    "(4) add Hanif's decisions, corrections and observations to ledger/LEDGER.md (local only, never commit it)."
 )
 
 
@@ -43,7 +42,7 @@ SECRETS = [
 
 
 def redact(text):
-    """Keep keys and project URLs out of the committed ledger."""
+    """Keep keys and project URLs out of the ledger."""
     for pattern, repl in SECRETS:
         text = pattern.sub(repl, text)
     return text
@@ -57,7 +56,7 @@ def append(kind, body):
 
 
 def flush(data):
-    """Move pending entries into this session's raw file and stage it."""
+    """Move pending entries into this session's local raw file (not staged)."""
     src = pending_path()
     if not os.path.exists(src):
         return
@@ -73,7 +72,6 @@ def flush(data):
             f.write(f"# Raw ledger: {now:%Y-%m-%d}, session {sid}\n\nWritten by .claude/hooks/ledger.py. Do not edit.\n")
         f.write(entries)
     os.remove(src)
-    git("add", rel)
 
 
 def commit_message(words):
