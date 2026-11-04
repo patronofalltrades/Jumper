@@ -221,13 +221,16 @@ The release is complete when these conditions are true:
 
 ## 10. Design direction
 
-Jumper looks like an electronics workbench. It plays like Duolingo.
+Jumper looks like an electronics workbench at night. It plays like Duolingo. On November 4, 2026, Hanif changed the look to "Emerald Sun" (issue #152).
 
 - **Look:** A cool gray bench mat and a realistic white breadboard. PCB green shows success and primary actions. Amber shows highlights and the "probe" hover.
 - **Game feel:** Large buttons that move down when you push them. Hearts, XP and a level path, as in **Duolingo**.
 - **Wiring:** The interaction is similar to **Wokwi** and **Tinkercad Circuits**.
 - **Device faces:** The Perch screen is similar to **Apple HomeView**.
-- **Type:** Bricolage Grotesque for the interface. IBM Plex Mono for pin labels.
+- **Type:** Outfit for the interface. IBM Plex Mono for pin labels. (Before issue #152: Bricolage Grotesque.)
+- **Emerald Sun (issue #152):** A near-black background, emerald green for primary actions, sun yellow for secondary actions and highlights, and red for mistakes. Buttons and inputs are pills. Cards have a 1.25rem radius. There is a light theme and a dark theme; the app follows the system setting. The landing page and the logged-in pages use a night background in both themes.
+- **Glass:** The navigation of the landing page and some panels use frosted glass (a blur behind a transparent panel).
+- **Landing page:** The layout follows the duolingo.com home page: a hero with two stacked buttons, a strip of boards, and feature rows that change sides.
 - **Devices:** Laptop and phone. On a phone, the learner uses touch to connect wires. Tap a hole to start a wire. Tap a second hole to complete it. Pinch to zoom. Drag to turn the board. Pop-ups move to the bottom of the screen.
 
 The [breadboard prototype](../reference/breadboard-prototype.html) shows the look and the interaction.

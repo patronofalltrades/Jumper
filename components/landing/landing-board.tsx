@@ -37,7 +37,7 @@ export function LandingBoard({ order }: { order: Part[] }) {
     <div className="relative h-full w-full">
       <BuildScene />
       <Link href="/signup" aria-label={text.board.label} className="absolute inset-0 rounded-[inherit] outline-none focus-visible:ring-4 focus-visible:ring-ring" />
-      <span className="pointer-events-none absolute bottom-3 left-1/2 -translate-x-1/2 rounded-full bg-[#13202a]/85 px-3 py-1.5 text-xs font-semibold whitespace-nowrap text-white">
+      <span className="pointer-events-none absolute bottom-3 left-1/2 -translate-x-1/2 rounded-full bg-[#0e1512]/85 px-3 py-1.5 text-xs font-semibold whitespace-nowrap text-white">
         {text.board.hint}
       </span>
     </div>

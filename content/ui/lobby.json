@@ -1,0 +1,13 @@
+{
+  "tabs": { "projects": "Projects", "builds": "My builds" },
+  "hi": "Hi, {name}",
+  "start": "Start",
+  "continue": "Continue",
+  "level": "Level {level}",
+  "play": "Play now",
+  "levels": "{count} levels",
+  "soon": "Coming soon",
+  "xp": "{xp} XP",
+  "profile": "Profile",
+  "logOut": "Log out"
+}

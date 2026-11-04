@@ -1,14 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { CARDS, CARDS_LOOP, CARDS_STILL, INTRO, conveyor, taskDone, wireDrawn } from "@/components/landing/hero-timing";
+import { CARDS, CARDS_LOOP, CARDS_STILL, conveyor, taskDone } from "@/components/landing/hero-timing";
 import text from "@/content/ui/landing.json";
-
-describe("hero wire under the headline", () => {
-  it("is hidden at the start, draws during the intro, and then stays", () => {
-    expect(wireDrawn(0)).toBe(0);
-    expect(wireDrawn(24)).toBe(0.5);
-    expect(wireDrawn(INTRO.duration)).toBe(1);
-  });
-});
 
 describe("hero task cards", () => {
   it("moves the track one card in each step", () => {

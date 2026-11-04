@@ -29,7 +29,7 @@ export function Dock({ active }: { active?: DockPage }) {
       <div className="h-24 shrink-0 sm:h-28" aria-hidden="true" />
       <nav
         aria-label="Main"
-        className="fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-[#0d1418]/95 pt-2 pb-[max(env(safe-area-inset-bottom),8px)] backdrop-blur sm:border-0 sm:bg-transparent sm:px-4 sm:pt-0 sm:pb-3 sm:backdrop-blur-none"
+        className="fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-night/95 pt-2 pb-[max(env(safe-area-inset-bottom),8px)] backdrop-blur sm:border-0 sm:bg-transparent sm:px-4 sm:pt-0 sm:pb-3 sm:backdrop-blur-none"
       >
         <div className="flex items-start justify-around sm:justify-center sm:gap-2">
           <Group items={LEFT} active={active} />
@@ -52,7 +52,7 @@ export function Dock({ active }: { active?: DockPage }) {
 function Group({ items, active }: { items: Item[]; active?: DockPage }) {
   return (
     <div className="flex flex-col items-center gap-1 sm:gap-1.5">
-      <div className="flex gap-1 sm:rounded-full sm:bg-[#13202a]/90 sm:p-1.5 sm:shadow-panel sm:backdrop-blur">
+      <div className="flex gap-1 sm:rounded-full sm:bg-[#0e1512]/90 sm:p-1.5 sm:shadow-panel sm:backdrop-blur">
         {items.map((item) => (
           <Link
             key={item.page}

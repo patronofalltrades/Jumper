@@ -1,48 +1,54 @@
 @import "tailwindcss";
 
-/* Design tokens from reference/breadboard-prototype.html */
+/* Design tokens: "Emerald Sun" (issue #152). Light and dark follow the system setting.
+   The light green is darker than the dark-mode green, so green text on white has 4.5:1 contrast. */
 :root {
-  --bench: #e3e8eb;
+  --bench: #f4f7f5;
   --panel: #ffffff;
-  --panel-2: #f1f4f5;
-  --ink: #13202a;
-  --muted: #566874;
-  --line: #ccd6db;
-  --pcb: #1f7a55;
-  --pcb-deep: #145a3e;
+  --panel-2: #edf2ef;
+  --ink: #0b1210;
+  --muted: #56645d;
+  --line: #d9e2dd;
+  --pcb: #15803d;
+  --pcb-deep: #0f5f2d;
   --on-pcb: #ffffff;
-  --probe: #e3a008;
-  --danger: #c9412f;
-  --shadow: 0 10px 30px rgba(19, 32, 42, 0.12);
+  --probe: #eab308;
+  --on-probe: #1a1400;
+  --danger: #dc2626;
+  --night: #070b09;
+  --night-2: #0e1512;
+  --shadow: 0 10px 30px rgba(11, 18, 16, 0.10);
+  --radius: 1.25rem;
   /* Code colors of the sketch editor (issue #58). */
   --code-keyword: #8a3ffc;
   --code-function: #1f62c4;
   --code-number: #b0590a;
-  --code-constant: #1f7a55;
+  --code-constant: #15803d;
   --code-comment: #6b7c87;
-  --code-error: rgba(201, 65, 47, 0.14);
+  --code-error: rgba(220, 38, 38, 0.14);
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bench: #0d1418;
-    --panel: #162027;
-    --panel-2: #1c2830;
-    --ink: #e6eef2;
-    --muted: #8ea1ad;
-    --line: #2a3943;
-    --pcb: #34ae79;
-    --pcb-deep: #1f7a55;
-    --on-pcb: #04140c;
-    --probe: #f2b705;
-    --danger: #e26a5b;
-    --shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+    --bench: #070b09;
+    --panel: #0e1512;
+    --panel-2: #161f1b;
+    --ink: #f2f5f3;
+    --muted: #9aa8a1;
+    --line: #232d29;
+    --pcb: #22d66b;
+    --pcb-deep: #15a352;
+    --on-pcb: #04140a;
+    --probe: #f5c518;
+    --on-probe: #1a1400;
+    --danger: #e5221f;
+    --shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
     --code-keyword: #c49bff;
     --code-function: #7fb2ff;
     --code-number: #f0a660;
     --code-constant: #5fd3a0;
     --code-comment: #8ea1ad;
-    --code-error: rgba(226, 106, 91, 0.22);
+    --code-error: rgba(229, 34, 31, 0.22);
     color-scheme: dark;
   }
 }
@@ -61,8 +67,13 @@
   --color-primary: var(--pcb);
   --color-primary-deep: var(--pcb-deep);
   --color-primary-foreground: var(--on-pcb);
+  --color-secondary: var(--probe);
+  --color-secondary-foreground: var(--on-probe);
+  --color-night: var(--night);
+  --color-night-2: var(--night-2);
   --color-destructive: var(--danger);
   --shadow-panel: var(--shadow);
+  --radius-card: var(--radius);
   --font-sans: var(--font-display);
   --font-mono: var(--font-plex-mono);
 }
@@ -141,8 +152,6 @@ body {
 .volt-body { transform-box: fill-box; transform-origin: 50% 100%; }
 .volt-happy .volt-body { animation: volt-hop 0.5s ease-out 2; }
 .volt-oops .volt-body { animation: volt-shake 0.5s ease-in-out; }
-/* In the Remotion hero scene, the frame moves Volt, not CSS. */
-.hero-scene .volt-body { animation: none !important; }
 .volt-cheer .volt-body { animation: wake-pop 0.45s ease-out 0.6s both, volt-hop 0.5s ease-in-out 1.3s 3; }
 /* The mascot files (components/art/mascot.tsx): the same motion as Volt, on the image itself. */
 .mascot { transform-box: fill-box; transform-origin: 50% 100%; }

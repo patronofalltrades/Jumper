@@ -1,9 +1,10 @@
 import { AbsoluteFill, Easing, interpolate, useCurrentFrame } from "remotion";
-import { PerchArt } from "@/components/art/perch-art";
+import { PerchFace } from "@/components/art/perch-face";
 import { CARDS, conveyor, taskDone } from "@/components/landing/hero-timing";
 import { cn } from "@/lib/utils";
 
-// The Remotion composition under the hero (throwaway prototype): a track of task cards on a tilted bench.
+// The Remotion composition under the hero of the landing page: a track of task cards on a tilted bench.
+// The idea comes from the brilliant.org hero; the cards and their tasks are Jumper's. Night look (issue #152).
 // In each step the track moves one card, the front card lifts and glows, the cursor taps it, and the task plays.
 // The frame drives all motion (useCurrentFrame + interpolate). The track loops after CARDS.kinds cards.
 
@@ -64,14 +65,14 @@ export function CardsScene(props: CardsSceneProps) {
 function Card({ text, done, glow, check, code }: { text: CardText; done: number; glow: number } & Omit<CardsSceneProps, "cards">) {
   return (
     <div
-      className="flex h-full flex-col rounded-[22px] border border-border bg-card p-4 text-foreground"
+      className="flex h-full flex-col rounded-[22px] border border-white/10 bg-night-2 p-4 text-white"
       style={{
-        boxShadow: `0 0 0 ${3 * glow}px var(--pcb), 0 ${18 + glow * 20}px ${40 + glow * 30}px rgba(19,32,42,${0.14 + glow * 0.1}), 0 0 ${60 * glow}px rgba(52,174,121,${0.45 * glow})`,
+        boxShadow: `0 0 0 ${3 * glow}px #22d66b, 0 ${18 + glow * 20}px ${40 + glow * 30}px rgba(0,0,0,${0.45 + glow * 0.15}), 0 0 ${70 * glow}px rgba(34,214,107,${0.4 * glow}), inset 0 1px 0 rgba(255,255,255,0.08)`,
       }}
     >
-      <p className="font-mono text-[11px] font-medium tracking-wide text-muted-foreground uppercase">{text.label}</p>
+      <p className="font-mono text-[11px] font-medium tracking-wide text-white/55 uppercase">{text.label}</p>
       <p className="mt-1 text-[17px] leading-tight font-bold">{text.title}</p>
-      <div className="relative mt-3 flex flex-1 items-center justify-center overflow-hidden rounded-2xl bg-muted">
+      <div className="relative mt-3 flex flex-1 items-center justify-center overflow-hidden rounded-2xl border border-white/5 bg-white/[0.04]">
         {text.kind === "place" && <MiniBoard led={done} />}
         {text.kind === "wire" && <MiniBoard led={1} wire={done} />}
         {text.kind === "code" && <Code done={done} {...code} />}
@@ -120,12 +121,12 @@ function MiniBoard({ led, wire = 0 }: { led: number; wire?: number }) {
 function Code({ done, line1, before, blank, after, line3 }: { done: number } & CardsSceneProps["code"]) {
   const filled = done > 0.4;
   return (
-    <pre className="w-full px-3 font-mono text-[11.5px] leading-7 text-foreground">
+    <pre className="w-full px-3 font-mono text-[11.5px] leading-7 text-white/85">
       {line1}
       {"\n  "}
       {before}
       <span
-        className={cn("inline-block min-w-10 rounded-md border-2 px-1 text-center leading-5", filled ? "border-primary bg-primary/15 font-bold text-primary" : "border-dashed border-border")}
+        className={cn("inline-block min-w-10 rounded-md border-2 px-1 text-center leading-5", filled ? "border-[#22d66b] bg-[#22d66b]/15 font-bold text-[#22d66b]" : "border-dashed border-white/25")}
         style={{ scale: filled ? interpolate(done, [0.4, 0.7], [1.25, 1], CLAMP) : 1 }}
       >
         {filled ? blank : " "}
@@ -141,7 +142,7 @@ function CheckPill({ done, label }: { done: number; label: string }) {
   const on = done > 0.15;
   return (
     <div
-      className={cn("flex h-14 w-40 items-center justify-center gap-2 rounded-full border-b-4 text-lg font-extrabold", on ? "border-primary-deep bg-primary text-primary-foreground" : "border-border bg-card")}
+      className={cn("flex h-14 w-40 items-center justify-center gap-2 rounded-full border-b-4 text-lg font-extrabold", on ? "border-[#15a352] bg-[#22d66b] text-[#04140a] shadow-[0_0_30px_rgba(34,214,107,0.4)]" : "border-white/15 bg-night text-white")}
       style={{ scale: interpolate(done, [0, 0.12, 0.3], [1, 0.88, 1], CLAMP) }}
     >
       {on && <span aria-hidden>✓</span>}
@@ -153,9 +154,9 @@ function CheckPill({ done, label }: { done: number; label: string }) {
 function Face({ done }: { done: number }) {
   return (
     <div className="relative w-32" style={{ scale: interpolate(done, [0, 0.4, 1], [0.9, 1.06, 1], CLAMP) }}>
-      <div className="absolute inset-4 rounded-full" style={{ background: "#34ae79", filter: "blur(24px)", opacity: done * 0.6 }} />
+      <div className="absolute inset-4 rounded-full" style={{ background: "#f5c518", filter: "blur(26px)", opacity: done * 0.55 }} />
       <div style={{ opacity: interpolate(done, [0, 0.3], [0.45, 1], CLAMP), filter: `grayscale(${1 - done})` }}>
-        <PerchArt className="relative w-full" />
+        <PerchFace className="relative w-full" />
       </div>
     </div>
   );
@@ -165,7 +166,7 @@ function Face({ done }: { done: number }) {
 function Tick({ done }: { done: number }) {
   return (
     <span
-      className="absolute top-2 right-2 grid size-7 place-items-center rounded-full bg-primary text-sm font-black text-primary-foreground"
+      className="absolute top-2 right-2 grid size-7 place-items-center rounded-full bg-[#22d66b] text-sm font-black text-[#04140a]"
       style={{ scale: interpolate(done, [0.75, 1], [0, 1], { ...CLAMP, easing: Easing.spring({ damping: 10 }), output: "perceptual-scale" }) }}
     >
       ✓
@@ -188,11 +189,11 @@ function Cursor({ local }: { local: number }) {
         translate: `${interpolate(local, [CARDS.move, 34], [140, 0], EASE)}px ${interpolate(local, [CARDS.move, 34], [110, 0], EASE)}px`,
         opacity: interpolate(local, [CARDS.move, CARDS.move + 6, CARDS.step - 10, CARDS.step - 2], [0, 1, 1, 0], CLAMP),
         scale: tap,
-        filter: "drop-shadow(0 4px 6px rgba(0,0,0,0.25))",
+        filter: "drop-shadow(0 4px 8px rgba(0,0,0,0.6))",
       }}
       aria-hidden
     >
-      <path d="M3 2 L25 18 L15 19.5 L20 29 L15.5 31 L10.5 21.5 L3 28 Z" fill="#13202a" stroke="#fff" strokeWidth="2" strokeLinejoin="round" />
+      <path d="M3 2 L25 18 L15 19.5 L20 29 L15.5 31 L10.5 21.5 L3 28 Z" fill="#fff" stroke="#070b09" strokeWidth="2" strokeLinejoin="round" />
     </svg>
   );
 }

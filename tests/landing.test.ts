@@ -1,3 +1,5 @@
+import { existsSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import boardsFile from "@/content/boards/perch.json";
 import text from "@/content/ui/landing.json";
@@ -50,12 +52,21 @@ describe("landingParts", () => {
 });
 
 describe("content/ui/landing.json", () => {
-  it("has the pitch, the greeting of Volt, the 3 steps and the two buttons", () => {
-    expect(text.pitch.title).not.toBe("");
+  it("has the hero, the tutor cards, the 4 steps and the buttons (issue #152)", () => {
+    expect(text.pitch.title_start).not.toBe("");
     expect(text.volt).not.toBe("");
-    expect(text.steps.items).toHaveLength(3);
-    expect(text.signUp).toBe("Sign up");
+    expect(text.tutor.wiring).toHaveLength(4);
+    expect(text.tutor.codeCards).toHaveLength(4);
+    expect(text.steps.items).toHaveLength(4);
+    expect(text.getStarted).toBe("Get started");
+    expect(text.haveAccount).toBe("I already have an account");
     expect(text.logIn).toBe("Log in");
+  });
+
+  it("uses step pictures that are in public/ and projects that are in the catalog", () => {
+    for (const step of text.steps.items) if ("image" in step && step.image) expect(existsSync(join("public", step.image))).toBe(true);
+    const slugs = loadProjects().map((p) => p.slug);
+    for (const slug of text.courses.show) expect(slugs).toContain(slug);
   });
 
   it("shows the available projects and the Coming soon projects from the catalog", () => {
