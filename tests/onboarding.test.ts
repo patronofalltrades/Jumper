@@ -3,7 +3,7 @@ import text from "@/content/ui/onboarding.json";
 import { isVisitorPage, needsLogin } from "@/lib/auth/rules";
 import { loadProjects } from "@/lib/content/load";
 import { pickFeatured } from "@/lib/game/featured";
-import { QUESTION_IDS, startAnswerFor, startCookie, startProject } from "@/lib/game/onboarding";
+import { needsOnboarding, QUESTION_IDS, startAnswerFor, startCookie, startProject } from "@/lib/game/onboarding";
 
 const AVAILABLE = ["perch", "arduino-foundations"];
 
@@ -39,6 +39,17 @@ describe("startAnswerFor", () => {
 describe("the start cookie", () => {
   it("writes a cookie for one year that the lobby can read", () => {
     expect(startCookie("perch")).toBe("jumper_start=perch; path=/; max-age=31536000; samesite=lax");
+  });
+});
+
+describe("needsOnboarding", () => {
+  it("sends a new visitor with no start cookie to the onboarding before sign-up", () => {
+    expect(needsOnboarding(undefined)).toBe(true);
+    expect(needsOnboarding("")).toBe(true);
+  });
+
+  it("lets a visitor who answered the questions open the sign-up form", () => {
+    expect(needsOnboarding("perch")).toBe(false);
   });
 });
 
