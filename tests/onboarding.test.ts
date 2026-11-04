@@ -3,31 +3,36 @@ import text from "@/content/ui/onboarding.json";
 import { isVisitorPage, needsLogin } from "@/lib/auth/rules";
 import { loadProjects } from "@/lib/content/load";
 import { pickFeatured } from "@/lib/game/featured";
-import { questionIds, startCookie, startProject } from "@/lib/game/onboarding";
+import { QUESTION_IDS, startAnswerFor, startCookie, startProject } from "@/lib/game/onboarding";
 
 const AVAILABLE = ["perch", "arduino-foundations"];
 
-describe("questionIds (issue #152)", () => {
-  it("asks where to start only when the learner picks Perch", () => {
-    expect(questionIds({})).toEqual(["build", "why", "level", "goal"]);
-    expect(questionIds({ build: "arduino-foundations" })).toEqual(["build", "why", "level", "goal"]);
-    expect(questionIds({ build: "perch" })).toEqual(["build", "why", "level", "goal", "start"]);
+const START = text.questions.start.options;
+
+describe("QUESTION_IDS (issue #152)", () => {
+  it("asks the same questions of each visitor, and ends with where to start", () => {
+    expect(QUESTION_IDS).toEqual(["make", "why", "level", "goal", "start"]);
   });
 });
 
 describe("startProject", () => {
-  it("opens the project that the learner picked", () => {
-    expect(startProject({ build: "perch", start: "picked" }, AVAILABLE)).toBe("perch");
-    expect(startProject({ build: "arduino-foundations" }, AVAILABLE)).toBe("arduino-foundations");
+  it("opens the project of the start answer", () => {
+    expect(startProject({ start: "basics" }, START, AVAILABLE)).toBe("arduino-foundations");
+    expect(startProject({ start: "device" }, START, AVAILABLE)).toBe("perch");
   });
 
-  it("opens Arduino Foundations when the learner wants the basics first", () => {
-    expect(startProject({ build: "perch", start: "basics" }, AVAILABLE)).toBe("arduino-foundations");
+  it("gives no project with no start answer, or for a project that is not available", () => {
+    expect(startProject({ make: "robot" }, START, AVAILABLE)).toBeNull();
+    expect(startProject({ start: "device" }, START, ["arduino-foundations"])).toBeNull();
   });
+});
 
-  it("gives no project for a project that is not available, or no answer", () => {
-    expect(startProject({ build: "desk-weather-station" }, AVAILABLE)).toBeNull();
-    expect(startProject({}, AVAILABLE)).toBeNull();
+describe("startAnswerFor", () => {
+  it("gives the start answer for a project link, and null for a project that no answer opens", () => {
+    expect(startAnswerFor("perch", START)).toBe("device");
+    expect(startAnswerFor("arduino-foundations", START)).toBe("basics");
+    expect(startAnswerFor("focus-timer", START)).toBeNull();
+    expect(startAnswerFor(null, START)).toBeNull();
   });
 });
 
@@ -66,9 +71,15 @@ describe("/start", () => {
 });
 
 describe("content/ui/onboarding.json", () => {
-  it("has a question with options for each question id, and the build options are catalog projects", () => {
-    for (const id of ["build", "why", "level", "goal", "start"] as const) expect(text.questions[id].options.length).toBeGreaterThan(1);
-    const slugs = loadProjects().map((p) => p.slug);
-    for (const option of text.questions.build.options) expect(slugs).toContain(option.value);
+  it("has a question with options for each question id, and each start option opens an available project", () => {
+    for (const id of QUESTION_IDS) expect(text.questions[id].options.length).toBeGreaterThan(1);
+    const available = loadProjects().filter((p) => p.status === "available").map((p) => p.slug);
+    for (const option of START) expect(available).toContain(option.project);
+  });
+
+  it("names no project and no board in the questions", () => {
+    const names = loadProjects().flatMap((p) => [p.title.split(":")[0], p.board]);
+    const words = JSON.stringify(text.questions);
+    for (const name of names) expect(words, name).not.toContain(name);
   });
 });

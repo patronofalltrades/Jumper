@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { Volt } from "@/components/art/volt";
 import text from "@/content/ui/onboarding.json";
-import { questionIds, startCookie, startProject, type Answers, type QuestionId } from "@/lib/game/onboarding";
+import { QUESTION_IDS, startCookie, startProject, type Answers, type QuestionId } from "@/lib/game/onboarding";
 import { cn } from "@/lib/utils";
 
 // The onboarding before sign-up (issue #152), after the Duolingo onboarding: one question on each screen with a
@@ -19,24 +19,27 @@ const PRIMARY =
 const RAIL_HOLES = 8;
 const TARGET_HOLE = 2;
 
-export function OnboardingFlow({ available, names, initialBuild }: { available: string[]; names: Record<string, string>; initialBuild: string | null }) {
-  const [answers, setAnswers] = useState<Answers>(initialBuild ? { build: initialBuild } : {});
+/** The options of the "start" question: each one opens a project. */
+const START = text.questions.start.options;
+
+export function OnboardingFlow({ available, names, initialStart }: { available: string[]; names: Record<string, string>; initialStart: string | null }) {
+  const [answers, setAnswers] = useState<Answers>(initialStart ? { start: initialStart } : {});
   const [index, setIndex] = useState(0);
   const [wired, setWired] = useState(false);
 
-  const steps: Step[] = [{ kind: "intro" }, ...questionIds(answers).map((id) => ({ kind: "question" as const, id })), { kind: "wire" }, { kind: "save" }];
+  const steps: Step[] = [{ kind: "intro" }, ...QUESTION_IDS.map((id) => ({ kind: "question" as const, id })), { kind: "wire" }, { kind: "save" }];
   const step = steps[index];
   const next = () => {
     // Leaving the last question: the lobby opens this project first.
     if (step.kind === "question" && steps[index + 1]?.kind === "wire") {
-      const slug = startProject(answers, available);
+      const slug = startProject(answers, START, available);
       if (slug) document.cookie = startCookie(slug);
     }
     setIndex((i) => Math.min(i + 1, steps.length - 1));
   };
   const back = () => setIndex((i) => Math.max(i - 1, 0));
   const progress = Math.round((index / (steps.length - 1)) * 100);
-  const project = names[startProject(answers, available) ?? ""] ?? names[available[0]];
+  const project = names[startProject(answers, START, available) ?? ""] ?? names[available[0]];
 
   return (
     <div className="flex min-h-[calc(100dvh-2.25rem)] w-full flex-col sm:min-h-[40rem]">
@@ -125,7 +128,7 @@ function Question({
       </div>
       <div role="radiogroup" aria-label={q.volt} className="flex flex-1 flex-col gap-2.5">
         {q.options.map((option) => {
-          const soon = id === "build" && !available.includes(option.value);
+          const soon = "project" in option && !available.includes(option.project);
           const selected = value === option.value;
           return (
             <button

@@ -1,24 +1,28 @@
 // The onboarding flow before sign-up (/start, issue #152). Pure TypeScript: the questions to ask, and the project that
 // the lobby opens first. The answers stay in the browser; only the start project goes to the lobby, in a cookie.
+// The questions do not name projects: the "start" answer gives the project (its option names the slug in content).
 
-export type QuestionId = "build" | "why" | "level" | "goal" | "start";
+export const QUESTION_IDS = ["make", "why", "level", "goal", "start"] as const;
+
+export type QuestionId = (typeof QUESTION_IDS)[number];
 
 export type Answers = Partial<Record<QuestionId, string>>;
 
+/** An option of the "start" question: its value, and the project that it opens. */
+export type StartOption = { value: string; project: string };
+
 export const START_COOKIE = "jumper_start";
 const ONE_YEAR = 60 * 60 * 24 * 365;
-const BASICS = "arduino-foundations";
-
-/** The questions in order. "Where to start" is only for Perch: Arduino Foundations is already the basics. */
-export function questionIds(answers: Answers): QuestionId[] {
-  const ids: QuestionId[] = ["build", "why", "level", "goal"];
-  return answers.build === "perch" ? [...ids, "start"] : ids;
-}
 
 /** The project that the lobby's Continue card opens first, or null when the answers name no available project. */
-export function startProject(answers: Answers, available: string[]): string | null {
-  const slug = answers.build === "perch" && answers.start === "basics" ? BASICS : answers.build;
+export function startProject(answers: Answers, options: StartOption[], available: string[]): string | null {
+  const slug = options.find((o) => o.value === answers.start)?.project;
   return slug && available.includes(slug) ? slug : null;
+}
+
+/** The "start" answer that opens a project, for a link such as /start?build=perch. Null when no option opens it. */
+export function startAnswerFor(slug: string | null, options: StartOption[]): string | null {
+  return options.find((o) => o.project === slug)?.value ?? null;
 }
 
 /** The cookie text that the browser sets after the questions. */
