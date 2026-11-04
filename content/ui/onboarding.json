@@ -11,7 +11,7 @@
   },
   "questions": {
     "build": {
-      "volt": "What do you want to build first?",
+      "volt": "What do you want to build?",
       "options": [
         { "value": "perch", "chip": "S3", "label": "Perch, a desk friend for an AI agent", "sub": "ESP32-S3 · 5 levels" },
         { "value": "arduino-foundations", "chip": "UNO", "label": "My first circuits", "sub": "Arduino Uno · 4 levels" },
