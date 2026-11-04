@@ -31,9 +31,7 @@
   "signUp": "Sign up",
   "logIn": "Log in",
   "band": {
-    "label": "Volt, Bulb, Knob and Coil, the four Jumper mascots, in 3D. Each mascot helps you in one project.",
-    "hint": "Point at a mascot to make it cheer",
-    "hint_touch": "Tap a mascot to make it cheer"
+    "label": "Volt, Bulb, Knob and Coil, the four Jumper mascots, in 3D. Each mascot helps you in one project."
   },
   "tutor": {
     "title_start": "Meet Volt, your",

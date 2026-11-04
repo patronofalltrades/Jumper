@@ -1,4 +1,6 @@
 // The microphone and the voice of "It's alive" (issue #86). Web Audio and Speech Synthesis only.
+
+import { pickVoice } from "@/lib/game/voice";
 // The sound stays in the browser: the app reads the loudness and throws the samples away. It does not record or save audio.
 
 /**
@@ -33,10 +35,31 @@ export async function startMic(onLevel: (rms: number) => void): Promise<(() => v
   };
 }
 
+// The browser loads its voices late: the list can be empty at the first call. Ask again when it changes.
+let voice: SpeechSynthesisVoice | null = null;
+let listening = false;
+function naturalVoice(): SpeechSynthesisVoice | null {
+  if (!listening) {
+    listening = true;
+    speechSynthesis.addEventListener?.("voiceschanged", () => {
+      voice = pickVoice(speechSynthesis.getVoices());
+    });
+  }
+  voice ??= pickVoice(speechSynthesis.getVoices());
+  return voice;
+}
+
 /** The browser says the line. Gives a function that stops it, or null when the browser has no voice. */
 export function speak(line: string, onStart: () => void, onEnd: () => void): (() => void) | null {
   if (typeof speechSynthesis === "undefined" || typeof SpeechSynthesisUtterance === "undefined") return null;
   const utterance = new SpeechSynthesisUtterance(line);
+  const natural = naturalVoice();
+  if (natural) {
+    utterance.voice = natural;
+    utterance.lang = natural.lang;
+  }
+  // A little slower than normal sounds calmer and is easier to follow.
+  utterance.rate = 0.95;
   utterance.onstart = onStart;
   utterance.onend = onEnd;
   utterance.onerror = onEnd;

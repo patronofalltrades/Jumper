@@ -108,6 +108,17 @@ const BAND: { id: MascotId; at: [number, number, number]; turn: number; scale?: 
   { id: "coil", at: [5.8, 0, -1.4], turn: -0.38 },
 ];
 
+/** Calls `onReady` once, after the first frame is drawn, so the scene can fade in with no empty or half-lit frame. */
+function FirstFrame({ onReady }: { onReady: () => void }) {
+  const done = useRef(false);
+  useFrame(() => {
+    if (done.current) return;
+    done.current = true;
+    requestAnimationFrame(onReady);
+  });
+  return null;
+}
+
 /** Sets the pose of each band mascot from the time, and re-renders only when a pose changes. */
 function BandPoses({ selected, still, onChange }: { selected: number | null; still: boolean; onChange: (poses: Pose[]) => void }) {
   const last = useRef("");
@@ -130,8 +141,13 @@ export default function BandScene() {
   const still = useStill();
   const { selected, handlers } = useSelect();
   const [poses, setPoses] = useState<Pose[]>(BAND.map(() => "idle"));
+  const [ready, setReady] = useState(false);
   return (
-    <Canvas dpr={[1, 2]} camera={{ fov: 30, near: 0.1, far: 200 }} gl={{ antialias: true, alpha: true, toneMappingExposure: 1.25 }}>
+    <Canvas
+      className={ready ? "opacity-100 transition-opacity duration-500" : "opacity-0"}
+      dpr={[1, 2]} camera={{ fov: 30, near: 0.1, far: 200 }} gl={{ antialias: true, alpha: true, toneMappingExposure: 1.25 }}
+    >
+      <FirstFrame onReady={() => setReady(true)} />
       <Fit halfW={8} halfH={3.9} centerY={3.3} />
       <Studio />
       <BandPoses selected={selected} still={still} onChange={setPoses} />
