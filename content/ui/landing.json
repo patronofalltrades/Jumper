@@ -11,6 +11,43 @@
     "body": "Jumper is a web app where you learn hardware engineering. You connect real boards and parts on a 3D breadboard, and the app guides you like a game. You do not buy parts. You need only a laptop or a phone."
   },
   "volt": "Hi, I am Volt! I help you wire your first board.",
+  "hero": {
+    "check": "Check",
+    "cards": [
+      {
+        "kind": "place",
+        "label": "Level 2 · Task 4",
+        "title": "Put the LED in the breadboard."
+      },
+      {
+        "kind": "wire",
+        "label": "Level 2 · Task 5",
+        "title": "Connect the board pin to the LED."
+      },
+      {
+        "kind": "code",
+        "label": "Level 2 · Code",
+        "title": "Complete the code to turn on the light."
+      },
+      {
+        "kind": "check",
+        "label": "Level 2 · Check",
+        "title": "Press Check. Jumper tests your circuit."
+      },
+      {
+        "kind": "face",
+        "label": "Level 5 · Face",
+        "title": "Perch wakes up and shows its face."
+      }
+    ],
+    "code": {
+      "line1": "void loop() {",
+      "before": "digitalWrite(LED, ",
+      "blank": "HIGH",
+      "after": ");",
+      "line3": "}"
+    }
+  },
   "signUp": "Sign up",
   "logIn": "Log in",
   "board": {

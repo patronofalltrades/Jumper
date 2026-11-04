@@ -141,6 +141,8 @@ body {
 .volt-body { transform-box: fill-box; transform-origin: 50% 100%; }
 .volt-happy .volt-body { animation: volt-hop 0.5s ease-out 2; }
 .volt-oops .volt-body { animation: volt-shake 0.5s ease-in-out; }
+/* In the Remotion hero scene, the frame moves Volt, not CSS. */
+.hero-scene .volt-body { animation: none !important; }
 .volt-cheer .volt-body { animation: wake-pop 0.45s ease-out 0.6s both, volt-hop 0.5s ease-in-out 1.3s 3; }
 /* The mascot files (components/art/mascot.tsx): the same motion as Volt, on the image itself. */
 .mascot { transform-box: fill-box; transform-origin: 50% 100%; }

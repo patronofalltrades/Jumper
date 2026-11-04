@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense, type ReactNode } from "react";
 import { BoardArt } from "@/components/art/board-art";
-import { Volt } from "@/components/art/volt";
 import { Backdrop } from "@/components/backdrop";
+import { HeroCards, HeroIntro } from "@/components/landing/hero-intro";
+import type { CardText } from "@/components/landing/hero-cards";
 import { LandingBoard } from "@/components/landing/landing-board";
 import { Logo } from "@/components/logo";
 import { Badge } from "@/components/ui/badge";
@@ -47,18 +48,17 @@ export default async function LandingPage({ searchParams }: PageProps<"/">) {
         <section className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] sm:gap-6">
           <Panel className="flex flex-col gap-5">
             <p className="font-mono text-xs font-medium tracking-wide text-muted-foreground uppercase">{text.pitch.eyebrow}</p>
-            <h1 className="text-4xl leading-[0.98] font-extrabold tracking-tight sm:text-5xl">{text.pitch.title}</h1>
-            <p className="text-base text-muted-foreground">{text.pitch.body}</p>
-            <div className="flex items-end gap-3">
-              <Volt pose="happy" className="w-20 shrink-0 sm:w-24" />
-              <p className="relative mb-6 rounded-2xl rounded-bl-sm border border-border bg-muted px-4 py-3 text-sm font-semibold">{text.volt}</p>
-            </div>
+            <HeroIntro title={text.pitch.title} body={text.pitch.body} volt={text.volt} />
             <Buttons className="mt-auto" />
           </Panel>
           <Panel className="h-[22rem] overflow-hidden p-0 sm:h-[30rem] sm:p-0 lg:h-auto lg:min-h-[30rem]">
             <LandingBoard order={order} />
           </Panel>
         </section>
+
+        <Panel className="overflow-hidden bg-muted p-0 sm:p-0">
+          <HeroCards cards={text.hero.cards as CardText[]} check={text.hero.check} code={text.hero.code} />
+        </Panel>
 
         <Panel>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
