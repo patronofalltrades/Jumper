@@ -30,7 +30,7 @@ export function ContinueCard({ featured, name }: { featured: Featured; name: str
   const { project, level, levelTitle, started, mapHref, href } = featured;
   const short = shortName(project.title);
   return (
-    <article className={cn(CARD, GLASS, "group isolate min-h-[26rem] w-full sm:w-[84vw] sm:max-w-[32rem]")}>
+    <article data-tour="start" className={cn(CARD, GLASS, "group isolate min-h-[26rem] w-full sm:w-[84vw] sm:max-w-[32rem]")}>
       <div className="absolute -top-16 -left-16 -z-10 size-56 rounded-full bg-[#22d66b] opacity-25 blur-3xl" aria-hidden="true" />
       <div className="absolute -right-12 -bottom-16 -z-10 size-56 rounded-full bg-[#f5c518] opacity-20 blur-3xl" aria-hidden="true" />
       {/* The body opens the level map. The link covers the whole card, and the play button sits above it, so no link is inside a link. */}

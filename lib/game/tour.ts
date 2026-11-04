@@ -1,4 +1,5 @@
-// The first-visit tour of build mode (issue #123). Pure rules: no React, no DOM. The flag is in localStorage, one key per browser.
+// The first-visit tours (issue #123: build mode; the lobby tour for new users). Pure rules: no React, no DOM.
+// Each tour has its own steps and its own flag in localStorage, one key per browser.
 
 /** The steps of the tour, in order. Each step points at one control, which has a data-tour attribute with the same name. */
 export const TOUR_STEPS = ["tasks", "connections", "clear", "check", "build"] as const;
@@ -7,14 +8,34 @@ export type TourStep = (typeof TOUR_STEPS)[number];
 /** The browser key of the flag. A browser that has the key has seen the tour. */
 export const TOUR_KEY = "jumper:tour-seen";
 
+/**
+ * The steps of the lobby tour, in order: the tour that a new user sees after the first log-in. It shows what Jumper is
+ * and where each main control is. Each step points at a control with a data-tour attribute with the same name.
+ */
+export const LOBBY_TOUR_STEPS = ["start", "nav", "xp", "profile", "play", "dashboard"] as const;
+export type LobbyTourStep = (typeof LOBBY_TOUR_STEPS)[number];
+
+/** The browser key of the flag of the lobby tour. */
+export const LOBBY_TOUR_KEY = "jumper:lobby-tour-seen";
+
+/** The keys of all tours. "Show the tour again" removes each of them. */
+export const TOUR_KEYS = [LOBBY_TOUR_KEY, TOUR_KEY] as const;
+
 /** The part of localStorage that the flag needs. */
 export type TourStorage = Pick<Storage, "getItem" | "setItem" | "removeItem">;
 
-/** The steps whose control is on the page, in order. A control that is not there (the connection list before a failed Check) has no step. */
-export const tourPlan = (present: ReadonlySet<string>): TourStep[] => TOUR_STEPS.filter((step) => present.has(step));
+/**
+ * The steps whose control is on the page, in order. A control that is not there (the connection list before a failed Check)
+ * has no step. `steps`: the steps of the tour (the build tour when not given).
+ */
+export function tourPlan(present: ReadonlySet<string>): TourStep[];
+export function tourPlan<T extends string>(present: ReadonlySet<string>, steps: readonly T[]): T[];
+export function tourPlan(present: ReadonlySet<string>, steps: readonly string[] = TOUR_STEPS): string[] {
+  return steps.filter((step) => present.has(step));
+}
 
 /** The index of the step after `index` in the plan, or null after the last step. */
-export const nextIndex = (index: number, plan: readonly TourStep[]): number | null => (index + 1 < plan.length ? index + 1 : null);
+export const nextIndex = (index: number, plan: readonly unknown[]): number | null => (index + 1 < plan.length ? index + 1 : null);
 
 /** The tour shows when the learner has not seen it, and no pop-up, intro clip or Check card is open. */
 export const shouldShowTour = (seen: boolean, busy: boolean): boolean => !seen && !busy;
@@ -23,27 +44,27 @@ export const shouldShowTour = (seen: boolean, busy: boolean): boolean => !seen &
  * True when the learner has seen the tour. A browser that blocks storage (or has none) counts as seen,
  * so the tour does not come back on each visit.
  */
-export function tourSeen(storage: TourStorage | null): boolean {
+export function tourSeen(storage: TourStorage | null, key: string = TOUR_KEY): boolean {
   try {
-    return storage === null || storage.getItem(TOUR_KEY) !== null;
+    return storage === null || storage.getItem(key) !== null;
   } catch {
     return true;
   }
 }
 
 /** Keeps the flag, so the tour does not show again in this browser. */
-export function markTourSeen(storage: TourStorage | null): void {
+export function markTourSeen(storage: TourStorage | null, key: string = TOUR_KEY): void {
   try {
-    storage?.setItem(TOUR_KEY, "1");
+    storage?.setItem(key, "1");
   } catch {
     // The browser blocks storage: the tour is not kept, and it does not show again in this visit.
   }
 }
 
-/** Removes the flag, so the tour shows the next time the learner opens build mode. */
-export function resetTour(storage: TourStorage | null): void {
+/** Removes the flag, so the tour shows the next time the learner opens its page (build mode, or the lobby). */
+export function resetTour(storage: TourStorage | null, key: string = TOUR_KEY): void {
   try {
-    storage?.removeItem(TOUR_KEY);
+    storage?.removeItem(key);
   } catch {
     // The browser blocks storage: there is no flag to remove.
   }

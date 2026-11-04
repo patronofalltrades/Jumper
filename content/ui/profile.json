@@ -37,10 +37,10 @@
     }
   },
   "tour": {
-    "heading": "Build tour",
-    "text": "The tour of build mode shows once in each browser.",
-    "button": "Show the tour again",
-    "done": "The tour shows the next time you open build mode."
+    "heading": "Tours",
+    "text": "The tour of the lobby and the tour of build mode show once in each browser.",
+    "button": "Show the tours again",
+    "done": "The tours show the next time you open the lobby and build mode."
   },
   "log_out": "Log out",
   "errors": {

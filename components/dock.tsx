@@ -4,7 +4,8 @@ import { cn } from "@/lib/utils";
 
 export type DockPage = "lobby" | "builds" | "build" | "dashboard" | "profile";
 
-type Item = { page: DockPage; label: string; href: string; icon: ReactNode };
+// `tour`: the data-tour name of the item, for the lobby tour for new users (components/lobby-tour.tsx).
+type Item = { page: DockPage; label: string; href: string; icon: ReactNode; tour?: string };
 
 const icon = (d: string) => (
   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -17,7 +18,7 @@ const LEFT: Item[] = [
   { page: "builds", label: "Builds", href: "/snapshots", icon: icon("M7 7h12v12H7zM4 16V5a1 1 0 0 1 1-1h11") },
 ];
 const RIGHT: Item[] = [
-  { page: "dashboard", label: "Dashboard", href: "/dashboard", icon: icon("M5 20V11M12 20V5M19 20v-6") },
+  { page: "dashboard", label: "Dashboard", href: "/dashboard", tour: "dashboard", icon: icon("M5 20V11M12 20V5M19 20v-6") },
   { page: "profile", label: "Profile", href: "/profile", icon: icon("M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM4.5 20a7.5 7.5 0 0 1 15 0") },
 ];
 
@@ -33,7 +34,7 @@ export function Dock({ active }: { active?: DockPage }) {
       >
         <div className="flex items-start justify-around sm:justify-center sm:gap-2">
           <Group items={LEFT} active={active} />
-          <Link href="/play" className="group flex flex-col items-center gap-1.5" aria-current={active === "build" ? "page" : undefined}>
+          <Link href="/play" data-tour="play" className="group flex flex-col items-center gap-1.5" aria-current={active === "build" ? "page" : undefined}>
             <span className="-mt-5 flex size-15 items-center sm:mt-0 justify-center rounded-full border-b-4 border-border bg-card text-foreground shadow-panel transition-[transform,border] group-active:translate-y-0.5 group-active:border-b-2">
               <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
                 <circle cx="12" cy="12" r="9" />
@@ -58,6 +59,7 @@ function Group({ items, active }: { items: Item[]; active?: DockPage }) {
             key={item.page}
             href={item.href}
             aria-label={item.label}
+            data-tour={item.tour}
             aria-current={item.page === active ? "page" : undefined}
             className={cn(
               "flex h-10 w-15 items-center sm:h-12 justify-center rounded-full transition-colors",

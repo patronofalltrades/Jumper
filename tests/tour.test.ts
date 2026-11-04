@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import text from "@/content/ui/tour.json";
-import { TOUR_KEY, TOUR_STEPS, cardSide, markTourSeen, nextIndex, resetTour, shouldShowTour, tourPlan, tourSeen, type TourStorage } from "@/lib/game/tour";
+import { LOBBY_TOUR_KEY, LOBBY_TOUR_STEPS, TOUR_KEY, TOUR_KEYS, TOUR_STEPS, cardSide, markTourSeen, nextIndex, resetTour, shouldShowTour, tourPlan, tourSeen, type TourStorage } from "@/lib/game/tour";
 
 /** A browser storage that keeps its entries in a Map. */
 const memory = (): TourStorage & { entries: Map<string, string> } => {
@@ -119,5 +119,46 @@ describe("content/ui/tour.json", () => {
       expect(text.steps[step].title.trim(), step).not.toBe("");
       expect(text.steps[step].text.trim(), step).not.toBe("");
     }
+  });
+});
+
+describe("the lobby tour for new users", () => {
+  it("shows what Jumper is first, then the top bar, then the dock", () => {
+    expect(tourPlan(new Set(LOBBY_TOUR_STEPS), LOBBY_TOUR_STEPS)).toEqual(["start", "nav", "xp", "profile", "play", "dashboard"]);
+  });
+
+  it("leaves out the Start card when the lobby has no project to continue", () => {
+    expect(tourPlan(new Set(["nav", "xp", "profile", "play", "dashboard"]), LOBBY_TOUR_STEPS)).toEqual(["nav", "xp", "profile", "play", "dashboard"]);
+  });
+
+  it("does not take the steps of the build tour", () => {
+    expect(tourPlan(new Set([...TOUR_STEPS, ...LOBBY_TOUR_STEPS]), LOBBY_TOUR_STEPS)).toEqual([...LOBBY_TOUR_STEPS]);
+  });
+
+  it("keeps its own flag, so the build tour still shows after the lobby tour", () => {
+    const storage = memory();
+    markTourSeen(storage, LOBBY_TOUR_KEY);
+    expect(tourSeen(storage, LOBBY_TOUR_KEY)).toBe(true);
+    expect(tourSeen(storage)).toBe(false);
+  });
+
+  it("shows again after resetTour with its key", () => {
+    const storage = memory();
+    markTourSeen(storage, LOBBY_TOUR_KEY);
+    resetTour(storage, LOBBY_TOUR_KEY);
+    expect(tourSeen(storage, LOBBY_TOUR_KEY)).toBe(false);
+  });
+
+  it("lists the keys of both tours, so 'Show the tour again' resets both", () => {
+    expect([...TOUR_KEYS].sort()).toEqual([LOBBY_TOUR_KEY, TOUR_KEY].sort());
+    expect(LOBBY_TOUR_KEY).not.toBe(TOUR_KEY);
+  });
+
+  it("has a title and a text for each step in content/ui/tour.json", () => {
+    for (const step of LOBBY_TOUR_STEPS) {
+      expect(text.lobby.steps[step].title.trim(), step).not.toBe("");
+      expect(text.lobby.steps[step].text.trim(), step).not.toBe("");
+    }
+    expect(text.lobby.label.trim()).not.toBe("");
   });
 });
