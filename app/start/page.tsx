@@ -9,7 +9,7 @@ import { startAnswerFor } from "@/lib/game/onboarding";
 export const metadata: Metadata = { title: text.meta.title };
 
 // The onboarding before sign-up (issue #152). The proxy sends a logged-in user to the lobby.
-// `?build=perch` (from the "I have wired a board before" button and the course tabs) selects the start answer that opens Perch.
+// `?build=perch` (from the "I have used a board before" button and the course tabs) selects the start answer that opens Perch.
 export default function StartPage({ searchParams }: PageProps<"/start">) {
   const projects = loadProjects();
   const available = projects.filter((p) => p.status === "available").map((p) => p.slug);

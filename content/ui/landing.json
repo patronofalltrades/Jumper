@@ -12,16 +12,16 @@
   },
   "pitch": {
     "badge": "Free · No parts to buy",
-    "title_start": "Wire it up.",
-    "title_end": "Watch it come alive.",
-    "body": "Build a desk robot that hears, talks and smiles, one glowing wire at a time. Real boards, a 3D breadboard, and no parts to buy.",
+    "title_start": "Connect the wires.",
+    "title_end": "See it work.",
+    "body": "Learn hardware step by step. Connect real boards on a 3D breadboard, like a game.",
     "new": {
       "title": "I am new to hardware",
-      "body": "Start with your first LED"
+      "body": "Start with the basics"
     },
     "wired": {
-      "title": "I have wired a board before",
-      "body": "Go straight to Perch, on the ESP32-S3"
+      "title": "I have used a board before",
+      "body": "Go straight to a project"
     },
     "facts": "{available} projects to play now · {soon} coming soon · parts from real kits"
   },
