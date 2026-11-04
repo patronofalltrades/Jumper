@@ -15,7 +15,7 @@ import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = { title: "Levels · Jumper" };
 
-// The level map of a project: its levels on a path, as in Duolingo. A level opens when the level before it passes.
+// The level map of a project: its levels as square tiles on a path (the design canvas of issue #152, after Mimo). A level opens when the level before it passes.
 export default function MapPage({ params }: PageProps<"/p/[project]">) {
   return (
     <>
@@ -35,7 +35,7 @@ async function LevelMap({ slug }: { slug: string }) {
 
   const { data: project, error } = await supabase
     .from("projects")
-    .select("id, slug, title, tagline, board, levels(position, title, goal, tasks(count))")
+    .select("id, slug, title, board, levels(position, title, goal, tasks(count))")
     .eq("slug", slug)
     .eq("status", "available")
     .order("position", { referencedTable: "levels" })
@@ -75,22 +75,22 @@ async function LevelMap({ slug }: { slug: string }) {
   }));
 
   return (
-    <section className="flex w-full max-w-lg flex-col gap-6 self-start rounded-[28px] bg-card p-5 shadow-panel sm:p-8">
-      <header className="flex flex-col gap-3">
-        <Link
-          href="/lobby"
-          className="inline-flex min-h-11 w-fit items-center rounded-xl border border-b-4 border-border bg-card px-3 text-sm font-semibold active:translate-y-0.5 active:border-b-2"
-        >
-          ← {text.map.back}
-        </Link>
-        <p className="font-mono text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
-          {project.board} · {text.map.levels}
-        </p>
-        <h1 className="text-4xl leading-[0.95] font-extrabold tracking-tight">{shortName(project.title)}</h1>
-        <p className="text-muted-foreground">{project.tagline}</p>
-      </header>
+    <section className="flex w-full max-w-xl flex-col gap-6 self-start rounded-[28px] bg-card p-5 shadow-panel sm:p-8">
+      <Link
+        href="/lobby"
+        className="inline-flex min-h-11 w-fit items-center rounded-xl border border-b-4 border-border bg-card px-3 text-sm font-semibold active:translate-y-0.5 active:border-b-2"
+      >
+        ← {text.map.back}
+      </Link>
 
-      <LevelPath storageKey={mapProgressKey(auth.claims.sub, project.slug)} levels={levels} server={{ passed, xp: profile?.xp ?? 0 }} character={character} />
+      <LevelPath
+        storageKey={mapProgressKey(auth.claims.sub, project.slug)}
+        levels={levels}
+        server={{ passed, xp: profile?.xp ?? 0 }}
+        character={character}
+        name={shortName(project.title)}
+        board={project.board}
+      />
 
       <InvitePanel projectId={project.id} ownEmail={auth.claims.email ?? ""} people={people} />
     </section>
