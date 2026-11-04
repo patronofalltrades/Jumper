@@ -14,3 +14,5 @@
 3. Hanif's prompt (his words): "do adversarial testing on this before I merge"
 
 4. Hanif's decision (his words): "leave the direct-call XP as is, I'll merge"
+
+5. Hanif's prompt (his words): "resolve conflict PR"

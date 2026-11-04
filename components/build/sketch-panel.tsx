@@ -9,10 +9,12 @@ import { isHelped } from "@/lib/game/check-flow";
 import { sketchStore, useSketch } from "@/lib/game/sketch-store";
 import { sketchCircuit, type Circuit } from "@/lib/sketch/circuit";
 import { checkGoal, type GoalResult } from "@/lib/sketch/goal";
-import { parseSketch, type SketchError } from "@/lib/sketch/parse";
+import { fill, parseSketch, type SketchError } from "@/lib/sketch/parse";
 import { createRunner } from "@/lib/sketch/run";
+import { checkLine, stepsMatch, stepSketch, type LineStep, type Names } from "@/lib/sketch/steps";
 import { cn } from "@/lib/utils";
 import { CodeEditor } from "./code-editor";
+import { CodeWords } from "./code-words";
 
 // The code step of a level (issue #58). The learner writes the sketch and presses Run:
 // 1. A mistake in the code marks its line and tells what is wrong. Nothing runs.
@@ -21,6 +23,8 @@ import { CodeEditor } from "./code-editor";
 //    on the 3D button presses it. A sketch that does not do the goal does not cost a heart.
 // 4. "Write it for me" puts the full sketch of the level in the editor (issue #145). The learner presses Run, and the
 //    level goes on, but the code step gives no XP while the code is that sketch (also after undo and redo, or a paste).
+// Step by step (issue #144): the learner reads the goal of one line, types the line, and Jumper checks it. The editor
+// shows the lines so far and is read-only. After the last line, Run works as in Free. Free keeps the lines.
 
 type Outcome = { kind: "error"; error: SketchError } | { kind: "goal"; result: GoalResult };
 
@@ -34,6 +38,11 @@ export function SketchPanel({ step, onClose, onDone }: { step: SketchStep; onClo
   const [outcome, setOutcome] = useState<Outcome | null>(null);
   const [mark, setMark] = useState<{ line: number } | null>(null);
   const frame = useRef(0);
+  const progress = useSketch((s) => s.steps);
+  // The typed lines count only while the board still has their sketch. A log out, a replay or a new user changes the
+  // code of the board, and then the panel goes back to Free, so the lines of one user never go into the sketch of another.
+  const steps = step.steps && progress?.of === step.task && stepsMatch(step.steps, progress.answers, saved) ? progress : null;
+  const stepsDone = !!steps && steps.answers.length === step.steps!.length;
 
   const stop = useCallback(() => {
     cancelAnimationFrame(frame.current);
@@ -84,11 +93,12 @@ export function SketchPanel({ step, onClose, onDone }: { step: SketchStep; onClo
   };
 
   const reset = () => {
-    if (!window.confirm(text.panel.resetConfirm)) return;
+    if (!window.confirm(steps ? text.steps.resetConfirm : text.panel.resetConfirm)) return;
     stop();
     setOutcome(null);
     setMark(null);
-    boardStore.getState().setCode(null);
+    if (steps) startSteps();
+    else boardStore.getState().setCode(null);
   };
 
   const writeForMe = () => {
@@ -96,8 +106,25 @@ export function SketchPanel({ step, onClose, onDone }: { step: SketchStep; onClo
     stop();
     setOutcome(null);
     setMark(null);
+    // The full sketch goes in the editor, so Step by step ends and the panel shows Free.
+    sketchStore.getState().setSteps(null);
     boardStore.getState().writeForMe(step.solution.join("\n"));
   };
+  /** Step by step starts at line 1, with an empty sketch. */
+  const startSteps = () => {
+    sketchStore.getState().setSteps({ of: step.task, answers: [], names: {} });
+    boardStore.getState().setCode("");
+  };
+  const toSteps = () => {
+    if (steps) return;
+    if (saved !== null && saved.trim() !== "" && !window.confirm(text.steps.confirm)) return;
+    stop();
+    setOutcome(null);
+    setMark(null);
+    startSteps();
+  };
+  /** Free keeps the lines that the learner typed. */
+  const toFree = () => sketchStore.getState().setSteps(null);
 
   const bench = useBoard((s) => s.bench);
   const parts = useBoard((s) => s.parts);
@@ -120,7 +147,28 @@ export function SketchPanel({ step, onClose, onDone }: { step: SketchStep; onClo
         </button>
       </div>
 
-      {step.hints.length > 0 && (
+      {step.steps && (
+        <div role="group" aria-label={text.steps.mode} className="grid grid-cols-2 gap-1 rounded-xl bg-muted p-1 text-sm font-bold">
+          <ModeButton on={!steps} label={text.steps.free} onPick={toFree} />
+          <ModeButton on={!!steps} label={text.steps.stepByStep} onPick={toSteps} />
+        </div>
+      )}
+
+      {steps && step.steps && (
+        <LineCard
+          key={steps.answers.length}
+          lines={step.steps}
+          done={steps.answers.length}
+          onPass={(typed, names) => {
+            const answers = [...steps.answers, typed];
+            sketchStore.getState().setSteps({ ...steps, answers, names });
+            boardStore.getState().setCode(stepSketch(step.steps!, answers));
+          }}
+          names={steps.names}
+        />
+      )}
+
+      {!steps && step.hints.length > 0 && (
         <details className="rounded-xl bg-muted px-3 py-2 text-sm">
           <summary className="cursor-pointer font-semibold">{text.panel.hints}</summary>
           <ul className="mt-2 flex list-disc flex-col gap-1 pl-5 leading-snug">
@@ -130,9 +178,11 @@ export function SketchPanel({ step, onClose, onDone }: { step: SketchStep; onClo
           </ul>
         </details>
       )}
+      {/* Hanif, Nov 3: the examples of "Code words" can be the line of a step, so the list shows only in Free. */}
+      {!steps && <CodeWords />}
 
       <div className="min-h-40 flex-1">
-        <CodeEditor value={code} onChange={(next) => boardStore.getState().setCode(next)} errorAt={mark} label={text.panel.editor} />
+        <CodeEditor value={code} onChange={(next) => boardStore.getState().setCode(next)} errorAt={mark} label={text.panel.editor} readOnly={!!steps} />
       </div>
 
       {helped && (
@@ -174,7 +224,9 @@ export function SketchPanel({ step, onClose, onDone }: { step: SketchStep; onClo
         <button
           type="button"
           onClick={running ? stop : run}
+          disabled={!!steps && !stepsDone && !running}
           className={cn(
+            "disabled:cursor-not-allowed disabled:opacity-50",
             "min-h-11 rounded-xl border-b-4 px-6 text-sm font-extrabold tracking-wide uppercase outline-none focus-visible:ring-2 focus-visible:ring-ring active:translate-y-0.5 active:border-b-2",
             running ? "border-border bg-muted text-foreground" : "border-primary-deep bg-primary text-primary-foreground",
           )}
@@ -183,6 +235,95 @@ export function SketchPanel({ step, onClose, onDone }: { step: SketchStep; onClo
         </button>
       </div>
     </section>
+  );
+}
+
+function ModeButton({ on, label, onPick }: { on: boolean; label: string; onPick: () => void }) {
+  return (
+    <button
+      type="button"
+      aria-pressed={on}
+      onClick={onPick}
+      className="min-h-11 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-ring aria-pressed:bg-card aria-pressed:shadow-sm"
+    >
+      {label}
+    </button>
+  );
+}
+
+/** Step by step: the goal of the next line, a field to type it, and the reason of a wrong line. */
+function LineCard({ lines, done, names, onPass }: { lines: LineStep[]; done: number; names: Names; onPass: (typed: string, names: Names) => void }) {
+  const [typed, setTyped] = useState("");
+  const [wrong, setWrong] = useState<string | null>(null);
+  const field = useRef<HTMLInputElement>(null);
+  // A new line opens: the field gets the focus, so the learner can type at once. The first line waits for a tap.
+  useEffect(() => {
+    if (done > 0) field.current?.focus();
+  }, [done]);
+
+  if (done === lines.length)
+    return (
+      <p role="status" className="rounded-xl border border-l-4 border-primary bg-card px-3 py-2 text-sm leading-snug font-semibold">
+        {text.steps.done}
+      </p>
+    );
+  const line = lines[done];
+  const submit = () => {
+    const result = checkLine(typed, line, names);
+    if (result.ok) onPass(typed, result.names);
+    else setWrong(result.message);
+  };
+  return (
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        submit();
+      }}
+      className="flex flex-col gap-2 rounded-xl border border-border bg-card px-3 py-3 text-sm"
+    >
+      {done > 0 && !wrong && (
+        <p role="status" className="font-semibold text-primary">
+          {text.steps.correct}
+        </p>
+      )}
+      <p className="text-xs font-bold tracking-wide text-muted-foreground uppercase">{fill(text.steps.count, { n: done + 1, total: lines.length })}</p>
+      <p className="text-base leading-snug font-bold">{line.goal}</p>
+      <div className="flex gap-2">
+        <input
+          ref={field}
+          value={typed}
+          onChange={(e) => {
+            setTyped(e.target.value);
+            setWrong(null);
+          }}
+          aria-label={text.steps.input}
+          aria-invalid={!!wrong}
+          placeholder={text.steps.input}
+          autoCapitalize="off"
+          autoComplete="off"
+          autoCorrect="off"
+          spellCheck={false}
+          className="min-h-11 min-w-0 flex-1 rounded-xl border border-border bg-background px-3 font-mono text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring aria-invalid:border-destructive"
+        />
+        <button
+          type="submit"
+          className="min-h-11 shrink-0 rounded-xl border-b-4 border-primary-deep bg-primary px-4 text-sm font-extrabold text-primary-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring active:translate-y-0.5 active:border-b-2"
+        >
+          {text.steps.check}
+        </button>
+      </div>
+      {wrong && (
+        <p role="alert" className="rounded-lg border-l-4 border-destructive bg-muted px-3 py-2 leading-snug font-semibold">
+          {wrong}
+        </p>
+      )}
+      {line.hint && (
+        <details className="rounded-lg bg-muted px-3 py-2">
+          <summary className="cursor-pointer font-semibold">{text.steps.hint}</summary>
+          <p className="mt-1 leading-snug">{line.hint}</p>
+        </details>
+      )}
+    </form>
   );
 }
 

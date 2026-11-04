@@ -2,13 +2,16 @@
 
 import { cpp } from "@codemirror/lang-cpp";
 import { HighlightStyle, syntaxHighlighting } from "@codemirror/language";
-import { EditorState, StateEffect, StateField } from "@codemirror/state";
-import { Decoration, EditorView, type DecorationSet } from "@codemirror/view";
+import { Compartment, EditorState, StateEffect, StateField } from "@codemirror/state";
+import { Decoration, EditorView, hoverTooltip, showTooltip, ViewPlugin, type DecorationSet, type Tooltip } from "@codemirror/view";
 import { tags } from "@lezer/highlight";
 import { basicSetup } from "codemirror";
 import { useEffect, useRef } from "react";
+import text from "@/content/ui/sketch.json";
+import { codeWordAt, type CodeWord } from "@/lib/sketch/words";
 
 // The sketch editor (issue #58): CodeMirror 6 with C++ colors, line numbers and a red mark on the line of a mistake.
+// Issue #143: the pointer on a word (laptop) or a tap on it (phone) shows what the word does.
 // Hanif approved CodeMirror on Oct 23 (house rule 8). The colors come from the --code-* tokens, so they follow the theme.
 
 const markLine = StateEffect.define<number | null>();
@@ -63,15 +66,100 @@ function findNames(doc: string) {
 }
 const arduinoTheme = EditorView.theme({ ".cm-arduino-name, .cm-arduino-name *": { color: "var(--code-constant) !important", fontWeight: "600" } });
 
+/** The card of a code word (issue #143): its name, what it does, and one example. */
+function wordCard(word: CodeWord) {
+  const dom = document.createElement("div");
+  dom.className = "cm-word-card";
+  const add = (tag: string, value: string, className?: string) => {
+    const el = dom.appendChild(document.createElement(tag));
+    el.textContent = value;
+    if (className) el.className = className;
+    return el;
+  };
+  add("strong", word.word);
+  add("p", word.text);
+  const example = add("p", `${text.words.example} `, "cm-word-example");
+  example.appendChild(document.createElement("code")).textContent = word.example;
+  example.append(` ${word.does}`);
+  return { dom };
+}
+
+/** The tooltip of the code word at `pos`, or null. */
+function wordTooltip(doc: string, pos: number): Tooltip | null {
+  const hit = codeWordAt(doc, pos);
+  return hit && { pos: hit.from, end: hit.to, above: true, create: () => wordCard(hit.word) };
+}
+
+/** Laptop: the pointer stays on a word, and its card shows. */
+const wordHover = hoverTooltip((view, pos) => wordTooltip(view.state.doc.toString(), pos), { hoverTime: 350, hideOnChange: true });
+
+/** Phone: a tap on a word shows its card. A tap on another place (also on the card, or outside the editor), or a change to the code, closes it. */
+const tapWord = StateEffect.define<number | null>();
+const wordTap = StateField.define<Tooltip | null>({
+  create: () => null,
+  update(tip, tr) {
+    for (const e of tr.effects) if (e.is(tapWord)) return e.value === null ? null : wordTooltip(tr.state.doc.toString(), e.value);
+    return tr.docChanged ? null : tip;
+  },
+  provide: (f) => showTooltip.from(f),
+});
+/** On a phone the card covers other buttons, so a touch outside the code text closes it. A tap in the code is handled below. */
+const closeOnTouchOutside = ViewPlugin.define((view) => {
+  const down = (e: PointerEvent) => {
+    if (e.pointerType === "mouse" || !view.state.field(wordTap)) return;
+    if (!(e.target instanceof Node && view.contentDOM.contains(e.target))) view.dispatch({ effects: tapWord.of(null) });
+  };
+  document.addEventListener("pointerdown", down, true);
+  return { destroy: () => document.removeEventListener("pointerdown", down, true) };
+});
+const tapHandler = EditorView.domEventHandlers({
+  pointerup(e, view) {
+    if (e.pointerType === "mouse") return;
+    const pos = view.posAtCoords({ x: e.clientX, y: e.clientY });
+    const hit = pos === null ? null : codeWordAt(view.state.doc.toString(), pos);
+    // A tap after the end of a line gives the position at the end of the line: show a card only when the tap is on the word.
+    const start = hit && view.coordsAtPos(hit.from, 1);
+    const end = hit && view.coordsAtPos(hit.to, -1);
+    const onWord = start && end && (start.top !== end.top || (e.clientX >= start.left - 4 && e.clientX <= end.right + 4));
+    view.dispatch({ effects: tapWord.of(onWord ? pos : null) });
+  },
+});
+
+const wordTheme = EditorView.theme({
+  ".cm-tooltip:has(.cm-word-card)": { border: "none", backgroundColor: "transparent" },
+  ".cm-word-card": {
+    boxSizing: "border-box",
+    maxWidth: "min(320px, calc(100vw - 32px))",
+    padding: "8px 10px",
+    border: "1px solid var(--line)",
+    borderRadius: "12px",
+    backgroundColor: "var(--panel)",
+    boxShadow: "0 6px 20px rgb(0 0 0 / 0.18)",
+    fontFamily: "var(--font-display), system-ui, sans-serif",
+    fontSize: "13px",
+    lineHeight: "1.4",
+    color: "var(--ink)",
+  },
+  ".cm-word-card strong": { display: "block", fontFamily: "var(--font-plex-mono), ui-monospace, monospace", marginBottom: "2px" },
+  ".cm-word-card p": { margin: "0" },
+  ".cm-word-example": { marginTop: "4px !important", color: "var(--muted)" },
+  ".cm-word-example code": { fontFamily: "var(--font-plex-mono), ui-monospace, monospace", color: "var(--ink)" },
+});
+
 type Props = {
   value: string;
   onChange: (value: string) => void;
   /** The line to mark red, or null. A new object marks the line again, after the learner changed the code. */
   errorAt: { line: number } | null;
   label: string;
+  /** Step by step (issue #144): the learner reads the code, and types each line in the step card. */
+  readOnly?: boolean;
 };
 
-export function CodeEditor({ value, onChange, errorAt, label }: Props) {
+const editable = new Compartment();
+const canEdit = (readOnly: boolean) => [EditorState.readOnly.of(readOnly), EditorView.editable.of(!readOnly)];
+
+export function CodeEditor({ value, onChange, errorAt, label, readOnly = false }: Props) {
   const host = useRef<HTMLDivElement>(null);
   const view = useRef<EditorView | null>(null);
   const change = useRef(onChange);
@@ -92,6 +180,12 @@ export function CodeEditor({ value, onChange, errorAt, label }: Props) {
           arduinoNames,
           arduinoTheme,
           errorLine,
+          editable.of(canEdit(readOnly)),
+          wordHover,
+          wordTap,
+          tapHandler,
+          closeOnTouchOutside,
+          wordTheme,
           EditorView.contentAttributes.of({ "aria-label": label, autocapitalize: "off", autocorrect: "off", spellcheck: "false" }),
           EditorView.updateListener.of((u) => {
             if (u.docChanged) change.current(u.state.doc.toString());
@@ -112,6 +206,10 @@ export function CodeEditor({ value, onChange, errorAt, label }: Props) {
     const editor = view.current;
     if (editor && editor.state.doc.toString() !== value) editor.dispatch({ changes: { from: 0, to: editor.state.doc.length, insert: value } });
   }, [value]);
+
+  useEffect(() => {
+    view.current?.dispatch({ effects: editable.reconfigure(canEdit(readOnly)) });
+  }, [readOnly]);
 
   useEffect(() => {
     const editor = view.current;

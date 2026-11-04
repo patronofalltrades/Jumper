@@ -1,5 +1,5 @@
 {
-  "_note": "The code step of the Arduino Foundations levels (issue #58), by level position. It comes after the wiring tasks. task: the line in the task list. goal: what lib/sketch/goal.ts tests: \"blink\" (the LED is on for on_ms, then off for off_ms, again and again) or \"button\" (the LED is on only while the button is pressed). led: a part id on the board, or uno.L for the small LED marked L on the Uno (it is on pin 13). led_name: the name of the LED in the reason of a fail. starter: the first code, one string for each line. solution: the full sketch that \"Write it for me\" puts in the editor (issue #145), one string for each line. Write the text in ASD-STE100.",
+  "_note": "The code step of the Arduino Foundations levels (issue #58), by level position. It comes after the wiring tasks. task: the line in the task list. goal: what lib/sketch/goal.ts tests: \"blink\" (the LED is on for on_ms, then off for off_ms, again and again) or \"button\" (the LED is on only while the button is pressed). led: a part id on the board, or uno.L for the small LED marked L on the Uno (it is on pin 13). led_name: the name of the LED in the reason of a fail. starter: the first code, one string for each line. solution: the full sketch that \"Write it for me\" puts in the editor (issue #145), one string for each line. steps: Step by step (issue #144), the lines of the sketch in order: line (the code, with its indent), goal (what the line does, in simple words, with no code of the line), accept (more answers that pass), hint (a tip in words). Write the text in ASD-STE100.",
   "levels": {
     "2": {
       "task": "Write the sketch: make the LED blink once each second.",
@@ -40,7 +40,62 @@
         "One blink each second: 500 ms on and 500 ms off. 500 + 500 = 1000 ms.",
         "loop() runs again and again. After the last line, it starts again at the top."
       ],
-      "source_url": "https://docs.arduino.cc/built-in-examples/basics/Blink/"
+      "source_url": "https://docs.arduino.cc/built-in-examples/basics/Blink/",
+      "steps": [
+        {
+          "line": "const int ledPin = 13;",
+          "goal": "Give pin 13 a name, for example ledPin. Use const int, because the pin does not change.",
+          "accept": [
+            "int ledPin = 13;"
+          ],
+          "hint": "A const int line has 4 parts: const int, the name, = and the value. Put a ; at the end."
+        },
+        {
+          "line": "void setup() {",
+          "goal": "Start setup(). It runs one time, when the Uno starts.",
+          "hint": "A function line has void, the name of the function, ( ) and a {."
+        },
+        {
+          "line": "  pinMode(ledPin, OUTPUT);",
+          "goal": "Make the LED pin an output, so it can give power to the LED.",
+          "hint": "Use pinMode. It needs two values in ( ): the pin and the mode, with a comma between them."
+        },
+        {
+          "line": "}",
+          "goal": "Close setup().",
+          "hint": "Each { needs a } to close it."
+        },
+        {
+          "line": "void loop() {",
+          "goal": "Start loop(). It runs again and again, after setup().",
+          "hint": "It is almost the same as the first line of setup(). Only the name is different."
+        },
+        {
+          "line": "  digitalWrite(ledPin, HIGH);",
+          "goal": "Turn the LED on.",
+          "hint": "Use digitalWrite. It needs the pin and HIGH or LOW. HIGH gives power to the pin."
+        },
+        {
+          "line": "  delay(500);",
+          "goal": "Wait 500 ms (half a second).",
+          "hint": "Use delay. It needs the time in milliseconds."
+        },
+        {
+          "line": "  digitalWrite(ledPin, LOW);",
+          "goal": "Turn the LED off.",
+          "hint": "This line is almost the same as the line that turns the LED on. LOW stops the power."
+        },
+        {
+          "line": "  delay(500);",
+          "goal": "Wait 500 ms again. Then loop() starts again at the top.",
+          "hint": "500 + 500 = 1000 ms. That is one blink each second."
+        },
+        {
+          "line": "}",
+          "goal": "Close loop(). The sketch is complete.",
+          "hint": "Each { needs a } to close it."
+        }
+      ]
     },
     "3": {
       "task": "Write the sketch: turn on the L light of the Uno while you press the button.",
@@ -93,7 +148,90 @@
         "digitalWrite(ledPin, HIGH); turns the light on.",
         "While the sketch runs, press the button on the board to test it."
       ],
-      "source_url": "https://docs.arduino.cc/built-in-examples/digital/InputPullupSerial/"
+      "source_url": "https://docs.arduino.cc/built-in-examples/digital/InputPullupSerial/",
+      "steps": [
+        {
+          "line": "const int buttonPin = 2;",
+          "goal": "Give pin 2 a name, for example buttonPin. The button is on pin 2.",
+          "accept": [
+            "int buttonPin = 2;"
+          ],
+          "hint": "A const int line has 4 parts: const int, the name, = and the value. Put a ; at the end."
+        },
+        {
+          "line": "const int ledPin = 13;",
+          "goal": "Give pin 13 a name, for example ledPin. The L light of the Uno is on pin 13.",
+          "accept": [
+            "int ledPin = 13;"
+          ],
+          "hint": "A const int line has 4 parts: const int, the name, = and the value. Put a ; at the end."
+        },
+        {
+          "line": "void setup() {",
+          "goal": "Start setup(). It runs one time, when the Uno starts.",
+          "hint": "A function line has void, the name of the function, ( ) and a {."
+        },
+        {
+          "line": "  pinMode(ledPin, OUTPUT);",
+          "goal": "Make the light pin an output.",
+          "hint": "Use pinMode. It needs the pin and the mode."
+        },
+        {
+          "line": "  pinMode(buttonPin, INPUT_PULLUP);",
+          "goal": "Make the button pin an input, with the pull-up resistor inside the Uno.",
+          "hint": "Use pinMode again. The mode with the pull-up resistor is INPUT_PULLUP."
+        },
+        {
+          "line": "}",
+          "goal": "Close setup().",
+          "hint": "Each { needs a } to close it."
+        },
+        {
+          "line": "void loop() {",
+          "goal": "Start loop(). It runs again and again, after setup().",
+          "hint": "It is almost the same as the first line of setup(). Only the name is different."
+        },
+        {
+          "line": "  int state = digitalRead(buttonPin);",
+          "goal": "Read the button pin, and keep the value in a new variable, for example state.",
+          "hint": "Make an int variable. Its value comes from digitalRead, with the pin in ( )."
+        },
+        {
+          "line": "  if (state == LOW) {",
+          "goal": "If the value is LOW, do the next line. A pressed button joins pin 2 to ground, so it reads LOW.",
+          "hint": "Use if, with the test in ( ) and a { after it. To compare two values, use ==."
+        },
+        {
+          "line": "    digitalWrite(ledPin, HIGH);",
+          "goal": "Turn the light on.",
+          "hint": "Use digitalWrite with the light pin. HIGH gives power to the pin."
+        },
+        {
+          "line": "  } else {",
+          "goal": "Close the if. Then start else: the part that runs when the button is not pressed.",
+          "hint": "Put the } of the if, the word else, and a new {, all on this line."
+        },
+        {
+          "line": "    digitalWrite(ledPin, LOW);",
+          "goal": "Turn the light off.",
+          "hint": "LOW stops the power."
+        },
+        {
+          "line": "  }",
+          "goal": "Close else.",
+          "hint": "Each { needs a } to close it."
+        },
+        {
+          "line": "  delay(10);",
+          "goal": "Wait 10 ms, so the Uno does not run with no pause.",
+          "hint": "Use delay. It needs the time in milliseconds."
+        },
+        {
+          "line": "}",
+          "goal": "Close loop(). The sketch is complete.",
+          "hint": "Each { needs a } to close it."
+        }
+      ]
     },
     "4": {
       "task": "Write the sketch: turn on the LED on the breadboard while you press the button.",
@@ -137,7 +275,85 @@
         "In loop(): if (digitalRead(buttonPin) == LOW) { … } else { … }",
         "Look at your level 3 sketch. This sketch is almost the same."
       ],
-      "source_url": "https://docs.arduino.cc/built-in-examples/digital/Button/"
+      "source_url": "https://docs.arduino.cc/built-in-examples/digital/Button/",
+      "steps": [
+        {
+          "line": "const int buttonPin = 2;",
+          "goal": "Give pin 2 a name, for example buttonPin. The button is on pin 2.",
+          "accept": [
+            "int buttonPin = 2;"
+          ],
+          "hint": "A const int line has 4 parts: const int, the name, = and the value. Put a ; at the end."
+        },
+        {
+          "line": "const int ledPin = 13;",
+          "goal": "Give pin 13 a name, for example ledPin. The LED on the breadboard is on pin 13.",
+          "accept": [
+            "int ledPin = 13;"
+          ],
+          "hint": "A const int line has 4 parts: const int, the name, = and the value. Put a ; at the end."
+        },
+        {
+          "line": "void setup() {",
+          "goal": "Start setup(). It runs one time, when the Uno starts.",
+          "hint": "A function line has void, the name of the function, ( ) and a {."
+        },
+        {
+          "line": "  pinMode(ledPin, OUTPUT);",
+          "goal": "Make the LED pin an output.",
+          "hint": "Use pinMode. It needs the pin and the mode."
+        },
+        {
+          "line": "  pinMode(buttonPin, INPUT_PULLUP);",
+          "goal": "Make the button pin an input, with the pull-up resistor inside the Uno.",
+          "hint": "The mode with the pull-up resistor is INPUT_PULLUP."
+        },
+        {
+          "line": "}",
+          "goal": "Close setup().",
+          "hint": "Each { needs a } to close it."
+        },
+        {
+          "line": "void loop() {",
+          "goal": "Start loop(). It runs again and again, after setup().",
+          "hint": "It is almost the same as the first line of setup(). Only the name is different."
+        },
+        {
+          "line": "  if (digitalRead(buttonPin) == LOW) {",
+          "goal": "Read the button pin. If it reads LOW (pressed), do the next line. This time, do it in one line, with no variable.",
+          "hint": "Use if. In its ( ), put digitalRead with the button pin, then == and LOW. Put a { at the end."
+        },
+        {
+          "line": "    digitalWrite(ledPin, HIGH);",
+          "goal": "Turn the LED on.",
+          "hint": "Use digitalWrite with the LED pin."
+        },
+        {
+          "line": "  } else {",
+          "goal": "Close the if. Then start else: the part that runs when the button is not pressed.",
+          "hint": "Put the } of the if, the word else, and a new {, all on this line."
+        },
+        {
+          "line": "    digitalWrite(ledPin, LOW);",
+          "goal": "Turn the LED off.",
+          "hint": "LOW stops the power."
+        },
+        {
+          "line": "  }",
+          "goal": "Close else.",
+          "hint": "Each { needs a } to close it."
+        },
+        {
+          "line": "  delay(10);",
+          "goal": "Wait 10 ms, so the Uno does not run with no pause.",
+          "hint": "Use delay. It needs the time in milliseconds."
+        },
+        {
+          "line": "}",
+          "goal": "Close loop(). The sketch is complete.",
+          "hint": "Each { needs a } to close it."
+        }
+      ]
     }
   }
 }
