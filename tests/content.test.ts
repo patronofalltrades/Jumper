@@ -30,6 +30,10 @@ describe("content/projects", () => {
     expect(projects.filter((p) => p.status === "available").map((p) => p.slug)).toEqual(["perch", "arduino-foundations"]);
   });
 
+  it("gives each available project a description for its level path", () => {
+    for (const p of projects.filter((p) => p.status === "available")) expect(p.description, p.slug).toBeTruthy();
+  });
+
   it("gives Perch 5 levels", () => {
     expect(projects[0].levels.map((l) => l.title)).toEqual([
       "Set up the board",

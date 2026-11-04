@@ -2,6 +2,7 @@
   "slug": "perch",
   "title": "Perch: a home for your AI agent",
   "tagline": "A little desk friend with a button, a light, ears, a voice and a face",
+  "description": "Perch is a small device for your desk. It gives your AI agent a body. Perch has a button that you press to talk, a light that shows what the agent does, a microphone to hear you, a speaker to talk back, and a screen for its face. You build Perch on an ESP32-S3 board in 5 levels. Each level adds one part. At the end of the last level, Perch comes alive.",
   "board": "ESP32-S3",
   "mascot": "volt",
   "status": "available",

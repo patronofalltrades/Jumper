@@ -2,6 +2,7 @@
   "slug": "arduino-foundations",
   "title": "Arduino Foundations",
   "tagline": "Breadboard basics, Ohm's law, LEDs and buttons",
+  "description": "Start here if you are new to circuits. You learn how a breadboard works and how to give power to a circuit. Then you light an LED, and you use a resistor to keep the LED safe (Ohm's law). Then the Uno reads a button, and the button controls the LED. You build it on an Arduino Uno in 4 levels.",
   "board": "Arduino Uno",
   "mascot": "bulb",
   "status": "available",

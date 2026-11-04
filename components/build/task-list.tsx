@@ -10,6 +10,8 @@ import { cn } from "@/lib/utils";
 import { HologramRow } from "./hologram-row";
 import { PanelHeader, usePanelOpen } from "./panel-header";
 import type { LevelTask } from "./popups";
+import type { Track } from "@/lib/game/music";
+import { MusicSwitch } from "./music";
 import { ReadStepsSwitch, SpeakButton, useSpeechSupported } from "./read-aloud";
 
 // The task list (issue #52): every task of the level, with a tick for each task that the board does now.
@@ -21,7 +23,7 @@ const fill = (template: string, values: Record<string, string | number>) => temp
 export type CodeRow = { instruction: string; open: () => void };
 
 /** `small`: the code panel is open, so the list starts as a chip and the Uno (with its L light) stays in view. */
-export function TaskList({ tasks, laptop, code, small = false }: { tasks: LevelTask[]; laptop: boolean; code: CodeRow | null; small?: boolean }) {
+export function TaskList({ tasks, laptop, code, small = false, music = null }: { tasks: LevelTask[]; laptop: boolean; code: CodeRow | null; small?: boolean; music?: Track | null }) {
   const bench = useBoard((s) => s.bench);
   const parts = useBoard((s) => s.parts);
   const plan = useBoard((s) => s.plan);
@@ -104,9 +106,10 @@ export function TaskList({ tasks, laptop, code, small = false }: { tasks: LevelT
           })}
         </ol>
       )}
-      {open && speaks && (
+      {open && (speaks || music) && (
         <div className="border-t border-border p-2">
           <ReadStepsSwitch />
+          <MusicSwitch track={music} />
         </div>
       )}
     </section>
