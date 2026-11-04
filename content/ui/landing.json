@@ -1,16 +1,23 @@
 {
-  "_note": "Text for the landing page (/), in ASD-STE100. The project cards come from content/projects/.",
+  "_note": "Text for the landing page (/), in ASD-STE100. Layout from the duolingo.com home page, Emerald Sun look (issue #152). The project cards come from content/projects/.",
   "meta": {
     "title": "Jumper · Learn hardware on a 3D breadboard",
     "description": "Connect real boards on a 3D breadboard. Jumper guides you like a game."
   },
   "account_deleted": "Your account is deleted.",
+  "nav": {
+    "home": "Home",
+    "how": "How it works",
+    "projects": "Projects"
+  },
   "pitch": {
-    "eyebrow": "Hardware engineering, in your pocket",
-    "title": "Wire real boards on a 3D breadboard.",
-    "body": "Jumper is a web app where you learn hardware engineering. You connect real boards and parts on a 3D breadboard, and the app guides you like a game. You do not buy parts. You need only a laptop or a phone."
+    "badge": "Free · No parts to buy",
+    "title": "The fun way to learn hardware engineering.",
+    "body": "Wire real boards on a 3D breadboard. Volt tells you what to connect, where, and why."
   },
   "volt": "Hi, I am Volt! I help you wire your first board.",
+  "getStarted": "Get started",
+  "haveAccount": "I already have an account",
   "signUp": "Sign up",
   "logIn": "Log in",
   "board": {
@@ -18,20 +25,64 @@
     "loading": "Loading the board…",
     "hint": "Tap the board to start"
   },
-  "steps": {
-    "title": "How Jumper works",
-    "items": [
+  "boards": {
+    "label": "Boards you wire in Jumper",
+    "soon": "Coming soon"
+  },
+  "features": [
+    {
+      "title": "free. fun. real hardware.",
+      "body": "Each level is short, like a game. You get XP for each correct wire and you move up the level path. At the end, you have a real device, and you did not buy one part."
+    },
+    {
+      "title": "based on real kits",
+      "body": "The boards, parts and pins come from real kits. What you wire in Jumper, you can wire on your desk."
+    },
+    {
+      "title": "stay motivated",
+      "body": "Get XP for each task and for each level that you pass. Volt is happy with each wire you make."
+    },
+    {
+      "title": "learn the why",
+      "body": "Each pop-up tells you what to connect, where, and why. When a wire is wrong, Jumper tells you what that wire does and how to repair it."
+    }
+  ],
+  "examples": {
+    "why_label": "Why",
+    "why": "WS tells the mic when to change between left and right sound.",
+    "mistake_label": "Mistake",
+    "mistake": "This wire connects 3.3 V to ground. Move it to the + rail.",
+    "parts_label": "Perch parts",
+    "parts": [
       {
-        "title": "Pick a project",
-        "body": "Each project is a real device. Start with Perch, a desk friend for an AI agent."
+        "name": "ESP32-S3-DevKitC-1",
+        "job": "Brain"
       },
       {
-        "title": "Wire it with guided pop-ups",
-        "body": "A pop-up tells you what to connect, where, and why. The correct holes glow."
+        "name": "INMP441",
+        "job": "Ears"
       },
       {
-        "title": "See it come alive",
-        "body": "Pass each level. The light blinks, the device talks, and the screen shows a face."
+        "name": "MAX98357A",
+        "job": "Voice"
+      },
+      {
+        "name": "ST7789 1.54\"",
+        "job": "Face"
+      }
+    ],
+    "rewards": [
+      {
+        "value": "+10",
+        "label": "XP for a task"
+      },
+      {
+        "value": "+50",
+        "label": "XP for a level"
+      },
+      {
+        "value": "3",
+        "label": "Hearts in a level"
       }
     ]
   },
@@ -42,7 +93,14 @@
     "levels": "{count} levels"
   },
   "end": {
-    "title": "Your first board is ready.",
-    "body": "Make an account. Your builds stay yours."
+    "badge": "About 2 minutes",
+    "title": "Make your first light turn on. Right now.",
+    "body": "Make a free account and wire your first LED with Volt. You do not need parts.",
+    "button": "Wire my first LED",
+    "points": [
+      "Free",
+      "No parts to buy",
+      "Works on your phone"
+    ]
   }
 }

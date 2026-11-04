@@ -17,14 +17,14 @@ export function TabSwitch({ tab }: { tab: Tab }) {
       aria-current={tab === value ? "page" : undefined}
       className={cn(
         "rounded-full px-5 py-2.5 text-base font-bold transition-colors sm:px-7",
-        tab === value ? "bg-white text-[#13202a] shadow" : "text-white hover:bg-white/10",
+        tab === value ? "bg-white text-[#0e1512] shadow" : "text-white hover:bg-white/10",
       )}
     >
       {label}
     </Link>
   );
   return (
-    <nav aria-label="Lobby" className="col-span-2 flex justify-self-center rounded-full bg-[#13202a] p-1.5 ring-4 ring-white/10 sm:col-span-1">
+    <nav aria-label="Lobby" className="col-span-2 flex justify-self-center rounded-full bg-[#0e1512] p-1.5 ring-4 ring-white/10 sm:col-span-1">
       {item("projects", "Projects")}
       {item("builds", "My builds")}
     </nav>
@@ -78,7 +78,7 @@ export function ProjectCard({ project }: { project: ProjectRow }) {
       <h3 className="mt-1.5 max-w-[11rem] text-2xl leading-[1.05] font-extrabold tracking-tight">{project.title}</h3>
       <p className="mt-2 max-w-[10rem] text-xs text-muted-foreground">{project.tagline}</p>
       <BoardArt board={project.board} className="absolute -right-6 -bottom-3 w-40" />
-      <span className="absolute top-4 right-4 flex size-10 items-center justify-center rounded-full bg-[#13202a] text-white">
+      <span className="absolute top-4 right-4 flex size-10 items-center justify-center rounded-full bg-[#0e1512] text-white">
         {available ? (
           <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
             <path d="M8 5.5v13l11-6.5z" fill="currentColor" />
@@ -107,7 +107,7 @@ export function ProjectCard({ project }: { project: ProjectRow }) {
 
 export function DarkCard({ label, title, children }: { label: string; title: string; children: ReactNode }) {
   return (
-    <article className={cn(CARD, "w-full bg-[#13202a] sm:w-[72vw] sm:max-w-[21rem] text-white shadow-panel")}>
+    <article className={cn(CARD, "w-full bg-[#0e1512] sm:w-[72vw] sm:max-w-[21rem] text-white shadow-panel")}>
       <span className="text-xs font-medium text-white/60">{label}</span>
       <h3 className="mt-2 text-3xl leading-[1.05] font-extrabold tracking-tight">{title}</h3>
       <div className="mt-3 flex flex-1 flex-col">{children}</div>

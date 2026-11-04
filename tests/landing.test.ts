@@ -50,11 +50,13 @@ describe("landingParts", () => {
 });
 
 describe("content/ui/landing.json", () => {
-  it("has the pitch, the greeting of Volt, the 3 steps and the two buttons", () => {
+  it("has the pitch, the greeting of Volt, the 4 feature rows and the buttons (issue #152)", () => {
     expect(text.pitch.title).not.toBe("");
     expect(text.volt).not.toBe("");
-    expect(text.steps.items).toHaveLength(3);
-    expect(text.signUp).toBe("Sign up");
+    expect(text.features).toHaveLength(4);
+    for (const feature of text.features) expect(feature.body).not.toBe("");
+    expect(text.getStarted).toBe("Get started");
+    expect(text.haveAccount).toBe("I already have an account");
     expect(text.logIn).toBe("Log in");
   });
 
