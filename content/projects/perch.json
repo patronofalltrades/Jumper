@@ -88,7 +88,7 @@
           "position": 4,
           "kind": "wire",
           "instruction": "Connect {from} to {to}.",
-          "popup_why": "Now breadboard B has power too. The two breadboards are not joined inside, so this wire is a bridge that carries power across.",
+          "popup_why": "Now breadboard B has power too. Its red + line joins the power of breadboard A, so the parts on both breadboards can take power.",
           "concept": null,
           "target": {
             "kind": "wire",
