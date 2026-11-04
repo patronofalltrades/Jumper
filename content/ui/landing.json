@@ -1,5 +1,5 @@
 {
-  "_note": "Text for the landing page (/), in ASD-STE100. Layout from the design canvas of issue #152 (duolingo.com hero, brilliant.org tutor and course tabs, a 4-step 'How it works' row). The project levels come from content/projects/. hero: the text on the task cards of the animated track under the hero (components/landing/hero-cards.tsx).",
+  "_note": "Text for the landing page (/), in ASD-STE100. The hero shows the 3D mascot band (components/mascots-3d). Layout from the design canvas of issue #152 (duolingo.com hero, brilliant.org tutor and course tabs, a 4-step 'How it works' row). The project levels come from content/projects/. hero: the text on the task cards of the animated track under the hero (components/landing/hero-cards.tsx).",
   "meta": {
     "title": "Jumper · Learn hardware on a 3D breadboard",
     "description": "Connect real boards on a 3D breadboard. Jumper guides you like a game."
@@ -30,10 +30,10 @@
   "haveAccount": "I already have an account",
   "signUp": "Sign up",
   "logIn": "Log in",
-  "board": {
-    "label": "Perch, wired on the 3D breadboard. Select the board to make an account.",
-    "loading": "Loading the board…",
-    "hint": "Tap the board to start"
+  "band": {
+    "label": "Volt, Bulb, Knob and Coil, the four Jumper mascots, in 3D. Each mascot helps you in one project.",
+    "hint": "Point at a mascot to make it cheer",
+    "hint_touch": "Tap a mascot to make it cheer"
   },
   "tutor": {
     "title_start": "Meet Volt, your",
@@ -112,12 +112,8 @@
     "play": "Play {name}",
     "soon": "Coming soon",
     "levels": "{count} levels",
-    "show": [
-      "arduino-foundations",
-      "perch",
-      "desk-weather-station",
-      "line-following-robot"
-    ]
+    "guide": "Your guide: {name}",
+    "show": ["arduino-foundations", "perch", "desk-weather-station", "line-following-robot"]
   },
   "parts": {
     "title": "Real parts. Real pins.",

@@ -1,0 +1,73 @@
+{
+  "_note": "Text for the onboarding flow (/start, issue #152), in ASD-STE100. The flow asks a few questions, then the visitor makes one practice wire before sign-up. The answers stay in the browser; only the start project goes to the lobby, in a cookie. The 'build' option values are project slugs from content/projects/.",
+  "meta": { "title": "Get started · Jumper" },
+  "back": "Back",
+  "progress": "Setup progress",
+  "continue": "Continue",
+  "soon": "Coming soon",
+  "intro": {
+    "volt": "Hi, I am Volt! Answer a few quick questions. Then you make your first wire.",
+    "button": "Continue"
+  },
+  "questions": {
+    "build": {
+      "volt": "What do you want to build first?",
+      "options": [
+        { "value": "perch", "chip": "S3", "label": "Perch, a desk friend for an AI agent", "sub": "ESP32-S3 · 5 levels" },
+        { "value": "arduino-foundations", "chip": "UNO", "label": "My first circuits", "sub": "Arduino Uno · 4 levels" },
+        { "value": "desk-weather-station", "chip": "DEV", "label": "A desk weather station", "sub": "ESP32 DevKit V1" },
+        { "value": "focus-timer", "chip": "C3", "label": "A focus timer with a buzzer", "sub": "ESP32-C3" }
+      ]
+    },
+    "why": {
+      "volt": "Why do you want to learn hardware?",
+      "options": [
+        { "value": "build", "chip": "DIY", "label": "Build my own device", "sub": "A gadget for my desk or home" },
+        { "value": "class", "chip": "EDU", "label": "For a class", "sub": "School or a course" },
+        { "value": "career", "chip": "JOB", "label": "For my career", "sub": "Engineering or product work" },
+        { "value": "fun", "chip": "FUN", "label": "Just for fun", "sub": "I like to make things" }
+      ]
+    },
+    "level": {
+      "volt": "How much do you know about circuits?",
+      "options": [
+        { "value": "new", "chip": "▂", "label": "I am new to circuits", "sub": "I do not know what a resistor does" },
+        { "value": "words", "chip": "▂▄", "label": "I know some words", "sub": "LED, resistor, ground" },
+        { "value": "breadboard", "chip": "▂▄▆", "label": "I used a breadboard before", "sub": "I can wire an LED" },
+        { "value": "code", "chip": "▂▄▆█", "label": "I write code for boards", "sub": "Arduino or ESP-IDF" }
+      ]
+    },
+    "goal": {
+      "volt": "Pick a daily goal.",
+      "options": [
+        { "value": "5", "chip": "5m", "label": "Casual", "sub": "5 minutes a day" },
+        { "value": "10", "chip": "10m", "label": "Regular", "sub": "10 minutes a day" },
+        { "value": "15", "chip": "15m", "label": "Serious", "sub": "15 minutes a day" },
+        { "value": "20", "chip": "20m", "label": "Intense", "sub": "20 minutes a day" }
+      ]
+    },
+    "start": {
+      "volt": "Where do you want to start?",
+      "options": [
+        { "value": "basics", "chip": "UNO", "label": "Learn the basics first", "sub": "Arduino Foundations, then Perch" },
+        { "value": "picked", "chip": "S3", "label": "Go straight to Perch", "sub": "Volt shows you each step" }
+      ]
+    }
+  },
+  "wire": {
+    "eyebrow": "Your first wire",
+    "title": "Connect 3V3 to the + line",
+    "pins": ["3V3", "GND", "IO1", "IO2", "IO4"],
+    "rail": "+ line",
+    "hole": "The glowing hole on the + line",
+    "hint": "3V3 is already selected. Tap the glowing hole to finish the wire.",
+    "done": "Nice! You made a wire.",
+    "why": "Now the whole + line has 3.3 V. Each part that you put on this line can use that power."
+  },
+  "save": {
+    "title": "Make a free account to keep going",
+    "body": "Your boards and your progress stay with your account. Next, you start {project}.",
+    "signUp": "Create my account",
+    "logIn": "I already have an account"
+  }
+}
