@@ -1,12 +1,14 @@
-# Prompt log: music in each level, and a description of each project on the level path (issue #170)
+# Prompt log: music in each level, and a description of each project on the level path (issue #162)
 
 1. Hanif's prompt (his words): "Add music to each level when someone is wiring! It will help with user retention. Can you find open sourced/free music that we can use for each level within the Perch module and the Arduino module? Also, in the level path, can you add descriptions for each project?"
 
-   Claude notes: Claude first worked on the session branch `claude/friendly-carson-ce9di3`. Hanif then opened issue #170 and created `Features/Music`, and Claude moved the commit to that branch. Claude did not create a branch, an issue or a pull request.
+   Claude notes: Claude first worked on the session branch `claude/friendly-carson-ce9di3`. Hanif then opened issue #162 and created `Features/Music`, and Claude moved the commit to that branch. Claude did not create a branch, an issue or a pull request.
 
 2. Hanif's prompt (his words): "The issue is #170. Help work on Features/Music branch"
 
-   Claude notes: Hanif opened issue #170 and created the branch `Features/Music`. Claude copied the commit to it (`git cherry-pick`), and added #170 to the PR text, to PLAN.md rows 61 and 62, and to this log.
+   Claude notes: Hanif opened issue #162 and created the branch `Features/Music`. Claude copied the commit to it (`git cherry-pick`), and added #162 to the PR text, to PLAN.md rows 61 and 62, and to this log.
+
+   Correction (Nov 4, found by Claude on branch `Features/GenericQuestions`): the music issue is #162. Hanif wrote #170 in the prompt above, and the merged PR #163 said "closes #170"; issue #170 does not exist, so the PR did not link the issue. Claude changed #170 to #162 in this log, in `level-music-pr.md` and in PLAN.md rows 61 and 62.
 
 3. Claude's steps
 
