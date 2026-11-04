@@ -11,7 +11,7 @@ As a learner who has never built a circuit, I want each step in very simple word
 - `components/build/filled-tasks.ts` (new), `build-view.tsx`, `autosave.ts`: the pop-up, the task list, read aloud and Redo show the filled text. A task is read aloud once, also when its holes change. The saved progress goes through `fitProgress`.
 - `lib/game/walkthrough.ts`: each clip caption names the holes of the part that it shows, also on the learner's carried board.
 - Tests: `tests/content-rules.test.ts` and `tests/task-text.test.ts`, `tests/fit-progress.test.ts` (new). The older tests use the new Level 1 task numbers and expect the filled captions.
-- `PLAN.md` row 51, `prompts/first-timer-guidance.md`, this text, `ledger/LEDGER.md`.
+- `PLAN.md` row 52, `prompts/first-timer-guidance.md`, this text, `ledger/LEDGER.md`.
 
 ## How it was tested
 Plain English: the content-rules test plays each level of Perch and Arduino Foundations as a learner who puts each part where the arrow points. For each task, it fills the holes of the arrow into the text and reads it: 20 words or less, one sentence, one action, the breadboard and the column of each hole, each listed word only after its Concept card, each pin label in brackets after a plain name.

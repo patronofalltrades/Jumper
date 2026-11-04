@@ -108,6 +108,8 @@ export const sketchStepSchema = z.object({
   goal_text: z.string().min(1),
   goal: goalSchema,
   starter: z.array(z.string()).min(1),
+  /** The full sketch that "Write it for me" puts in the editor (issue #145). */
+  solution: z.array(z.string()).min(1),
   hints: z.array(z.string().min(1)),
   source_url: z.url(),
   /** Step by step (issue #144): the lines of the sketch, in order, each with its goal in simple words (lib/sketch/steps.ts). */
