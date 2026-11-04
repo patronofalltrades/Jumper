@@ -79,7 +79,7 @@ export const needsAck = (target: Target) => target.kind === "place" && !toolFor(
 /** The two sides of a button or a resistor are the same. The learner can use either side as "1". */
 const SYMMETRIC: PartType[] = ["resistor", "pushbutton"];
 
-function resolve(endpoint: string, swaps: string[]) {
+export function resolve(endpoint: string, swaps: string[]) {
   const [owner, pin] = endpoint.split(".");
   if (!swaps.includes(owner) || (pin !== "1" && pin !== "2")) return endpoint;
   return `${owner}.${pin === "1" ? "2" : "1"}`;

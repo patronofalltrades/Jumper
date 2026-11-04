@@ -112,3 +112,59 @@ describe("taskTexts: the task list follows the guide (issue #148)", async () => 
     for (const t of texts) expect(t).not.toMatch(/\{/);
   });
 });
+
+describe("taskTexts: a task that is done names the holes of its part (review of #148)", async () => {
+  const { loadProjects } = await import("@/lib/content/load");
+  const { loadBoards, startBoard } = await import("@/lib/content/boards");
+  const { startProgress } = await import("@/lib/game/engine");
+  const { taskTexts } = await import("@/lib/game/task-text");
+  const project = loadProjects().find((p) => p.slug === "perch")!;
+  const boards = await loadBoards("perch");
+  const planOf = (n: number) => {
+    const level = project.levels.find((l) => l.position === n)!;
+    return { level, plan: { tasks: level.tasks.map((t) => ({ target: t.target, xp: t.xp })), forbid: level.rules.forbid } };
+  };
+
+  it("a done wire names the two holes of the wire, not 'already joined'", () => {
+    const { level, plan } = planOf(1);
+    const w1 = { id: "w1", type: "wire" as const, a: "B-c5", b: "A-L+9" };
+    const texts = taskTexts(perch, [...startBoard(boards, 1), w1], plan, level.tasks.map((t) => t.instruction), { ...startProgress(), phase: "task", index: 2, reached: 2 });
+    expect(texts[1]).toBe(`Power (3V3): connect breadboard B, row c, column 5 to breadboard A's left red + line next to column ${railNumber(9)}.`);
+  });
+
+  it("on a full board, each row names the holes of its own part", () => {
+    const { level, plan } = planOf(2);
+    const parts = [...startBoard(boards, 2), ...boards.levels[2]];
+    const texts = taskTexts(perch, parts, plan, level.tasks.map((t) => t.instruction), { ...startProgress(), phase: "ready_to_check", index: 8, reached: 8 });
+    const btn = boards.levels[2].find((p) => p.id === "btn1") as { at: string };
+    const r1 = boards.levels[2].find((p) => p.id === "r1") as { a: string; b: string };
+    expect(texts[0]).toContain(holePhrase(perch, parts, btn.at));
+    expect(texts[3]).toBe(`Put the legs of the resistor in ${holePhrase(perch, parts, r1.a)} and ${holePhrase(perch, parts, r1.b, "A")}.`);
+    for (const t of texts) expect(t).not.toMatch(/\{|to the same|(\w+ \d+) to .*\1\.$/);
+  });
+});
+
+describe("taskText: no hole for the arrow (review of #148)", () => {
+  it("says 'the hole that glows' in place of a hole that it cannot find", () => {
+    expect(taskText(perch, [], "Put the first pin of the mic in {from}.", [])).toBe("Put the first pin of the mic in the hole that glows.");
+  });
+});
+
+describe("doneTaps: the wire of each row (review of #148)", async () => {
+  const { loadBoards, startBoard } = await import("@/lib/content/boards");
+  const { doneTaps } = await import("@/lib/game/task-text");
+  const boards = await loadBoards("perch");
+
+  it("finds a wire in the other line of a button side, across the gap", () => {
+    const parts = [...startBoard(boards, 2), { id: "btn1", type: "pushbutton" as const, at: "A-e2" }, { id: "w6", type: "wire" as const, a: "A-i4", b: "A-i5" }];
+    expect(doneTaps(perch, parts, { kind: "wire", a: "btn1.2", b: "esp.GND" }, [])).toEqual(["A-i4", "A-i5"]);
+  });
+
+  it("does not name a wire that an earlier row named", () => {
+    const w1 = { id: "w1", type: "wire" as const, a: "B-b5", b: "A-L+4" };
+    const w3 = { id: "w3", type: "wire" as const, a: "B-e5", b: "B-R+4" };
+    const used = new Set<string>();
+    expect(doneTaps(perch, [w1, w3], { kind: "wire", a: "esp.3V3", b: "bbA.+" }, [], used)).toEqual(["B-b5", "A-L+4"]);
+    expect(doneTaps(perch, [w1, w3], { kind: "wire", a: "bbA.+", b: "bbB.+" }, [], used)).toEqual(["B-e5", "B-R+4"]);
+  });
+});

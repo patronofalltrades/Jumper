@@ -284,6 +284,7 @@
     },
     "pin": "{pin} on the {board}",
     "terminal": "the {sign} screw of the {part}",
-    "joined": "already joined in {hole}"
+    "joined": "already joined in {hole}",
+    "glow": "the hole that glows"
   }
 }

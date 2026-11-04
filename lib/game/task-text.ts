@@ -1,8 +1,8 @@
 import text from "@/content/ui/build.json";
 import { railColumn, type Bench } from "@/lib/circuit/bench";
 import { buildNets, endpointHole } from "@/lib/circuit/nets";
-import { isModule, terminalAt, type Part } from "@/lib/circuit/parts";
-import { taskSpot, type Plan, type Progress, type Target } from "./engine";
+import { isModule, partPins, terminalAt, type LegPart, type Part } from "@/lib/circuit/parts";
+import { resolve, taskSpot, type Plan, type Progress, type Target } from "./engine";
 import { hologramGhost } from "./hologram";
 
 // The holes in the text of a task (issue #148). A task says "Connect {from} to {to}." The app puts in the holes that
@@ -71,7 +71,8 @@ export function taskText(bench: Bench, parts: Part[], instruction: string, taps:
   if (label && from && to && strip(from) !== undefined && strip(from) === strip(to)) {
     return `${label}: ${fill(text.spot.joined, { hole: holePhrase(bench, parts, from) })}.`;
   }
-  const values: Record<string, string> = {};
+  // No hole for the arrow (a full board, or the first frame of a new level): plain words, never "{from}".
+  const values: Record<string, string> = { from: text.spot.glow, to: text.spot.glow };
   if (from) values.from = holePhrase(bench, parts, from);
   if (to) values.to = holePhrase(bench, parts, to, from ? boardOf(bench, from) : undefined);
   return fill(instruction, values);
@@ -117,8 +118,12 @@ export function filledTask(bench: Bench, parts: Part[], instruction: string, tar
 export function taskTexts(bench: Bench, parts: Part[], plan: Plan, instructions: string[], progress: Progress, finish: Part[] = []): string[] {
   const now = progress.phase === "intro" ? 0 : Math.min(progress.index, plan.tasks.length);
   let board = parts;
+  const used = new Set<string>();
   return instructions.map((instruction, i) => {
     const { target } = plan.tasks[i];
+    // A task that the board does now names the holes of its part. The task of now always follows the arrow.
+    const done = i === now ? null : doneTaps(bench, parts, target, progress.swaps, used);
+    if (done) return taskText(bench, parts, instruction, done);
     if (i < now) return filledTask(bench, parts, instruction, target, progress.swaps, finish);
     const text = filledTask(bench, board, instruction, target, progress.swaps, finish);
     const ghost = hologramGhost(bench, board, { kind: "task", index: i }, plan, progress.swaps, finish);
@@ -127,4 +132,50 @@ export function taskTexts(bench: Bench, parts: Part[], plan: Plan, instructions:
     board = [...board, ...added];
     return text;
   });
+}
+
+/** The lines of 5 (or the rail) of a task end. A button side has a pin on each side of the gap: two lines. */
+function linesOf(bench: Bench, parts: Part[], endpoint: string): Set<string> {
+  const strip = (h: string) => bench.byId.get(h)?.strip ?? h;
+  const [owner, pin] = [endpoint.slice(0, endpoint.indexOf(".")), endpoint.slice(endpoint.indexOf(".") + 1)];
+  const part = parts.find((p) => p.id === owner);
+  if (part) return new Set(partPins(bench, part).filter((p) => p.name === pin).map((p) => strip(p.hole)));
+  const hole = endpointHole(bench, parts, endpoint);
+  return new Set(hole ? [strip(hole)] : []);
+}
+
+/**
+ * The holes of the part or the wire that does this task on the board now, in the order of the task text. Null when the
+ * board does not do the task, or when no one part does it. Two ends in one line of 5 give those two ends ("already
+ * joined"). `used`: the wires that an earlier row named; a row does not name them again. A done row of the task list
+ * and the Redo card use these holes, not new free holes (review of issue #148).
+ */
+export function doneTaps(bench: Bench, parts: Part[], target: Target, swaps: string[], used: Set<string> = new Set()): string[] | null {
+  if (target.kind === "place") {
+    const part = parts.find((p) => p.id === target.id);
+    if (!part || part.type === "wire") return null;
+    return isModule(part) ? [part.at] : [part.a, part.b];
+  }
+  const ea = resolve(target.a, swaps);
+  const eb = resolve(target.b, swaps);
+  const a = endpointHole(bench, parts, ea);
+  const b = endpointHole(bench, parts, eb);
+  if (!a || !b) return null;
+  const nets = buildNets(bench, parts);
+  if (nets.get(a) === undefined || nets.get(a) !== nets.get(b)) return null;
+  const strip = (h: string) => bench.byId.get(h)?.strip ?? h;
+  const la = linesOf(bench, parts, ea);
+  const lb = linesOf(bench, parts, eb);
+  if ([...la].some((l) => lb.has(l))) return [a, b];
+  const ends = parts
+    .filter((p): p is LegPart => p.type === "wire" && !used.has(p.id))
+    .flatMap((w) => [[w.a, w.b, w.id], [w.b, w.a, w.id]]);
+  // First a wire from a line of one end to a line of the other end. Else a wire from a line of one end to its net.
+  const exact = ends.find(([x, y]) => la.has(strip(x)) && lb.has(strip(y)));
+  if (exact) return used.add(exact[2]), [exact[0], exact[1]];
+  const fromA = ends.find(([x, y]) => la.has(strip(x)) && !la.has(strip(y)));
+  if (fromA) return used.add(fromA[2]), [fromA[0], fromA[1]];
+  const fromB = ends.find(([x, y]) => lb.has(strip(x)) && !lb.has(strip(y)));
+  if (fromB) return used.add(fromB[2]), [fromB[1], fromB[0]];
+  return null;
 }
