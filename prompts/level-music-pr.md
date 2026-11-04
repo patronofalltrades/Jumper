@@ -1,3 +1,6 @@
+**Base:** `main`
+**Head:** `Features/Music`
+
 **Issue title:** Build mode: music in each level, and a description of each project on the level path
 
 **Issue body:**
@@ -14,7 +17,7 @@ User story (PLAN.md row 5): As a learner, in any project I want to build like a 
 
 **PR body:**
 
-closes #N
+closes #170
 
 ## What this does
 
