@@ -13,7 +13,6 @@ import { GlassmorphismNavBar } from "@/components/ui/glassmorphism-navigation";
 import { GLASS, PRIMARY } from "@/components/ui/surfaces";
 import text from "@/content/ui/landing.json";
 import { loadProjects } from "@/lib/content/load";
-import { projectMascot } from "@/lib/game/project-mascot";
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = { title: text.meta.title, description: text.meta.description };
@@ -27,7 +26,7 @@ export default async function LandingPage({ searchParams }: PageProps<"/">) {
     const p = projects.find((project) => project.slug === slug);
     if (!p) return [];
     const open = p.status === "available";
-    return [{ slug, name: p.title.split(":")[0], title: p.title, board: p.board, tagline: p.tagline, available: open, mascot: projectMascot(p.mascot), items: open ? p.levels.map((l) => l.title) : p.tagline.split(", ") }];
+    return [{ slug, name: p.title.split(":")[0], title: p.title, board: p.board, tagline: p.tagline, available: open, items: open ? p.levels.map((l) => l.title) : p.tagline.split(", ") }];
   });
 
   return (

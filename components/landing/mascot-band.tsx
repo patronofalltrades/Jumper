@@ -3,7 +3,6 @@
 import dynamic from "next/dynamic";
 import { Mascot } from "@/components/art/mascot";
 import text from "@/content/ui/landing.json";
-import mascots from "@/content/ui/mascot.json";
 import type { MascotId } from "@/lib/game/project-mascot";
 
 // The hero of the landing page: the four mascots in 3D (components/mascots-3d/stage.tsx). The page loads three.js after
@@ -22,7 +21,6 @@ function FlatBand() {
 }
 
 const BandScene = dynamic(() => import("@/components/mascots-3d/stage"), { ssr: false, loading: FlatBand });
-const MascotStageScene = dynamic(() => import("@/components/mascots-3d/stage").then((m) => m.MascotStage), { ssr: false });
 
 export function MascotBand() {
   return (
@@ -37,15 +35,3 @@ export function MascotBand() {
   );
 }
 
-/** The mascot of one project, in 3D, for the project tabs. */
-export function ProjectMascot({ id }: { id: MascotId }) {
-  const name = id === "volt" ? mascots.name : mascots.mascots[id].name;
-  return (
-    <div className="flex flex-col items-center gap-1">
-      <div role="img" aria-label={name} className="h-56 w-full max-w-64">
-        <MascotStageScene id={id} />
-      </div>
-      <span className="font-mono text-xs font-semibold tracking-wider text-white/55 uppercase">{text.courses.guide.replace("{name}", name)}</span>
-    </div>
-  );
-}
