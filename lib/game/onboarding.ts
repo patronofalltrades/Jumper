@@ -27,3 +27,6 @@ export function startAnswerFor(slug: string | null, options: StartOption[]): str
 
 /** The cookie text that the browser sets after the questions. */
 export const startCookie = (slug: string) => `${START_COOKIE}=${slug}; path=/; max-age=${ONE_YEAR}; samesite=lax`;
+
+/** True when a visitor did not do the onboarding: the questions set the start cookie, so no cookie means no onboarding. */
+export const needsOnboarding = (startCookieValue: string | undefined) => !startCookieValue;
