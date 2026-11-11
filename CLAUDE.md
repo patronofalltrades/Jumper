@@ -48,15 +48,21 @@ Each project uses the same build mode. A new project adds data (levels, tasks, p
 5. After each merge to `main`, deploy the app. The live URL must show the current version.
 6. Keep `schema.md` in the root of the repository. It lists each table, its columns and the relations. It compares the built schema with section 3 of `PLAN.md`.
 7. By November 4, 2026: 9 or more merged pull requests, and 5 or more real entries of my data. No placeholder text.
-8. I merge each pull request. Do not merge a pull request.
+8. An AI agent or I can merge a pull request. Before a merge, the CI must pass (see "Agent hooks").
 
 ## Agent hooks (enforced in `.claude/settings.json`)
 
-1. **No push to `main`, no merge, no approval.** `.claude/hooks/guard.py` blocks `git push` to `main`, `git commit`, `merge` or `rebase` on `main`, PR merges and PR approvals. Only I merge and approve.
-1a. **I do the GitHub steps.** I open each issue, create each branch, open each pull request and merge it. Claude does not. Claude gives me the steps and the text to paste (issue title and body, branch name, PR title and body). Then Claude works on the branch that I made. The guard blocks branch, issue and PR creation.
-2. **Flag each PR comment.** Claude can comment on a pull request. After each comment, a hook tells Claude to flag it to me in the reply, with the link and a one-line summary.
-3. **If you are not sure, ask.** Do not act on a guess. Stop and ask me for more instructions. A hook repeats this rule at each prompt.
-4. **Keep the ledger (local only).** A hook logs each of my prompts, each of your commits, and each GitHub comment. The entries wait in `.git/` and go into `ledger/raw/` at your next commit. The `ledger/` folder is in `.gitignore`. Do not commit or push it, and do not show it to the public. After each work step, add an entry to `ledger/LEDGER.md`: the prompt, the change, the link, and my decisions, corrections and observations. Keep my words apart from your notes. Do not write my reflection.
+Hanif changed these rules on November 11, 2026. Before that date, only Hanif opened issues and pull requests, approved them and merged them, and the agent kept a ledger.
+
+1. **No push to `main`.** `.claude/hooks/guard.py` blocks `git push` to `main`, and `git commit`, `merge`, `rebase` and `cherry-pick` on `main`. All changes go through a pull request.
+2. **AI agents can open pull requests.** The pull request follows the house rules and the assignment rules: one feature, `closes #N`, and the prompt file.
+3. **AI agents can approve and merge pull requests.** An agent approves or merges only after it does rule 4.
+4. **AI agents check CI/CD.** Before an agent approves or merges a pull request, it reads the result of the GitHub Actions run (type check, lint, Vitest). If a check fails or is not complete, the agent does not approve and does not merge. After a merge to `main`, the agent makes sure that the deploy is complete and the live URL shows the current version.
+5. **AI agents can open issues.** Each issue includes the user story, copied from `PLAN.md`.
+6. **I create the branches.** The guard blocks branch creation. Claude works on the branch that I made.
+7. **Flag each PR comment.** Claude can comment on a pull request. After each comment, a hook tells Claude to flag it to me in the reply, with the link and a one-line summary.
+8. **If you are not sure, ask.** Do not act on a guess. Stop and ask me for more instructions. A hook repeats this rule at each prompt.
+9. **No ledger.** The ledger is not updated from November 11, 2026. No hook writes to it. The `ledger/` folder stays in `.gitignore`: do not commit or push the old entries.
 
 ## Skills
 

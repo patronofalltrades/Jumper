@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
-"""PreToolUse guard: block pushes/commits to main and any PR merge or approval.
+"""PreToolUse guard: block pushes/commits to main and branch creation.
 
-Rule 1 of CLAUDE.md "Agent hooks": Hanif merges and approves. Claude never does.
+Rules 1 and 6 of CLAUDE.md "Agent hooks". From November 11, 2026, an agent can open issues and pull requests,
+and can approve and merge a pull request after the CI passes.
 """
 import json
 import os
@@ -59,22 +60,12 @@ def check_bash(cmd):
                 verb == "branch" and [a for a in args if not a.startswith("-")]
                 and not any(a in ("-d", "-D", "--delete", "-a", "-r", "--list", "-l", "-v", "-vv") for a in args)):
             deny("creating a branch is Hanif's step.")
-    if re.search(r"\bgh\s+pr\s+(merge|review\b.*--approve)", cmd):
-        deny("merging or approving a pull request is not allowed.")
 
 
 def check_github(tool, inp):
     name = tool.removeprefix("mcp__github__")
-    if name in ("merge_pull_request", "enable_pr_auto_merge"):
-        deny("merging a pull request is not allowed.")
     if name == "create_branch":
         deny("creating a branch is Hanif's step.")
-    if name == "issue_write" and inp.get("method") == "create":
-        deny("opening an issue is Hanif's step.")
-    if name == "create_pull_request":
-        deny("opening a pull request is Hanif's step.")
-    if name == "pull_request_review_write" and str(inp.get("event", "")).upper() == "APPROVE":
-        deny("approving a pull request is not allowed.")
     if name in ("create_or_update_file", "push_files", "delete_file") and inp.get("branch") in PROTECTED:
         deny("writing files directly to main is not allowed.")
 
