@@ -8,22 +8,27 @@ import { Backdrop } from "@/components/backdrop";
 import { CourseTabs, type CourseTab } from "@/components/landing/course-tabs";
 import type { CardText } from "@/components/landing/hero-cards";
 import { HeroTrack } from "@/components/landing/hero-track";
-import { MascotBand } from "@/components/landing/mascot-band";
+import { LandingBoard } from "@/components/landing/landing-board";
 import { GlassLogo } from "@/components/logo";
 import { TutorSection } from "@/components/landing/tutor-section";
 import { GlassmorphismNavBar } from "@/components/ui/glassmorphism-navigation";
 import { GLASS, PRIMARY } from "@/components/ui/surfaces";
 import text from "@/content/ui/landing.json";
+import { loadBoards } from "@/lib/content/boards";
 import { loadProjects } from "@/lib/content/load";
+import { wiringOrder } from "@/lib/game/landing";
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = { title: text.meta.title, description: text.meta.description };
 
 // The landing page for visitors who are not logged in (issue #46). The proxy sends a logged-in user to the lobby.
-// Layout from the duolingo.com home page (issue #152). The catalog comes from content/projects/, not the database.
+// Layout from the duolingo.com home page (issue #152), with the 3D breadboard as the hero (issue #171).
+// The catalog comes from content/projects/, not the database.
 export default async function LandingPage({ searchParams }: PageProps<"/">) {
   const projects = loadProjects();
   const available = projects.filter((p) => p.status === "available");
+  // The hero board: all the parts of Perch, in the order that a learner puts them.
+  const order = wiringOrder(await loadBoards(text.board.project));
   const courses: CourseTab[] = text.courses.show.flatMap((slug) => {
     const p = projects.find((project) => project.slug === slug);
     if (!p) return [];
@@ -54,9 +59,9 @@ export default async function LandingPage({ searchParams }: PageProps<"/">) {
       <main id="top" className="flex w-full flex-1 flex-col text-white">
         <Suspense>{searchParams.then(({ deleted }) => deleted === "1" && <DeletedNotice />)}</Suspense>
 
-        <section className="mx-auto grid w-full max-w-6xl items-center gap-6 px-4 pt-8 pb-16 sm:px-8 sm:pt-14 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] lg:gap-10">
-          <div className={cn(GLASS, "h-[22rem] overflow-hidden sm:h-[32rem]")}>
-            <MascotBand />
+        <section className="mx-auto grid w-full max-w-7xl items-center gap-6 px-4 pt-6 pb-16 sm:px-8 sm:pt-10 lg:grid-cols-[minmax(0,1.55fr)_minmax(0,1fr)] lg:gap-8">
+          <div className={cn(GLASS, "relative h-[24rem] overflow-hidden sm:h-[30rem] lg:h-[38rem]")}>
+            <LandingBoard order={order} />
           </div>
           <div className={cn(GLASS, "flex flex-col items-center gap-6 px-6 py-8 text-center sm:px-10 sm:py-10")}>
             <span className="rounded-full bg-[#22d66b] px-3.5 py-1.5 text-sm font-semibold text-[#04140a]">{text.pitch.badge}</span>

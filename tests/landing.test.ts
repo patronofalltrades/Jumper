@@ -67,6 +67,9 @@ describe("content/ui/landing.json", () => {
     for (const step of text.steps.items) if ("image" in step && step.image) expect(existsSync(join("public", step.image))).toBe(true);
     const slugs = loadProjects().map((p) => p.slug);
     for (const slug of text.courses.show) expect(slugs).toContain(slug);
+    // The hero board (issue #171): its project is in the catalog, and its still picture is in public/.
+    expect(slugs).toContain(text.board.project);
+    expect(existsSync(join("public", text.board.still))).toBe(true);
   });
 
   it("shows the available projects and the Coming soon projects from the catalog", () => {
