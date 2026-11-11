@@ -47,3 +47,21 @@
    - `components/landing/landing-board.tsx`: no "Tap the board to start" label. The still picture has a clear background.
    - Checks: `npm run typecheck`, `npx eslint app components/landing` and `npm test` (65 files, 865 tests) pass. Screenshots from the dev server at 1440 px and 390 px.
 
+7. Hanif's prompt (his words): "https://money.x.com/en Oh, so that's why you did not do as I said. I have actually pasted the reference webpage from Mobin. You can see the link in this prompt. Go through it, look into the components and also the overall layout, and make a very specific focus on the animation that happens on the hero image. Use that as inspiration for the current jumper website homepage / landing page without actually making any changes to the themes, to the fonts, etc."
+
+   Hanif's correction: the reference is the page money.x.com. The hero must follow its layout and its animation. The theme and the fonts of Jumper do not change.
+
+   What Claude saw on the reference (in Chromium, frame by frame)
+
+   - The hero is one screen: a short headline in the center (its words come in one after the other), one small 3D object in the middle, then a small line of text and one small button.
+   - The object shows itself one time, in about 4 seconds: a closed box turns, opens, and shows the card. The text and the button below come in only after that. Then a 3D canvas takes the place of the video.
+   - The rest of the page: a small label and a heading in two tones for each section, thin lines between the sections, grey tiles with small pictures, features with numbers 01 to 06, a list of questions, and a footer with a very large name. These are for issue #172.
+
+   Claude's steps
+
+   - `app/page.tsx`: the hero is one screen. The headline is shorter in size, and each word comes in with the `rise-in` animation that the app already has. The board is in the middle, smaller. The text and the two buttons come in after the board is finished.
+   - `components/landing/landing-board.tsx`: the board comes in (fade and scale), its parts go in one time at 90 ms each, and the timer stops. With a mouse, the board turns up to 5 degrees to follow the pointer (`framer-motion`). With reduced motion, the board is finished and nothing moves.
+   - `lib/game/landing.ts`: `REVEAL_TICK_MS` and `revealMs`, with a test in `tests/landing.test.ts`.
+   - The still picture is gone: a finished board before an empty board does not agree with the reveal.
+   - Checks: `npm run typecheck`, `npx eslint app components/landing lib/game/landing.ts` and `npm test` pass. A sheet of 9 screenshots from the dev server shows the sequence.
+

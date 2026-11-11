@@ -16,3 +16,9 @@ export function landingParts(order: Part[], tick: number, reducedMotion: boolean
   if (reducedMotion) return order;
   return order.slice(0, Math.min(tick % (order.length + HOLD_TICKS + 1), order.length));
 }
+
+/** The time between two parts when the hero board shows its parts one time, after the page opens (issue #171). */
+export const REVEAL_TICK_MS = 90;
+
+/** How long the hero board takes to show all its parts. The text and the buttons below the board come in after it. */
+export const revealMs = (order: Part[]): number => order.length * REVEAL_TICK_MS;

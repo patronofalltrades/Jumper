@@ -1,5 +1,5 @@
 {
-  "_note": "Text for the landing page (/), in ASD-STE100. The hero shows the 3D bench of Perch, which wires itself (components/landing/landing-board.tsx, issue #171). board: the project, the text and the still picture of that board. Layout from the design canvas of issue #152 (duolingo.com hero, brilliant.org tutor and course tabs, a 4-step 'How it works' row). The project levels come from content/projects/. hero: the text on the task cards of the animated track under the hero (components/landing/hero-cards.tsx).",
+  "_note": "Text for the landing page (/), in ASD-STE100. The hero shows the 3D bench of Perch, which wires itself (components/landing/landing-board.tsx, issue #171). board: the project and the text of that board. Layout from the design canvas of issue #152 (duolingo.com hero, brilliant.org tutor and course tabs, a 4-step 'How it works' row). The project levels come from content/projects/. hero: the text on the task cards of the animated track under the hero (components/landing/hero-cards.tsx).",
   "meta": {
     "title": "Jumper · Learn hardware on a 3D breadboard",
     "description": "Connect real boards on a 3D breadboard. Jumper guides you like a game."
@@ -32,8 +32,7 @@
   "logIn": "Log in",
   "board": {
     "project": "perch",
-    "label": "Perch, wired on the 3D breadboard. Select the board to start.",
-    "still": "/landing/board.webp"
+    "label": "Perch, wired on the 3D breadboard. Select the board to start."
   },
   "band": {
     "label": "Volt, Bulb, Knob and Coil, the four Jumper mascots, in 3D. Each mascot helps you in one project."

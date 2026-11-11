@@ -16,7 +16,7 @@ import { GLASS, PRIMARY } from "@/components/ui/surfaces";
 import text from "@/content/ui/landing.json";
 import { loadBoards } from "@/lib/content/boards";
 import { loadProjects } from "@/lib/content/load";
-import { wiringOrder } from "@/lib/game/landing";
+import { revealMs, wiringOrder } from "@/lib/game/landing";
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = { title: text.meta.title, description: text.meta.description };
@@ -26,9 +26,11 @@ export const metadata: Metadata = { title: text.meta.title, description: text.me
 // The catalog comes from content/projects/, not the database.
 export default async function LandingPage({ searchParams }: PageProps<"/">) {
   const projects = loadProjects();
-  const available = projects.filter((p) => p.status === "available");
   // The hero board: all the parts of Perch, in the order that a learner puts them.
   const order = wiringOrder(await loadBoards(text.board.project));
+  // The words of the headline come in one after the other.
+  const words = (line: string, accent: boolean) => line.split(" ").map((w) => ({ text: w, accent }));
+  const headline = [...words(text.pitch.title_start, false), ...words(text.pitch.title_end, true)];
   const courses: CourseTab[] = text.courses.show.flatMap((slug) => {
     const p = projects.find((project) => project.slug === slug);
     if (!p) return [];
@@ -59,23 +61,26 @@ export default async function LandingPage({ searchParams }: PageProps<"/">) {
       <main id="top" className="flex w-full flex-1 flex-col text-white">
         <Suspense>{searchParams.then(({ deleted }) => deleted === "1" && <DeletedNotice />)}</Suspense>
 
-        {/* The hero (issue #171): the headline and the two paths, then the board, with no panel around them. */}
-        <section className="mx-auto flex w-full max-w-6xl flex-col items-center px-4 pt-10 text-center sm:px-8 sm:pt-14">
-          <p className="text-sm font-semibold tracking-[0.18em] text-[#22d66b] uppercase">{text.pitch.badge}</p>
-          <h1 className="mt-5 max-w-4xl text-5xl leading-[1.02] font-bold tracking-tight text-balance sm:text-7xl">
-            {text.pitch.title_start} <span className="text-[#22d66b]">{text.pitch.title_end}</span>
+        {/* The hero (issue #171), after the money.x.com hero: a short headline, one object that shows itself one time,
+            then the text and the buttons. The words and the buttons come in with CSS, so they show with no JavaScript. */}
+        <section className="mx-auto flex min-h-[calc(100svh-5rem)] w-full max-w-6xl flex-col items-center justify-center px-4 pt-8 pb-16 text-center sm:px-8">
+          <h1 className="max-w-2xl text-4xl leading-[1.08] font-bold tracking-tight text-balance sm:text-5xl">
+            {headline.map((word, i) => (
+              <span key={i} className={cn("rise-in inline-block whitespace-pre", word.accent && "text-[#22d66b]")} style={{ animationDelay: `${i * 70}ms` }}>
+                {word.text}{" "}
+              </span>
+            ))}
           </h1>
-          <p className="mt-5 max-w-xl text-lg text-white/60">{text.pitch.body}</p>
-          <div className="mt-8 flex w-full flex-col items-center justify-center gap-3 sm:w-auto sm:flex-row">
-            <PathButton href="/start" title={text.pitch.new.title} primary />
-            <PathButton href="/start?build=perch" title={text.pitch.wired.title} />
-          </div>
-          <div className="mt-6 h-[21rem] w-full sm:h-[30rem] lg:h-[36rem]">
+          <div className="mt-8 h-[15rem] w-full max-w-[46rem] sm:mt-10 sm:h-[23rem]">
             <LandingBoard order={order} />
           </div>
-          <p className="pb-16 text-[13px] text-white/45">
-            {text.pitch.facts.replace("{available}", String(available.length)).replace("{soon}", String(projects.length - available.length))}
-          </p>
+          <div className="rise-in mt-8 flex flex-col items-center gap-5" style={{ animationDelay: `${revealMs(order) + 600}ms` }}>
+            <p className="max-w-md text-[15px] text-white/55">{text.pitch.body}</p>
+            <div className="flex w-full flex-col items-center justify-center gap-2.5 sm:w-auto sm:flex-row">
+              <PathButton href="/start" title={text.pitch.new.title} primary />
+              <PathButton href="/start?build=perch" title={text.pitch.wired.title} />
+            </div>
+          </div>
         </section>
 
         {/* The task-card track: a learner's tasks, one after the other (after the brilliant.org hero). */}
@@ -205,12 +210,12 @@ function PathButton({ href, title, primary = false }: { href: string; title: str
     <Link
       href={href}
       className={cn(
-        "flex min-h-13 w-full items-center justify-center gap-2.5 rounded-full px-7 text-[17px] font-semibold transition-colors sm:w-auto",
+        "flex min-h-11 w-full items-center justify-center gap-2 rounded-full px-5 text-[15px] font-semibold transition-colors sm:w-auto",
         primary ? "bg-[#22d66b] text-[#04140a] hover:bg-[#3be07f]" : "border border-white/15 text-white hover:bg-white/5",
       )}
     >
       {title}
-      <ArrowRight size={18} strokeWidth={2.6} aria-hidden="true" />
+      <ArrowRight size={16} strokeWidth={2.6} aria-hidden="true" />
     </Link>
   );
 }

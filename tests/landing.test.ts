@@ -5,7 +5,7 @@ import boardsFile from "@/content/boards/perch.json";
 import text from "@/content/ui/landing.json";
 import { boardsSchema } from "@/lib/content/schema";
 import { loadProjects } from "@/lib/content/load";
-import { HOLD_TICKS, landingParts, wiringOrder } from "@/lib/game/landing";
+import { HOLD_TICKS, landingParts, REVEAL_TICK_MS, revealMs, wiringOrder } from "@/lib/game/landing";
 
 const boards = boardsSchema.parse(boardsFile);
 const order = wiringOrder(boards);
@@ -51,6 +51,14 @@ describe("landingParts", () => {
   });
 });
 
+describe("revealMs", () => {
+  it("gives one tick for each part, and the full board in less than 5 seconds", () => {
+    expect(revealMs([])).toBe(0);
+    expect(revealMs(order)).toBe(order.length * REVEAL_TICK_MS);
+    expect(revealMs(order)).toBeLessThan(5000);
+  });
+});
+
 describe("content/ui/landing.json", () => {
   it("has the hero, the tutor cards, the 4 steps and the buttons (issue #152)", () => {
     expect(text.pitch.title_start).not.toBe("");
@@ -67,9 +75,8 @@ describe("content/ui/landing.json", () => {
     for (const step of text.steps.items) if ("image" in step && step.image) expect(existsSync(join("public", step.image))).toBe(true);
     const slugs = loadProjects().map((p) => p.slug);
     for (const slug of text.courses.show) expect(slugs).toContain(slug);
-    // The hero board (issue #171): its project is in the catalog, and its still picture is in public/.
+    // The hero board (issue #171): its project is in the catalog.
     expect(slugs).toContain(text.board.project);
-    expect(existsSync(join("public", text.board.still))).toBe(true);
   });
 
   it("shows the available projects and the Coming soon projects from the catalog", () => {
