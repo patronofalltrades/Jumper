@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""PreToolUse guard: block pushes/commits to main and branch creation.
+"""PreToolUse guard: block pushes/commits to main, and an approval or a merge when the CI does not pass.
 
-Rules 1 and 6 of CLAUDE.md "Agent hooks". From November 11, 2026, an agent can open issues and pull requests,
-and can approve and merge a pull request after the CI passes.
+Rules 1 and 4 of CLAUDE.md "Agent hooks". From November 11, 2026, an agent can create branches, open issues and
+pull requests, and approve and merge a pull request. The guard reads the check runs of the pull request with `gh`.
+If it cannot read them, it blocks the approval or the merge.
 """
 import json
 import os
@@ -18,7 +19,7 @@ def deny(reason):
         "hookSpecificOutput": {
             "hookEventName": "PreToolUse",
             "permissionDecision": "deny",
-            "permissionDecisionReason": f"Blocked by Jumper hook: {reason} Ask Hanif to do this step.",
+            "permissionDecisionReason": f"Blocked by Jumper hook: {reason}",
         }
     }))
     sys.exit(0)
@@ -32,6 +33,52 @@ def current_branch():
         ).stdout.strip()
     except Exception:
         return ""
+
+
+def gh_json(path):
+    out = subprocess.run(["gh", "api", path], capture_output=True, text=True, timeout=12)
+    if out.returncode != 0:
+        raise RuntimeError(out.stderr.strip()[:200])
+    return json.loads(out.stdout)
+
+
+def origin_repo():
+    """(owner, repo) of the origin remote."""
+    try:
+        url = subprocess.run(
+            ["git", "-C", os.environ.get("CLAUDE_PROJECT_DIR", "."), "remote", "get-url", "origin"],
+            capture_output=True, text=True, timeout=5,
+        ).stdout.strip()
+    except Exception:
+        url = ""
+    found = re.search(r"([^/:]+)/([^/]+?)(?:\.git)?$", url)
+    return (found.group(1), found.group(2)) if found else (None, None)
+
+
+def ci_problem(runs):
+    """Why the check runs of a commit do not let a pull request through, or None when all of them pass."""
+    if not runs:
+        return "the pull request has no CI run."
+    for run in runs:
+        if run.get("status") != "completed":
+            return f"the check '{run.get('name')}' is not complete."
+        if run.get("conclusion") not in ("success", "skipped", "neutral"):
+            return f"the check '{run.get('name')}' ended with '{run.get('conclusion')}'."
+    return None
+
+
+def require_ci(owner, repo, number):
+    """Rule 4: no approval and no merge unless each check run of the head commit passes. Blocks when in doubt."""
+    if not (owner and repo and number):
+        deny("the guard cannot find the pull request, so it cannot read its CI result.")
+    try:
+        sha = gh_json(f"repos/{owner}/{repo}/pulls/{number}")["head"]["sha"]
+        runs = gh_json(f"repos/{owner}/{repo}/commits/{sha}/check-runs?per_page=100")["check_runs"]
+    except Exception as error:
+        deny(f"the guard cannot read the CI result of pull request {number} ({error}).")
+    problem = ci_problem(runs)
+    if problem:
+        deny(f"pull request {number} cannot be approved or merged: {problem}")
 
 
 def check_bash(cmd):
@@ -56,16 +103,19 @@ def check_bash(cmd):
                 deny("pushing while on main is not allowed.")
         elif verb in ("commit", "merge", "rebase", "cherry-pick") and current_branch() in PROTECTED:
             deny(f"'git {verb}' on main is not allowed. Work on a feature branch.")
-        elif (verb in ("checkout", "switch") and any(a in ("-b", "-B", "-c", "-C") for a in args)) or (
-                verb == "branch" and [a for a in args if not a.startswith("-")]
-                and not any(a in ("-d", "-D", "--delete", "-a", "-r", "--list", "-l", "-v", "-vv") for a in args)):
-            deny("creating a branch is Hanif's step.")
+    found = re.search(r"\bgh\s+pr\s+(merge|review)\b([^;&|\n]*)", cmd)
+    if found and (found.group(1) == "merge" or "--approve" in found.group(2) or re.search(r"(^|\s)-a\b", found.group(2))):
+        number = re.search(r"(?:^|\s|/pull/)(\d+)(?=\s|$)", found.group(2))
+        if not number:
+            deny("give the pull request number, so the guard can read its CI result.")
+        require_ci(*origin_repo(), number.group(1))
 
 
 def check_github(tool, inp):
     name = tool.removeprefix("mcp__github__")
-    if name == "create_branch":
-        deny("creating a branch is Hanif's step.")
+    if name in ("merge_pull_request", "enable_pr_auto_merge") or (
+            name == "pull_request_review_write" and str(inp.get("event", "")).upper() == "APPROVE"):
+        require_ci(inp.get("owner"), inp.get("repo"), inp.get("pullNumber"))
     if name in ("create_or_update_file", "push_files", "delete_file") and inp.get("branch") in PROTECTED:
         deny("writing files directly to main is not allowed.")
 

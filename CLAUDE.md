@@ -52,14 +52,14 @@ Each project uses the same build mode. A new project adds data (levels, tasks, p
 
 ## Agent hooks (enforced in `.claude/settings.json`)
 
-Hanif changed these rules on November 11, 2026. Before that date, only Hanif opened issues and pull requests, approved them and merged them, and the agent kept a ledger.
+Hanif changed these rules on November 11, 2026. Before that date, only Hanif created branches, opened issues and pull requests, approved them and merged them, and the agent kept a ledger.
 
 1. **No push to `main`.** `.claude/hooks/guard.py` blocks `git push` to `main`, and `git commit`, `merge`, `rebase` and `cherry-pick` on `main`. All changes go through a pull request.
 2. **AI agents can open pull requests.** The pull request follows the house rules and the assignment rules: one feature, `closes #N`, and the prompt file.
 3. **AI agents can approve and merge pull requests.** An agent approves or merges only after it does rule 4.
-4. **AI agents check CI/CD.** Before an agent approves or merges a pull request, it reads the result of the GitHub Actions run (type check, lint, Vitest). If a check fails or is not complete, the agent does not approve and does not merge. After a merge to `main`, the agent makes sure that the deploy is complete and the live URL shows the current version.
+4. **AI agents check CI/CD, and the guard enforces it.** Before an agent approves or merges a pull request, it reads the result of the GitHub Actions run (type check, lint, Vitest, SQL tests). `guard.py` reads the check runs of the head commit with `gh`. It blocks the approval or the merge if a check fails, is not complete, or is not there, or if the guard cannot read the result. After a merge to `main`, the agent makes sure that the deploy is complete and the live URL shows the current version.
 5. **AI agents can open issues.** Each issue includes the user story, copied from `PLAN.md`.
-6. **I create the branches.** The guard blocks branch creation. Claude works on the branch that I made.
+6. **AI agents can create branches.** The name is `feature/<name>`, one feature for each branch.
 7. **Flag each PR comment.** Claude can comment on a pull request. After each comment, a hook tells Claude to flag it to me in the reply, with the link and a one-line summary.
 8. **If you are not sure, ask.** Do not act on a guess. Stop and ask me for more instructions. A hook repeats this rule at each prompt.
 9. **No ledger.** The ledger is not updated from November 11, 2026. No hook writes to it. The `ledger/` folder stays in `.gitignore`: do not commit or push the old entries.
