@@ -1,4 +1,4 @@
-import { ArrowRight, BookOpen, Cpu, Home, Zap } from "lucide-react";
+import { ArrowRight, BookOpen, Cpu, Home } from "lucide-react";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
@@ -59,31 +59,27 @@ export default async function LandingPage({ searchParams }: PageProps<"/">) {
       <main id="top" className="flex w-full flex-1 flex-col text-white">
         <Suspense>{searchParams.then(({ deleted }) => deleted === "1" && <DeletedNotice />)}</Suspense>
 
-        <section className="mx-auto grid w-full max-w-7xl items-center gap-6 px-4 pt-6 pb-16 sm:px-8 sm:pt-10 lg:grid-cols-[minmax(0,1.55fr)_minmax(0,1fr)] lg:gap-8">
-          <div className={cn(GLASS, "relative h-[24rem] overflow-hidden sm:h-[30rem] lg:h-[38rem]")}>
+        {/* The hero (issue #171): the headline and the two paths, then the board, with no panel around them. */}
+        <section className="mx-auto flex w-full max-w-6xl flex-col items-center px-4 pt-10 text-center sm:px-8 sm:pt-14">
+          <p className="text-sm font-semibold tracking-[0.18em] text-[#22d66b] uppercase">{text.pitch.badge}</p>
+          <h1 className="mt-5 max-w-4xl text-5xl leading-[1.02] font-bold tracking-tight text-balance sm:text-7xl">
+            {text.pitch.title_start} <span className="text-[#22d66b]">{text.pitch.title_end}</span>
+          </h1>
+          <p className="mt-5 max-w-xl text-lg text-white/60">{text.pitch.body}</p>
+          <div className="mt-8 flex w-full flex-col items-center justify-center gap-3 sm:w-auto sm:flex-row">
+            <PathButton href="/start" title={text.pitch.new.title} primary />
+            <PathButton href="/start?build=perch" title={text.pitch.wired.title} />
+          </div>
+          <div className="mt-6 h-[21rem] w-full sm:h-[30rem] lg:h-[36rem]">
             <LandingBoard order={order} />
           </div>
-          <div className={cn(GLASS, "flex flex-col items-center gap-6 px-6 py-8 text-center sm:px-10 sm:py-10")}>
-            <span className="rounded-full bg-[#22d66b] px-3.5 py-1.5 text-sm font-semibold text-[#04140a]">{text.pitch.badge}</span>
-            <h1 className="text-4xl leading-[1.05] font-bold tracking-tight text-balance sm:text-5xl">
-              {text.pitch.title_start} <span className="text-[#22d66b]">{text.pitch.title_end}</span>
-            </h1>
-            <p className="text-lg text-white/65">{text.pitch.body}</p>
-            <div className="flex w-full max-w-sm flex-col gap-3">
-              <PathButton href="/start" title={text.pitch.new.title} body={text.pitch.new.body} primary />
-              <PathButton href="/start?build=perch" title={text.pitch.wired.title} body={text.pitch.wired.body} />
-              <Link href="/login" className="min-h-11 content-center font-medium text-white/80 underline-offset-4 hover:underline">
-                {text.haveAccount}
-              </Link>
-            </div>
-            <p className="text-[13px] text-white/55">
-              {text.pitch.facts.replace("{available}", String(available.length)).replace("{soon}", String(projects.length - available.length))}
-            </p>
-          </div>
+          <p className="pb-16 text-[13px] text-white/45">
+            {text.pitch.facts.replace("{available}", String(available.length)).replace("{soon}", String(projects.length - available.length))}
+          </p>
         </section>
 
         {/* The task-card track: a learner's tasks, one after the other (after the brilliant.org hero). */}
-        <div className="mx-auto -mt-6 w-full max-w-6xl px-4 pb-12 sm:px-8 sm:pb-16">
+        <div className="mx-auto w-full max-w-6xl px-4 pb-12 sm:px-8 sm:pb-16">
           <div className={cn(GLASS, "overflow-hidden")}>
             <HeroTrack cards={text.hero.cards as CardText[]} check={text.hero.check} code={text.hero.code} />
           </div>
@@ -203,26 +199,18 @@ export default async function LandingPage({ searchParams }: PageProps<"/">) {
   );
 }
 
-// A big hero button that tells the visitor where it goes (after the "I'm a learner" buttons of brilliant.org).
-function PathButton({ href, title, body, primary = false }: { href: string; title: string; body: string; primary?: boolean }) {
+// A hero button that tells the visitor where it goes (after the "I'm a learner" buttons of brilliant.org).
+function PathButton({ href, title, primary = false }: { href: string; title: string; primary?: boolean }) {
   return (
     <Link
       href={href}
       className={cn(
-        "flex min-h-16 items-center gap-3.5 rounded-full py-2 pr-5 pl-2.5 text-left transition-[transform,border]",
-        primary
-          ? "border-b-4 border-[#15a352] bg-[#22d66b] text-[#04140a] shadow-[0_0_40px_rgba(34,214,107,0.35)] active:translate-y-0.5 active:border-b-2"
-          : "border border-white/15 bg-night text-white hover:bg-white/5",
+        "flex min-h-13 w-full items-center justify-center gap-2.5 rounded-full px-7 text-[17px] font-semibold transition-colors sm:w-auto",
+        primary ? "bg-[#22d66b] text-[#04140a] hover:bg-[#3be07f]" : "border border-white/15 text-white hover:bg-white/5",
       )}
     >
-      <span className={cn("flex size-11 shrink-0 items-center justify-center rounded-full", primary ? "bg-[#04140a] text-[#22d66b]" : "bg-[#f5c518] text-[#1a1400]")} aria-hidden="true">
-        {primary ? <Zap size={20} fill="currentColor" strokeWidth={0} /> : <Cpu size={20} strokeWidth={2.4} />}
-      </span>
-      <span className="flex flex-1 flex-col">
-        <strong className="text-[17px] font-bold">{title}</strong>
-        <span className={cn("text-[13px]", primary ? "opacity-75" : "text-white/60")}>{body}</span>
-      </span>
-      <ArrowRight size={20} strokeWidth={2.6} aria-hidden="true" />
+      {title}
+      <ArrowRight size={18} strokeWidth={2.6} aria-hidden="true" />
     </Link>
   );
 }

@@ -33,3 +33,17 @@
    - The layout keeps two columns on a laptop: the board on the left (wider than before), the text and buttons on the right. On a phone the board is first.
    - The still picture is a screenshot of the finished 3D board from the dev server.
    - The camera of `BuildScene` is not changed. On a laptop, the two front corners of the breadboard go a small distance out of the panel.
+
+6. Hanif's prompt (his words): "This does not look good. Can you re-do the apperance to be more like the example that I showed you earlier. I think like I want to have it like simpler, and also I want to have it more premium while also retaining the overall theme, which we already have implemented on the homepage."
+
+   Hanif's correction: the first hero (the board in a glass panel on the left, a glass card with the text on the right) did not look good. He wants a simpler and more premium look, with the same theme.
+
+   Claude notes: Claude still could not open the Mobbin page, so the new look comes from Hanif's words, not from the reference.
+
+   Claude's steps
+
+   - `app/page.tsx`: the hero has no glass panels. The headline is in the center and is larger. A small green line of text replaces the green badge. The two path buttons are one line of text each, side by side. The board is below them, with no frame, on the night background with a green glow.
+   - The "I already have an account" link is not in the hero. The navigation has "Log in", and the end of the page has the link.
+   - `components/landing/landing-board.tsx`: no "Tap the board to start" label. The still picture has a clear background.
+   - Checks: `npm run typecheck`, `npx eslint app components/landing` and `npm test` (65 files, 865 tests) pass. Screenshots from the dev server at 1440 px and 390 px.
+

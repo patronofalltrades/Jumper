@@ -15,7 +15,7 @@ import { landingParts } from "@/lib/game/landing";
 // again. The page loads three.js after its text and buttons, so the page is quick on a phone. Until then, a still
 // picture of the finished board shows.
 
-const Still = () => <Image src={text.board.still} alt="" fill priority sizes="(min-width: 1024px) 60vw, 100vw" className="object-cover" />;
+const Still = () => <Image src={text.board.still} alt="" fill priority sizes="(min-width: 1152px) 1088px, 100vw" className="object-contain" />;
 
 const BuildScene = dynamic(() => import("@/components/scene/build-scene"), { ssr: false, loading: Still });
 
@@ -55,17 +55,15 @@ export function LandingBoard({ order }: { order: Part[] }) {
 
   return (
     <div className="relative h-full w-full">
+      <div className="absolute inset-x-[12%] bottom-[8%] h-1/2 rounded-full bg-[#22d66b] opacity-20 blur-[90px]" aria-hidden="true" />
       {mode === "wait" && <Still />}
       {mode === "3d" && (
         <BoardContext.Provider value={store}>
           <BuildScene />
         </BoardContext.Provider>
       )}
-      {typeof mode === "object" && <video src={mode.video} autoPlay muted loop playsInline className="absolute inset-0 h-full w-full object-cover" />}
+      {typeof mode === "object" && <video src={mode.video} autoPlay muted loop playsInline className="absolute inset-0 h-full w-full rounded-[1.25rem] object-cover" />}
       <Link href="/start" aria-label={text.board.label} className="absolute inset-0 rounded-[inherit] outline-none focus-visible:ring-4 focus-visible:ring-ring" />
-      <span className="pointer-events-none absolute bottom-3 left-1/2 -translate-x-1/2 rounded-full bg-night/85 px-3 py-1.5 text-xs font-semibold whitespace-nowrap text-white">
-        {text.board.hint}
-      </span>
     </div>
   );
 }

@@ -33,7 +33,6 @@
   "board": {
     "project": "perch",
     "label": "Perch, wired on the 3D breadboard. Select the board to start.",
-    "hint": "Tap the board to start",
     "still": "/landing/board.webp"
   },
   "band": {
