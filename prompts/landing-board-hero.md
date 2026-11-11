@@ -26,7 +26,7 @@
    - `content/ui/landing.json`: the `board` text, project and still picture.
    - `tests/landing.test.ts`: the project of the hero board is in the catalog, and the still picture is in `public/`.
    - `PLAN.md` row 65, `docs/PRD.md` and `docs/TRD.md` 12.1.
-   - Checks: `npm run typecheck`, `npx eslint app components/landing` and `npm test` (65 files, 866 tests) pass. On the dev server, in Chromium: the canvas shows on a laptop screen (1440 px) and a phone screen (390 px), with and without reduced motion.
+   - Checks: `npm run typecheck`, `npx eslint app components/landing` and `npm test` (65 files, 865 tests) pass. On the dev server, in Chromium: the canvas shows on a laptop screen (1440 px) and a phone screen (390 px), with and without reduced motion.
 
 5. Decisions made by Claude (minimal choices)
 
