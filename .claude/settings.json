@@ -1,10 +1,4 @@
 {
-  "permissions": {
-    "deny": [
-      "mcp__github__merge_pull_request",
-      "mcp__github__enable_pr_auto_merge"
-    ]
-  },
   "hooks": {
     "PreToolUse": [
       {
@@ -14,17 +8,7 @@
             "type": "command",
             "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/guard.py\"",
             "onFailure": "block",
-            "timeout": 10
-          }
-        ]
-      },
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/ledger.py\" precommit",
-            "timeout": 10
+            "timeout": 40
           }
         ]
       }
@@ -35,7 +19,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/ledger.py\" comment",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/rules.py\" comment",
             "timeout": 10
           }
         ]
@@ -46,7 +30,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/ledger.py\" prompt",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/rules.py\" prompt",
             "timeout": 10
           }
         ]
