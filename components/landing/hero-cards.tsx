@@ -126,7 +126,7 @@ function Code({ done, line1, before, blank, after, line3 }: { done: number } & C
       {"\n  "}
       {before}
       <span
-        className={cn("inline-block min-w-10 rounded-md border-2 px-1 text-center leading-5", filled ? "border-[#22d66b] bg-[#22d66b]/15 font-bold text-[#22d66b]" : "border-dashed border-white/25")}
+        className={cn("inline-block min-w-10 rounded-md border-2 px-1 text-center leading-5", filled ? "border-emerald bg-emerald/15 font-bold text-emerald" : "border-dashed border-white/25")}
         style={{ scale: filled ? interpolate(done, [0.4, 0.7], [1.25, 1], CLAMP) : 1 }}
       >
         {filled ? blank : " "}
@@ -142,7 +142,7 @@ function CheckPill({ done, label }: { done: number; label: string }) {
   const on = done > 0.15;
   return (
     <div
-      className={cn("flex h-14 w-40 items-center justify-center gap-2 rounded-full border-b-4 text-lg font-extrabold", on ? "border-[#15a352] bg-[#22d66b] text-[#04140a] shadow-[0_0_30px_rgba(34,214,107,0.4)]" : "border-white/15 bg-night text-white")}
+      className={cn("flex h-14 w-40 items-center justify-center gap-2 rounded-full border-b-4 text-lg font-extrabold", on ? "border-emerald-deep bg-emerald text-on-emerald shadow-[0_0_30px_rgba(34,214,107,0.4)]" : "border-white/15 bg-night text-white")}
       style={{ scale: interpolate(done, [0, 0.12, 0.3], [1, 0.88, 1], CLAMP) }}
     >
       {on && <span aria-hidden>✓</span>}
@@ -166,7 +166,7 @@ function Face({ done }: { done: number }) {
 function Tick({ done }: { done: number }) {
   return (
     <span
-      className="absolute top-2 right-2 grid size-7 place-items-center rounded-full bg-[#22d66b] text-sm font-black text-[#04140a]"
+      className="absolute top-2 right-2 grid size-7 place-items-center rounded-full bg-emerald text-sm font-black text-on-emerald"
       style={{ scale: interpolate(done, [0.75, 1], [0, 1], { ...CLAMP, easing: Easing.spring({ damping: 10 }), output: "perceptual-scale" }) }}
     >
       ✓

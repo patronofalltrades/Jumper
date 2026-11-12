@@ -71,6 +71,12 @@
   --color-secondary-foreground: var(--on-probe);
   --color-night: var(--night);
   --color-night-2: var(--night-2);
+  /* The colors on the night background (the landing page), the same in the light and the dark theme (issue #172). */
+  --color-emerald: #22d66b;
+  --color-emerald-deep: #15a352;
+  --color-on-emerald: #04140a;
+  --color-sun: #f5c518;
+  --color-on-sun: #1a1400;
   --color-destructive: var(--danger);
   --shadow-panel: var(--shadow);
   --radius-card: var(--radius);

@@ -47,6 +47,11 @@
       "watch": "This is Perch, wired on the 3D breadboard."
     }
   },
+  "footer": {
+    "label": "Footer",
+    "line": "Learn hardware on a 3D breadboard. Free, with no parts to buy.",
+    "account": "Account"
+  },
   "band": {
     "label": "Volt, Bulb, Knob and Coil, the four Jumper mascots, in 3D. Each mascot helps you in one project."
   },

@@ -123,6 +123,11 @@ describe("content/ui/landing.json", () => {
     expect(text.logIn).toBe("Log in");
   });
 
+  it("has the footer text (issue #172)", () => {
+    for (const value of Object.values(text.footer)) expect(value).not.toBe("");
+    expect(text.signUp).toBe("Sign up");
+  });
+
   it("uses step pictures that are in public/ and projects that are in the catalog", () => {
     for (const step of text.steps.items) if ("image" in step && step.image) expect(existsSync(join("public", step.image))).toBe(true);
     const slugs = loadProjects().map((p) => p.slug);

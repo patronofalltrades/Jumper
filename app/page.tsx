@@ -2,13 +2,14 @@ import { ArrowRight, BookOpen, Cpu, Home } from "lucide-react";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { Suspense } from "react";
+import { Suspense, type ReactNode } from "react";
 import { PerchFace } from "@/components/art/perch-face";
 import { Backdrop } from "@/components/backdrop";
 import { CourseTabs, type CourseTab } from "@/components/landing/course-tabs";
 import type { CardText } from "@/components/landing/hero-cards";
 import { HeroTrack } from "@/components/landing/hero-track";
 import { HeroReveal } from "@/components/landing/landing-board";
+import { MascotBand } from "@/components/landing/mascot-band";
 import { GlassLogo } from "@/components/logo";
 import { TutorSection } from "@/components/landing/tutor-section";
 import { GlassmorphismNavBar } from "@/components/ui/glassmorphism-navigation";
@@ -53,9 +54,14 @@ export default async function LandingPage({ searchParams }: PageProps<"/">) {
           ]}
           start={<GlassLogo href="/" label="Jumper home" />}
           end={
-            <Link href="/login" className="flex min-h-11 items-center rounded-full bg-[#f5c518] px-4 text-sm font-semibold text-[#1a1400] sm:px-5">
-              {text.logIn}
-            </Link>
+            <>
+              <Link href="/login" className="flex min-h-11 items-center rounded-full px-3 text-sm font-semibold text-white/80 hover:text-white sm:px-4">
+                {text.logIn}
+              </Link>
+              <Link href="/start" className="hidden min-h-11 items-center rounded-full bg-sun px-5 text-sm font-semibold text-on-sun sm:flex">
+                {text.getStarted}
+              </Link>
+            </>
           }
         />
       </header>
@@ -68,7 +74,7 @@ export default async function LandingPage({ searchParams }: PageProps<"/">) {
         <section className="mx-auto flex min-h-[calc(100svh-5rem)] w-full max-w-6xl flex-col items-center justify-center px-4 pt-8 pb-16 text-center sm:px-8">
           <h1 className="max-w-2xl text-4xl leading-[1.08] font-bold tracking-tight text-balance sm:text-5xl">
             {headline.map((word, i) => (
-              <span key={i} className={cn("rise-in inline-block whitespace-pre", word.accent && "text-[#22d66b]")} style={{ animationDelay: `${i * 70}ms` }}>
+              <span key={i} className={cn("rise-in inline-block whitespace-pre", word.accent && "text-emerald")} style={{ animationDelay: `${i * 70}ms` }}>
                 {word.text}{" "}
               </span>
             ))}
@@ -85,50 +91,53 @@ export default async function LandingPage({ searchParams }: PageProps<"/">) {
           </HeroReveal>
         </section>
 
-        {/* The task-card track: a learner's tasks, one after the other (after the brilliant.org hero). */}
-        <div className="mx-auto w-full max-w-6xl px-4 pb-12 sm:px-8 sm:pb-16">
-          <div className={cn(GLASS, "overflow-hidden")}>
-            <HeroTrack cards={text.hero.cards as CardText[]} check={text.hero.check} code={text.hero.code} />
-          </div>
-        </div>
-
         <section id="how" className="mx-auto w-full max-w-6xl scroll-mt-24 border-t border-white/10 px-4 py-20 sm:px-8 sm:py-24">
           <TutorSection />
         </section>
 
         <section id="projects" className="mx-auto w-full max-w-6xl scroll-mt-24 border-t border-white/10 px-4 py-20 sm:px-8 sm:py-24">
-          <h2 className="text-4xl leading-[1.02] font-bold tracking-tight text-balance sm:text-5xl">
-            {text.courses.title_start} <span className="text-[#f5c518]">{text.courses.title_end}</span>
-          </h2>
-          <p className="mt-3 mb-8 max-w-xl text-lg text-white/65">{text.courses.body}</p>
-          <CourseTabs courses={courses} />
-        </section>
-
-        <section aria-labelledby="parts-title" className="mx-auto grid w-full max-w-6xl items-center gap-8 border-t border-white/10 px-4 py-16 sm:px-8 md:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)]">
-          <div>
-            <h2 id="parts-title" className="text-3xl font-bold tracking-tight">
-              {text.parts.title}
-            </h2>
-            <p className="mt-3 text-lg text-white/65">{text.parts.body}</p>
+          <div className="mb-8 grid items-center gap-6 md:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
+            <div>
+              <Eyebrow>{text.nav.projects}</Eyebrow>
+              <h2 className="text-4xl leading-[1.02] font-bold tracking-tight text-balance sm:text-5xl">
+                {text.courses.title_start} <span className="text-sun">{text.courses.title_end}</span>
+              </h2>
+              <p className="mt-3 max-w-xl text-lg text-white/65">{text.courses.body}</p>
+            </div>
+            {/* The four mascots: each one helps in one project. */}
+            <div className={cn(GLASS, "h-56 overflow-hidden sm:h-72")}>
+              <MascotBand />
+            </div>
           </div>
-          <ul className="flex flex-wrap gap-2.5">
-            {text.parts.items.map((part) => (
-              <li key={part.name} className="flex min-h-11 items-center gap-2.5 rounded-full border border-white/10 bg-night-2 px-4">
-                <Tick />
-                <span className="font-mono text-sm font-medium">{part.name}</span>
-                <span className="text-[13px] text-white/55">{part.job}</span>
-              </li>
-            ))}
-          </ul>
+          <CourseTabs courses={courses} />
+          <div className="mt-10 grid items-center gap-6 md:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)]">
+            <div>
+              <h3 className="text-2xl font-bold tracking-tight">{text.parts.title}</h3>
+              <p className="mt-2 text-white/65">{text.parts.body}</p>
+            </div>
+            <ul className="flex flex-wrap gap-2.5">
+              {text.parts.items.map((part) => (
+                <li key={part.name} className="flex min-h-11 items-center gap-2.5 rounded-full border border-white/10 bg-night-2 px-4">
+                  <Tick />
+                  <span className="font-mono text-sm font-medium">{part.name}</span>
+                  <span className="text-[13px] text-white/55">{part.job}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
         </section>
 
         <section id="start" className="relative overflow-hidden border-t border-white/10">
-          <div className="absolute -top-48 left-1/2 h-96 w-[44rem] -translate-x-1/2 rounded-full bg-[#22d66b] opacity-[0.12] blur-[100px]" aria-hidden="true" />
+          <div className="absolute -top-48 left-1/2 h-96 w-[44rem] -translate-x-1/2 rounded-full bg-emerald opacity-[0.12] blur-[100px]" aria-hidden="true" />
           <div className="relative mx-auto flex w-full max-w-6xl flex-col gap-11 px-4 py-20 sm:px-8 sm:py-24">
             <div className="flex flex-col items-center gap-3 text-center">
-              <span className="rounded-full bg-[#f5c518] px-3.5 py-1.5 text-sm font-semibold text-[#1a1400]">{text.steps.badge}</span>
+              <span className="rounded-full bg-sun px-3.5 py-1.5 text-sm font-semibold text-on-sun">{text.steps.badge}</span>
               <h2 className="text-4xl leading-none font-bold tracking-tight text-balance sm:text-6xl">{text.steps.title}</h2>
               <p className="text-lg text-white/65">{text.steps.body}</p>
+            </div>
+            {/* The task-card track: a learner's tasks, one after the other (after the brilliant.org hero). */}
+            <div className={cn(GLASS, "overflow-hidden")}>
+              <HeroTrack cards={text.hero.cards as CardText[]} check={text.hero.check} code={text.hero.code} />
             </div>
             <ol className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               {text.steps.items.map((step, i) => (
@@ -136,7 +145,7 @@ export default async function LandingPage({ searchParams }: PageProps<"/">) {
                   <div
                     className={cn(
                       "relative aspect-square overflow-hidden rounded-[1.25rem] border border-white/10",
-                      step.image ? "bg-[#e3e8eb]" : "flex items-center justify-center border-0 bg-[#f5c518]",
+                      step.image ? "bg-[#e3e8eb]" : "flex items-center justify-center border-0 bg-sun",
                     )}
                   >
                     {step.image ? (
@@ -151,7 +160,7 @@ export default async function LandingPage({ searchParams }: PageProps<"/">) {
                     <span
                       className={cn(
                         "absolute top-3.5 left-3.5 flex size-8 items-center justify-center rounded-[10px] border text-sm font-semibold backdrop-blur-md",
-                        step.image ? "border-white/40 bg-[#0b1210]/55 text-white" : "border-black/15 bg-black/10 text-[#1a1400]",
+                        step.image ? "border-white/40 bg-[#0b1210]/55 text-white" : "border-black/15 bg-black/10 text-on-sun",
                       )}
                     >
                       {i + 1}
@@ -159,12 +168,12 @@ export default async function LandingPage({ searchParams }: PageProps<"/">) {
                     <span
                       className={cn(
                         "absolute inset-x-[8%] bottom-[7%] flex items-center gap-2 rounded-[14px] border px-3 py-2.5 text-[13px] font-semibold shadow-[0_16px_40px_rgba(0,0,0,0.35)] backdrop-blur-lg",
-                        step.image ? "border-white/15 bg-[#0e1512]/70 text-white" : "border-white/15 bg-[#1a1400]/75 text-white",
+                        step.image ? "border-white/15 bg-[#0e1512]/70 text-white" : "border-white/15 bg-on-sun/75 text-white",
                       )}
                       aria-hidden="true"
                     >
-                      <span className={cn("flex size-6 shrink-0 items-center justify-center rounded-[7px]", step.image ? "bg-[#22d66b]" : "bg-[#f5c518]")}>
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#04140a" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
+                      <span className={cn("flex size-6 shrink-0 items-center justify-center rounded-[7px]", step.image ? "bg-emerald" : "bg-sun")}>
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--color-on-emerald)" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
                           <path d="M5 12.5l4.5 4.5L19 7.5" />
                         </svg>
                       </span>
@@ -202,6 +211,36 @@ export default async function LandingPage({ searchParams }: PageProps<"/">) {
           </div>
         </section>
       </main>
+
+      <footer className="relative overflow-hidden border-t border-white/10 text-white">
+        <div className="mx-auto flex w-full max-w-6xl flex-col gap-10 px-4 pt-14 sm:px-8 md:flex-row md:justify-between">
+          <div className="flex max-w-xs flex-col gap-3">
+            <GlassLogo href="/" label="Jumper home" />
+            <p className="text-sm text-white/55">{text.footer.line}</p>
+          </div>
+          <nav aria-label={text.footer.label} className="grid grid-cols-2 gap-x-14 gap-y-8 text-sm">
+            <FooterList title={text.footer.account}>
+              <FooterLink href="/login">{text.logIn}</FooterLink>
+              <FooterLink href="/signup">{text.signUp}</FooterLink>
+              <FooterLink href="/start">{text.getStarted}</FooterLink>
+            </FooterList>
+            <FooterList title={text.nav.projects}>
+              {courses.map((course) => (
+                <FooterLink key={course.slug} href={course.available ? `/start?build=${course.slug}` : "#projects"}>
+                  {course.name}
+                </FooterLink>
+              ))}
+            </FooterList>
+          </nav>
+        </div>
+        {/* The name of the app, very large, as a line drawing (after the footer of money.x.com). */}
+        <p
+          className="mt-4 pb-6 text-center text-[clamp(5rem,24vw,20rem)] leading-[1.2] font-bold tracking-tight text-transparent select-none [-webkit-text-stroke:1px_rgba(255,255,255,0.22)]"
+          aria-hidden="true"
+        >
+          jumper
+        </p>
+      </footer>
     </>
   );
 }
@@ -213,7 +252,7 @@ function PathButton({ href, title, primary = false }: { href: string; title: str
       href={href}
       className={cn(
         "flex min-h-11 w-full items-center justify-center gap-2 rounded-full px-5 text-[15px] font-semibold transition-colors sm:w-auto",
-        primary ? "bg-[#22d66b] text-[#04140a] hover:bg-[#3be07f]" : "border border-white/15 text-white hover:bg-white/5",
+        primary ? "bg-emerald text-on-emerald hover:bg-[#3be07f]" : "border border-white/15 text-white hover:bg-white/5",
       )}
     >
       {title}
@@ -222,10 +261,37 @@ function PathButton({ href, title, primary = false }: { href: string; title: str
   );
 }
 
+// The small name above the heading of a section.
+function Eyebrow({ children }: { children: ReactNode }) {
+  return (
+    <p className="mb-4 flex items-center gap-2 text-sm font-semibold text-white/55">
+      <span className="size-1.5 rounded-full bg-emerald" aria-hidden="true" />
+      {children}
+    </p>
+  );
+}
+
+function FooterList({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <div className="flex flex-col gap-1">
+      <p className="mb-1 font-semibold text-white/55">{title}</p>
+      {children}
+    </div>
+  );
+}
+
+function FooterLink({ href, children }: { href: string; children: ReactNode }) {
+  return (
+    <Link href={href} className="min-h-9 content-center text-white/80 underline-offset-4 hover:text-white hover:underline">
+      {children}
+    </Link>
+  );
+}
+
 function Tick() {
   return (
-    <span className="flex size-4.5 shrink-0 items-center justify-center rounded-[5px] bg-[#22d66b]" aria-hidden="true">
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#04140a" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
+    <span className="flex size-4.5 shrink-0 items-center justify-center rounded-[5px] bg-emerald" aria-hidden="true">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--color-on-emerald)" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
         <path d="M5 12.5l4.5 4.5L19 7.5" />
       </svg>
     </span>

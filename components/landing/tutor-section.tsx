@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 type Mode = "wiring" | "code";
 const t = text.tutor;
 
-const CHIP = ["bg-[#22d66b] text-[#04140a]", "bg-[#f5c518] text-[#1a1400]", "bg-[#123d24] text-[#22d66b]", "bg-white/10 text-white/80"];
+const CHIP = ["bg-emerald text-on-emerald", "bg-sun text-on-sun", "bg-[#123d24] text-emerald", "bg-white/10 text-white/80"];
 
 export function TutorSection() {
   const [mode, setMode] = useState<Mode>("wiring");
@@ -20,7 +20,7 @@ export function TutorSection() {
     <div className="flex flex-col gap-10">
       <div className="flex flex-col items-center gap-4 text-center">
         <h2 className="text-4xl leading-[1.02] font-bold tracking-tight text-balance sm:text-5xl">
-          {t.title_start} <span className="text-[#22d66b]">{t.title_end}</span>
+          {t.title_start} <span className="text-emerald">{t.title_end}</span>
         </h2>
         <p className="max-w-xl text-lg text-white/65">{t.body}</p>
         <div role="tablist" aria-label="Tutor" className="inline-flex gap-1 rounded-full border border-white/10 bg-night-2 p-1">
@@ -34,7 +34,7 @@ export function TutorSection() {
               onClick={() => setMode(m)}
               className={cn(
                 "min-h-11 rounded-full px-6 text-[15px] font-semibold transition-colors",
-                mode === m ? "bg-[#22d66b] text-[#04140a]" : "text-white/80 hover:text-white",
+                mode === m ? "bg-emerald text-on-emerald" : "text-white/80 hover:text-white",
               )}
             >
               {t.modes[m]}
@@ -111,8 +111,8 @@ function PathPreview() {
               style={{ left: `${(x / 340) * 100}%`, top: `${(y / 440) * 100}%` }}
               className={cn(
                 "absolute flex size-[22%] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-[22px] border-b-[7px]",
-                n < CURRENT && "border-[#15a352] bg-[#22d66b] text-[#04140a]",
-                n === CURRENT && "border-[#b8920c] bg-[#f5c518] text-[#1a1400] shadow-[0_0_0_6px_rgba(245,197,24,0.18),0_0_40px_rgba(245,197,24,0.45)]",
+                n < CURRENT && "border-emerald-deep bg-emerald text-on-emerald",
+                n === CURRENT && "border-[#b8920c] bg-sun text-on-sun shadow-[0_0_0_6px_rgba(245,197,24,0.18),0_0_40px_rgba(245,197,24,0.45)]",
                 n > CURRENT && "border border-b-[7px] border-[#2c3833] border-b-[#232d29] bg-[#161f1b] text-[#5b6862]",
               )}
             >
@@ -144,17 +144,17 @@ function CodePreview() {
   return (
     <div className="flex flex-col gap-3.5">
       <Header title={t.code.title}>
-        <span className="rounded-full bg-[#22d66b] px-4 py-2 text-sm font-bold text-[#04140a]">{t.code.run}</span>
+        <span className="rounded-full bg-emerald px-4 py-2 text-sm font-bold text-on-emerald">{t.code.run}</span>
       </Header>
       <pre className="overflow-x-auto rounded-2xl border border-white/10 bg-night p-4 font-mono text-sm leading-[1.9]">
         {t.code.lines.map((line, i) => (
-          <div key={line} className={cn(i === t.code.highlight && "-mx-2 rounded-lg bg-[#f5c518]/15 px-2 shadow-[inset_3px_0_0_#f5c518]")}>
+          <div key={line} className={cn(i === t.code.highlight && "-mx-2 rounded-lg bg-sun/15 px-2 shadow-[inset_3px_0_0_#f5c518]")}>
             {line}
           </div>
         ))}
       </pre>
       <div className="flex items-end gap-2.5">
-        <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-[#f5c518] font-extrabold text-[#1a1400]" aria-hidden="true">
+        <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-sun font-extrabold text-on-sun" aria-hidden="true">
           V
         </span>
         <p className="rounded-2xl rounded-bl-sm border border-white/10 bg-white/5 px-3.5 py-3 text-[15px]">{t.code.explain}</p>
