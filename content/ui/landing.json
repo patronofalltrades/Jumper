@@ -32,9 +32,20 @@
   "logIn": "Log in",
   "board": {
     "project": "perch",
-    "label": "Perch, wired on the 3D breadboard. Drag to turn the board.",
+    "label": "The 3D breadboard of Perch. Two holes glow: connect them to make the first wire. Drag to turn the board.",
     "start": "Perch, wired on the 3D breadboard. Select the board to start.",
-    "hint": "Drag to turn the board. Point at a hole to see its connections."
+    "arm": "Try it: make the first wire on the board",
+    "hints": {
+      "arm": "Your turn. Tap the board, then connect the two glowing holes.",
+      "try": "Your turn. Give the board power: tap the two glowing holes.",
+      "next": "Now tap the other glowing hole.",
+      "wrong": "Not there. Connect the two glowing holes.",
+      "build_made": "Nice! Now watch Perch come alive.",
+      "build_auto": "Watch Perch come alive.",
+      "done_made": "That is how you build in Jumper. Drag to turn the board.",
+      "done_auto": "This is Perch. Drag to turn the board.",
+      "watch": "This is Perch, wired on the 3D breadboard."
+    }
   },
   "band": {
     "label": "Volt, Bulb, Knob and Coil, the four Jumper mascots, in 3D. Each mascot helps you in one project."

@@ -5,7 +5,10 @@ import boardsFile from "@/content/boards/perch.json";
 import text from "@/content/ui/landing.json";
 import { boardsSchema } from "@/lib/content/schema";
 import { loadProjects } from "@/lib/content/load";
-import { HOLD_TICKS, landingParts, REVEAL_TICK_MS, revealMs, wiringOrder } from "@/lib/game/landing";
+import { perchBench } from "@/lib/circuit/bench";
+import { startProgress, step } from "@/lib/game/engine";
+import type { LegPart } from "@/lib/circuit/parts";
+import { firstWire, HOLD_TICKS, keptWire, landingParts, REVEAL_TICK_MS, revealMs, wiringOrder } from "@/lib/game/landing";
 
 const boards = boardsSchema.parse(boardsFile);
 const order = wiringOrder(boards);
@@ -56,6 +59,55 @@ describe("revealMs", () => {
     expect(revealMs([])).toBe(0);
     expect(revealMs(order)).toBe(order.length * REVEAL_TICK_MS);
     expect(revealMs(order)).toBeLessThan(5000);
+  });
+});
+
+describe("firstWire", () => {
+  const target = loadProjects()
+    .find((p) => p.slug === text.board.project)!
+    .levels[0].tasks.find((task) => task.kind === "wire")!.target;
+  const first = firstWire(order, target)!;
+  const bench = perchBench();
+  const task = { ...startProgress(), phase: "task" as const };
+
+  it("gives the first wire of the board to the visitor", () => {
+    expect(first.wire).toEqual(order[0]);
+    expect(first.rest).toEqual(order.slice(1));
+    expect(first.plan.tasks).toHaveLength(1);
+    expect(firstWire(order.slice(4), target)).toBeNull();
+    expect(firstWire(order, undefined)).toBeNull();
+    expect(firstWire([], target)).toBeNull();
+  });
+
+  it("is done when the visitor makes that wire", () => {
+    const { progress, effect } = step(bench, first.plan, task, { type: "change", before: [], after: [first.wire] });
+    expect(effect).toBe("snap");
+    expect(progress.tasksDone).toBe(1);
+    expect(progress.phase).toBe("ready_to_check");
+  });
+
+  it("is a mistake when the visitor makes a different wire", () => {
+    const wrong = { ...first.wire, id: "wrong", a: "A-a30", b: "B-j30" };
+    const { progress, effect } = step(bench, first.plan, task, { type: "change", before: [], after: [wrong] });
+    expect(effect).toBe("buzz");
+    expect(progress.phase).toBe("mistake");
+    expect(progress.tasksDone).toBe(0);
+  });
+});
+
+describe("keptWire", () => {
+  const wire = order[0] as LegPart;
+  const rest = order.slice(1);
+
+  it("keeps the wire of the visitor when its holes are free on the finished board", () => {
+    const made = { ...wire, id: "v1", b: "A-L+2" };
+    expect(keptWire(made, wire, rest)).toBe(made);
+  });
+
+  it("uses the wire of the project when a later part needs a hole, or when the visitor made no wire", () => {
+    const later = rest.find((p) => p.type === "wire") as LegPart;
+    expect(keptWire({ ...wire, id: "v1", b: later.a }, wire, rest)).toBe(wire);
+    expect(keptWire(undefined, wire, rest)).toBe(wire);
   });
 });
 

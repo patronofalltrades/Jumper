@@ -28,6 +28,8 @@ export default async function LandingPage({ searchParams }: PageProps<"/">) {
   const projects = loadProjects();
   // The hero board: all the parts of Perch, in the order that a learner puts them.
   const order = wiringOrder(await loadBoards(text.board.project));
+  // The visitor makes the first wire of the board: the first wire task of the project.
+  const firstTarget = projects.find((p) => p.slug === text.board.project)?.levels[0]?.tasks.find((task) => task.kind === "wire")?.target;
   // The words of the headline come in one after the other.
   const words = (line: string, accent: boolean) => line.split(" ").map((w) => ({ text: w, accent }));
   const headline = [...words(text.pitch.title_start, false), ...words(text.pitch.title_end, true)];
@@ -74,7 +76,7 @@ export default async function LandingPage({ searchParams }: PageProps<"/">) {
           <noscript>
             <style>{".hero-after { opacity: 1 !important; }"}</style>
           </noscript>
-          <HeroReveal order={order}>
+          <HeroReveal order={order} target={firstTarget}>
             <p className="max-w-md text-[15px] text-white/55">{text.pitch.body}</p>
             <div className="flex w-full flex-col items-center justify-center gap-2.5 sm:w-auto sm:flex-row">
               <PathButton href="/start" title={text.pitch.new.title} primary />

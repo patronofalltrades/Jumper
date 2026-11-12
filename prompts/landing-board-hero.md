@@ -104,3 +104,19 @@
 
    The scope for build mode with no account is in the chat, not in this branch.
 
+11. Hanif's prompt (his words): "I think we should just avoid logging in and just have the prospective users try the mechanism on the home page"
+
+   Hanif's decision: no build mode for guests on a different page, and no anonymous accounts. The visitor tries the mechanism on the home page, with no login.
+
+   Claude's steps
+
+   - `lib/game/landing.ts`: `firstWire` gives the one task (the first wire task of Perch: 3V3 to the + rail) to the task engine of build mode. `keptWire` keeps the wire of the visitor on the finished board, if its holes are free. Tests in `tests/landing.test.ts`, with the real engine.
+   - `components/landing/landing-board.tsx`: the board comes in with no parts, and the two holes glow. The visitor makes the wire with two taps. A correct wire snaps in, and then the other parts go in. A wrong wire flashes red and goes away after 0.9 seconds. If the visitor makes no wire in 8 seconds, the board makes it. A hint below the board tells each step.
+   - On a touch screen, a button covers the board until the visitor taps it, so a finger can move the page.
+   - Nothing is saved, and no table is read or written.
+
+   What Claude tried first, and why it changed: the visitor made the last wire of the finished board. In the browser, the two ends were below many other wires and hard to tap. The first wire is on an empty board, and the holes are easy to see.
+
+   Checks in Chromium on the dev server: the right wire (a tap on the rail, then on a hole or on the 3V3 pin) ends with "That is how you build in Jumper"; a wrong wire shows "Not there" and goes away; with no tap, the board builds after 8 seconds; with reduced motion, the parts go in at the same time; on a phone, a tap on the board changes the hint to "Your turn".
+   Not checked: a tap on a hole with a real finger on a real phone.
+
