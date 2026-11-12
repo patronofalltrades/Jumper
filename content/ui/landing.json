@@ -32,7 +32,9 @@
   "logIn": "Log in",
   "board": {
     "project": "perch",
-    "label": "Perch, wired on the 3D breadboard. Select the board to start."
+    "label": "Perch, wired on the 3D breadboard. Drag to turn the board.",
+    "start": "Perch, wired on the 3D breadboard. Select the board to start.",
+    "hint": "Drag to turn the board. Point at a hole to see its connections."
   },
   "band": {
     "label": "Volt, Bulb, Knob and Coil, the four Jumper mascots, in 3D. Each mascot helps you in one project."

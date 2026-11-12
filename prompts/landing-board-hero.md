@@ -78,3 +78,21 @@
    - With no JavaScript, a `<noscript>` rule in `app/page.tsx` shows them, and the links work.
    - Checks in Chromium on the dev server: the buttons show after the last part; with reduced motion they show at once; with JavaScript off they show and a click on the first button opens `/start`.
 
+9. Hanif's prompt (his words): "I think we can also make the board responsive and interactive on the main page? that would be so fun"
+
+   Hanif's decision: the hero board is not passive. The visitor can use it.
+
+   Claude's steps
+
+   - `components/landing/landing-board.tsx`: with a mouse, no link covers the board. The visitor drags to turn it, and a hole or a pin under the pointer shows all that it connects to. This is the read-only mode of the snapshot page. A short hint below the board tells the visitor.
+   - `components/scene/build-scene.tsx`: new `zoom` property. On the landing page it is false, so the wheel moves the page, not the camera.
+   - The board uses the shared board store, as the snapshot page does, because the scene writes the hole under the pointer to that store.
+   - The board does not turn to follow the pointer now: the visitor turns it.
+   - On a touch screen the link stays, so a finger moves the page, and a tap opens `/start`.
+   - Checks in Chromium on the dev server: a drag turns the board, a hole under the pointer changes the picture, the wheel over the board moves the page, and a phone has the link.
+
+   Decisions made by Claude
+
+   - The visitor cannot put parts on the board. That needs build mode with no account, which is a larger feature.
+   - A touch screen stays passive.
+
