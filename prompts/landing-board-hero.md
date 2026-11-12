@@ -96,3 +96,11 @@
    - The visitor cannot put parts on the board. That needs build mode with no account, which is a larger feature.
    - A touch screen stays passive.
 
+10. Hanif's prompt (his words): "send me a recording of the interactive board. Also scope the work for the larger feature so build mode is possible"
+
+   A problem that Claude found in the first recording: when the visitor turned the board far, the edges of the small hero frame cut the board.
+
+   The repair: on the landing page the board turns 40 degrees to each side at most, and it does not go to the view from the top. Build mode and the snapshot page have no limit.
+
+   The scope for build mode with no account is in the chat, not in this branch.
+
