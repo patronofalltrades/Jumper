@@ -44,3 +44,25 @@ export function keptWire(made: Part | undefined, wire: LegPart, rest: Part[]): P
   const used = new Set(rest.flatMap((p) => ("a" in p ? [p.a, p.b] : [])));
   return used.has(made.a) || used.has(made.b) ? wire : made;
 }
+
+/**
+ * The parts on the hero board at a scroll position (issue #173). `progress` is 0 at the top of the hero and 1 at its
+ * end. The board has `start` parts before the visitor scrolls, and all `total` parts at the end.
+ */
+export function scrollCount(progress: number, start: number, total: number): number {
+  const p = Math.min(Math.max(progress, 0), 1);
+  return Math.min(start, total) + Math.round(p * Math.max(total - start, 0));
+}
+
+/**
+ * The level that the board is on: the index, in `sizes`, of the level of its last part. `sizes` has the number of
+ * parts of each level, in order. A board with no parts is on the first level.
+ */
+export function levelAt(count: number, sizes: number[]): number {
+  let end = 0;
+  for (const [i, size] of sizes.entries()) {
+    end += size;
+    if (count <= end) return i;
+  }
+  return Math.max(sizes.length - 1, 0);
+}
