@@ -65,3 +65,16 @@
    - The still picture is gone: a finished board before an empty board does not agree with the reveal.
    - Checks: `npm run typecheck`, `npx eslint app components/landing lib/game/landing.ts` and `npm test` pass. A sheet of 9 screenshots from the dev server shows the sequence.
 
+8. Hanif's prompt (his words): "tie the buttons to the end of the wiring"
+
+   Hanif's decision: the text and the two buttons of the hero come in when the last part is on the board, not on a timer.
+
+   Claude notes: Hanif saw a recording in which the buttons showed before the board was finished. The cause: the buttons used a CSS timer from the page load, and the board starts only after the 3D code loads.
+
+   Claude's steps
+
+   - `components/landing/landing-board.tsx`: new `HeroReveal`. The board tells it when the last part is in, and then the text and the buttons come in. With reduced motion, or with the recorded clip, they show at once.
+   - If the board does not finish, they show 5 seconds after the time that the board needs.
+   - With no JavaScript, a `<noscript>` rule in `app/page.tsx` shows them, and the links work.
+   - Checks in Chromium on the dev server: the buttons show after the last part; with reduced motion they show at once; with JavaScript off they show and a click on the first button opens `/start`.
+

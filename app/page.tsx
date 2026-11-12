@@ -8,7 +8,7 @@ import { Backdrop } from "@/components/backdrop";
 import { CourseTabs, type CourseTab } from "@/components/landing/course-tabs";
 import type { CardText } from "@/components/landing/hero-cards";
 import { HeroTrack } from "@/components/landing/hero-track";
-import { LandingBoard } from "@/components/landing/landing-board";
+import { HeroReveal } from "@/components/landing/landing-board";
 import { GlassLogo } from "@/components/logo";
 import { TutorSection } from "@/components/landing/tutor-section";
 import { GlassmorphismNavBar } from "@/components/ui/glassmorphism-navigation";
@@ -16,7 +16,7 @@ import { GLASS, PRIMARY } from "@/components/ui/surfaces";
 import text from "@/content/ui/landing.json";
 import { loadBoards } from "@/lib/content/boards";
 import { loadProjects } from "@/lib/content/load";
-import { revealMs, wiringOrder } from "@/lib/game/landing";
+import { wiringOrder } from "@/lib/game/landing";
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = { title: text.meta.title, description: text.meta.description };
@@ -62,7 +62,7 @@ export default async function LandingPage({ searchParams }: PageProps<"/">) {
         <Suspense>{searchParams.then(({ deleted }) => deleted === "1" && <DeletedNotice />)}</Suspense>
 
         {/* The hero (issue #171), after the money.x.com hero: a short headline, one object that shows itself one time,
-            then the text and the buttons. The words and the buttons come in with CSS, so they show with no JavaScript. */}
+            then the text and the buttons, which come in when the board is finished (HeroReveal). */}
         <section className="mx-auto flex min-h-[calc(100svh-5rem)] w-full max-w-6xl flex-col items-center justify-center px-4 pt-8 pb-16 text-center sm:px-8">
           <h1 className="max-w-2xl text-4xl leading-[1.08] font-bold tracking-tight text-balance sm:text-5xl">
             {headline.map((word, i) => (
@@ -71,16 +71,16 @@ export default async function LandingPage({ searchParams }: PageProps<"/">) {
               </span>
             ))}
           </h1>
-          <div className="mt-8 h-[15rem] w-full max-w-[46rem] sm:mt-10 sm:h-[23rem]">
-            <LandingBoard order={order} />
-          </div>
-          <div className="rise-in mt-8 flex flex-col items-center gap-5" style={{ animationDelay: `${revealMs(order) + 600}ms` }}>
+          <noscript>
+            <style>{".hero-after { opacity: 1 !important; }"}</style>
+          </noscript>
+          <HeroReveal order={order}>
             <p className="max-w-md text-[15px] text-white/55">{text.pitch.body}</p>
             <div className="flex w-full flex-col items-center justify-center gap-2.5 sm:w-auto sm:flex-row">
               <PathButton href="/start" title={text.pitch.new.title} primary />
               <PathButton href="/start?build=perch" title={text.pitch.wired.title} />
             </div>
-          </div>
+          </HeroReveal>
         </section>
 
         {/* The task-card track: a learner's tasks, one after the other (after the brilliant.org hero). */}

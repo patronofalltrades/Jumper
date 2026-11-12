@@ -3,13 +3,14 @@
 import dynamic from "next/dynamic";
 import { motion, useMotionValue, useSpring } from "framer-motion";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import text from "@/content/ui/landing.json";
 import type { Part } from "@/lib/circuit/parts";
 import { introVideo, videoSrc } from "@/lib/content/videos";
 import { deviceKind, hasWebGL, prefersVideo } from "@/lib/device";
 import { BoardContext, createBoardStore } from "@/lib/game/board-store";
-import { landingParts, REVEAL_TICK_MS } from "@/lib/game/landing";
+import { landingParts, REVEAL_TICK_MS, revealMs } from "@/lib/game/landing";
+import { cn } from "@/lib/utils";
 
 // The hero of the landing page (issue #171), after the hero of money.x.com: one object in the middle of the page
 // that shows itself one time. The empty 3D bench of Perch comes in, then its parts go in one after the other, quickly.
@@ -25,12 +26,41 @@ type Mode = "wait" | "3d" | { video: string };
 const TILT = 5;
 const SPRING = { stiffness: 60, damping: 16 };
 
+/** If the 3D board does not finish (a slow network, an error), the text and the buttons show after this time. */
+const LATE_MS = 5000;
+
+/**
+ * The board, and below it the text and the buttons of the hero (`children`). They come in when the last part is on
+ * the board, not before. With no JavaScript, a <noscript> rule in the page shows them.
+ */
+export function HeroReveal({ order, children }: { order: Part[]; children: ReactNode }) {
+  const [done, setDone] = useState(false);
+  // The links take no click and no focus while they do not show. The server sends them active, for a visitor with no JavaScript.
+  const [hidden, setHidden] = useState(false);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- only the browser hides the links
+    setHidden(true);
+    const late = setTimeout(() => setDone(true), revealMs(order) + LATE_MS);
+    return () => clearTimeout(late);
+  }, [order]);
+  return (
+    <>
+      <div className="mt-8 h-[15rem] w-full max-w-[46rem] sm:mt-10 sm:h-[23rem]">
+        <LandingBoard order={order} onDone={() => setDone(true)} />
+      </div>
+      <div className={cn("hero-after mt-8 flex flex-col items-center gap-5", done ? "rise-in" : "opacity-0")} inert={hidden && !done}>
+        {children}
+      </div>
+    </>
+  );
+}
+
 /**
  * The visitor cannot wire on the board: a link covers it, and a click or a tap on it opens the onboarding. The link
  * also keeps the wheel and the finger for the page scroll. The board has its own store, so it never changes the board
  * of a learner. With reduced motion, the board is finished and does not move.
  */
-export function LandingBoard({ order }: { order: Part[] }) {
+function LandingBoard({ order, onDone }: { order: Part[]; onDone: () => void }) {
   const store = useMemo(() => createBoardStore(), []);
   const [mode, setMode] = useState<Mode>("wait");
   const [reduced, setReduced] = useState(false);
@@ -49,16 +79,21 @@ export function LandingBoard({ order }: { order: Part[] }) {
 
   // The parts go in one time. The timer stops at the finished board.
   useEffect(() => {
-    if (mode !== "3d") return;
+    if (mode === "wait") return;
+    // The recorded clip has no end to wait for.
+    if (mode !== "3d") return onDone();
     let tick = 0;
     store.getState().open("landing", { readOnly: true });
     store.setState({ parts: landingParts(order, tick, reduced) });
-    if (reduced) return;
+    if (reduced) return onDone();
     const timer = setInterval(() => {
       store.setState({ parts: landingParts(order, ++tick, false) });
-      if (tick >= order.length) clearInterval(timer);
+      if (tick < order.length) return;
+      clearInterval(timer);
+      onDone();
     }, REVEAL_TICK_MS);
     return () => clearInterval(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- `onDone` is new on each render; it only sets a state
   }, [mode, order, store, reduced]);
 
   // The board follows a mouse, not a finger: a finger moves the page.
