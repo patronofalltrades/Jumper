@@ -12,7 +12,7 @@ const BandScene = dynamic(() => import("@/components/mascots-3d/stage"), { ssr: 
 export function MascotBand() {
   return (
     <div role="img" aria-label={text.band.label} className="relative h-full w-full">
-      <div className="absolute inset-x-[10%] bottom-[12%] h-1/2 rounded-full bg-[#22d66b] opacity-20 blur-[80px]" aria-hidden="true" />
+      <div className="absolute inset-x-[10%] bottom-[12%] h-1/2 rounded-full bg-emerald opacity-20 blur-[80px]" aria-hidden="true" />
       <BandScene />
     </div>
   );

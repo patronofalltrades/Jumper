@@ -68,7 +68,7 @@ export function HeroReveal({ children, ...board }: Props & { children: ReactNode
         <LandingBoard {...board} onStage={setStage} />
       </div>
       <div className={cn("hero-after mt-6 flex flex-col items-center gap-5", shown ? "rise-in" : "opacity-0")} inert={hidden && !shown}>
-        <p role="status" className={cn("min-h-5 text-sm font-medium", good ? "text-[#22d66b]" : stage === "wrong" ? "text-[#ff8a7a]" : "text-white/60")}>
+        <p role="status" className={cn("min-h-5 text-sm font-medium", good ? "text-emerald" : stage === "wrong" ? "text-[#ff8a7a]" : "text-white/60")}>
           {stage === "load" ? "" : text.board.hints[stage]}
         </p>
         {children}
@@ -182,7 +182,7 @@ function LandingBoard({ order, target, onStage }: Props & { onStage: (stage: Sta
 
   return (
     <div className="relative h-full w-full">
-      <div className="pointer-events-none absolute inset-x-[12%] bottom-[4%] h-1/2 rounded-full bg-[#22d66b] opacity-20 blur-[90px]" aria-hidden="true" />
+      <div className="pointer-events-none absolute inset-x-[12%] bottom-[4%] h-1/2 rounded-full bg-emerald opacity-20 blur-[90px]" aria-hidden="true" />
       {mode !== "wait" && (
         <motion.div
           className={cn("absolute inset-0", armed && "cursor-grab active:cursor-grabbing")}
