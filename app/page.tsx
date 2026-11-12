@@ -1,4 +1,4 @@
-import { ArrowRight, BookOpen, Cpu, Home, Zap } from "lucide-react";
+import { ArrowRight, BookOpen, Cpu, Home } from "lucide-react";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
@@ -8,22 +8,31 @@ import { Backdrop } from "@/components/backdrop";
 import { CourseTabs, type CourseTab } from "@/components/landing/course-tabs";
 import type { CardText } from "@/components/landing/hero-cards";
 import { HeroTrack } from "@/components/landing/hero-track";
-import { MascotBand } from "@/components/landing/mascot-band";
+import { HeroReveal } from "@/components/landing/landing-board";
 import { GlassLogo } from "@/components/logo";
 import { TutorSection } from "@/components/landing/tutor-section";
 import { GlassmorphismNavBar } from "@/components/ui/glassmorphism-navigation";
 import { GLASS, PRIMARY } from "@/components/ui/surfaces";
 import text from "@/content/ui/landing.json";
+import { loadBoards } from "@/lib/content/boards";
 import { loadProjects } from "@/lib/content/load";
+import { wiringOrder } from "@/lib/game/landing";
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = { title: text.meta.title, description: text.meta.description };
 
 // The landing page for visitors who are not logged in (issue #46). The proxy sends a logged-in user to the lobby.
-// Layout from the duolingo.com home page (issue #152). The catalog comes from content/projects/, not the database.
+// Layout from the duolingo.com home page (issue #152), with the 3D breadboard as the hero (issue #171).
+// The catalog comes from content/projects/, not the database.
 export default async function LandingPage({ searchParams }: PageProps<"/">) {
   const projects = loadProjects();
-  const available = projects.filter((p) => p.status === "available");
+  // The hero board: all the parts of Perch, in the order that a learner puts them.
+  const order = wiringOrder(await loadBoards(text.board.project));
+  // The visitor makes the first wire of the board: the first wire task of the project.
+  const firstTarget = projects.find((p) => p.slug === text.board.project)?.levels[0]?.tasks.find((task) => task.kind === "wire")?.target;
+  // The words of the headline come in one after the other.
+  const words = (line: string, accent: boolean) => line.split(" ").map((w) => ({ text: w, accent }));
+  const headline = [...words(text.pitch.title_start, false), ...words(text.pitch.title_end, true)];
   const courses: CourseTab[] = text.courses.show.flatMap((slug) => {
     const p = projects.find((project) => project.slug === slug);
     if (!p) return [];
@@ -54,31 +63,30 @@ export default async function LandingPage({ searchParams }: PageProps<"/">) {
       <main id="top" className="flex w-full flex-1 flex-col text-white">
         <Suspense>{searchParams.then(({ deleted }) => deleted === "1" && <DeletedNotice />)}</Suspense>
 
-        <section className="mx-auto grid w-full max-w-6xl items-center gap-6 px-4 pt-8 pb-16 sm:px-8 sm:pt-14 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] lg:gap-10">
-          <div className={cn(GLASS, "h-[22rem] overflow-hidden sm:h-[32rem]")}>
-            <MascotBand />
-          </div>
-          <div className={cn(GLASS, "flex flex-col items-center gap-6 px-6 py-8 text-center sm:px-10 sm:py-10")}>
-            <span className="rounded-full bg-[#22d66b] px-3.5 py-1.5 text-sm font-semibold text-[#04140a]">{text.pitch.badge}</span>
-            <h1 className="text-4xl leading-[1.05] font-bold tracking-tight text-balance sm:text-5xl">
-              {text.pitch.title_start} <span className="text-[#22d66b]">{text.pitch.title_end}</span>
-            </h1>
-            <p className="text-lg text-white/65">{text.pitch.body}</p>
-            <div className="flex w-full max-w-sm flex-col gap-3">
-              <PathButton href="/start" title={text.pitch.new.title} body={text.pitch.new.body} primary />
-              <PathButton href="/start?build=perch" title={text.pitch.wired.title} body={text.pitch.wired.body} />
-              <Link href="/login" className="min-h-11 content-center font-medium text-white/80 underline-offset-4 hover:underline">
-                {text.haveAccount}
-              </Link>
+        {/* The hero (issue #171), after the money.x.com hero: a short headline, one object that shows itself one time,
+            then the text and the buttons, which come in when the board is finished (HeroReveal). */}
+        <section className="mx-auto flex min-h-[calc(100svh-5rem)] w-full max-w-6xl flex-col items-center justify-center px-4 pt-8 pb-16 text-center sm:px-8">
+          <h1 className="max-w-2xl text-4xl leading-[1.08] font-bold tracking-tight text-balance sm:text-5xl">
+            {headline.map((word, i) => (
+              <span key={i} className={cn("rise-in inline-block whitespace-pre", word.accent && "text-[#22d66b]")} style={{ animationDelay: `${i * 70}ms` }}>
+                {word.text}{" "}
+              </span>
+            ))}
+          </h1>
+          <noscript>
+            <style>{".hero-after { opacity: 1 !important; }"}</style>
+          </noscript>
+          <HeroReveal order={order} target={firstTarget}>
+            <p className="max-w-md text-[15px] text-white/55">{text.pitch.body}</p>
+            <div className="flex w-full flex-col items-center justify-center gap-2.5 sm:w-auto sm:flex-row">
+              <PathButton href="/start" title={text.pitch.new.title} primary />
+              <PathButton href="/start?build=perch" title={text.pitch.wired.title} />
             </div>
-            <p className="text-[13px] text-white/55">
-              {text.pitch.facts.replace("{available}", String(available.length)).replace("{soon}", String(projects.length - available.length))}
-            </p>
-          </div>
+          </HeroReveal>
         </section>
 
         {/* The task-card track: a learner's tasks, one after the other (after the brilliant.org hero). */}
-        <div className="mx-auto -mt-6 w-full max-w-6xl px-4 pb-12 sm:px-8 sm:pb-16">
+        <div className="mx-auto w-full max-w-6xl px-4 pb-12 sm:px-8 sm:pb-16">
           <div className={cn(GLASS, "overflow-hidden")}>
             <HeroTrack cards={text.hero.cards as CardText[]} check={text.hero.check} code={text.hero.code} />
           </div>
@@ -198,26 +206,18 @@ export default async function LandingPage({ searchParams }: PageProps<"/">) {
   );
 }
 
-// A big hero button that tells the visitor where it goes (after the "I'm a learner" buttons of brilliant.org).
-function PathButton({ href, title, body, primary = false }: { href: string; title: string; body: string; primary?: boolean }) {
+// A hero button that tells the visitor where it goes (after the "I'm a learner" buttons of brilliant.org).
+function PathButton({ href, title, primary = false }: { href: string; title: string; primary?: boolean }) {
   return (
     <Link
       href={href}
       className={cn(
-        "flex min-h-16 items-center gap-3.5 rounded-full py-2 pr-5 pl-2.5 text-left transition-[transform,border]",
-        primary
-          ? "border-b-4 border-[#15a352] bg-[#22d66b] text-[#04140a] shadow-[0_0_40px_rgba(34,214,107,0.35)] active:translate-y-0.5 active:border-b-2"
-          : "border border-white/15 bg-night text-white hover:bg-white/5",
+        "flex min-h-11 w-full items-center justify-center gap-2 rounded-full px-5 text-[15px] font-semibold transition-colors sm:w-auto",
+        primary ? "bg-[#22d66b] text-[#04140a] hover:bg-[#3be07f]" : "border border-white/15 text-white hover:bg-white/5",
       )}
     >
-      <span className={cn("flex size-11 shrink-0 items-center justify-center rounded-full", primary ? "bg-[#04140a] text-[#22d66b]" : "bg-[#f5c518] text-[#1a1400]")} aria-hidden="true">
-        {primary ? <Zap size={20} fill="currentColor" strokeWidth={0} /> : <Cpu size={20} strokeWidth={2.4} />}
-      </span>
-      <span className="flex flex-1 flex-col">
-        <strong className="text-[17px] font-bold">{title}</strong>
-        <span className={cn("text-[13px]", primary ? "opacity-75" : "text-white/60")}>{body}</span>
-      </span>
-      <ArrowRight size={20} strokeWidth={2.6} aria-hidden="true" />
+      {title}
+      <ArrowRight size={16} strokeWidth={2.6} aria-hidden="true" />
     </Link>
   );
 }

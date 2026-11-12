@@ -39,8 +39,12 @@ let pressedAt = 0;
 const isTap = (e: ThreeEvent<MouseEvent>) => e.delta < 6 && performance.now() - pressedAt < 600;
 const isTouchScreen = () => document.documentElement.dataset.touch === "true";
 
-/** The 3D bench. `children` go inside the canvas: the pop-up that hangs over the target pin. */
-export default function BuildScene({ children }: { children?: ReactNode }) {
+/**
+ * The 3D bench. `children` go inside the canvas: the pop-up that hangs over the target pin.
+ * `zoom` false: the wheel moves the page, not the camera, and the board turns only a part of a circle
+ * (the hero of the landing page, issue #171).
+ */
+export default function BuildScene({ children, zoom = true }: { children?: ReactNode; zoom?: boolean }) {
   // Without WebGL the canvas throws, and the whole page stops. Show a note in place of the board.
   const [webgl] = useState(() => hasWebGL());
   const bench = useBoard((s) => s.bench);
@@ -70,14 +74,14 @@ export default function BuildScene({ children }: { children?: ReactNode }) {
         shadow-camera-top={30}
         shadow-camera-bottom={-30}
       />
-      <CameraRig />
+      <CameraRig zoom={zoom} />
       <Bench />
       {children}
     </Canvas>
   );
 }
 
-function CameraRig() {
+function CameraRig({ zoom }: { zoom: boolean }) {
   const camera = useThree((s) => s.camera);
   const size = useThree((s) => s.size);
   const invalidate = useThree((s) => s.invalidate);
@@ -127,6 +131,12 @@ function CameraRig() {
       makeDefault
       target={target}
       enableDamping
+      enableZoom={zoom}
+      enablePan={zoom}
+      // With no zoom the board has a small frame (the hero), so it turns only as far as it stays in the frame.
+      minAzimuthAngle={zoom ? -Infinity : -0.7}
+      maxAzimuthAngle={zoom ? Infinity : 0.7}
+      minPolarAngle={zoom ? 0 : 0.6}
       minDistance={12}
       maxDistance={140}
       maxPolarAngle={Math.PI * 0.47}

@@ -396,7 +396,7 @@ The target is a smooth board on a mid-range phone. A level must become interacti
 - **Draw calls:** The holes are instanced, with one draw call for each breadboard. Parts share materials.
 - **Frame work:** The canvas draws only when a change occurs. The app calculates nets again only when a wire or a part changes. It does not calculate them on each frame.
 - **Pixel ratio:** The maximum is 2. On phones, it decreases to 1.5 if the frame rate is less than 50 frames per second.
-- **Load size:** Only the build-mode pages and snapshot pages load the 3D scene. Thus the lobby and the dashboard load quickly.
+- **Load size:** Only the build-mode pages and snapshot pages load the 3D scene. Thus the lobby and the dashboard load quickly. The landing page is an exception: its hero loads the 3D scene after the text and the buttons (issue #171).
 - **Phone layout:** The board fills the screen. The tools go into a toolbar at the bottom. Pop-ups become a sheet at the bottom. Buttons are a minimum of 44 px high.
 - **Fallback:** A flat top-down view uses the same scene without rotation. Use it on slow devices or if the user prefers it.
 
