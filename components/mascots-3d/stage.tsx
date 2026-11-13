@@ -137,13 +137,15 @@ function BandPoses({ selected, still, onChange }: { selected: number | null; sti
 }
 
 /** The hero band: Bulb, Volt, Knob and Coil drop onto the stage, cheer, then take turns. Point at one to make it cheer. */
-export default function BandScene() {
+export default function BandScene({ paused = false }: { paused?: boolean }) {
   const still = useStill();
   const { selected, handlers } = useSelect();
   const [poses, setPoses] = useState<Pose[]>(BAND.map(() => "idle"));
   const [ready, setReady] = useState(false);
   return (
     <Canvas
+      // Out of the screen, the scene draws no frames (issue #173).
+      frameloop={paused ? "never" : "always"}
       className={ready ? "opacity-100 transition-opacity duration-500" : "opacity-0"}
       dpr={[1, 2]} camera={{ fov: 30, near: 0.1, far: 200 }} gl={{ antialias: true, alpha: true, toneMappingExposure: 1.25 }}
     >

@@ -35,6 +35,7 @@
     "label": "The 3D breadboard of Perch. Two holes glow: connect them to make the first wire. Drag to turn the board.",
     "start": "Perch, wired on the 3D breadboard. Select the board to start.",
     "arm": "Try it: make the first wire on the board",
+    "level": "Level {number} · {title}",
     "hints": {
       "arm": "Your turn. Tap the board, then connect the two glowing holes.",
       "try": "Your turn. Give the board power: tap the two glowing holes.",
@@ -44,6 +45,9 @@
       "build_auto": "Watch Perch come alive.",
       "done_made": "That is how you build in Jumper. Drag to turn the board.",
       "done_auto": "This is Perch. Drag to turn the board.",
+      "scroll_made": "Nice! Now scroll to build the other levels of Perch.",
+      "scroll_auto": "Scroll to build Perch, level by level.",
+      "alive": "Perch is alive. That is how you build in Jumper.",
       "watch": "This is Perch, wired on the 3D breadboard."
     }
   },

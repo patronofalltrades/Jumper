@@ -8,7 +8,7 @@ import { Backdrop } from "@/components/backdrop";
 import { CourseTabs, type CourseTab } from "@/components/landing/course-tabs";
 import type { CardText } from "@/components/landing/hero-cards";
 import { HeroTrack } from "@/components/landing/hero-track";
-import { HeroReveal } from "@/components/landing/landing-board";
+import { HeroReveal, HeroRunway, type HeroLevel } from "@/components/landing/landing-board";
 import { MascotBand } from "@/components/landing/mascot-band";
 import { GlassLogo } from "@/components/logo";
 import { TutorSection } from "@/components/landing/tutor-section";
@@ -28,7 +28,10 @@ export const metadata: Metadata = { title: text.meta.title, description: text.me
 export default async function LandingPage({ searchParams }: PageProps<"/">) {
   const projects = loadProjects();
   // The hero board: all the parts of Perch, in the order that a learner puts them.
-  const order = wiringOrder(await loadBoards(text.board.project));
+  const boards = await loadBoards(text.board.project);
+  const order = wiringOrder(boards);
+  // The levels of the hero board: the scroll builds them one after the other.
+  const heroLevels: HeroLevel[] = (projects.find((p) => p.slug === text.board.project)?.levels ?? []).map((level, i) => ({ title: level.title, parts: boards.levels[i + 1]?.length ?? 0 }));
   // The visitor makes the first wire of the board: the first wire task of the project.
   const firstTarget = projects.find((p) => p.slug === text.board.project)?.levels[0]?.tasks.find((task) => task.kind === "wire")?.target;
   // The words of the headline come in one after the other.
@@ -70,26 +73,28 @@ export default async function LandingPage({ searchParams }: PageProps<"/">) {
         <Suspense>{searchParams.then(({ deleted }) => deleted === "1" && <DeletedNotice />)}</Suspense>
 
         {/* The hero (issue #171), after the money.x.com hero: a short headline, one object that shows itself one time,
-            then the text and the buttons, which come in when the board is finished (HeroReveal). */}
-        <section className="mx-auto flex min-h-[calc(100svh-5rem)] w-full max-w-6xl flex-col items-center justify-center px-4 pt-8 pb-16 text-center sm:px-8">
-          <h1 className="max-w-2xl text-4xl leading-[1.08] font-bold tracking-tight text-balance sm:text-5xl">
-            {headline.map((word, i) => (
-              <span key={i} className={cn("rise-in inline-block whitespace-pre", word.accent && "text-emerald")} style={{ animationDelay: `${i * 70}ms` }}>
-                {word.text}{" "}
-              </span>
-            ))}
-          </h1>
-          <noscript>
-            <style>{".hero-after { opacity: 1 !important; }"}</style>
-          </noscript>
-          <HeroReveal order={order} target={firstTarget}>
-            <p className="max-w-md text-[15px] text-white/55">{text.pitch.body}</p>
-            <div className="flex w-full flex-col items-center justify-center gap-2.5 sm:w-auto sm:flex-row">
-              <PathButton href="/start" title={text.pitch.new.title} primary />
-              <PathButton href="/start?build=perch" title={text.pitch.wired.title} />
-            </div>
-          </HeroReveal>
-        </section>
+            then the text and the buttons (HeroReveal). The hero stays in its place while the scroll builds the board (HeroRunway, issue #173). */}
+        <HeroRunway>
+          <section className="mx-auto flex min-h-[calc(100svh-5rem)] w-full max-w-6xl flex-col items-center justify-center px-4 pt-8 pb-16 text-center sm:px-8">
+            <h1 className="max-w-2xl text-4xl leading-[1.08] font-bold tracking-tight text-balance sm:text-5xl">
+              {headline.map((word, i) => (
+                <span key={i} className={cn("rise-in inline-block whitespace-pre", word.accent && "text-emerald")} style={{ animationDelay: `${i * 70}ms` }}>
+                  {word.text}{" "}
+                </span>
+              ))}
+            </h1>
+            <noscript>
+              <style>{".hero-after { opacity: 1 !important; }"}</style>
+            </noscript>
+            <HeroReveal order={order} target={firstTarget} levels={heroLevels}>
+              <p className="max-w-md text-[15px] text-white/55">{text.pitch.body}</p>
+              <div className="flex w-full flex-col items-center justify-center gap-2.5 sm:w-auto sm:flex-row">
+                <PathButton href="/start" title={text.pitch.new.title} primary />
+                <PathButton href="/start?build=perch" title={text.pitch.wired.title} />
+              </div>
+            </HeroReveal>
+          </section>
+        </HeroRunway>
 
         <section id="how" className="mx-auto w-full max-w-6xl scroll-mt-24 border-t border-white/10 px-4 py-20 sm:px-8 sm:py-24">
           <TutorSection />

@@ -8,7 +8,7 @@ import { loadProjects } from "@/lib/content/load";
 import { perchBench } from "@/lib/circuit/bench";
 import { startProgress, step } from "@/lib/game/engine";
 import type { LegPart } from "@/lib/circuit/parts";
-import { firstWire, HOLD_TICKS, keptWire, landingParts, REVEAL_TICK_MS, revealMs, wiringOrder } from "@/lib/game/landing";
+import { firstWire, HOLD_TICKS, keptWire, landingParts, levelAt, REVEAL_TICK_MS, revealMs, scrollCount, wiringOrder } from "@/lib/game/landing";
 
 const boards = boardsSchema.parse(boardsFile);
 const order = wiringOrder(boards);
@@ -108,6 +108,37 @@ describe("keptWire", () => {
     const later = rest.find((p) => p.type === "wire") as LegPart;
     expect(keptWire({ ...wire, id: "v1", b: later.a }, wire, rest)).toBe(wire);
     expect(keptWire(undefined, wire, rest)).toBe(wire);
+  });
+});
+
+describe("scrollCount", () => {
+  it("has the start parts at the top, all the parts at the end, and more parts as the visitor scrolls", () => {
+    expect(scrollCount(0, 4, 35)).toBe(4);
+    expect(scrollCount(1, 4, 35)).toBe(35);
+    expect(scrollCount(0.5, 4, 35)).toBe(20);
+    for (let p = 0; p < 1; p += 0.05) expect(scrollCount(p + 0.05, 4, 35)).toBeGreaterThanOrEqual(scrollCount(p, 4, 35));
+  });
+
+  it("stays in range for a scroll position below 0 or above 1", () => {
+    expect(scrollCount(-0.3, 4, 35)).toBe(4);
+    expect(scrollCount(1.7, 4, 35)).toBe(35);
+    expect(scrollCount(0.5, 40, 35)).toBe(35);
+  });
+});
+
+describe("levelAt", () => {
+  const sizes = Object.keys(boards.levels)
+    .map(Number)
+    .sort((a, b) => a - b)
+    .map((level) => boards.levels[level].length);
+
+  it("gives the level of the last part on the board", () => {
+    expect(levelAt(0, sizes)).toBe(0);
+    expect(levelAt(sizes[0], sizes)).toBe(0);
+    expect(levelAt(sizes[0] + 1, sizes)).toBe(1);
+    expect(levelAt(order.length, sizes)).toBe(sizes.length - 1);
+    expect(levelAt(order.length + 5, sizes)).toBe(sizes.length - 1);
+    expect(levelAt(3, [])).toBe(0);
   });
 });
 
