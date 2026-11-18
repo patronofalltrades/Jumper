@@ -1,5 +1,5 @@
 {
-  "_note": "Text for the onboarding flow (/start, issue #152), in ASD-STE100. The flow asks a few questions, then the visitor makes one practice wire before sign-up. The questions do not name projects. The answers stay in the browser; only the start project goes to the lobby, in a cookie. Each 'start' option has the slug of the project that it opens (content/projects/).",
+  "_note": "Text for the onboarding flow (/start, issue #152), in ASD-STE100. The flow asks a few questions, then the visitor makes one practice wire before sign-up. The questions do not name projects. The answers stay in the browser; only the start project goes to the lobby, in a cookie. Each 'start' option has the slug of the project that it opens (content/projects/), and 'levels': the 'level' answers that select it first. The practice wire uses the board of the start project (wire.boards).",
   "meta": { "title": "Get started · Jumper" },
   "back": "Back",
   "progress": "Setup progress",
@@ -49,20 +49,30 @@
     "start": {
       "volt": "Where do you want to start?",
       "options": [
-        { "value": "basics", "project": "arduino-foundations", "chip": "101", "label": "Learn the basics first", "sub": "Simple circuits, one step at a time" },
-        { "value": "device", "project": "perch", "chip": "DEV", "label": "Build a real device", "sub": "A full device, one part at a time" }
+        { "value": "basics", "project": "arduino-foundations", "chip": "101", "label": "Learn the basics first", "sub": "Simple circuits, one step at a time", "levels": ["new", "words"] },
+        { "value": "device", "project": "perch", "chip": "DEV", "label": "Build a real device", "sub": "A full device, one part at a time", "levels": ["breadboard", "code"] }
       ]
     }
   },
   "wire": {
     "eyebrow": "Your first wire",
-    "title": "Connect 3V3 to the + line",
-    "pins": ["3V3", "GND", "IO1", "IO2", "IO4"],
     "rail": "+ line",
     "hole": "The glowing hole on the + line",
-    "hint": "3V3 is already selected. Tap the glowing hole to finish the wire.",
     "done": "Nice! You made a wire.",
-    "why": "Now the whole + line has 3.3 V. Each part that you put on this line can use that power."
+    "boards": {
+      "arduino-foundations": {
+        "title": "Connect 5V to the + line",
+        "pins": ["5V", "GND", "D2", "D3", "D13"],
+        "hint": "5V is already selected. Tap the glowing hole to finish the wire.",
+        "why": "Now the whole + line has 5 V. Each part that you put on this line can use that power."
+      },
+      "perch": {
+        "title": "Connect 3V3 to the + line",
+        "pins": ["3V3", "GND", "IO1", "IO2", "IO4"],
+        "hint": "3V3 is already selected. Tap the glowing hole to finish the wire.",
+        "why": "Now the whole + line has 3.3 V. Each part that you put on this line can use that power."
+      }
+    }
   },
   "save": {
     "title": "Make a free account to keep going",

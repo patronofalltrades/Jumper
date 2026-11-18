@@ -3,7 +3,7 @@ import text from "@/content/ui/onboarding.json";
 import { isVisitorPage, needsLogin } from "@/lib/auth/rules";
 import { loadProjects } from "@/lib/content/load";
 import { pickFeatured } from "@/lib/game/featured";
-import { needsOnboarding, QUESTION_IDS, startAnswerFor, startCookie, startProject } from "@/lib/game/onboarding";
+import { needsOnboarding, QUESTION_IDS, startAnswerFor, startCookie, startProject, suggestedStart } from "@/lib/game/onboarding";
 
 const AVAILABLE = ["perch", "arduino-foundations"];
 
@@ -33,6 +33,19 @@ describe("startAnswerFor", () => {
     expect(startAnswerFor("arduino-foundations", START)).toBe("basics");
     expect(startAnswerFor("focus-timer", START)).toBeNull();
     expect(startAnswerFor(null, START)).toBeNull();
+  });
+});
+
+describe("suggestedStart", () => {
+  it("selects the basics for a new visitor, and a real device for a visitor who wired a board before", () => {
+    expect(suggestedStart("new", START)).toBe("basics");
+    expect(suggestedStart("words", START)).toBe("basics");
+    expect(suggestedStart("breadboard", START)).toBe("device");
+    expect(suggestedStart("code", START)).toBe("device");
+  });
+
+  it("selects nothing with no level answer", () => {
+    expect(suggestedStart(undefined, START)).toBeNull();
   });
 });
 
@@ -84,8 +97,21 @@ describe("/start", () => {
 describe("content/ui/onboarding.json", () => {
   it("has a question with options for each question id, and each start option opens an available project", () => {
     for (const id of QUESTION_IDS) expect(text.questions[id].options.length).toBeGreaterThan(1);
-    const available = loadProjects().filter((p) => p.status === "available").map((p) => p.slug);
+    const available = loadProjects()
+      .filter((p) => p.status === "available")
+      .map((p) => p.slug);
     for (const option of START) expect(available).toContain(option.project);
+  });
+
+  it("has a practice wire on the board of each start project, so the wire matches the next screen", () => {
+    const boards: Record<string, { pins: string[] }> = text.wire.boards;
+    for (const option of START) expect(boards[option.project]?.pins.length, option.project).toBeGreaterThan(1);
+    expect(boards["arduino-foundations"].pins[0]).toBe("5V");
+    expect(boards.perch.pins[0]).toBe("3V3");
+  });
+
+  it("selects a start answer for each level answer", () => {
+    for (const option of text.questions.level.options) expect(suggestedStart(option.value, START), option.value).not.toBeNull();
   });
 
   it("names no project and no board in the questions", () => {

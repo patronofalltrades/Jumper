@@ -2,10 +2,10 @@
 
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useId, useState } from "react";
 import { Volt } from "@/components/art/volt";
 import text from "@/content/ui/onboarding.json";
-import { QUESTION_IDS, startCookie, startProject, type Answers, type QuestionId } from "@/lib/game/onboarding";
+import { QUESTION_IDS, startCookie, startProject, suggestedStart, type Answers, type QuestionId } from "@/lib/game/onboarding";
 import { cn } from "@/lib/utils";
 
 // The onboarding before sign-up (issue #152), after the Duolingo onboarding: one question on each screen with a
@@ -22,6 +22,10 @@ const TARGET_HOLE = 2;
 /** The options of the "start" question: each one opens a project. */
 const START = text.questions.start.options;
 
+/** The practice wire for each start project, on that project's board. */
+type WireBoard = { title: string; pins: string[]; hint: string; why: string };
+const WIRE_BOARDS: Record<string, WireBoard> = text.wire.boards;
+
 export function OnboardingFlow({ available, names, initialStart }: { available: string[]; names: Record<string, string>; initialStart: string | null }) {
   const [answers, setAnswers] = useState<Answers>(initialStart ? { start: initialStart } : {});
   const [index, setIndex] = useState(0);
@@ -35,11 +39,18 @@ export function OnboardingFlow({ available, names, initialStart }: { available: 
       const slug = startProject(answers, START, available);
       if (slug) document.cookie = startCookie(slug);
     }
+    // Leaving the level question: select the start answer that fits, if the visitor did not pick one.
+    if (step.kind === "question" && step.id === "level" && !answers.start) {
+      const start = suggestedStart(answers.level, START);
+      if (start) setAnswers((a) => ({ ...a, start }));
+    }
     setIndex((i) => Math.min(i + 1, steps.length - 1));
   };
   const back = () => setIndex((i) => Math.max(i - 1, 0));
   const progress = Math.round((index / (steps.length - 1)) * 100);
-  const project = names[startProject(answers, START, available) ?? ""] ?? names[available[0]];
+  const slug = startProject(answers, START, available) ?? available[0];
+  const project = names[slug];
+  const board = WIRE_BOARDS[slug] ?? WIRE_BOARDS.perch;
 
   return (
     <div className="flex min-h-[calc(100dvh-2.25rem)] w-full flex-col sm:min-h-[40rem]">
@@ -76,7 +87,7 @@ export function OnboardingFlow({ available, names, initialStart }: { available: 
         />
       )}
 
-      {step.kind === "wire" && <Wire wired={wired} onWire={() => setWired(true)} onNext={next} />}
+      {step.kind === "wire" && <Wire board={board} wired={wired} onWire={() => setWired(true)} onNext={next} />}
 
       {step.kind === "save" && (
         <div className="flex flex-1 flex-col items-center justify-center gap-6 text-center">
@@ -120,6 +131,7 @@ function Question({
   onNext: () => void;
 }) {
   const q = text.questions[id];
+  const uid = useId();
   return (
     <div className="flex flex-1 flex-col">
       <div className="flex items-end gap-3 pt-2 pb-4">
@@ -130,12 +142,15 @@ function Question({
         {q.options.map((option) => {
           const soon = "project" in option && !available.includes(option.project);
           const selected = value === option.value;
+          const optionId = `${uid}-${option.value}`;
           return (
             <button
               key={option.value}
               type="button"
               role="radio"
               aria-checked={selected}
+              aria-labelledby={`${optionId}-label`}
+              aria-describedby={soon ? `${optionId}-sub ${optionId}-soon` : `${optionId}-sub`}
               disabled={soon}
               onClick={() => onPick(option.value)}
               className={cn(
@@ -155,10 +170,10 @@ function Question({
                 {option.chip}
               </span>
               <span className="flex flex-1 flex-col">
-                <strong className={cn("font-semibold", selected && "text-[#22d66b]")}>{option.label}</strong>
-                <span className="text-[13px] text-white/60">{option.sub}</span>
+                <strong id={`${optionId}-label`} className={cn("font-semibold", selected && "text-[#22d66b]")}>{option.label}</strong>
+                <span id={`${optionId}-sub`} className="text-[13px] text-white/60">{option.sub}</span>
               </span>
-              {soon && <span className="rounded-full border border-white/20 px-2 py-0.5 text-[11px] font-semibold">{text.soon}</span>}
+              {soon && <span id={`${optionId}-soon`} className="rounded-full border border-white/20 px-2 py-0.5 text-[11px] font-semibold">{text.soon}</span>}
             </button>
           );
         })}
@@ -172,9 +187,9 @@ function Question({
   );
 }
 
-// One practice wire on a flat drawing of the board: 3V3 is already selected, and the learner taps the glowing hole.
-function Wire({ wired, onWire, onNext }: { wired: boolean; onWire: () => void; onNext: () => void }) {
-  const w = text.wire;
+// One practice wire on a flat drawing of the start project's board: the power pin is already selected, and the learner taps the glowing hole.
+function Wire({ board, wired, onWire, onNext }: { board: WireBoard; wired: boolean; onWire: () => void; onNext: () => void }) {
+  const w = { ...text.wire, ...board };
   return (
     <div className="flex flex-1 flex-col gap-5 pt-2">
       <div>
