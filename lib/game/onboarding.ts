@@ -8,8 +8,8 @@ export type QuestionId = (typeof QUESTION_IDS)[number];
 
 export type Answers = Partial<Record<QuestionId, string>>;
 
-/** An option of the "start" question: its value, and the project that it opens. */
-export type StartOption = { value: string; project: string };
+/** An option of the "start" question: its value, the project that it opens, and the "level" answers that select it first. */
+export type StartOption = { value: string; project: string; levels?: string[] };
 
 export const START_COOKIE = "jumper_start";
 const ONE_YEAR = 60 * 60 * 24 * 365;
@@ -23,6 +23,11 @@ export function startProject(answers: Answers, options: StartOption[], available
 /** The "start" answer that opens a project, for a link such as /start?build=perch. Null when no option opens it. */
 export function startAnswerFor(slug: string | null, options: StartOption[]): string | null {
   return options.find((o) => o.project === slug)?.value ?? null;
+}
+
+/** The "start" answer that the "level" answer selects first (a new visitor gets the basics). Null when no option fits. */
+export function suggestedStart(level: string | undefined, options: StartOption[]): string | null {
+  return options.find((o) => level !== undefined && o.levels?.includes(level))?.value ?? null;
 }
 
 /** The cookie text that the browser sets after the questions. */
