@@ -6,7 +6,7 @@ Here is the best part: the parts are the real deal. The ESP32-S3-DevKitC-1 board
 
 Two projects are ready to play: **Perch** and **Arduino Foundations**. **Perch** is a cute desk device that gives an AI agent a home, complete with ears, a voice and a face. You bring Perch to life across 5 levels. In Arduino Foundations, you wire an Arduino Uno to a breadboard in 4 levels, and then you write the code for it. In every level, a friendly pop-up tells you exactly what to do, where to do it, and why it matters. Every task you finish earns you XP. The other projects are waiting in the wings with a cheerful "Coming soon" badge.
 
-**Live app:** https://jumper-inky-sigma.vercel.app/
+**Live app:** https://jumper-hardware.vercel.app/
 
 ## About this project
 
@@ -31,7 +31,7 @@ Short videos show how to play Jumper and what you build in each Perch and Arduin
 | Arduino Foundations level 3 · Read a button | [arduino-foundations-3-laptop.webm](public/videos/arduino-foundations-3-laptop.webm) | [arduino-foundations-3-phone.webm](public/videos/arduino-foundations-3-phone.webm) |
 | Arduino Foundations level 4 · Button and LED together | [arduino-foundations-4-laptop.webm](public/videos/arduino-foundations-4-laptop.webm) | [arduino-foundations-4-phone.webm](public/videos/arduino-foundations-4-phone.webm) |
 
-The live app also has the files, for example https://jumper-inky-sigma.vercel.app/videos/intro-laptop.webm.
+The live app also has the files, for example https://jumper-hardware.vercel.app/videos/intro-laptop.webm.
 
 ## Documents
 
