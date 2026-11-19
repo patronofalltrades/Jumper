@@ -1,9 +1,10 @@
 import { z } from "zod";
 
-// Share a snapshot (issue #87). A snapshot has a switch, `shared`. When it is on, anyone can open /s/<id> with no log-in.
-// The page reads the snapshot through the SQL function get_shared_snapshot, which gives a row only when `shared` is true.
+// Share a snapshot (issue #87). A snapshot has a switch, `shared`. When it is on, any logged-in user can open /s/<id>
+// (a log-in is necessary since issue #183). The page reads the snapshot through the SQL function get_shared_snapshot,
+// which gives a row only when `shared` is true.
 
-/** The path of the public page of a snapshot. */
+/** The path of the shared page of a snapshot. */
 export function sharePath(id: string): string {
   return `/s/${id}`;
 }

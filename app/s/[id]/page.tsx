@@ -5,9 +5,11 @@ import { SnapshotBoard } from "@/components/snapshots/snapshot-page";
 import { buttonVariants } from "@/components/ui/button";
 import text from "@/content/ui/snapshots.json";
 import { loadBenchSpec } from "@/lib/content/benches";
-import { readShared } from "@/lib/snapshots/share";
+import { readShared, sharePath } from "@/lib/snapshots/share";
 import { countWiring, readWiring } from "@/lib/snapshots/wiring";
 import { createClient } from "@/lib/supabase/server";
+import { redirect } from "next/navigation";
+import { loginPath } from "@/lib/auth/rules";
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = { title: text.shared.title_suffix, robots: { index: false } };
@@ -16,8 +18,9 @@ const t = text.page;
 const s = text.shared;
 const fill = (template: string, values: Record<string, string | number>) => template.replace(/\{(\w+)\}/g, (_, k: string) => String(values[k]));
 
-// A shared build (issue #87): open to anyone with the link, no log-in. The page reads the snapshot with the SQL function
-// get_shared_snapshot, which gives a row only when the owner turned the switch on. The tables stay closed to visitors.
+// A shared build (issue #87): open to each logged-in user with the link. Since issue #183, a visitor with no log-in goes
+// to the log-in page first (proxy.ts), and the database lets only logged-in users call get_shared_snapshot. The function
+// gives a row only when the owner turned the switch on. The tables stay closed.
 export default function SharedPage({ params }: PageProps<"/s/[id]">) {
   return (
     <Suspense fallback={<p className="p-4 text-muted-foreground">Loading the build…</p>}>
@@ -30,6 +33,7 @@ export default function SharedPage({ params }: PageProps<"/s/[id]">) {
 
 async function Shared({ id }: { id: string }) {
   const snap = /^[0-9a-f-]{36}$/i.test(id) ? await load(id) : null;
+  if (snap === "login") redirect(loginPath(sharePath(id)));
   if (!snap) return <NotShared />;
 
   const bench = await loadBenchSpec(snap.project_slug);
@@ -75,6 +79,8 @@ async function Shared({ id }: { id: string }) {
 async function load(id: string) {
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("get_shared_snapshot", { p_id: id });
+  // 42501: no right to run the function. The proxy sends visitors to the log-in first; this is the second guard (issue #183).
+  if (error?.code === "42501") return "login" as const;
   if (error) throw error;
   return readShared(data);
 }

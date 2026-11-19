@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import text from "@/content/ui/snapshots.json";
-import { needsLogin } from "@/lib/auth/rules";
+import { loginPath, needsLogin, safeNextPath } from "@/lib/auth/rules";
 import { readShared, shareUrl, sharePath } from "@/lib/snapshots/share";
 
 const id = "8f14e45f-ceea-4f6a-9b1e-2c2d4e6f8a10";
@@ -15,16 +15,23 @@ describe("share link", () => {
     expect(shareUrl("https://jumper.example/", id)).toBe(`https://jumper.example/s/${id}`);
   });
 
-  it("is open to a visitor with no log-in, and only under /s/", () => {
-    expect(needsLogin(sharePath(id))).toBe(false);
+  it("needs a log-in (issue #183)", () => {
+    expect(needsLogin(sharePath(id))).toBe(true);
     expect(needsLogin("/s")).toBe(true);
     expect(needsLogin("/snapshots")).toBe(true);
+  });
+
+  it("goes back to the shared build after the log-in", () => {
+    expect(loginPath(sharePath(id))).toBe(`/login?next=${encodeURIComponent(`/s/${id}`)}`);
+    expect(safeNextPath(new URLSearchParams(loginPath(sharePath(id)).split("?")[1]).get("next"))).toBe(`/s/${id}`);
+    expect(loginPath("/lobby")).toBe("/login");
+    expect(loginPath("/")).toBe("/login");
   });
 });
 
 describe("share text", () => {
   it("comes from content/ui/snapshots.json", () => {
-    expect(text.share.switch).toBe("Anyone with the link can see this build");
+    expect(text.share.switch).toBe("Anyone with the link who logs in to Jumper can see this build");
     for (const key of ["button", "heading", "text", "copy", "copied", "off", "native", "failed"] as const) {
       expect(text.share[key].length).toBeGreaterThan(0);
     }

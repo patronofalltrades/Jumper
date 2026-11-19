@@ -4,22 +4,29 @@ import { z } from "zod";
 // /start is the onboarding before sign-up (issue #152).
 const VISITOR_PAGES = ["/", "/start", "/login", "/signup", "/forgot-password"];
 const PUBLIC_PATHS = [...VISITOR_PAGES, "/auth/callback"];
-// A shared build (/s/<id>) opens with no log-in (issue #87). The database decides if the build is shared.
-const PUBLIC_PREFIXES = ["/s/"];
 
 /** True for the landing page and the account forms, where a logged-in user has nothing to do. It goes to the lobby. */
 export function isVisitorPage(pathname: string): boolean {
   return VISITOR_PAGES.includes(pathname);
 }
 
-/** True when a visitor must log in before they open this path. */
+/** True when a visitor must log in before they open this path. A shared build (/s/<id>) needs a log-in too (issue #183). */
 export function needsLogin(pathname: string): boolean {
-  return !PUBLIC_PATHS.includes(pathname) && !PUBLIC_PREFIXES.some((prefix) => pathname.startsWith(prefix) && pathname.length > prefix.length);
+  return !PUBLIC_PATHS.includes(pathname);
 }
 
-/** Where to go after an email link. Only paths inside the app, so a link cannot send users to another site. */
+/** The log-in page. It keeps the path that the visitor asked for, so the log-in goes back to it (for example a share link). */
+export function loginPath(next: string): string {
+  return next === "/" || next === "/lobby" ? "/login" : `/login?next=${encodeURIComponent(next)}`;
+}
+
+/**
+ * Where to go after an email link or the log-in. Only paths inside the app, so a link cannot send users to another site.
+ * A browser deletes tab, LF and CR from a URL, so "/\t/evil.example" becomes "//evil.example". Thus control characters
+ * and backslashes are not allowed anywhere in the path (issue #183).
+ */
 export function safeNextPath(next: string | null): string {
-  return next && /^\/(?![/\\])/.test(next) ? next : "/lobby";
+  return next && /^\/(?![/\\])/.test(next) && !/[\u0000-\u001f\u007f\\]/.test(next) ? next : "/lobby";
 }
 
 const email = z.string().trim().toLowerCase().email("Enter a valid email address.");
