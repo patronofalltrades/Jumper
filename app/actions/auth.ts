@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { callbackUrl } from "@/lib/auth/callback-url";
-import { credentialsSchema, emailSchema, newPasswordSchema } from "@/lib/auth/rules";
+import { credentialsSchema, emailSchema, newPasswordSchema, safeNextPath } from "@/lib/auth/rules";
 import { createClient } from "@/lib/supabase/server";
 
 export type AuthState = {
@@ -46,7 +46,8 @@ export async function logIn(_prev: AuthState, formData: FormData): Promise<AuthS
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithPassword(parsed.data);
   if (error) return { email, error: "The email or password is not correct." };
-  redirect("/lobby");
+  // Back to the page that sent the visitor to the log-in, for example a share link (issue #183). Only paths inside the app.
+  redirect(safeNextPath(formData.get("next")?.toString() ?? null));
 }
 
 export async function logOut() {

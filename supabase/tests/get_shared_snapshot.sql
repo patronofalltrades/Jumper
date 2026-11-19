@@ -1,4 +1,4 @@
--- SQL test of snapshots.shared and get_shared_snapshot (issue #87). It stops with an error at the first wrong result.
+-- SQL test of snapshots.shared and get_shared_snapshot (issue #87; log-in only since issue #183). It stops with an error at the first wrong result.
 --
 -- Run it on a throwaway local Postgres 16, never on the live project (same steps as delete_my_account.sql):
 --   1. Start a private server and make a database.
@@ -6,11 +6,13 @@
 --   3. psql -v ON_ERROR_STOP=1 -f each file in supabase/migrations/, in order
 --   4. psql -v ON_ERROR_STOP=1 -f supabase/tests/get_shared_snapshot.sql
 --
--- User A has two snapshots: one shared and one not. A visitor with no log-in (role anon) asks for them.
+-- User A has two snapshots: one shared and one not. User B, logged in (role authenticated), asks for them.
+-- A visitor with no log-in (role anon) cannot call the function (issue #183).
 
 begin;
 
 insert into auth.users (id, email) values ('00000000-0000-0000-0000-0000000000a1', 'a-secret@test.local');
+insert into auth.users (id, email) values ('00000000-0000-0000-0000-0000000000b2', 'b@test.local');
 insert into public.projects (slug, title, tagline, board, status, position) values ('t', 'T', 't', 'b', 'available', 1);
 insert into public.levels (project_id, position, title, goal, rules, xp)
   select id, 3, 'Level three', 'g', '{"require":[],"forbid":[]}', 50 from public.projects where slug = 't';
@@ -34,7 +36,9 @@ begin
   -- The column is off by default.
   assert (select shared from public.snapshots where id = private_id) = false, 'shared is not false by default';
 
-  set local role anon;
+  -- User B is logged in. User B is not the owner.
+  perform set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000b2', true);
+  set local role authenticated;
 
   -- A shared snapshot gives one row, with the level title, the project slug and the display name of the owner.
   select * into r from public.get_shared_snapshot(shared_id);
@@ -56,6 +60,18 @@ begin
     from (select unnest(proargnames) as column_name from pg_proc where proname = 'get_shared_snapshot') c;
   assert cols !~* 'email' and cols !~* 'user_id', format('private column in the result: %s', cols);
 
+  reset role;
+
+  -- A visitor with no log-in cannot call the function, also for a shared snapshot (issue #183).
+  perform set_config('request.jwt.claim.sub', '', true);
+  set local role anon;
+  begin
+    perform public.get_shared_snapshot(shared_id);
+    assert false, 'anon can call get_shared_snapshot';
+  exception when insufficient_privilege then
+    null;
+  end;
+
   -- The tables stay closed: a visitor reads no snapshot directly.
   select count(*) into n from public.snapshots;
   assert n = 0, format('anon reads %s snapshots directly', n);
@@ -63,7 +79,7 @@ begin
 
   -- The owner turns the switch off: the same id gives no row.
   update public.snapshots set shared = false where id = shared_id;
-  set local role anon;
+  set local role authenticated;
   select count(*) into n from public.get_shared_snapshot(shared_id);
   assert n = 0, format('rows after the switch went off: %s', n);
   reset role;
@@ -71,14 +87,14 @@ begin
   -- A deleted snapshot gives no row.
   update public.snapshots set shared = true where id = shared_id;
   delete from public.snapshots where id = shared_id;
-  set local role anon;
+  set local role authenticated;
   select count(*) into n from public.get_shared_snapshot(shared_id);
   assert n = 0, format('rows after the delete: %s', n);
   reset role;
 
-  -- The function sets its search_path, and anon and authenticated can run it.
+  -- The function sets its search_path. Only authenticated can run it: a visitor with no log-in cannot (issue #183).
   assert (select proconfig::text from pg_proc where proname = 'get_shared_snapshot') like '%search_path%', 'no search_path';
-  assert has_function_privilege('anon', 'public.get_shared_snapshot(uuid)', 'execute'), 'anon has no execute';
+  assert not has_function_privilege('anon', 'public.get_shared_snapshot(uuid)', 'execute'), 'anon can run the function';
   assert has_function_privilege('authenticated', 'public.get_shared_snapshot(uuid)', 'execute'), 'authenticated has no execute';
 end $$;
 

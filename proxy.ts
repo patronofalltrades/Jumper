@@ -1,6 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import { isVisitorPage, needsLogin } from "@/lib/auth/rules";
+import { isVisitorPage, loginPath, needsLogin } from "@/lib/auth/rules";
 import { needsOnboarding, START_COOKIE } from "@/lib/game/onboarding";
 
 // Refreshes the Supabase session cookie on each request, and sends visitors
@@ -29,15 +29,15 @@ export async function proxy(request: NextRequest) {
   const loggedIn = Boolean(data?.claims);
   const { pathname } = request.nextUrl;
 
-  if (!loggedIn && needsLogin(pathname)) return redirectTo(request, response, "/login");
+  if (!loggedIn && needsLogin(pathname)) return redirectTo(request, response, loginPath(pathname + request.nextUrl.search));
   if (loggedIn && isVisitorPage(pathname)) return redirectTo(request, response, "/lobby");
   if (pathname === "/signup" && needsOnboarding(request.cookies.get(START_COOKIE)?.value)) return redirectTo(request, response, "/start");
   return response;
 }
 
 // Keep the refreshed session cookies on the redirect.
-function redirectTo(request: NextRequest, from: NextResponse, pathname: string) {
-  const redirect = NextResponse.redirect(new URL(pathname, request.url));
+function redirectTo(request: NextRequest, from: NextResponse, path: string) {
+  const redirect = NextResponse.redirect(new URL(path, request.url));
   from.cookies.getAll().forEach((cookie) => redirect.cookies.set(cookie));
   return redirect;
 }

@@ -16,8 +16,9 @@ const t = text.page;
 const s = text.shared;
 const fill = (template: string, values: Record<string, string | number>) => template.replace(/\{(\w+)\}/g, (_, k: string) => String(values[k]));
 
-// A shared build (issue #87): open to anyone with the link, no log-in. The page reads the snapshot with the SQL function
-// get_shared_snapshot, which gives a row only when the owner turned the switch on. The tables stay closed to visitors.
+// A shared build (issue #87): open to each logged-in user with the link. Since issue #183, a visitor with no log-in goes
+// to the log-in page first (proxy.ts), and the database lets only logged-in users call get_shared_snapshot. The function
+// gives a row only when the owner turned the switch on. The tables stay closed.
 export default function SharedPage({ params }: PageProps<"/s/[id]">) {
   return (
     <Suspense fallback={<p className="p-4 text-muted-foreground">Loading the build…</p>}>

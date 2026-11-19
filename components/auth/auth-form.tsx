@@ -29,13 +29,14 @@ const COPY = {
   },
 };
 
-export function AuthForm({ action, mode, initialError }: { action: Action; mode: "login" | "signup"; initialError?: string }) {
+export function AuthForm({ action, mode, initialError, next }: { action: Action; mode: "login" | "signup"; initialError?: string; next?: string }) {
   const [state, formAction, pending] = useActionState(action, { error: initialError });
   const copy = COPY[mode];
 
   return (
     <AuthCard title={copy.title} footer={<SwitchLink text={copy.switchText} href={copy.switchHref} link={copy.switchLink} />}>
       <form action={formAction} className="flex flex-col gap-4" noValidate>
+        {next && <input type="hidden" name="next" value={next} />}
         <EmailField state={state} />
         <PasswordField
           name="password"

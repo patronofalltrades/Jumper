@@ -14,7 +14,7 @@ export default function LogInPage({ searchParams }: PageProps<"/login">) {
 }
 
 async function LogInForm({ searchParams }: Pick<PageProps<"/login">, "searchParams">) {
-  const { error } = await searchParams;
+  const { error, next } = await searchParams;
   const initialError = error === "link" ? "That email link did not work or has expired. Log in, or ask for a new link." : undefined;
-  return <AuthForm action={logIn} mode="login" initialError={initialError} />;
+  return <AuthForm action={logIn} mode="login" initialError={initialError} next={typeof next === "string" ? next : undefined} />;
 }

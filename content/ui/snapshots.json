@@ -75,8 +75,8 @@
   "share": {
     "button": "Share",
     "heading": "Share this build",
-    "text": "Send a friend a link. They can look at your board in 3D. They do not need an account, and they cannot change anything.",
-    "switch": "Anyone with the link can see this build",
+    "text": "Send a friend or a TA a link. They can look at your board in 3D. They must log in to Jumper to open it, and they cannot change anything.",
+    "switch": "Anyone with the link who logs in to Jumper can see this build",
     "link": "Link",
     "copy": "Copy",
     "copied": "Copied.",
