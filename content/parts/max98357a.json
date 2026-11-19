@@ -67,5 +67,21 @@
     "margin": 0.75,
     "height": 1.3,
     "color": "#1F3F8A"
+  },
+  "datasheet": {
+    "summary": "A class-D amplifier. It reads I²S data from the board and drives a small speaker.",
+    "supply": "2.5 V to 5.5 V on Vin.",
+    "url": "https://www.analog.com/media/en/technical-documentation/data-sheets/MAX98357A-MAX98357B.pdf",
+    "pins": {
+      "LRC": "Left/right clock (word select). The board tells the amplifier when each sample starts.",
+      "BCLK": "Bit clock. The board sets the speed of the data.",
+      "DIN": "Data in. The sound samples go from the board to the amplifier on this pin.",
+      "GAIN": "Gain select. Leave it open for 9 dB. Connect it to ground for 12 dB (louder), or to Vin for 6 dB (quieter).",
+      "SD": "Shutdown and channel select. Connect it to ground to turn the amplifier off. On this breakout, a resistor pulls SD up: left open, it plays left and right mixed. (On the bare chip, SD must be driven high.)",
+      "GND": "Ground. Connect it to the ground of the board.",
+      "VIN": "Power in, 2.5 V to 5.5 V.",
+      "OUT-": "Speaker output, minus. Connect it only to the speaker, never to ground.",
+      "OUT+": "Speaker output, plus. Connect it only to the speaker, never to ground."
+    }
   }
 }

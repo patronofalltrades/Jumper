@@ -32,6 +32,8 @@ import { Hearts, PinnedPopup, PopupLayer, useLaptop, type LevelTask } from "./po
 import { SketchPanel } from "./sketch-panel";
 import { TaskList } from "./task-list";
 import { ConnectionList } from "./connection-list";
+import { DatasheetButton, DatasheetButtonDisabled } from "./datasheet-card";
+import { isModuleType } from "@/lib/circuit/modules";
 import { useLevelMusic } from "./music";
 import { readAloud, stopReading, useReadSteps } from "./read-aloud";
 import { Tour } from "./tour";
@@ -479,6 +481,12 @@ function Tray({ tool }: { tool: Tool }) {
   }, [tool]);
   return (
     <div ref={row} className="flex h-full items-center gap-1.5 overflow-x-auto sm:justify-center" role="group" aria-label={text.tray.label}>
+      {/* The datasheet of the picked module (issue #182). It has a fixed place first, so the chips do not move and a phone shows it. */}
+      {isModuleType(tool) ? (
+        <DatasheetButton type={tool} partName={TRAY.find((t) => t.tool === tool)?.label ?? tool} />
+      ) : (
+        <DatasheetButtonDisabled title={text.datasheet.none} />
+      )}
       {TRAY.map((t) => (
         <button
           key={t.tool}
@@ -501,6 +509,8 @@ function useKeys() {
     const onKey = (e: KeyboardEvent) => {
       // Typing in a field or in the sketch editor (a contenteditable) is not a shortcut.
       if (e.target instanceof HTMLElement && e.target.closest("input, textarea, [contenteditable=true]")) return;
+      // An open dialog (for example a datasheet card, issue #182) owns the keys: Esc closes it, and 1–5 do not change the tool.
+      if (document.querySelector("[role=dialog]")) return;
       const { undo, cancel } = boardStore.getState();
       const tool = TOOLS.find((t) => t.key === e.key);
       if (e.key === "Escape") cancel();
