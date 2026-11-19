@@ -35,5 +35,14 @@
     "margin": 0.75,
     "height": 1.1,
     "color": "#2B2F33"
+  },
+  "datasheet": {
+    "summary": "A tactile switch with 4 legs. A press connects one side of the switch to the other side. It has no chip and needs no power. The real switch has no numbers on it: in Jumper, the legs of one side are named 1 and the legs of the other side are named 2.",
+    "supply": "No power pin. A logic input at 3.3 V or 5 V is safe. The rating is 3 V to 24 V DC, 50 mA maximum.",
+    "url": "https://omronfs.omron.com/en_US/ecb/products/pdf/en-b3f.pdf",
+    "pins": {
+      "1": "Side 1. Its two legs always connect inside the switch. A press connects them to side 2. On the Omron drawing, legs 1 and 2 are one side.",
+      "2": "Side 2. Its two legs always connect inside the switch. A press connects them to side 1. On the Omron drawing, legs 3 and 4 are the other side."
+    }
   }
 }

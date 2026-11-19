@@ -300,5 +300,21 @@
     "terminal": "the {sign} screw of the {part}",
     "joined": "already joined in {hole}",
     "glow": "the hole that glows"
+  },
+  "datasheet": {
+    "button": "Datasheet",
+    "button_label": "Open the datasheet of the {part}",
+    "supply": "Power",
+    "pinout": "Pinout",
+    "pinout_note": "Seen from above, pin 1 at the top left.",
+    "terminal_note": "A dashed pin is a screw terminal on top of the module, not in a breadboard hole.",
+    "pins": "Pins",
+    "pin": "Pin",
+    "does": "What it does",
+    "legs": "{n} legs",
+    "open": "Open the full datasheet (new tab)",
+    "close": "Close",
+    "none": "The speaker has no datasheet card: it has only two leads.",
+    "terminal": "Screw terminal"
   }
 }
