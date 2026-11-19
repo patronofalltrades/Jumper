@@ -312,7 +312,9 @@
     "pin": "Pin",
     "does": "What it does",
     "legs": "{n} legs",
-    "open": "Open the full datasheet",
-    "close": "Close"
+    "open": "Open the full datasheet (new tab)",
+    "close": "Close",
+    "none": "The speaker has no datasheet card: it has only two leads.",
+    "terminal": "Screw terminal"
   }
 }

@@ -50,11 +50,11 @@
   },
   "datasheet": {
     "summary": "A digital microphone. It sends sound as I²S data, so the board reads numbers, not a voltage.",
-    "supply": "1.8 V to 3.3 V on VDD. Do not connect it to 5 V.",
-    "url": "https://invensense.tdk.com/wp-content/uploads/2015/02/INMP441.pdf",
+    "supply": "1.62 V to 3.63 V on VDD (3.3 V is typical). Do not connect it to 5 V.",
+    "url": "https://invensense.tdk.com/en-us/download-resource/ds-inmp441-00-inmp441-datasheet",
     "pins": {
       "GND": "Ground. Connect it to the ground of the board.",
-      "VDD": "Power in, 1.8 V to 3.3 V.",
+      "VDD": "Power in, 1.62 V to 3.63 V. Use 3.3 V from the board.",
       "SD": "Serial data out. The sound samples go from the mic to the board on this pin.",
       "LR": "Left or right channel. Connect it to ground for the left channel, or to VDD for the right channel.",
       "WS": "Word select (frame clock). The board tells the mic when each sample starts.",

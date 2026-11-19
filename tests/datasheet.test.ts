@@ -55,3 +55,14 @@ describe("pinoutGrid", () => {
     expect(grid[1][2]?.terminal).toBe(true);
   });
 });
+
+describe("pins that share a name (issue #182 review)", () => {
+  it.each(types)("%s: all legs with the same name have the same label and the same terminal flag", (type) => {
+    const byName = new Map<string, string>();
+    for (const pin of FOOTPRINTS[type].pins) {
+      const key = `${pin.label}|${Boolean(pin.terminal)}`;
+      expect(byName.get(pin.name) ?? key).toBe(key);
+      byName.set(pin.name, key);
+    }
+  });
+});

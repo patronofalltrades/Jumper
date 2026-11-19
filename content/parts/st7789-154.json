@@ -72,7 +72,7 @@
       "RES": "Reset. A low signal starts the screen again.",
       "DC": "Data or command. Low: the next byte is a command. High: the next byte is pixel data.",
       "CS": "Chip select. A low signal tells the screen that the SPI data is for it.",
-      "BLK": "Backlight control. High turns the backlight on."
+      "BLK": "Backlight control. High turns the backlight on. If you do not control it, connect it to 3.3 V. If it is not connected, the screen can stay black."
     }
   }
 }

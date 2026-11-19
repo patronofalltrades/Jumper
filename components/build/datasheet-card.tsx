@@ -8,6 +8,13 @@ import { cn } from "@/lib/utils";
 
 const t = text.datasheet;
 const fill = (template: string, values: Record<string, string | number>) => template.replace(/\{(\w+)\}/g, (_, k: string) => String(values[k]));
+const triggerClass =
+  "flex min-h-11 shrink-0 items-center gap-1.5 rounded-xl border border-b-4 border-border bg-card px-3 text-sm font-semibold outline-none focus-visible:ring-2 focus-visible:ring-ring active:translate-y-0.5 active:border-b-2 disabled:opacity-40 disabled:active:translate-y-0 disabled:active:border-b-4";
+const docIcon = (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M4 4h11l5 5v11H4zM14 4v6h6M8 13h8M8 17h5" />
+  </svg>
+);
 
 /**
  * The datasheet card of a module (issue #182): what it does, its power, the pinout and one line for each pin,
@@ -17,16 +24,12 @@ export function DatasheetButton({ type, partName }: { type: ModuleType; partName
   const part = FOOTPRINTS[type];
   const grid = pinoutGrid(type);
   const pins = datasheetPins(type);
+  const cols = grid[0]?.length ?? 0;
 
   return (
     <Dialog>
-      <DialogTrigger
-        className="flex min-h-11 shrink-0 items-center gap-1.5 rounded-xl border border-b-4 border-border bg-card px-3 text-sm font-semibold outline-none focus-visible:ring-2 focus-visible:ring-ring active:translate-y-0.5 active:border-b-2"
-        aria-label={fill(t.button_label, { part: partName })}
-      >
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-          <path d="M4 4h11l5 5v11H4zM14 4v6h6M8 13h8M8 17h5" />
-        </svg>
+      <DialogTrigger className={triggerClass} aria-label={fill(t.button_label, { part: partName })}>
+        {docIcon}
         {t.button}
       </DialogTrigger>
       <DialogContent className="max-w-lg">
@@ -42,19 +45,21 @@ export function DatasheetButton({ type, partName }: { type: ModuleType; partName
 
         <section>
           <h3 className="text-sm font-semibold">{t.pinout}</h3>
-          <div className="mt-2 overflow-x-auto rounded-xl p-3" style={{ background: part.body.color }}>
-            <div className="mx-auto grid w-max gap-1.5" style={{ gridTemplateColumns: `repeat(${grid[0].length}, minmax(2.75rem, auto))` }}>
+          {/* The picture is for the eyes only: the pin table below gives the same pins to a screen reader. */}
+          <div aria-hidden="true" className="mt-2 overflow-x-auto rounded-xl p-3" style={{ background: part.body.color }}>
+            <div className="mx-auto grid w-max gap-1.5" style={{ gridTemplateColumns: `repeat(${cols}, minmax(2.25rem, auto))` }}>
               {grid.flatMap((row, r) =>
                 row.map((cell, c) =>
                   cell ? (
                     <span
                       key={`${r}-${c}`}
                       className={cn(
-                        "flex min-h-9 flex-col items-center justify-center rounded-md bg-card px-1 font-mono text-[11px] font-semibold",
-                        cell.terminal && "border-2 border-dashed border-border",
+                        // Light chips in both themes, so they stand out on each body color.
+                        "flex min-h-9 flex-col items-center justify-center rounded-md bg-white px-1 font-mono text-[11px] font-semibold text-neutral-900",
+                        cell.terminal && "border-2 border-dashed border-neutral-900",
                       )}
                     >
-                      <span aria-hidden="true" className="mb-0.5 size-2 rounded-full bg-[#c9a227]" />
+                      <span className="mb-0.5 size-2 rounded-full bg-probe" />
                       {cell.label}
                     </span>
                   ) : (
@@ -87,6 +92,7 @@ export function DatasheetButton({ type, partName }: { type: ModuleType; partName
                 <tr key={pin.name} className="border-t border-border align-top">
                   <th scope="row" className="py-1.5 pr-3 font-mono text-xs font-semibold whitespace-nowrap">
                     {pin.label}
+                    {pin.terminal && <span className="block font-sans font-normal text-muted-foreground">{t.terminal}</span>}
                     {pin.legs > 1 && <span className="block font-sans font-normal text-muted-foreground">{fill(t.legs, { n: pin.legs })}</span>}
                   </th>
                   <td className="py-1.5">{pin.does}</td>
@@ -106,5 +112,15 @@ export function DatasheetButton({ type, partName }: { type: ModuleType; partName
         </div>
       </DialogContent>
     </Dialog>
+  );
+}
+
+/** The same place in the tray when the picked part has no card (the speaker), so the chips do not move. */
+export function DatasheetButtonDisabled({ title }: { title: string }) {
+  return (
+    <button type="button" disabled title={title} aria-label={title} className={triggerClass}>
+      {docIcon}
+      {t.button}
+    </button>
   );
 }
