@@ -54,6 +54,15 @@ Hanif's words only. Claude notes are in `ledger/LEDGER.md`.
 - **S5.4** The same checks run in light mode, at 390 × 844 and at 1280 × 800.
 - Rule for the contrast: the texts of the panel (hints, buttons, messages) need 4.5 or more (WCAG AA). The colored words of the code and the line numbers need 3 or more, because the PRD and the TRD have no contrast rule, and these are marks in the code.
 
+### Flow 6. The onboarding before sign-up (#180, after #178)
+
+Added November 18, 2026. This flow needs no account. Prompt: `prompts/onboarding-e2e.md`.
+
+- **S6.1** Given a new visitor on `/start`, when the visitor answers "I am new to circuits", then the start question opens with "Learn the basics first" selected. The wire screen says "Connect 5V to the + line" (the Uno), and the sign-up screen says "Next, you start Arduino Foundations." The start cookie is `arduino-foundations`. "Create my account" opens `/signup`.
+- **S6.2** Given a visitor who answers "I write code for boards", then "Build a real device" is selected, the wire screen says "Connect 3V3 to the + line" (the ESP32-S3), and the sign-up screen names Perch. The start cookie is `perch`.
+- **S6.3** Given a new visitor with "Learn the basics first" selected, when the visitor selects "Build a real device", then the wire and the sign-up screen follow the new answer (3V3, Perch).
+- **S6.4** Each answer button has a name (its label) and a description (its sub-text) for a screen reader. No screen scrolls sideways. Each check runs at 390 × 844 and at 1280 × 800.
+
 ## Results
 
 All runs: Chromium (Playwright 1.56.1 with `CHROMIUM_PATH=/opt/pw-browsers/chromium`), production build of the branch, the real Supabase project, one temporary account for each test.
@@ -65,6 +74,18 @@ All runs: Chromium (Playwright 1.56.1 with `CHROMIUM_PATH=/opt/pw-browsers/chrom
 | Check after the run, with the secret key | 0 accounts with `jumper-e2e-` in the email; the 2 other accounts in the project were not made by the suite. |
 | Does a test fail when the app breaks? (3 changes on purpose, then reverted) | Volt on the wrong level (`here={i === here + 1}`): both Flow 1 tests on the laptop fail. The 3D button cap does not take the pointer (`onPress={undefined}`): Flow 2 fails ("the 3D button is on the canvas, and a touch on it presses it": null). Dark editor background set to white: the dark Flow 5 test fails ("the editor is dark": luminance 1). The light Flow 5 test passes, as it should. |
 | Type check, lint, Vitest, build | Pass. Vitest: 28 files, 400 tests (`vitest.config.ts` includes only `tests/**`, so it does not pick `e2e/`). |
+
+### Flow 6 results (November 18, 2026)
+
+Chromium 1243 (`CHROMIUM_PATH`), Playwright from `package.json`. The global account setup was off for these runs, because this session has no `SUPABASE_SECRET_KEY` and Flow 6 makes no account.
+
+| Run | Result |
+| --- | --- |
+| The live app (`BASE_URL=https://jumper-inky-sigma.vercel.app`, version `cd1ebd3`) | **6 passed (11.1 s)**: 3 tests x phone and laptop. Screenshots: `flow6-onboarding-*.png`. |
+| The code before #178 (`a15244f`), local, laptop | 3 failed: no answer button has a name of its own (`radio "A gadget for my desk"` is not found) and no description. |
+| The pre-select removed on purpose, local, laptop | 3 failed: "Learn the basics first" / "Build a real device" is not selected (expected `true`, received `false`). |
+| The wire always on the ESP32-S3 on purpose, local, laptop | 1 failed (S6.1: "5V is already selected." not found). S6.2 and S6.3 passed, as they should, because they end on Perch. |
+| The fixed code, local, laptop | 3 passed. |
 
 ### Bugs found by Claude's browser check
 
