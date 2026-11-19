@@ -30,7 +30,11 @@ export type Footprint = {
   pins: FootprintPin[];
   /** The body covers the holes within `margin` pitches of the pins. */
   body: { margin: number; height: number; color: string };
+  /** The datasheet card (issue #182): what the part does, its power, the real datasheet and one line for each pin name. */
+  datasheet: Datasheet;
 };
+
+export type Datasheet = { summary: string; supply: string; url: string; pins: Record<string, string> };
 
 export const FOOTPRINTS = {
   pushbutton: pushbutton as Footprint,

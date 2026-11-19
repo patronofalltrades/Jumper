@@ -32,6 +32,8 @@ import { Hearts, PinnedPopup, PopupLayer, useLaptop, type LevelTask } from "./po
 import { SketchPanel } from "./sketch-panel";
 import { TaskList } from "./task-list";
 import { ConnectionList } from "./connection-list";
+import { DatasheetButton } from "./datasheet-card";
+import { isModuleType } from "@/lib/circuit/modules";
 import { useLevelMusic } from "./music";
 import { readAloud, stopReading, useReadSteps } from "./read-aloud";
 import { Tour } from "./tour";
@@ -491,6 +493,8 @@ function Tray({ tool }: { tool: Tool }) {
           {t.label}
         </button>
       ))}
+      {/* The datasheet of the picked module (issue #182). The speaker has no pins to read. */}
+      {isModuleType(tool) && <DatasheetButton type={tool} partName={TRAY.find((t) => t.tool === tool)?.label ?? tool} />}
     </div>
   );
 }

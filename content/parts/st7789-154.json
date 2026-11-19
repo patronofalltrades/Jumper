@@ -59,5 +59,20 @@
     "margin": 1.6,
     "height": 1.6,
     "color": "#16324F"
+  },
+  "datasheet": {
+    "summary": "A 240 × 240 color screen with an ST7789 driver chip. The board sends it pixels over SPI.",
+    "supply": "3.3 V on VCC. The logic pins also use 3.3 V.",
+    "url": "https://www.lcdwiki.com/res/MSP1541/1.54inch_4-line-SPI_IPS_Module_MSP1541_User_Manual_EN.pdf",
+    "pins": {
+      "GND": "Ground. Connect it to the ground of the board.",
+      "VCC": "Power in, 3.3 V.",
+      "SCL": "SPI clock. The board sets the speed of the data.",
+      "SDA": "SPI data in (MOSI). The pixels go from the board to the screen on this pin.",
+      "RES": "Reset. A low signal starts the screen again.",
+      "DC": "Data or command. Low: the next byte is a command. High: the next byte is pixel data.",
+      "CS": "Chip select. A low signal tells the screen that the SPI data is for it.",
+      "BLK": "Backlight control. High turns the backlight on."
+    }
   }
 }

@@ -35,5 +35,14 @@
     "margin": 0.75,
     "height": 1.1,
     "color": "#2B2F33"
+  },
+  "datasheet": {
+    "summary": "A tactile switch with 4 legs. A press connects pin 1 to pin 2. It has no chip and needs no power.",
+    "supply": "No power pin. The switch is rated for 5 V to 24 V DC, 1 mA to 50 mA.",
+    "url": "https://omronfs.omron.com/en_US/ecb/products/pdf/en-b3f.pdf",
+    "pins": {
+      "1": "The two legs named 1 always connect inside the switch. A press connects them to pin 2.",
+      "2": "The two legs named 2 always connect inside the switch. A press connects them to pin 1."
+    }
   }
 }
