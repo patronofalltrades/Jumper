@@ -5,9 +5,11 @@ import { SnapshotBoard } from "@/components/snapshots/snapshot-page";
 import { buttonVariants } from "@/components/ui/button";
 import text from "@/content/ui/snapshots.json";
 import { loadBenchSpec } from "@/lib/content/benches";
-import { readShared } from "@/lib/snapshots/share";
+import { readShared, sharePath } from "@/lib/snapshots/share";
 import { countWiring, readWiring } from "@/lib/snapshots/wiring";
 import { createClient } from "@/lib/supabase/server";
+import { redirect } from "next/navigation";
+import { loginPath } from "@/lib/auth/rules";
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = { title: text.shared.title_suffix, robots: { index: false } };
@@ -31,6 +33,7 @@ export default function SharedPage({ params }: PageProps<"/s/[id]">) {
 
 async function Shared({ id }: { id: string }) {
   const snap = /^[0-9a-f-]{36}$/i.test(id) ? await load(id) : null;
+  if (snap === "login") redirect(loginPath(sharePath(id)));
   if (!snap) return <NotShared />;
 
   const bench = await loadBenchSpec(snap.project_slug);
@@ -76,6 +79,8 @@ async function Shared({ id }: { id: string }) {
 async function load(id: string) {
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("get_shared_snapshot", { p_id: id });
+  // 42501: no right to run the function. The proxy sends visitors to the log-in first; this is the second guard (issue #183).
+  if (error?.code === "42501") return "login" as const;
   if (error) throw error;
   return readShared(data);
 }

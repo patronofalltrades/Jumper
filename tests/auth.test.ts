@@ -91,4 +91,15 @@ describe("safeNextPath", () => {
     expect(safeNextPath("//evil.example")).toBe("/lobby");
     expect(safeNextPath("/\\evil.example")).toBe("/lobby");
   });
+
+  // A browser deletes tab, LF and CR from a URL before it reads it, so "/\t/evil.example" goes to //evil.example (issue #183).
+  it("falls back to the lobby when a control character or a backslash could make an outside address", () => {
+    for (const bad of ["/\t/evil.example", "/\n/evil.example", "/\r/evil.example", "/\t\\evil.example", "/x\\..\\/evil.example", "/\u0000/evil.example"]) {
+      expect(safeNextPath(bad)).toBe("/lobby");
+    }
+    // What a browser does with the Location header: a good path stays on the site.
+    for (const ok of ["/s/8f14e45f-ceea-4f6a-9b1e-2c2d4e6f8a10", "/s/x?a=1&b=2", "/snapshots"]) {
+      expect(new URL(safeNextPath(ok), "https://jumper.example").origin).toBe("https://jumper.example");
+    }
+  });
 });

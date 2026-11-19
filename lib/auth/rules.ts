@@ -20,9 +20,13 @@ export function loginPath(next: string): string {
   return next === "/" || next === "/lobby" ? "/login" : `/login?next=${encodeURIComponent(next)}`;
 }
 
-/** Where to go after an email link. Only paths inside the app, so a link cannot send users to another site. */
+/**
+ * Where to go after an email link or the log-in. Only paths inside the app, so a link cannot send users to another site.
+ * A browser deletes tab, LF and CR from a URL, so "/\t/evil.example" becomes "//evil.example". Thus control characters
+ * and backslashes are not allowed anywhere in the path (issue #183).
+ */
 export function safeNextPath(next: string | null): string {
-  return next && /^\/(?![/\\])/.test(next) ? next : "/lobby";
+  return next && /^\/(?![/\\])/.test(next) && !/[\u0000-\u001f\u007f\\]/.test(next) ? next : "/lobby";
 }
 
 const email = z.string().trim().toLowerCase().email("Enter a valid email address.");

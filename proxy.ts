@@ -1,6 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import { isVisitorPage, loginPath, needsLogin } from "@/lib/auth/rules";
+import { isVisitorPage, loginPath, needsLogin, safeNextPath } from "@/lib/auth/rules";
 import { needsOnboarding, START_COOKIE } from "@/lib/game/onboarding";
 
 // Refreshes the Supabase session cookie on each request, and sends visitors
@@ -30,7 +30,8 @@ export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   if (!loggedIn && needsLogin(pathname)) return redirectTo(request, response, loginPath(pathname + request.nextUrl.search));
-  if (loggedIn && isVisitorPage(pathname)) return redirectTo(request, response, "/lobby");
+  // A logged-in user on /login?next=… (for example an old tab with a share link) goes to that page, not to the lobby.
+  if (loggedIn && isVisitorPage(pathname)) return redirectTo(request, response, pathname === "/login" ? safeNextPath(request.nextUrl.searchParams.get("next")) : "/lobby");
   if (pathname === "/signup" && needsOnboarding(request.cookies.get(START_COOKIE)?.value)) return redirectTo(request, response, "/start");
   return response;
 }
