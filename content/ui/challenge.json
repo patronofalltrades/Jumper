@@ -1,0 +1,74 @@
+{
+  "_note": "Text for Predict, Build, Explain (issue #203, TRD addendum 6.4), in ASD-STE100. The challenges are in content/lessons/<lesson>.json: change is the id of a supported change; predict.expected must be what the simulator shows (tests/challenge-content.test.ts); explain has one correct option, and each option has its feedback; a hint can glow a connection of the map; variation is the same idea in another layout, with its own complete board and its own answers. A lecturer must review the answers before the pilot. behaviors: the label of each prediction choice. {n}, {total}, {a}, {b}, {kept}, {from}, {to}, {message} are filled in.",
+  "button": "Challenge",
+  "title": "Predict, build, explain",
+  "close": "Close",
+  "closeNote": "When you close the challenge, your own board and sketch come back.",
+  "intro": "A challenge uses the finished circuit of this level. Your own board is safe: it comes back when you close the challenge.",
+  "pick": "Choose a challenge",
+  "variationTag": "Variation",
+  "steps": { "predict": "1. Predict", "change": "2. Build", "explain": "3. Explain", "feedback": "Result" },
+  "behaviors": { "blinks": "The LED blinks", "stays-on": "The LED stays on", "stays-off": "The LED stays off" },
+  "predict": {
+    "change": "The change:",
+    "question": "What does the LED do after this change? Predict before you run.",
+    "variationQuestion": "This is a different layout. The board shows it. What does the LED do? Predict before you run.",
+    "legend": "Your prediction",
+    "submit": "Save my prediction",
+    "skip": "Skip the prediction",
+    "skipNote": "If you skip, you can explore, but this try has no score."
+  },
+  "build": {
+    "yours": "Your prediction:",
+    "skipped": "No prediction. This try has no score.",
+    "do": "Now make the change on the board. Use the Remove tool, then put the part or the wire in its new holes. Then press Run.",
+    "doVariation": "The board shows this layout. Do not change it. Press Run.",
+    "run": "Run",
+    "locked": "Save a prediction first. Then you can run.",
+    "reset": "Put the start circuit back",
+    "problemTitle": "No result yet",
+    "noScore": "This run gives no score."
+  },
+  "problems": {
+    "board": "The board is not the board of this challenge.",
+    "missing": "{a} must connect to {b}.",
+    "extra": "{a} must not connect to {b}.",
+    "moved": "{kept} must connect to {from}, not to {to}.",
+    "more": "Correct the board, then run again.",
+    "sketch": "The sketch is not the blink sketch of this level, so the result does not show the effect of the change. Put the start circuit back, then make the change again.",
+    "error": "The sketch has an error. {message}"
+  },
+  "compare": {
+    "predicted": "You predicted",
+    "happened": "What happened",
+    "none": "No prediction",
+    "match": "Your prediction was correct.",
+    "noMatch": "Your prediction was not correct. That is useful: now find out why.",
+    "unscored": "You skipped the prediction, so this try has no score.",
+    "why": "Why did this happen? Choose the best explanation.",
+    "legend": "Your explanation",
+    "submit": "Check my explanation"
+  },
+  "feedback": {
+    "behaviorRight": "Prediction: correct",
+    "behaviorWrong": "Prediction: not correct",
+    "behaviorNone": "Prediction: skipped (no score)",
+    "explainRight": "Explanation: correct",
+    "explainWrong": "Explanation: needs review",
+    "review": "Your prediction was correct, but your explanation needs review. Read the note, then try again.",
+    "reflection": "In one or two sentences, what did you learn? (optional)",
+    "reflectionSave": "Save my note",
+    "reflectionSaved": "Your note is saved.",
+    "retry": "Try again",
+    "variation": "Try a variation",
+    "next": "Choose another challenge",
+    "first": "Your first try stays in your record. A new try is a separate record."
+  },
+  "hints": {
+    "button": "Show a hint ({n} of {total})",
+    "title": "Hint {n}",
+    "glow": "The board shows this connection."
+  },
+  "notSaved": "We could not save this answer to your account. You can continue: the challenge works without it.",
+  "attempts": "Tries in this visit: {n}"
+}

@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import text from "@/content/ui/build.json";
 import sketchText from "@/content/ui/sketch.json";
-import { boardStore } from "@/lib/game/board-store";
+import { boardStore, useBoard } from "@/lib/game/board-store";
 import { EMPTY_NOTE } from "./check";
 
 const BIG = "min-h-12 rounded-xl border-b-4 px-8 max-sm:min-h-11 max-sm:px-5 text-base font-extrabold tracking-wide uppercase shadow-panel outline-none focus-visible:ring-2 focus-visible:ring-ring active:translate-y-0.5 active:border-b-2";
@@ -29,6 +29,9 @@ type Props = {
  */
 export function BoardActions({ ready, empty, locked, onCheck, onOpenCode, extra }: Props) {
   const note = ready && empty;
+  // A challenge has its own Run button, and its board is not the level (issue #203).
+  const inChallenge = useBoard((s) => s.paused !== null);
+  if (inChallenge) return null;
   return (
     <div className="absolute inset-x-3 bottom-4 z-20 flex flex-col items-center gap-2">
       {note && (

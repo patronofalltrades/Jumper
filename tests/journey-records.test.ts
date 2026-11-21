@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { attemptCompleteSchema, attemptStartSchema, EVENT_NAMES, eventSchema, eventsSchema, MAX_EVENTS, toEventRows } from "@/lib/journey/records";
+import { attemptCompleteSchema, attemptStartSchema, EVENT_NAMES, eventSchema, eventsSchema, MAX_EVENTS, reflectionSchema, toEventRows } from "@/lib/journey/records";
 
 const id = "6f1c2a8e-3b4d-4c5e-9f60-718293a4b5c6";
 const other = "0a1b2c3d-4e5f-4a6b-8c7d-9e0f1a2b3c4d";
@@ -95,5 +95,11 @@ describe("learning attempts", () => {
 
   it("limits the reflection", () => {
     expect(attemptCompleteSchema.safeParse({ id, status: "complete", hintsUsed: 0, reflection: "x".repeat(2001) }).success).toBe(false);
+  });
+
+  it("takes a reflection after the feedback, with a limit", () => {
+    expect(reflectionSchema.safeParse({ id, reflection: " Current needs a loop. " }).data).toEqual({ id, reflection: "Current needs a loop." });
+    expect(reflectionSchema.safeParse({ id, reflection: "  " }).success).toBe(false);
+    expect(reflectionSchema.safeParse({ id, reflection: "x".repeat(2001) }).success).toBe(false);
   });
 });
