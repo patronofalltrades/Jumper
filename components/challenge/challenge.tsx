@@ -15,7 +15,7 @@ import type { Part } from "@/lib/circuit/parts";
 import { lessonSchema, type Behavior, type Challenge, type Lesson, type SketchStep } from "@/lib/content/schema";
 import { boardStore } from "@/lib/game/board-store";
 import { sketchStore } from "@/lib/game/sketch-store";
-import type { LearningEvent } from "@/lib/journey/records";
+import { saveOutcome, type LearningEvent } from "@/lib/journey/records";
 import { sketchCircuit } from "@/lib/sketch/circuit";
 import { fill, parseSketch } from "@/lib/sketch/parse";
 import { createRunner } from "@/lib/sketch/run";
@@ -130,9 +130,11 @@ function Panel({ user, lesson, reference, sketch, onClose }: { user: string; les
   }, [state.phase, state.item, challenge]);
 
   /** A record that does not save shows one note. The challenge continues. */
-  const record = (save: Promise<JourneyResult>) => {
-    save.then((result) => result.error && setUnsaved(true)).catch(() => setUnsaved(true));
-  };
+  const record = (save: Promise<JourneyResult>): Promise<boolean> =>
+    saveOutcome(save).then((ok) => {
+      if (!ok) setUnsaved(true);
+      return ok;
+    });
   const log = (name: LearningEvent["name"], attempt: Attempt | null, data: LearningEvent["data"], runId: string | null = null) =>
     record(logEvents([{ id: uuid(), name, lessonId: lesson.id, lessonVersion: lesson.version, attemptId: attempt?.id ?? null, runId, data }]));
 
@@ -453,17 +455,18 @@ function Grade({ ok, label }: { ok: boolean | null; label: string }) {
 }
 
 /** The optional written reflection. It goes to the attempt record only, never to an event. */
-function Reflection({ onSave }: { onSave: (text: string) => void }) {
+function Reflection({ onSave }: { onSave: (text: string) => Promise<boolean> }) {
   const [value, setValue] = useState("");
-  const [saved, setSaved] = useState(false);
+  // The note says "saved" only after the server saved it (the first version said it before the answer came).
+  const [status, setStatus] = useState<"idle" | "saving" | "saved" | "failed">("idle");
   return (
     <form
       className="flex flex-col gap-2"
       onSubmit={(e) => {
         e.preventDefault();
         if (!value.trim()) return;
-        onSave(value.trim());
-        setSaved(true);
+        setStatus("saving");
+        void onSave(value.trim()).then((ok) => setStatus(ok ? "saved" : "failed"));
       }}
     >
       <label className="flex flex-col gap-1 leading-snug font-semibold">
@@ -474,20 +477,19 @@ function Reflection({ onSave }: { onSave: (text: string) => void }) {
           rows={2}
           onChange={(e) => {
             setValue(e.target.value);
-            setSaved(false);
+            setStatus("idle");
           }}
           className="rounded-xl border border-input bg-card px-3 py-2 text-sm font-normal outline-none focus-visible:ring-2 focus-visible:ring-ring"
         />
       </label>
       <div className="flex items-center gap-2">
-        <button type="submit" disabled={!value.trim() || saved} className={PLAIN}>
+        <button type="submit" disabled={!value.trim() || status === "saving" || status === "saved"} className={PLAIN}>
           {text.feedback.reflectionSave}
         </button>
-        {saved && (
-          <span role="status" className="text-xs font-semibold">
-            {text.feedback.reflectionSaved}
-          </span>
-        )}
+        <span role="status" className="text-xs font-semibold">
+          {status === "saved" && text.feedback.reflectionSaved}
+          {status === "failed" && text.feedback.reflectionFailed}
+        </span>
       </div>
     </form>
   );

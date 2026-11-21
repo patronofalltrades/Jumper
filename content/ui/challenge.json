@@ -59,6 +59,7 @@
     "reflection": "In one or two sentences, what did you learn? (optional)",
     "reflectionSave": "Save my note",
     "reflectionSaved": "Your note is saved.",
+    "reflectionFailed": "We could not save your note. Try again.",
     "retry": "Try again",
     "variation": "Try a variation",
     "next": "Choose another challenge",

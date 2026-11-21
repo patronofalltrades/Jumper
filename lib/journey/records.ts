@@ -101,3 +101,6 @@ export function toEventRows(events: z.output<typeof eventsSchema>) {
     data: e.data,
   }));
 }
+
+/** True when a save action saved the record. An error in the result, or a call that fails, is not a save. */
+export const saveOutcome = (save: Promise<{ error?: string; id?: string }>): Promise<boolean> => save.then((result) => !result.error, () => false);

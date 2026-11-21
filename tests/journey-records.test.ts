@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { attemptCompleteSchema, attemptStartSchema, EVENT_NAMES, eventSchema, eventsSchema, MAX_EVENTS, reflectionSchema, toEventRows } from "@/lib/journey/records";
+import { attemptCompleteSchema, attemptStartSchema, EVENT_NAMES, eventSchema, eventsSchema, MAX_EVENTS, reflectionSchema, saveOutcome, toEventRows } from "@/lib/journey/records";
 
 const id = "6f1c2a8e-3b4d-4c5e-9f60-718293a4b5c6";
 const other = "0a1b2c3d-4e5f-4a6b-8c7d-9e0f1a2b3c4d";
@@ -101,5 +101,14 @@ describe("learning attempts", () => {
     expect(reflectionSchema.safeParse({ id, reflection: " Current needs a loop. " }).data).toEqual({ id, reflection: "Current needs a loop." });
     expect(reflectionSchema.safeParse({ id, reflection: "  " }).success).toBe(false);
     expect(reflectionSchema.safeParse({ id, reflection: "x".repeat(2001) }).success).toBe(false);
+  });
+});
+
+// The live test of November 21 found "Your note is saved." on a save that failed. The note now waits for this result.
+describe("saveOutcome", () => {
+  it("is true only when the action saved the record", async () => {
+    expect(await saveOutcome(Promise.resolve({ id: "a" }))).toBe(true);
+    expect(await saveOutcome(Promise.resolve({ error: "We could not save your answer." }))).toBe(false);
+    expect(await saveOutcome(Promise.reject(new Error("network")))).toBe(false);
   });
 });
