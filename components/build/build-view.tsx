@@ -18,6 +18,7 @@ import { putBackParts } from "@/lib/game/put-back";
 import type { SketchStep } from "@/lib/content/schema";
 import { carriedClip, type Clip } from "@/lib/game/walkthrough";
 import { MascotContext } from "@/components/art/mascot";
+import { CompareViews } from "@/components/journey/compare-views";
 import type { MascotId } from "@/lib/game/project-mascot";
 import type { Track } from "@/lib/game/music";
 import { AliveStage } from "./alive-stage";
@@ -38,6 +39,7 @@ import { useLevelMusic } from "./music";
 import { readAloud, stopReading, useReadSteps } from "./read-aloud";
 import { Tour } from "./tour";
 import { cn } from "@/lib/utils";
+import { ChallengeButton } from "@/components/challenge/challenge";
 
 export type { LevelTask };
 
@@ -250,6 +252,7 @@ function BuildBoard({ user, project, levelId, position, eyebrow, title, goal, ta
             <span className="max-sm:hidden">{watchText.watch}</span>
           </button>
         )}
+        <ChallengeButton user={user} project={project} position={position} sketch={sketch} />
         <SaveSnapshot
           levels={levels}
           read={() => {
@@ -330,6 +333,7 @@ function BuildBoard({ user, project, levelId, position, eyebrow, title, goal, ta
             </p>
           )}
         </div>
+        <CompareViews project={project} position={position} laptop={laptop} />
         {codeOpen && sketch && (
           <div className="min-h-0 border-border max-sm:h-[60%] max-sm:border-t sm:w-[min(460px,45%)] sm:border-l">
             <SketchPanel

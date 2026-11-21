@@ -165,7 +165,8 @@ These modules follow house rule 6: no React, no 3D code, no database code. Each 
 | `lib/sketch/observe.ts` | `observeLed(program, circuit, led)` | Runs the sketch for 6 s of virtual time (as `checkGoal` does). Gives `{ kind: "off" }`, `{ kind: "on" }` or `{ kind: "blink", onMs, offMs }`. When the sketch stops with an error, it gives `{ kind: "error", error }`. |
 | `lib/circuit/change.ts` | `applyChange(parts, code, ops)` | Applies the `ops` of a lesson change (`place`, `wire`, `remove`, `code`) to a board and a sketch. It gives new values and does not change its inputs. Work package 6 uses it to make the expected board of a challenge. |
 | `lib/runs/record.ts` | `captureRun()`, `keepLatest(records, 3)`, `diffRuns(before, after)`, `diffLines(a, b)` | Makes a run record. Keeps the latest three. Compares two records: connections (from `diffConnections`) and code lines. `diffLines` is a small longest-common-subsequence function (about 30 lines). We do not add a diff library. |
-| `lib/challenge/machine.ts` | `challengeReducer(state, event)`, `grade(definition, answers, observed)` | The Predict state machine (section 6.4). It grades the behavior and the explanation separately. |
+| `lib/challenge/machine.ts` | `challengeReducer(state, event)`, `grade(rubric, prediction, explanation)`, `behaviorOf(observed)` | The Predict state machine (section 6.4). It grades the behavior and the explanation separately. |
+| `lib/challenge/run.ts` | `runChallenge(input)` | One run of a challenge on the board and the sketch at the press of Run: the observed behavior, or the reason why there is no result (wrong board, sketch error, a sketch that is not the sketch of the level). |
 | `lib/journey/select.ts` | `linkedTargets(map, id)` | For a selected terminal or connection, gives the schematic ID, the photo hotspots, the 3D holes and the text. |
 
 ### 6.3 Run records (Last run, P3)
@@ -240,6 +241,17 @@ stateDiagram-v2
 - **Variation (F2-AC6).** The variation has its own board and map. Its grade uses only its own definition.
 - **Hearts and XP (D6, approved).** A challenge does not take hearts. A first scored attempt gives XP one time. Decision D6 in section 12.
 
+**As built (issue #203):**
+
+- The states are `predict`, `change`, `explain` and `feedback`. The run is one synchronous call, so it is an event, not a state. The comparison shows in `explain` and in `feedback`.
+- A challenge is a sandbox. `boardStore.startChallenge()` puts the learner's board, tasks and sketch away, and puts the reference circuit and the solution sketch of the level on the bench, with the task engine off. `endChallenge()` puts the level back. The browser save keeps the learner's own level during a challenge. Thus a challenge is available at each point of the level, and it cannot give a mistake, take a heart or change the XP.
+- The prediction choices are `blinks`, `stays-on` and `stays-off`. `predict.expected` must be what the simulator shows for the change: a test proves it for each challenge and each variation.
+- A variation has its own complete board (`parts`), which goes on the 3D board, and its own answers. The learner does not change that board.
+- The hints show after the prediction, so the prediction is the learner's own. A variation has no hints.
+- The written reflection saves with a separate action (`saveReflection`), because the learner writes it after the attempt is complete.
+- The browser keeps the ID of the first attempt of each item (`localStorage`), so a reload still makes a retry. On a different device, the database refuses a second first attempt; the panel then shows the "not saved" note and continues.
+- XP for a first scored attempt (decision D6) is not built: it needs a change of `record_attempt`.
+
 ### 6.5 Compare views (P1)
 
 - **Entry.** A "Compare views" button in build mode, on level 2 of Arduino Foundations only (the level has a lesson file). The release checklist needs the normal lesson entry point.
@@ -251,6 +263,16 @@ stateDiagram-v2
 - **Transfer (F1-R6, F1-AC4).** The second photo (a different layout) with its own hotspots. The answer key uses connection IDs, not positions. Thus a different position with the same connection is correct.
 - **Media failure (F1-AC5).** Each image and video has an `onError` handler. It shows Retry and the text alternative. The board and the answers stay.
 
+**As built (issue #202):**
+
+- The panel is not a dialog. On a laptop it is a column beside the board, so the board stays in view and the learner can change it. On a phone it is a sheet at the bottom with three tabs (Schematic, 3D board, Photo).
+- The schematic is a React component for each lesson (`components/journey/schematic-af-led.tsx`), not an SVG file. Thus each terminal and net is a button for the pointer and the keyboard. The map names its elements with the `schematic` field. `tests/compare-views.test.ts` makes sure that each id is in the drawing.
+- `lib/journey/select.ts` has `linkedTargets(map, id, bench, parts)` (the schematic ids, the holes, the label, the text and the photo points of a selection), `selectionAt()` (a hole of the 3D board gives the connection of its net), `referenceDifference()` and `diffLines()` (the difference from the reference, as text).
+- `lib/journey/lesson-of.ts` gives the lesson of a level to the browser. A level with no lesson file has no button.
+- `lib/journey/questions.ts` gives the shape of a question (first-check or transfer) and its answer logic: the first answer, the hints and the final answer are separate values. The question card saves them with `saveAttempt`, `completeAttempt` and `logEvents`. A save that fails shows a short message only.
+- The lesson file has no `media` and no `questions` now. The panel then shows a note in the place of the photo. When Hanif adds the photos, the clip and the questions to `content/lessons/af-led.json`, the photo view, the fault clip and the questions show with no code change.
+- On a phone, the button does not show while the code panel is open.
+
 ### 6.6 Files that change
 
 | File | Change |
@@ -259,7 +281,7 @@ stateDiagram-v2
 | `lib/game/board-store.ts` | New actions `restoreRun` and `undoRestore`, and the backup slot. |
 | `components/build/build-view.tsx` | The "Compare views", "Challenge" and "Compare with last run" buttons, when the level has a lesson file. |
 | `lib/content/schema.ts`, `lib/content/load.ts` | Zod schema and reader for `content/lessons/`. |
-| `components/journey/` (new) | Schematic view, photo view, linked list, fault clip, challenge panel, run compare panel. |
+| `components/journey/` (new) | Schematic view, photo view, linked list, fault clip, question card (issue #202). Later: challenge panel, run compare panel. |
 | `content/ui/journey.json` (new) | The text of the new screens. |
 | `public/lessons/af-led/` (new) | Schematic SVG, two photos, fault clip, captions. |
 
@@ -316,7 +338,7 @@ The measures of section 7 of the source document come from these two tables with
 | `tests/observe.test.ts` | Unit | The baseline blinks 500/500. Each "Yes" change in section 4 gives the expected result. |
 | `tests/run-record.test.ts` | Unit | A record does not change when the board changes after Run. Only three records stay. `diffLines` and `diffRuns` list each change. |
 | `tests/restore.test.ts` | Unit | Restore changes the board and the code together. Undo of a restore puts back the unsaved state. |
-| `tests/challenge.test.ts` | Unit | Run is locked before a prediction. Skip is unscored. An error gives no score. Two grades. A retry keeps the first attempt. |
+| `tests/challenge.test.ts` | Unit | Run is locked before a prediction. Skip is unscored. An error gives no score. Two grades. A retry keeps the first attempt. A variation uses its own answers. The sandbox puts the level back. Each challenge of the lesson file agrees with the simulator. |
 | `tests/lesson-content.test.ts` | Unit | The lesson file agrees with the level, the board and the list of supported changes. Each mapped connection is really connected on the reference board. Each hole in a change is on the bench. The SVG check comes with the schematic (work package 4). |
 | `supabase/tests/learning_isolation.sql` | SQL | Row-level security on the two new tables. |
 
