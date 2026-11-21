@@ -145,3 +145,75 @@ export const codeTermsSchema = z.object({
     )
     .min(1),
 });
+
+// content/lessons/<id>.json: one lesson of the learning journey (TRD addendum 6.1). It fixes the reference circuit of a
+// level with a version, and maps each terminal and connection to a stable id. A change of the circuit, the code or the
+// map needs a new version.
+const slug = z.string().regex(/^[a-z0-9-]+$/);
+
+/** What the LED does in the simulator (lib/sketch/observe.ts). */
+export const observedSchema = z.discriminatedUnion("kind", [
+  z.object({ kind: z.literal("off") }),
+  z.object({ kind: z.literal("on") }),
+  z.object({ kind: z.literal("blink"), on_ms: z.number().int().positive(), off_ms: z.number().int().positive() }),
+]);
+
+/** One step of a change to the reference board or code. `place`: put a part, or move its legs, to the holes a and b. */
+export const changeOpSchema = z.discriminatedUnion("op", [
+  z.object({ op: z.literal("place"), part: z.string().min(1), a: spot, b: spot }),
+  z.object({ op: z.literal("wire"), id: z.string().min(1), a: spot, b: spot }),
+  z.object({ op: z.literal("remove"), part: z.string().min(1) }),
+  z.object({ op: z.literal("code"), from: z.string().min(1), to: z.string() }),
+]);
+
+/** A point on a reference photo, as a fraction of its width and height. */
+const hotspot = z.object({ x: z.number().min(0).max(1), y: z.number().min(0).max(1) });
+
+export const lessonSchema = z.object({
+  id: slug,
+  version: z.number().int().positive(),
+  project: slug,
+  level: z.number().int().positive(),
+  /** The levels of content/boards/<project>.json that make the reference board. The reference code is the solution of the code step of `level`. */
+  baseline: z.object({ levels: z.array(z.number().int().positive()).min(1) }),
+  /** The parts of the kit: the part id on the board, and its name. */
+  inventory: z.array(z.object({ id: z.string().min(1), name: z.string().min(1) })).min(1),
+  concepts: z.array(slug).min(1),
+  map: z.object({
+    terminals: z
+      .array(z.object({ id: endpointSchema, label: z.string().min(1), schematic: z.string().min(1).optional(), photos: z.record(z.string(), hotspot).optional() }))
+      .min(1),
+    connections: z.array(z.object({ id: slug, a: endpointSchema, b: endpointSchema, explain: z.string().min(1), schematic: z.string().min(1).optional() })).min(1),
+  }),
+  /**
+   * The changes that the simulator can show correctly, and some that it cannot (TRD addendum section 4). A challenge can
+   * use only a change with `supported: true`. `ops` changes the reference; `model` is what the simulator then shows. A
+   * change that is not supported tells why in `reason`.
+   */
+  changes: z
+    .array(
+      z.object({
+        id: slug,
+        text: z.string().min(1),
+        supported: z.boolean(),
+        ops: z.array(changeOpSchema).min(1).optional(),
+        model: observedSchema.optional(),
+        reason: z.string().min(1).optional(),
+      }),
+    )
+    .min(1),
+  /** The reference media (work package 4). A lesson does not have it until the real photos and the clip exist. */
+  media: z
+    .object({
+      schematic: z.string().min(1),
+      photos: z.record(z.string(), z.object({ src: z.string().min(1), alt: z.string().min(1) })),
+      fault: z.object({ src: z.string().min(1), captions: z.string().min(1), description: z.string().min(1) }).optional(),
+    })
+    .optional(),
+  /** The questions (work package 5) and the challenges (work package 6). Those packages set their shape. */
+  questions: z.array(z.unknown()).optional(),
+  challenges: z.array(z.unknown()).optional(),
+});
+
+export type Lesson = z.infer<typeof lessonSchema>;
+export type ChangeOp = z.infer<typeof changeOpSchema>;
