@@ -5,6 +5,7 @@ import { Suspense } from "react";
 import { LeaveButton, Notes, type Note } from "@/components/collaborate/notes";
 import { DeleteSnapshot, EditSnapshot, SnapshotBoard } from "@/components/snapshots/snapshot-page";
 import { ShareSheet } from "@/components/snapshots/share-sheet";
+import { NewSpotlight } from "@/components/new-spotlight";
 import { StarButton } from "@/components/snapshots/star-button";
 import collab from "@/content/ui/collaborate.json";
 import text from "@/content/ui/snapshots.json";
@@ -82,6 +83,8 @@ async function Snapshot({ id }: { id: string }) {
           </Link>
           {mine && (
             <div className="flex items-center gap-2">
+              {/* "What's new" (issue #198): a share link needs a log-in. */}
+              <NewSpotlight id="share-login" />
               <ShareSheet id={snap.id} title={snap.title} shared={snap.shared} />
               <StarButton id={snap.id} starred={isStarred(snap.stars)} />
             </div>

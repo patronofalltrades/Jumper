@@ -1,13 +1,16 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { loadSeenNews, markNewsSeen } from "@/app/actions/news";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { markSeen, news, newsItem, readSeen, today, unseen } from "@/lib/game/news";
 import { fill } from "@/lib/sketch/parse";
 import { cn } from "@/lib/utils";
 
-// A "What's new" spotlight (issue #197): a "New" pill next to a new part of the page. A click or Enter opens a short
-// card; "Got it" closes the spotlight for good. A visitor keeps the seen spotlights in this browser.
+// A "What's new" spotlight (issues #197 and #198): a "New" pill next to a new part of the page. A click or Enter opens a
+// short card; "Got it" closes the spotlight for good. A visitor keeps the seen spotlights in this browser. A logged-in
+// learner keeps them on the account (profiles.seen_news): each learner spotlight reads the list when it shows first. There
+// is no cache across spotlights, so a second user on the same tab never gets the list of the first (row 26).
 // The text is in content/news.json. The pill shows only in the browser, after the page loads, so the server and the
 // browser draw the same first page.
 
@@ -24,17 +27,30 @@ export function NewSpotlight({ id, side = "bottom", className }: { id: string; s
   const [show, setShow] = useState(false);
 
   useEffect(() => {
-    if (!item || item.audience !== "visitor") return;
-    const seen = readSeen(browserStorage());
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- only the browser knows the seen list
-    if (seen !== null && unseen([item], seen, "visitor", today()).length > 0) setShow(true);
+    if (!item) return;
+    if (item.audience === "visitor") {
+      const seen = readSeen(browserStorage());
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- only the browser knows the seen list
+      if (seen !== null && unseen([item], seen, "visitor", today()).length > 0) setShow(true);
+      return;
+    }
+    let live = true;
+    // A failed read hides the spotlight.
+    void loadSeenNews().catch(() => null).then((seen) => {
+      if (live && seen !== null && unseen([item], seen, "learner", today()).length > 0) setShow(true);
+    });
+    return () => {
+      live = false;
+    };
   }, [item]);
 
   if (!item || !show) return null;
 
   const gotIt = () => {
-    markSeen(browserStorage(), item.id);
     setShow(false);
+    if (item.audience === "visitor") return markSeen(browserStorage(), item.id);
+    // The pill closes at once. The account keeps the id for the next visit and for other devices.
+    void markNewsSeen(item.id);
   };
 
   return (

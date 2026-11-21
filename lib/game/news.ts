@@ -7,8 +7,11 @@ import file from "../../content/news.json";
 
 const day = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
 
+/** The id of an item, as profiles.seen_news and mark_news_seen check it (issue #196). */
+export const newsIdSchema = z.string().regex(/^[a-z0-9-]{1,40}$/);
+
 export const newsItemSchema = z.object({
-  id: z.string().regex(/^[a-z0-9-]{1,40}$/),
+  id: newsIdSchema,
   title: z.string().min(1),
   text: z.string().min(1),
   released: day,
