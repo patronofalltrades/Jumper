@@ -4,6 +4,7 @@ import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { useId, useState } from "react";
 import { Volt } from "@/components/art/volt";
+import { NewSpotlight } from "@/components/new-spotlight";
 import text from "@/content/ui/onboarding.json";
 import { QUESTION_IDS, startCookie, startProject, suggestedStart, type Answers, type QuestionId } from "@/lib/game/onboarding";
 import { cn } from "@/lib/utils";
@@ -193,7 +194,11 @@ function Wire({ board, wired, onWire, onNext }: { board: WireBoard; wired: boole
   return (
     <div className="flex flex-1 flex-col gap-5 pt-2">
       <div>
-        <span className="font-mono text-xs font-semibold tracking-wider text-[#22d66b] uppercase">{w.eyebrow}</span>
+        <div className="flex items-center justify-between gap-3">
+          <span className="font-mono text-xs font-semibold tracking-wider text-[#22d66b] uppercase">{w.eyebrow}</span>
+          {/* "What's new" (issue #197): the practice wire uses the board of the start project. */}
+          <NewSpotlight id="onboarding-board" />
+        </div>
         <h1 className="mt-1 text-2xl leading-tight font-bold">{w.title}</h1>
       </div>
       <div className="flex flex-col gap-4 rounded-[1.25rem] border border-white/10 bg-night-2 p-4">
