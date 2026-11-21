@@ -12,6 +12,7 @@ import { HeroReveal, HeroRunway, type HeroLevel } from "@/components/landing/lan
 import { MascotBand } from "@/components/landing/mascot-band";
 import { GlassLogo } from "@/components/logo";
 import { TutorSection } from "@/components/landing/tutor-section";
+import { NewSpotlight } from "@/components/new-spotlight";
 import { GlassmorphismNavBar } from "@/components/ui/glassmorphism-navigation";
 import { GLASS, PRIMARY } from "@/components/ui/surfaces";
 import text from "@/content/ui/landing.json";
@@ -86,12 +87,15 @@ export default async function LandingPage({ searchParams }: PageProps<"/">) {
             <noscript>
               <style>{".hero-after { opacity: 1 !important; }"}</style>
             </noscript>
+            {/* "What's new" (issue #197): the board hero is new. */}
+            <NewSpotlight id="board-hero" className="mt-5" />
             <HeroReveal order={order} target={firstTarget} levels={heroLevels}>
               <p className="max-w-md text-[15px] text-white/55">{text.pitch.body}</p>
               <div className="flex w-full flex-col items-center justify-center gap-2.5 sm:w-auto sm:flex-row">
                 <PathButton href="/start" title={text.pitch.new.title} primary />
                 <PathButton href="/start?build=perch" title={text.pitch.wired.title} />
               </div>
+              <NewSpotlight id="scroll-build" side="top" />
             </HeroReveal>
           </section>
         </HeroRunway>
@@ -103,7 +107,10 @@ export default async function LandingPage({ searchParams }: PageProps<"/">) {
         <section id="projects" className="mx-auto w-full max-w-6xl scroll-mt-24 border-t border-white/10 px-4 py-20 sm:px-8 sm:py-24">
           <div className="mb-8 grid items-center gap-6 md:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
             <div>
-              <Eyebrow>{text.nav.projects}</Eyebrow>
+              <div className="flex items-start gap-3">
+                <Eyebrow>{text.nav.projects}</Eyebrow>
+                <NewSpotlight id="landing-sections" />
+              </div>
               <h2 className="text-4xl leading-[1.02] font-bold tracking-tight text-balance sm:text-5xl">
                 {text.courses.title_start} <span className="text-sun">{text.courses.title_end}</span>
               </h2>

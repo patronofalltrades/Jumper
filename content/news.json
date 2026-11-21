@@ -1,0 +1,64 @@
+{
+  "_note": "The \"What's new\" spotlights (issues #196, #197 and #198). One item for each change of the sprint that a learner or a visitor can see. id: the id that the spotlight on the page uses, and that profiles.seen_news keeps (only a-z, 0-9 and -). audience: visitor (the pages before log-in; the browser keeps the seen items) or learner (the pages after log-in; the account keeps them). released and until: the spotlight shows from released to until, both days included. pr: the pull request of the change. Write the text in ASD-STE100.",
+  "ui": {
+    "pill": "New",
+    "label": "New: {title}. Open for more.",
+    "gotIt": "Got it"
+  },
+  "items": [
+    {
+      "id": "board-hero",
+      "title": "Try the 3D breadboard here",
+      "text": "The 3D breadboard is now at the top of the home page. Tap the two glowing holes to make your first wire. You do not need an account.",
+      "released": "2026-11-12",
+      "until": "2026-12-21",
+      "audience": "visitor",
+      "pr": 175
+    },
+    {
+      "id": "scroll-build",
+      "title": "Scroll to build Perch",
+      "text": "Scroll down the page. Each scroll puts the parts of the next level on the board. With the last part, the screen of Perch shows its face.",
+      "released": "2026-11-12",
+      "until": "2026-12-21",
+      "audience": "visitor",
+      "pr": 177
+    },
+    {
+      "id": "landing-sections",
+      "title": "Meet the mascots",
+      "text": "Each project has a mascot that helps you. Now you can see all four mascots here, next to the projects.",
+      "released": "2026-11-12",
+      "until": "2026-12-21",
+      "audience": "visitor",
+      "pr": 176
+    },
+    {
+      "id": "onboarding-board",
+      "title": "Practice on your own board",
+      "text": "The practice wire now uses the board of the project that you start with: the Arduino Uno or the ESP32-S3.",
+      "released": "2026-11-18",
+      "until": "2026-12-21",
+      "audience": "visitor",
+      "pr": 179
+    },
+    {
+      "id": "datasheet-cards",
+      "title": "Read the datasheet",
+      "text": "Pick a module in the parts tray, then open its datasheet card. It shows what the part does, its power, its pinout and a link to the real datasheet.",
+      "released": "2026-11-19",
+      "until": "2026-12-21",
+      "audience": "learner",
+      "pr": 186
+    },
+    {
+      "id": "share-login",
+      "title": "Share links need a log-in",
+      "text": "Your friend or your TA must log in to Jumper to open your share link. After the log-in, they see your build.",
+      "released": "2026-11-19",
+      "until": "2026-12-21",
+      "audience": "learner",
+      "pr": 187
+    }
+  ]
+}

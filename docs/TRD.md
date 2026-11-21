@@ -339,8 +339,9 @@ All writes go through Next.js server actions. These actions use the Supabase cli
 | `updateSnapshot` | ID, title, notes | snapshots | Snapshot page |
 | `deleteSnapshot` | ID | snapshots (the database removes its stars automatically). Goes to `/snapshots`. | Snapshot page |
 | `toggleStar` | Snapshot ID, starred (true or false) | stars (add or remove) | Snapshot list and snapshot page |
+| `markNewsSeen` | Spotlight id (Zod: `^[a-z0-9-]{1,40}$`) | profiles (`seen_news` only), through `mark_news_seen` (issue #196). `loadSeenNews` reads the list. | The "What's new" spotlights of a logged-in learner (issue #198) |
 
-The actions are in `app/actions/`: `auth.ts` (`signUp`, `logIn`, `logOut`, `sendPasswordReset`, `updatePassword`), `profile.ts` (`updateProfile`, `changePassword`), `session.ts` (`startSession`, `updateSession`), `attempt.ts` (`recordAttempt`), `snapshot.ts` (`createSnapshot`, `updateSnapshot`, `deleteSnapshot`) and `star.ts` (`toggleStar`).
+The actions are in `app/actions/`: `auth.ts` (`signUp`, `logIn`, `logOut`, `sendPasswordReset`, `updatePassword`), `profile.ts` (`updateProfile`, `changePassword`), `session.ts` (`startSession`, `updateSession`), `attempt.ts` (`recordAttempt`), `snapshot.ts` (`createSnapshot`, `updateSnapshot`, `deleteSnapshot`) `star.ts` (`toggleStar`) and `news.ts` (`markNewsSeen`, `loadSeenNews`).
 
 Server components do the reads with the same client. There are no named read functions. Each page asks Supabase directly, and `loadCatalog` in `lib/game/featured.ts` reads the projects and the Continue target. Examples: the lobby reads `projects`, `levels`, `sessions`, `profiles` and `snapshots`; the level map reads `projects` and `levels`; build mode reads one level with its tasks; Level complete reads `levels` and `sessions`; the snapshot pages read `snapshots` with their levels and stars; the dashboard reads `profiles`, `sessions` and `attempts`; the profile page reads `profiles`.
 
