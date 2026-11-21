@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isLive, markSeen, news, NEWS_KEY, newsItem, readSeen, unseen, type NewsItem, type NewsStorage } from "@/lib/game/news";
+import { isLive, markSeen, news, newsIdSchema, NEWS_KEY, newsItem, readSeen, unseen, type NewsItem, type NewsStorage } from "@/lib/game/news";
 
 const item = (over: Partial<NewsItem>): NewsItem => ({ id: "x", title: "T", text: "t", released: "2026-11-12", until: "2026-12-21", audience: "visitor", pr: 1, ...over });
 
@@ -82,5 +82,12 @@ describe("the seen list of a visitor", () => {
     expect(readSeen(s)).toBeNull();
     s.data.set(NEWS_KEY, JSON.stringify({ not: "a list" }));
     expect(readSeen(s)).toEqual([]);
+  });
+});
+
+describe("newsIdSchema", () => {
+  it("accepts the ids of the content, and refuses other text", () => {
+    for (const i of news.items) expect(newsIdSchema.safeParse(i.id).success).toBe(true);
+    for (const bad of ["", "Share-Login", "a b", "x;drop", "a".repeat(41)]) expect(newsIdSchema.safeParse(bad).success).toBe(false);
   });
 });

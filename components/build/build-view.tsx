@@ -33,6 +33,7 @@ import { SketchPanel } from "./sketch-panel";
 import { TaskList } from "./task-list";
 import { ConnectionList } from "./connection-list";
 import { DatasheetButton, DatasheetButtonDisabled } from "./datasheet-card";
+import { NewSpotlight } from "@/components/new-spotlight";
 import { isModuleType } from "@/lib/circuit/modules";
 import { useLevelMusic } from "./music";
 import { readAloud, stopReading, useReadSteps } from "./read-aloud";
@@ -487,6 +488,8 @@ function Tray({ tool }: { tool: Tool }) {
       ) : (
         <DatasheetButtonDisabled title={text.datasheet.none} />
       )}
+      {/* "What's new" (issue #198): the datasheet card is new. It stays in one place, so it reads the seen list one time. */}
+      <NewSpotlight id="datasheet-cards" side="top" className="shrink-0" />
       {TRAY.map((t) => (
         <button
           key={t.tool}
