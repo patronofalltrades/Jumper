@@ -1,0 +1,134 @@
+{
+  "_note": "The LED lesson of the learning journey (TRD addendum sections 4, 5 and 6.1). It fixes the reference circuit of Arduino Foundations level 2 with a version number. Change the version when the circuit, the code or the map changes. baseline.levels: the levels of content/boards/arduino-foundations.json that make the reference board. The reference code is the solution of the level 2 code step in content/sketches/arduino-foundations.json. map: one item for each terminal and each connection; the id is the stable id. The explain text tells the holes of the reference build. changes: the changes that the simulator shows correctly (supported: true, a challenge can use them), and two that it cannot show (supported: false, with the reason). ops changes the reference; model is what the simulator then shows. tests/observe.test.ts runs each change. The media, the questions and the challenges come in work packages 4 to 6. Write the text in ASD-STE100.",
+  "id": "af-led",
+  "version": 1,
+  "project": "arduino-foundations",
+  "level": 2,
+  "baseline": { "levels": [1, 2] },
+  "inventory": [
+    { "id": "uno", "name": "Arduino Uno" },
+    { "id": "r1", "name": "Resistor" },
+    { "id": "led1", "name": "LED" },
+    { "id": "w1", "name": "Wire from 5V to the + line" },
+    { "id": "w2", "name": "Wire from GND to the − line" },
+    { "id": "w3", "name": "Wire from pin 13 to the resistor" },
+    { "id": "w4", "name": "Wire from the LED to the − line" }
+  ],
+  "concepts": ["closed-loop", "led-polarity", "output-pin", "breadboard-strips", "series-order"],
+  "map": {
+    "terminals": [
+      { "id": "uno.5V", "label": "5V pin of the Uno" },
+      { "id": "uno.GND", "label": "GND pin of the Uno" },
+      { "id": "uno.D13", "label": "Pin 13 of the Uno" },
+      { "id": "bbA.+", "label": "+ line on the left of breadboard A" },
+      { "id": "bbA.-", "label": "− line on the left of breadboard A" },
+      { "id": "r1.1", "label": "Resistor, first leg" },
+      { "id": "r1.2", "label": "Resistor, second leg" },
+      { "id": "led1.anode", "label": "LED, long leg (+)" },
+      { "id": "led1.cathode", "label": "LED, short leg (−)" }
+    ],
+    "connections": [
+      {
+        "id": "c-5v-rail",
+        "a": "uno.5V",
+        "b": "bbA.+",
+        "explain": "A wire takes 5 V from the Uno to the + line on the left of breadboard A. The 25 holes of this line connect inside the breadboard."
+      },
+      {
+        "id": "c-gnd-rail",
+        "a": "uno.GND",
+        "b": "bbA.-",
+        "explain": "A wire connects GND of the Uno to the − line on the left of breadboard A. The 25 holes of this line connect inside the breadboard, so a part that touches the line touches ground."
+      },
+      {
+        "id": "c-d13-r1",
+        "a": "uno.D13",
+        "b": "r1.1",
+        "explain": "A wire takes pin 13 to hole a22 of breadboard A. Holes a to e of column 22 connect inside the breadboard. The first leg of the resistor is in hole c22, so pin 13 touches the resistor."
+      },
+      {
+        "id": "c-r1-led",
+        "a": "r1.2",
+        "b": "led1.anode",
+        "explain": "The second leg of the resistor is in hole c26, and the long leg (+) of the LED is in hole e26. Holes a to e of column 26 connect inside the breadboard, so this connection needs no wire."
+      },
+      {
+        "id": "c-led-gnd",
+        "a": "led1.cathode",
+        "b": "uno.GND",
+        "explain": "The short leg (−) of the LED is in hole e27. A wire goes from hole a27 to the − line, and the − line goes to GND. This closes the loop from pin 13 back to the Uno."
+      }
+    ]
+  },
+  "changes": [
+    {
+      "id": "move-d13-to-d12",
+      "text": "Move the end of the pin 13 wire to pin 12.",
+      "supported": true,
+      "ops": [{ "op": "place", "part": "w3", "a": "uno-D12", "b": "A-a22" }],
+      "model": { "kind": "off" }
+    },
+    {
+      "id": "remove-gnd-wire",
+      "text": "Remove the wire from the LED to the − line.",
+      "supported": true,
+      "ops": [{ "op": "remove", "part": "w4" }],
+      "model": { "kind": "off" }
+    },
+    {
+      "id": "move-gnd-wire-to-plus",
+      "text": "Move the end of the LED wire from the − line to the + line.",
+      "supported": true,
+      "ops": [{ "op": "place", "part": "w4", "a": "A-a27", "b": "A-L+22" }],
+      "model": { "kind": "off" }
+    },
+    {
+      "id": "reverse-led",
+      "text": "Turn the LED around.",
+      "supported": true,
+      "ops": [{ "op": "place", "part": "led1", "a": "A-e27", "b": "A-e26" }],
+      "model": { "kind": "off" }
+    },
+    {
+      "id": "led-minus-to-plus",
+      "text": "Move the short leg (−) of the LED to the + line.",
+      "supported": true,
+      "ops": [{ "op": "place", "part": "led1", "a": "A-e26", "b": "A-L+24" }],
+      "model": { "kind": "off" }
+    },
+    {
+      "id": "resistor-after-led",
+      "text": "Put the resistor on the other side of the LED: pin 13 to the LED, then the resistor, then the − line.",
+      "supported": true,
+      "ops": [
+        { "op": "place", "part": "led1", "a": "A-d22", "b": "A-d24" },
+        { "op": "place", "part": "r1", "a": "A-c24", "b": "A-c27" }
+      ],
+      "model": { "kind": "blink", "on_ms": 500, "off_ms": 500 }
+    },
+    {
+      "id": "faster-blink",
+      "text": "Change each delay(500) in the sketch to delay(100).",
+      "supported": true,
+      "ops": [{ "op": "code", "from": "delay(500)", "to": "delay(100)" }],
+      "model": { "kind": "blink", "on_ms": 100, "off_ms": 100 }
+    },
+    {
+      "id": "bypass-resistor",
+      "text": "Remove the resistor, and join its two holes with a wire.",
+      "supported": false,
+      "ops": [
+        { "op": "remove", "part": "r1" },
+        { "op": "wire", "id": "w5", "a": "A-b22", "b": "A-b26" }
+      ],
+      "model": { "kind": "blink", "on_ms": 500, "off_ms": 500 },
+      "reason": "The simulator shows the LED blink, but a real LED gets too much current and can burn. The simulator does not calculate current."
+    },
+    {
+      "id": "loose-wire",
+      "text": "A wire is loose in its hole.",
+      "supported": false,
+      "reason": "In the simulator, a wire is in its hole or it is not. A real loose wire makes the LED flicker or stay off. Use the fault clip for this change."
+    }
+  ]
+}

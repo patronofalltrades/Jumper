@@ -94,6 +94,8 @@ Thus the challenges can use only changes that the model shows correctly:
 
 **Rule:** Each challenge in `content/` names one change from the "Yes" rows. A content test fails when a challenge uses a change that is not on the list of supported changes.
 
+The list is the `changes` field of `content/lessons/af-led.json` (work package 1). Each change has `ops` (the steps that change the reference board or code) and `model` (what the simulator shows). `tests/observe.test.ts` applies each change and compares the result with `model`. The "bypass the resistor" and "loose wire" changes are in the list with `supported: false` and a reason.
+
 ## 5. The pilot lesson
 
 | Field | Value |
@@ -151,6 +153,7 @@ House rule 7 applies: all text is in `content/`. The new folder is `content/less
 - A hotspot on a photo is a fraction of the width and the height. Thus it stays correct at each screen size.
 - The schematic is one SVG file that a person draws. Each terminal and each net has an `id` in the SVG. We do not add a schematic library.
 - A content test makes sure that each terminal and connection in the map is in the baseline circuit, that each `schematic` ID is in the SVG, and that each hotspot is between 0 and 1.
+- **As built in work package 1:** the file also has `baseline` (the levels of `content/boards/` that make the reference board; the reference code is the solution of the code step), `inventory` (the parts of the kit) and `changes` (section 4). The fields `media`, `photos`, `schematic`, `questions` and `challenges` are optional. They come with the real media and the content of packages 4 to 6. The Zod schema is `lessonSchema` in `lib/content/schema.ts`, and `loadLesson(id)` in `lib/content/lessons.ts` reads the file. Zod also checks that each hotspot is between 0 and 1.
 
 ### 6.2 New pure modules
 
@@ -159,7 +162,8 @@ These modules follow house rule 6: no React, no 3D code, no database code. Each 
 | Module | Functions | What it does |
 | --- | --- | --- |
 | `lib/circuit/connections.ts` | `connectionsOf(bench, parts, terminals)`, `diffConnections(reference, current)` | Gives the terminal pairs that are on the same net. The result does not depend on the holes or the wire IDs. The diff gives `added`, `removed` and `moved` (one end the same, the other end different). |
-| `lib/sketch/observe.ts` | `observeLed(program, circuit, led)` | Runs the sketch for 6 s of virtual time (as `checkGoal` does). Gives `{ kind: "off" }`, `{ kind: "on" }` or `{ kind: "blink", onMs, offMs }`. |
+| `lib/sketch/observe.ts` | `observeLed(program, circuit, led)` | Runs the sketch for 6 s of virtual time (as `checkGoal` does). Gives `{ kind: "off" }`, `{ kind: "on" }` or `{ kind: "blink", onMs, offMs }`. When the sketch stops with an error, it gives `{ kind: "error", error }`. |
+| `lib/circuit/change.ts` | `applyChange(parts, code, ops)` | Applies the `ops` of a lesson change (`place`, `wire`, `remove`, `code`) to a board and a sketch. It gives new values and does not change its inputs. Work package 6 uses it to make the expected board of a challenge. |
 | `lib/runs/record.ts` | `captureRun()`, `keepLatest(records, 3)`, `diffRuns(before, after)`, `diffLines(a, b)` | Makes a run record. Keeps the latest three. Compares two records: connections (from `diffConnections`) and code lines. `diffLines` is a small longest-common-subsequence function (about 30 lines). We do not add a diff library. |
 | `lib/challenge/machine.ts` | `challengeReducer(state, event)`, `grade(definition, answers, observed)` | The Predict state machine (section 6.4). It grades the behavior and the explanation separately. |
 | `lib/journey/select.ts` | `linkedTargets(map, id)` | For a selected terminal or connection, gives the schematic ID, the photo hotspots, the 3D holes and the text. |
@@ -312,7 +316,7 @@ The measures of section 7 of the source document come from these two tables with
 | `tests/run-record.test.ts` | Unit | A record does not change when the board changes after Run. Only three records stay. `diffLines` and `diffRuns` list each change. |
 | `tests/restore.test.ts` | Unit | Restore changes the board and the code together. Undo of a restore puts back the unsaved state. |
 | `tests/challenge.test.ts` | Unit | Run is locked before a prediction. Skip is unscored. An error gives no score. Two grades. A retry keeps the first attempt. |
-| `tests/lesson-content.test.ts` | Unit | The lesson file agrees with the board, the SVG and the list of supported changes. |
+| `tests/lesson-content.test.ts` | Unit | The lesson file agrees with the level, the board and the list of supported changes. Each mapped connection is really connected on the reference board. Each hole in a change is on the bench. The SVG check comes with the schematic (work package 4). |
 | `supabase/tests/learning_isolation.sql` | SQL | Row-level security on the two new tables. |
 
 ## 11. Dependencies
