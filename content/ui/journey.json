@@ -5,7 +5,12 @@
     "title": "Compare views",
     "intro": "This is one circuit in more than one view. Select a point or a connection in a view. The other views show the same point.",
     "close": "Close Compare views",
-    "tabs": { "label": "Views", "schematic": "Schematic", "board": "3D board", "photo": "Photo" },
+    "tabs": {
+      "label": "Views",
+      "schematic": "Schematic",
+      "board": "3D board",
+      "photo": "Photo"
+    },
     "boardHint": "The 3D board is above. Point at a hole or tap it to select its connection.",
     "reference": "Reference",
     "yourBoard": "Your board",
@@ -33,7 +38,15 @@
       "absent": "The photo view is not here yet. It comes when the photos of the real circuit are added to this lesson.",
       "failed": "The photo did not load.",
       "retry": "Try again",
-      "alternative": "Text description:"
+      "alternative": "Text description:",
+      "choose": "Photo",
+      "points": "Select a point on the photo, or select a point or a connection in a different view.",
+      "notHere": "This photo does not show: {label}.",
+      "oneEnd": "This photo shows one end of this connection only.",
+      "credit": "Photo: {author}.",
+      "source": "Source",
+      "changes": "Changes:",
+      "note": "About this photo:"
     },
     "fault": {
       "title": "A fault on the real circuit",

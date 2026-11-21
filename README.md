@@ -40,6 +40,17 @@ The live app also has the files, for example https://jumper-hardware.vercel.app/
 - [Technical requirements (TRD)](docs/TRD.md): how we build Jumper
 - [Breadboard prototype](reference/breadboard-prototype.html): the look and the interaction
 
+## Photo credits
+
+Compare views (Arduino Foundations, level 2) shows two photos of a real circuit. SparkFun Electronics made them. Their license is [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/).
+
+| File | Source |
+| --- | --- |
+| `public/lessons/af-led/photo-ref.webp` | [Activity Guide for SparkFun Tinker Kit, Circuit 1: Blink an LED](https://learn.sparkfun.com/tutorials/activity-guide-for-sparkfun-tinker-kit/circuit-1-blink-an-led) |
+| `public/lessons/af-led/photo-layout2.webp` | [SIK Experiment Guide for Arduino V3.2, Experiment 1: Blinking an LED](https://learn.sparkfun.com/tutorials/sik-experiment-guide-for-arduino---v32/experiment-1-blinking-an-led) |
+
+Jumper cut the edges of each picture, changed the file format to WebP, and shows points on the pictures in the app. These changed pictures have the same license, CC BY-SA 4.0.
+
 ## Tools used
 
 - **Claude Code:** the coding agent

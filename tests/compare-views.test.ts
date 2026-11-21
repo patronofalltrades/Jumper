@@ -42,7 +42,9 @@ describe("the schematic", () => {
 describe("linkedTargets", () => {
   it("gives the schematic element, the hole and the label of a terminal", () => {
     const pin = linkedTargets(lesson.map, "uno.D13", bench, reference)!;
-    expect(pin).toMatchObject({ kind: "terminal", label: "Pin 13 of the Uno", schematic: ["t-uno-d13"], terminals: ["uno.D13"], photos: {} });
+    expect(pin).toMatchObject({ kind: "terminal", label: "Pin 13 of the Uno", schematic: ["t-uno-d13"], terminals: ["uno.D13"] });
+    // The points of pin 13 on the two photos of the lesson (issue #208).
+    expect(Object.keys(pin.photos).sort()).toEqual(["layout2", "ref"]);
     expect(pin.holes).toEqual([endpointHole(bench, reference, "uno.D13")]);
     expect(pin.explain).toBeUndefined();
   });
@@ -64,7 +66,7 @@ describe("linkedTargets", () => {
   });
 
   it("gives the points on each photo, when the map has them", () => {
-    const map = { ...lesson.map, terminals: lesson.map.terminals.map((t) => (t.id === "uno.D13" ? { ...t, photos: { ref: { x: 0.4, y: 0.2 } } } : t)) };
+    const map = { ...lesson.map, terminals: lesson.map.terminals.map((t) => (t.id === "uno.D13" ? { ...t, photos: { ref: { x: 0.4, y: 0.2 } } } : { ...t, photos: undefined })) };
     expect(linkedTargets(map, "uno.D13", bench, reference)!.photos).toEqual({ ref: [{ x: 0.4, y: 0.2 }] });
     expect(linkedTargets(map, "c-d13-r1", bench, reference)!.photos).toEqual({ ref: [{ x: 0.4, y: 0.2 }] });
   });
