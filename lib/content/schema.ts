@@ -232,8 +232,31 @@ export const lessonSchema = z.object({
   /** The reference media (work package 4). A lesson does not have it until the real photos and the clip exist. */
   media: z
     .object({
-      schematic: z.string().min(1),
-      photos: z.record(z.string(), z.object({ src: z.string().min(1), alt: z.string().min(1) })),
+      /** The schematic is a component (components/journey), so a file is optional. */
+      schematic: z.string().min(1).optional(),
+      photos: z.record(
+        z.string(),
+        z.object({
+          src: z.string().min(1),
+          alt: z.string().min(1),
+          /** The name of the photo in the photo view, for example "Reference photo". */
+          title: z.string().min(1),
+          /** What is different between this photo and the lesson, in words. */
+          note: z.string().min(1).optional(),
+          /** A text for a connection of the map that this photo does not have as one direct connection. */
+          notes: z.record(slug, z.string().min(1)).optional(),
+          /** Who made the photo, and its license. Each photo must have it (issue #208). */
+          credit: z.object({
+            author: z.string().min(1),
+            source: z.url(),
+            sourceTitle: z.string().min(1),
+            license: z.string().min(1),
+            licenseUrl: z.url(),
+            /** What Jumper changed in the picture. The license needs it. */
+            changes: z.string().min(1),
+          }),
+        }),
+      ),
       fault: z.object({ src: z.string().min(1), captions: z.string().min(1), description: z.string().min(1) }).optional(),
     })
     .optional(),

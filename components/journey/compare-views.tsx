@@ -15,7 +15,7 @@ import {
   type Target,
 } from "@/lib/journey/select";
 import { cn } from "@/lib/utils";
-import { FaultClip, Photo } from "./media";
+import { FaultClip, Photo, PhotoCredit } from "./media";
 import { QuestionCard } from "./question-card";
 import { SchematicAfLed } from "./schematic-af-led";
 
@@ -100,6 +100,18 @@ export function CompareViews({
   return <Panel found={found} laptop={laptop} onClose={() => setOpen(false)} />;
 }
 
+/** What the photo shows of the selection, in words: a selection that is not in the photo, one end only, or a note of the photo. */
+function PhotoStatus({ target, name, note }: { target: Target; name: string; note?: string }) {
+  const shown = target.photos[name]?.length ?? 0;
+  const message = shown === 0 ? fill(text.photo.notHere, { label: target.label }) : shown < target.terminals.length ? text.photo.oneEnd : null;
+  if (!message && !note) return null;
+  return (
+    <p data-testid="photo-status" role="status" className="rounded-xl border border-border bg-muted px-3 py-2 text-sm">
+      {[message, note].filter(Boolean).join(" ")}
+    </p>
+  );
+}
+
 function Panel({
   found,
   laptop,
@@ -130,6 +142,10 @@ function Panel({
   );
   const questions = useMemo(() => readQuestions(lesson.questions), [lesson]);
   const photos = Object.entries(lesson.media?.photos ?? {});
+  /** The photos of the photo view: a photo of a question shows in its question. */
+  const shots = photos.filter(([key]) => !questions.some((q) => q.photo === key));
+  const [shotKey, setShotKey] = useState<string | null>(null);
+  const shot = shots.find(([key]) => key === shotKey) ?? shots[0];
   const Schematic = SCHEMATICS[lesson.id];
 
   /** The sid of each element of the schematic → the id in the map, and its label. */
@@ -371,18 +387,35 @@ function Panel({
           {text.photo.absent}
         </p>
       )}
-      {photos
-        .filter(([key]) => !questions.some((q) => q.photo === key))
-        .map(([key, media]) => (
-          <Photo
-            key={key}
-            photo={media}
-            name={key}
-            map={lesson.map}
-            selected={target}
-            onSelect={(id) => select(id, "photo")}
-          />
-        ))}
+      {shots.length > 1 && (
+        <div role="group" aria-label={text.photo.choose} className="flex flex-wrap gap-1.5">
+          {shots.map(([key, media]) => (
+            <button
+              key={key}
+              type="button"
+              aria-pressed={shot?.[0] === key}
+              onClick={() => setShotKey(key)}
+              className={cn(
+                "min-h-11 rounded-xl border px-3 text-sm font-bold outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                shot?.[0] === key ? "border-2 border-probe bg-probe/10" : "border-border bg-card",
+              )}
+            >
+              {media.title}
+            </button>
+          ))}
+        </div>
+      )}
+      {shot && (
+        <div data-testid="photo-view" className="grid gap-2">
+          <Photo key={shot[0]} photo={shot[1]} name={shot[0]} map={lesson.map} selected={target} onSelect={(id) => select(id, "photo")} />
+          {target ? (
+            <PhotoStatus target={target} name={shot[0]} note={shot[1].notes?.[target.id]} />
+          ) : (
+            <p className="text-sm text-muted-foreground">{text.photo.points}</p>
+          )}
+          <PhotoCredit photo={shot[1]} />
+        </div>
+      )}
       {lesson.media?.fault && <FaultClip fault={lesson.media.fault} />}
       {questions.map((q) => (
         <QuestionCard key={q.id} found={found} question={q}>

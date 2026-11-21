@@ -4,28 +4,162 @@
   "version": 1,
   "project": "arduino-foundations",
   "level": 2,
-  "baseline": { "levels": [1, 2] },
+  "baseline": {
+    "levels": [
+      1,
+      2
+    ]
+  },
   "inventory": [
-    { "id": "uno", "name": "Arduino Uno" },
-    { "id": "r1", "name": "Resistor" },
-    { "id": "led1", "name": "LED" },
-    { "id": "w1", "name": "Wire from 5V to the + line" },
-    { "id": "w2", "name": "Wire from GND to the − line" },
-    { "id": "w3", "name": "Wire from pin 13 to the resistor" },
-    { "id": "w4", "name": "Wire from the LED to the − line" }
+    {
+      "id": "uno",
+      "name": "Arduino Uno"
+    },
+    {
+      "id": "r1",
+      "name": "Resistor"
+    },
+    {
+      "id": "led1",
+      "name": "LED"
+    },
+    {
+      "id": "w1",
+      "name": "Wire from 5V to the + line"
+    },
+    {
+      "id": "w2",
+      "name": "Wire from GND to the − line"
+    },
+    {
+      "id": "w3",
+      "name": "Wire from pin 13 to the resistor"
+    },
+    {
+      "id": "w4",
+      "name": "Wire from the LED to the − line"
+    }
   ],
-  "concepts": ["closed-loop", "led-polarity", "output-pin", "breadboard-strips", "series-order"],
+  "concepts": [
+    "closed-loop",
+    "led-polarity",
+    "output-pin",
+    "breadboard-strips",
+    "series-order"
+  ],
   "map": {
     "terminals": [
-      { "id": "uno.5V", "label": "5V pin of the Uno", "schematic": "t-uno-5v" },
-      { "id": "uno.GND", "label": "GND pin of the Uno", "schematic": "t-uno-gnd" },
-      { "id": "uno.D13", "label": "Pin 13 of the Uno", "schematic": "t-uno-d13" },
-      { "id": "bbA.+", "label": "+ line on the left of breadboard A", "schematic": "t-bba-plus" },
-      { "id": "bbA.-", "label": "− line on the left of breadboard A", "schematic": "t-bba-minus" },
-      { "id": "r1.1", "label": "Resistor, first leg", "schematic": "t-r1-1" },
-      { "id": "r1.2", "label": "Resistor, second leg", "schematic": "t-r1-2" },
-      { "id": "led1.anode", "label": "LED, long leg (+)", "schematic": "t-led1-anode" },
-      { "id": "led1.cathode", "label": "LED, short leg (−)", "schematic": "t-led1-cathode" }
+      {
+        "id": "uno.5V",
+        "label": "5V pin of the Uno",
+        "schematic": "t-uno-5v"
+      },
+      {
+        "id": "uno.GND",
+        "label": "GND pin of the Uno",
+        "schematic": "t-uno-gnd",
+        "photos": {
+          "ref": {
+            "x": 0.5879,
+            "y": 0.6164
+          },
+          "layout2": {
+            "x": 0.137,
+            "y": 0.3514
+          }
+        }
+      },
+      {
+        "id": "uno.D13",
+        "label": "Pin 13 of the Uno",
+        "schematic": "t-uno-d13",
+        "photos": {
+          "ref": {
+            "x": 0.8045,
+            "y": 0.4669
+          },
+          "layout2": {
+            "x": 0.4129,
+            "y": 0.5443
+          }
+        }
+      },
+      {
+        "id": "bbA.+",
+        "label": "+ line on the left of breadboard A",
+        "schematic": "t-bba-plus"
+      },
+      {
+        "id": "bbA.-",
+        "label": "− line on the left of breadboard A",
+        "schematic": "t-bba-minus",
+        "photos": {
+          "layout2": {
+            "x": 0.3356,
+            "y": 0.8603
+          }
+        }
+      },
+      {
+        "id": "r1.1",
+        "label": "Resistor, first leg",
+        "schematic": "t-r1-1",
+        "photos": {
+          "ref": {
+            "x": 0.2424,
+            "y": 0.63
+          },
+          "layout2": {
+            "x": 0.7671,
+            "y": 0.6
+          }
+        }
+      },
+      {
+        "id": "r1.2",
+        "label": "Resistor, second leg",
+        "schematic": "t-r1-2",
+        "photos": {
+          "ref": {
+            "x": 0.1742,
+            "y": 0.5744
+          },
+          "layout2": {
+            "x": 0.6986,
+            "y": 0.5841
+          }
+        }
+      },
+      {
+        "id": "led1.anode",
+        "label": "LED, long leg (+)",
+        "schematic": "t-led1-anode",
+        "photos": {
+          "ref": {
+            "x": 0.1205,
+            "y": 0.5707
+          },
+          "layout2": {
+            "x": 0.7963,
+            "y": 0.5503
+          }
+        }
+      },
+      {
+        "id": "led1.cathode",
+        "label": "LED, short leg (−)",
+        "schematic": "t-led1-cathode",
+        "photos": {
+          "ref": {
+            "x": 0.1258,
+            "y": 0.6522
+          },
+          "layout2": {
+            "x": 0.7911,
+            "y": 0.654
+          }
+        }
+      }
     ],
     "connections": [
       {
@@ -65,68 +199,184 @@
       }
     ]
   },
+  "media": {
+    "photos": {
+      "ref": {
+        "src": "/lessons/af-led/photo-ref.webp",
+        "title": "Reference photo",
+        "alt": "A real circuit on a white table. A white breadboard is on the left and a red SparkFun RedBoard is on the right. A yellow wire goes from pin 13 of the board to the breadboard. A resistor goes from the line of the yellow wire to the line of a red LED. A black wire goes from the other line of the LED to a GND pin of the board.",
+        "note": "This photo shows a SparkFun RedBoard. Its pins are the same as the pins of the Arduino Uno. The resistor in the photo is 330 Ω, and the lesson uses 220 Ω. The circuit is the same: pin 13, resistor, LED, GND. The black wire goes directly to the GND pin, so this photo does not use the − line. The two legs of the LED are near each other in this photo.",
+        "credit": {
+          "author": "SparkFun Electronics",
+          "source": "https://learn.sparkfun.com/tutorials/activity-guide-for-sparkfun-tinker-kit/circuit-1-blink-an-led",
+          "sourceTitle": "Activity Guide for SparkFun Tinker Kit, Circuit 1: Blink an LED",
+          "license": "CC BY-SA 4.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+          "changes": "Jumper cut the edges of the picture, changed the file format to WebP and added the points."
+        }
+      },
+      "layout2": {
+        "src": "/lessons/af-led/photo-layout2.webp",
+        "title": "A different layout",
+        "alt": "A real circuit on a black plate. A blue Arduino Uno is at the back and a white breadboard is at the front. A red wire goes from pin 13 of the Uno to the line of the long leg of a yellow LED. The LED is on. A resistor goes from the line of the short leg of the LED to the − line of the breadboard. A black wire goes from the − line to a GND pin of the Uno.",
+        "note": "This is the same loop in a different layout, on an Arduino Uno. Here the resistor is after the LED: pin 13, LED, resistor, − line, GND. The order of the parts in one loop does not change the current. The resistor in the photo is 330 Ω.",
+        "notes": {
+          "c-d13-r1": "In this layout, the wire from pin 13 goes to the long leg (+) of the LED, not to the resistor. The resistor is after the LED.",
+          "c-r1-led": "In this layout, the resistor touches the short leg (−) of the LED, not the long leg.",
+          "c-led-gnd": "In this layout, the short leg (−) of the LED goes through the resistor to the − line. Then the black wire goes from the − line to GND."
+        },
+        "credit": {
+          "author": "SparkFun Electronics",
+          "source": "https://learn.sparkfun.com/tutorials/sik-experiment-guide-for-arduino---v32/experiment-1-blinking-an-led",
+          "sourceTitle": "SIK Experiment Guide for Arduino V3.2, Experiment 1: Blinking an LED",
+          "license": "CC BY-SA 4.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+          "changes": "Jumper cut the edges of the picture, changed the file format to WebP and added the points."
+        }
+      }
+    }
+  },
   "changes": [
     {
       "id": "move-d13-to-d12",
       "text": "Move the end of the pin 13 wire to pin 12.",
       "supported": true,
-      "ops": [{ "op": "place", "part": "w3", "a": "uno-D12", "b": "A-a22" }],
-      "model": { "kind": "off" }
+      "ops": [
+        {
+          "op": "place",
+          "part": "w3",
+          "a": "uno-D12",
+          "b": "A-a22"
+        }
+      ],
+      "model": {
+        "kind": "off"
+      }
     },
     {
       "id": "remove-gnd-wire",
       "text": "Remove the wire from the LED to the − line.",
       "supported": true,
-      "ops": [{ "op": "remove", "part": "w4" }],
-      "model": { "kind": "off" }
+      "ops": [
+        {
+          "op": "remove",
+          "part": "w4"
+        }
+      ],
+      "model": {
+        "kind": "off"
+      }
     },
     {
       "id": "move-gnd-wire-to-plus",
       "text": "Move the end of the LED wire from the − line to the + line.",
       "supported": true,
-      "ops": [{ "op": "place", "part": "w4", "a": "A-a27", "b": "A-L+22" }],
-      "model": { "kind": "off" }
+      "ops": [
+        {
+          "op": "place",
+          "part": "w4",
+          "a": "A-a27",
+          "b": "A-L+22"
+        }
+      ],
+      "model": {
+        "kind": "off"
+      }
     },
     {
       "id": "reverse-led",
       "text": "Turn the LED around.",
       "supported": true,
-      "ops": [{ "op": "place", "part": "led1", "a": "A-e27", "b": "A-e26" }],
-      "model": { "kind": "off" }
+      "ops": [
+        {
+          "op": "place",
+          "part": "led1",
+          "a": "A-e27",
+          "b": "A-e26"
+        }
+      ],
+      "model": {
+        "kind": "off"
+      }
     },
     {
       "id": "led-minus-to-plus",
       "text": "Move the short leg (−) of the LED to the + line.",
       "supported": true,
-      "ops": [{ "op": "place", "part": "led1", "a": "A-e26", "b": "A-L+24" }],
-      "model": { "kind": "off" }
+      "ops": [
+        {
+          "op": "place",
+          "part": "led1",
+          "a": "A-e26",
+          "b": "A-L+24"
+        }
+      ],
+      "model": {
+        "kind": "off"
+      }
     },
     {
       "id": "resistor-after-led",
       "text": "Put the resistor on the other side of the LED: pin 13 to the LED, then the resistor, then the − line.",
       "supported": true,
       "ops": [
-        { "op": "place", "part": "led1", "a": "A-d22", "b": "A-d24" },
-        { "op": "place", "part": "r1", "a": "A-c24", "b": "A-c27" }
+        {
+          "op": "place",
+          "part": "led1",
+          "a": "A-d22",
+          "b": "A-d24"
+        },
+        {
+          "op": "place",
+          "part": "r1",
+          "a": "A-c24",
+          "b": "A-c27"
+        }
       ],
-      "model": { "kind": "blink", "on_ms": 500, "off_ms": 500 }
+      "model": {
+        "kind": "blink",
+        "on_ms": 500,
+        "off_ms": 500
+      }
     },
     {
       "id": "faster-blink",
       "text": "Change each delay(500) in the sketch to delay(100).",
       "supported": true,
-      "ops": [{ "op": "code", "from": "delay(500)", "to": "delay(100)" }],
-      "model": { "kind": "blink", "on_ms": 100, "off_ms": 100 }
+      "ops": [
+        {
+          "op": "code",
+          "from": "delay(500)",
+          "to": "delay(100)"
+        }
+      ],
+      "model": {
+        "kind": "blink",
+        "on_ms": 100,
+        "off_ms": 100
+      }
     },
     {
       "id": "bypass-resistor",
       "text": "Remove the resistor, and join its two holes with a wire.",
       "supported": false,
       "ops": [
-        { "op": "remove", "part": "r1" },
-        { "op": "wire", "id": "w5", "a": "A-b22", "b": "A-b26" }
+        {
+          "op": "remove",
+          "part": "r1"
+        },
+        {
+          "op": "wire",
+          "id": "w5",
+          "a": "A-b22",
+          "b": "A-b26"
+        }
       ],
-      "model": { "kind": "blink", "on_ms": 500, "off_ms": 500 },
+      "model": {
+        "kind": "blink",
+        "on_ms": 500,
+        "off_ms": 500
+      },
       "reason": "The simulator shows the LED blink, but a real LED gets too much current and can burn. The simulator does not calculate current."
     },
     {
