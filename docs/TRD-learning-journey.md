@@ -4,7 +4,7 @@
 | --- | --- |
 | Author | Hanif Ramadhan, with Claude Code |
 | Date | November 21, 2026 |
-| Status | Draft for review. Hanif must approve the decisions in section 12 before the build starts. |
+| Status | Draft for review. Hanif approved D4, D5 and D6 on November 21, 2026. The other decisions in section 12 are open. |
 | Writing standard | ASD-STE100 Simplified Technical English |
 | Source | [Product requirements v0.1, November 20, 2026](sources/2026-11-20-learning-journey-prd.md) (interviews with 3 users of one persona) |
 | Related documents | [TRD](TRD.md), [PRD](PRD.md), [PLAN.md](../PLAN.md), [development plan](PLAN-learning-journey.md) |
@@ -234,7 +234,7 @@ stateDiagram-v2
 - **Two grades (F2-R4, F2-AC4).** `grade()` gives `behaviorCorrect` and `explanationCorrect`. A correct behavior with a wrong explanation shows "Your explanation needs review".
 - **Retry (F2-R6, F2-AC5).** A retry makes a new attempt with `kind = "retry"` and the ID of the first attempt. The first attempt does not change.
 - **Variation (F2-AC6).** The variation has its own board and map. Its grade uses only its own definition.
-- **Hearts and XP.** Proposal: a challenge does not take hearts. A first scored attempt gives XP one time. Decision D6 in section 12.
+- **Hearts and XP (D6, approved).** A challenge does not take hearts. A first scored attempt gives XP one time. Decision D6 in section 12.
 
 ### 6.5 Compare views (P1)
 
@@ -261,7 +261,7 @@ stateDiagram-v2
 
 ## 7. Data and storage
 
-**Decision proposal (D4):** pilot records go to Supabase, so that a researcher can read them for each student. Run records stay in the browser.
+**Decision D4 (approved November 21, 2026):** pilot records go to Supabase, so that a researcher can read them for each student. Run records stay in the browser.
 
 Two new tables. One migration. Row-level security as on the other user tables (`user_id = auth.uid()`). `schema.md` gets the new tables and the comparison with PLAN.md section 3 (assignment rule 6).
 
@@ -326,9 +326,9 @@ The measures of section 7 of the source document come from these two tables with
 | D1 | Pilot lesson | Arduino Foundations level 2, version 1, as in section 5 | It exists, it has Run, and it is the LED circuit of the source document. |
 | D2 | Resistor value in the lesson and the real build | 220 Ω | A common value for a red LED on 5 V. It is text only (section 4). |
 | D3 | Who makes the physical media | Hanif builds the real circuit, takes the two photos, and records one loose-wire clip | The assignment does not allow placeholder content (assignment rule 7). |
-| D4 | Persistence | Attempts and events in Supabase. Run records in the browser. | Researchers need the attempts for each student. Run records contain code. |
-| D5 | How a researcher reads the records | Hanif runs saved SQL in the Supabase dashboard | A new export script needs `SUPABASE_SECRET_KEY`. CLAUDE.md allows that key only for the seed script and CI. |
-| D6 | Hearts and XP in a challenge | No hearts lost. XP one time for the first scored attempt. | A lost heart can make a learner skip the prediction. Hearts stay for the level Check. |
+| D4 | Persistence | **Approved (Nov 21).** Attempts and events in Supabase. Run records in the browser. | Researchers need the attempts for each student. Run records contain code. |
+| D5 | How a researcher reads the records | **Approved (Nov 21).** Hanif runs saved SQL in the Supabase dashboard. The SQL is in `supabase/pilot/measures.sql`. | A new export script needs `SUPABASE_SECRET_KEY`. CLAUDE.md allows that key only for the seed script and CI. |
+| D6 | Hearts and XP in a challenge | **Approved (Nov 21).** No hearts lost. XP one time for the first scored attempt. | A lost heart can make a learner skip the prediction. Hearts stay for the level Check. |
 | D7 | Phone | Compare views and Last run work on a phone. Predict works on a phone too, because the board already works there. | The phone build mode exists (row 57). |
 | D8 | Subject review and consent | A lecturer reviews the map, the answers and the clip. The pilot shows a short consent text before the first record. | Release checklist item 2. Students give written reflections. |
 | D9 | Name of the automatic record in the UI | "Run" ("Compare with last run") | "Snapshot" is the lab notebook (row 6). |

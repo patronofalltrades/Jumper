@@ -26,14 +26,14 @@ Size: **S** is less than 1 day, **M** is 1–2 days, **L** is 3–4 days, for on
 | # | Branch | Slice | Requirements | Size | Needs | Result that we can show |
 | --- | --- | --- | --- | --- | --- | --- |
 | 1 | `feature/lesson-file` | 0 | Lesson version, concept tags, supported changes, `connections.ts`, `observe.ts`, content tests | M | — | The test suite proves that the LED lesson gives the same observation for the same board and code. |
-| 2 | `feature/learning-records` | 0 | Migration for `learning_attempts` and `learning_events`, RLS, SQL isolation test, server actions, `schema.md` | M | Decision D4 | Records save and only the owner reads them. |
+| 2 | `feature/learning-records` | 0 | Migration for `learning_attempts` and `learning_events`, RLS, SQL isolation test, server actions, `schema.md` | M | Decision D4 (approved) | Records save and only the owner reads them. |
 | 3 | `feature/run-records` | 0 / 3 | F3-R1, F3-R2, F3-AC4: a record at each Run, keep three, result on the record, "Changed since this run" | M | 1 | Run, change a wire during the animation: the result stays with its record. |
 | 4 | `feature/compare-views` | 1 | F1-R1 to F1-R4, F1-AC1, F1-AC2, F1-AC5: schematic, photo, linked selection, keyboard list, reference difference, phone tabs | L | 1, media M1 and M2 | Select pin 13 in any view: all three views show it. |
 | 5 | `feature/fault-and-transfer` | 1 | F1-R5, F1-R6, F1-AC3, F1-AC4: fault clip with captions, first-check question, transfer photo question, records | M | 2, 4, media M3 and M4 | Same Circuit, Three Worlds works from start to end. |
 | 6 | `feature/predict-challenge` | 2 | F2-R1 to F2-R6, all F2-AC: state machine, prediction lock, configuration check, two grades, hints, retry, variation | L | 1, 2, 3, content C1 | One student completes and retries a scored challenge. |
 | 7 | `feature/compare-last-run` | 3 | F3-R3 to F3-R5, F3-AC1 to F3-AC3, F3-AC6: connection and code diff, both results, "candidate causes" text | M | 3 | The learner sees what changed between two runs. |
 | 8 | `feature/restore-run` | 3 | F3-R6, F3-AC5: restore board and code together, undo of a restore, new run necessary | S | 3, 7 | The learner tests a diagnosis with a restore and a new run. |
-| 9 | `feature/pilot-ready` | 4 | Section 9 of the TRD addendum, the release checklist, saved SQL for the measures, consent text, one Playwright check of the journey | M | 1–8, review R1 | Pilot students can complete the journey, and the records are usable. |
+| 9 | `feature/pilot-ready` | 4 | Section 9 of the TRD addendum, the release checklist, saved SQL for the measures (`supabase/pilot/measures.sql`, D5), consent text, one Playwright check of the journey | M | 1–8, review R1 | Pilot students can complete the journey, and the records are usable. |
 
 **Total:** about 15–22 days of build work. This agrees with the source document: estimates come after the audit, and the audit is done.
 
