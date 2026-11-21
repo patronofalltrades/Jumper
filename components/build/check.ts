@@ -54,7 +54,9 @@ export function useLevelCheck({ user, project, levelId, position, rules, needsSk
   const [state, setState] = useState<LevelCheck>({ open: true, busy: false, failed: null, error: null });
 
   const check = async () => {
-    const { bench, parts, base, progress, code, codePassed, helpedCode } = boardStore.getState();
+    const { bench, parts, base, progress, code, codePassed, helpedCode, paused } = boardStore.getState();
+    // No level Check in a challenge: its board is not the learner's level (issue #203).
+    if (paused) return;
     if (progress.phase !== "ready_to_check" || state.busy || isEmptyBoard(parts, base) || (needsSketch && !codePassed)) return;
     const session = readSavedLevel(user, project, position)?.session;
     if (!session) return setState({ open: true, busy: false, failed: null, error: text.play.check.noSession });

@@ -165,7 +165,8 @@ These modules follow house rule 6: no React, no 3D code, no database code. Each 
 | `lib/sketch/observe.ts` | `observeLed(program, circuit, led)` | Runs the sketch for 6 s of virtual time (as `checkGoal` does). Gives `{ kind: "off" }`, `{ kind: "on" }` or `{ kind: "blink", onMs, offMs }`. When the sketch stops with an error, it gives `{ kind: "error", error }`. |
 | `lib/circuit/change.ts` | `applyChange(parts, code, ops)` | Applies the `ops` of a lesson change (`place`, `wire`, `remove`, `code`) to a board and a sketch. It gives new values and does not change its inputs. Work package 6 uses it to make the expected board of a challenge. |
 | `lib/runs/record.ts` | `captureRun()`, `keepLatest(records, 3)`, `diffRuns(before, after)`, `diffLines(a, b)` | Makes a run record. Keeps the latest three. Compares two records: connections (from `diffConnections`) and code lines. `diffLines` is a small longest-common-subsequence function (about 30 lines). We do not add a diff library. |
-| `lib/challenge/machine.ts` | `challengeReducer(state, event)`, `grade(definition, answers, observed)` | The Predict state machine (section 6.4). It grades the behavior and the explanation separately. |
+| `lib/challenge/machine.ts` | `challengeReducer(state, event)`, `grade(rubric, prediction, explanation)`, `behaviorOf(observed)` | The Predict state machine (section 6.4). It grades the behavior and the explanation separately. |
+| `lib/challenge/run.ts` | `runChallenge(input)` | One run of a challenge on the board and the sketch at the press of Run: the observed behavior, or the reason why there is no result (wrong board, sketch error, a sketch that is not the sketch of the level). |
 | `lib/journey/select.ts` | `linkedTargets(map, id)` | For a selected terminal or connection, gives the schematic ID, the photo hotspots, the 3D holes and the text. |
 
 ### 6.3 Run records (Last run, P3)
@@ -239,6 +240,17 @@ stateDiagram-v2
 - **Retry (F2-R6, F2-AC5).** A retry makes a new attempt with `kind = "retry"` and the ID of the first attempt. The first attempt does not change.
 - **Variation (F2-AC6).** The variation has its own board and map. Its grade uses only its own definition.
 - **Hearts and XP (D6, approved).** A challenge does not take hearts. A first scored attempt gives XP one time. Decision D6 in section 12.
+
+**As built (issue #203):**
+
+- The states are `predict`, `change`, `explain` and `feedback`. The run is one synchronous call, so it is an event, not a state. The comparison shows in `explain` and in `feedback`.
+- A challenge is a sandbox. `boardStore.startChallenge()` puts the learner's board, tasks and sketch away, and puts the reference circuit and the solution sketch of the level on the bench, with the task engine off. `endChallenge()` puts the level back. The browser save keeps the learner's own level during a challenge. Thus a challenge is available at each point of the level, and it cannot give a mistake, take a heart or change the XP.
+- The prediction choices are `blinks`, `stays-on` and `stays-off`. `predict.expected` must be what the simulator shows for the change: a test proves it for each challenge and each variation.
+- A variation has its own complete board (`parts`), which goes on the 3D board, and its own answers. The learner does not change that board.
+- The hints show after the prediction, so the prediction is the learner's own. A variation has no hints.
+- The written reflection saves with a separate action (`saveReflection`), because the learner writes it after the attempt is complete.
+- The browser keeps the ID of the first attempt of each item (`localStorage`), so a reload still makes a retry. On a different device, the database refuses a second first attempt; the panel then shows the "not saved" note and continues.
+- XP for a first scored attempt (decision D6) is not built: it needs a change of `record_attempt`.
 
 ### 6.5 Compare views (P1)
 
@@ -316,7 +328,7 @@ The measures of section 7 of the source document come from these two tables with
 | `tests/observe.test.ts` | Unit | The baseline blinks 500/500. Each "Yes" change in section 4 gives the expected result. |
 | `tests/run-record.test.ts` | Unit | A record does not change when the board changes after Run. Only three records stay. `diffLines` and `diffRuns` list each change. |
 | `tests/restore.test.ts` | Unit | Restore changes the board and the code together. Undo of a restore puts back the unsaved state. |
-| `tests/challenge.test.ts` | Unit | Run is locked before a prediction. Skip is unscored. An error gives no score. Two grades. A retry keeps the first attempt. |
+| `tests/challenge.test.ts` | Unit | Run is locked before a prediction. Skip is unscored. An error gives no score. Two grades. A retry keeps the first attempt. A variation uses its own answers. The sandbox puts the level back. Each challenge of the lesson file agrees with the simulator. |
 | `tests/lesson-content.test.ts` | Unit | The lesson file agrees with the level, the board and the list of supported changes. Each mapped connection is really connected on the reference board. Each hole in a change is on the bench. The SVG check comes with the schematic (work package 4). |
 | `supabase/tests/learning_isolation.sql` | SQL | Row-level security on the two new tables. |
 

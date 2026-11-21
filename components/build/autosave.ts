@@ -144,7 +144,10 @@ type Props = {
 
 /** What the browser saves for the open level: the board, the progress and the sketch. */
 function saved(): Omit<Saved, "session"> {
-  const { parts, base, progress, code, codePassed, helpedCode } = boardStore.getState();
+  // In a challenge (issue #203), the board on the bench is a sandbox: save the learner's own level, which is put away.
+  const now = boardStore.getState();
+  const { parts, progress, code, codePassed, helpedCode } = now.paused ?? now;
+  const { base } = now;
   return { parts, base, progress, ...(code !== null && { sketch: { code, passed: codePassed, ...(helpedCode !== null && { helped: helpedCode }) } }) };
 }
 
@@ -203,7 +206,9 @@ export function useLevel({ user, project, levelId, position, bench, plan, start,
     };
 
     const save = () => {
-      const { progress, level } = boardStore.getState();
+      const { level, paused, progress: onBench } = boardStore.getState();
+      // In a challenge, the progress of the level is put away (issue #203).
+      const progress = paused?.progress ?? onBench;
       if (level !== open) return;
       put(key, current());
       // Wait for a pause, so that fast work sends one request.
@@ -217,7 +222,8 @@ export function useLevel({ user, project, levelId, position, bench, plan, start,
     // Send the last counters when the learner leaves the page.
     const leave = () => {
       clearTimeout(timer);
-      void sync(boardStore.getState().progress, { renew: false });
+      const { paused, progress } = boardStore.getState();
+      void sync(paused?.progress ?? progress, { renew: false });
     };
     window.addEventListener("pagehide", leave);
     // The other tab saved this level: keep its newer board, show the note, and stop saving here.

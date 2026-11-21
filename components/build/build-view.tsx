@@ -38,6 +38,7 @@ import { useLevelMusic } from "./music";
 import { readAloud, stopReading, useReadSteps } from "./read-aloud";
 import { Tour } from "./tour";
 import { cn } from "@/lib/utils";
+import { ChallengeButton } from "@/components/challenge/challenge";
 
 export type { LevelTask };
 
@@ -250,6 +251,7 @@ function BuildBoard({ user, project, levelId, position, eyebrow, title, goal, ta
             <span className="max-sm:hidden">{watchText.watch}</span>
           </button>
         )}
+        <ChallengeButton user={user} project={project} position={position} sketch={sketch} />
         <SaveSnapshot
           levels={levels}
           read={() => {

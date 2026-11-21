@@ -23,7 +23,7 @@ const fill = (template: string, values: Record<string, string | number>) => temp
 export type CodeRow = { instruction: string; open: () => void };
 
 /** `small`: the code panel is open, so the list starts as a chip and the Uno (with its L light) stays in view. */
-export function TaskList({ tasks, laptop, code, small = false, music = null }: { tasks: LevelTask[]; laptop: boolean; code: CodeRow | null; small?: boolean; music?: Track | null }) {
+function TaskListBody({ tasks, laptop, code, small = false, music = null }: { tasks: LevelTask[]; laptop: boolean; code: CodeRow | null; small?: boolean; music?: Track | null }) {
   const bench = useBoard((s) => s.bench);
   const parts = useBoard((s) => s.parts);
   const plan = useBoard((s) => s.plan);
@@ -135,4 +135,10 @@ function Mark({ mark }: { mark: "done" | "now" | "todo" }) {
       )}
     </span>
   );
+}
+
+/** The task list of the level. It hides in a challenge (issue #203): the board on the bench is not the level. */
+export function TaskList(props: { tasks: LevelTask[]; laptop: boolean; code: CodeRow | null; small?: boolean; music?: Track | null }) {
+  const inChallenge = useBoard((s) => s.paused !== null);
+  return inChallenge ? null : <TaskListBody {...props} />;
 }

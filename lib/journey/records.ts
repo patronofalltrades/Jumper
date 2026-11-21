@@ -85,6 +85,10 @@ export const attemptCompleteSchema = z
   });
 export type AttemptComplete = z.input<typeof attemptCompleteSchema>;
 
+/** The optional written reflection of an attempt, saved after the feedback (issue #203). It never goes into an event. */
+export const reflectionSchema = z.object({ id: z.uuid(), reflection: z.string().trim().min(1).max(2000) });
+export type Reflection = z.input<typeof reflectionSchema>;
+
 /** The events as the rows that `log_learning_events` reads. */
 export function toEventRows(events: z.output<typeof eventsSchema>) {
   return events.map((e) => ({

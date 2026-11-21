@@ -130,5 +130,372 @@
       "supported": false,
       "reason": "In the simulator, a wire is in its hole or it is not. A real loose wire makes the LED flicker or stay off. Use the fault clip for this change."
     }
+  ],
+  "challenges": [
+    {
+      "id": "open-loop",
+      "concept": "closed-loop",
+      "title": "Take away the wire to ground",
+      "change": "remove-gnd-wire",
+      "predict": {
+        "options": [
+          "blinks",
+          "stays-on",
+          "stays-off"
+        ],
+        "expected": "stays-off"
+      },
+      "explain": {
+        "options": [
+          {
+            "id": "no-loop",
+            "text": "Current flows only in a closed loop. Without this wire, the path from pin 13 does not get back to GND. Thus no current flows through the LED.",
+            "correct": true,
+            "feedback": "Correct. Current needs a full loop: out of pin 13, through the resistor and the LED, and back to GND. When the loop is open at one point, the current is zero in each part."
+          },
+          {
+            "id": "dead-end",
+            "text": "Pin 13 still sends current into the LED. The current stops at the end of the LED, where it has no more room.",
+            "correct": false,
+            "feedback": "Current does not flow into a dead end. The long leg of the LED still has voltage from pin 13, but current flows only when the loop is closed. With the loop open, the current is zero in each part, also before the LED."
+          },
+          {
+            "id": "pin-senses",
+            "text": "Pin 13 senses that the wire is not there, and the Uno turns its output off.",
+            "correct": false,
+            "feedback": "The Uno does not know what you connect. Pin 13 continues to go HIGH and LOW each half second. The LED is off because the loop is open, not because the pin is off."
+          }
+        ]
+      },
+      "hints": [
+        {
+          "text": "Follow the path with your finger. Start at pin 13 and try to get back to GND."
+        },
+        {
+          "text": "Electric current needs a full loop. Find the place where the path stops."
+        },
+        {
+          "text": "Look at the short leg (−) of the LED. The wire that you removed took it to GND. Without that wire, the loop is open.",
+          "highlight": "c-led-gnd"
+        }
+      ],
+      "variation": {
+        "id": "open-loop-layout",
+        "text": "This is a circuit in other holes. The wire to the − line is in column 16. The short leg (−) of the LED is in column 15.",
+        "parts": [
+          {
+            "id": "w1",
+            "type": "wire",
+            "a": "uno-5V",
+            "b": "A-L+5",
+            "color": "#D63A2F"
+          },
+          {
+            "id": "w2",
+            "type": "wire",
+            "a": "uno-GND2",
+            "b": "A-L-6",
+            "color": "#25292D"
+          },
+          {
+            "id": "r1",
+            "type": "resistor",
+            "a": "A-c10",
+            "b": "A-c14"
+          },
+          {
+            "id": "led1",
+            "type": "led",
+            "a": "A-e14",
+            "b": "A-e15"
+          },
+          {
+            "id": "w3",
+            "type": "wire",
+            "a": "uno-D13",
+            "b": "A-a10",
+            "color": "#2F6FD6"
+          },
+          {
+            "id": "w4",
+            "type": "wire",
+            "a": "A-a16",
+            "b": "A-L-12",
+            "color": "#25292D"
+          }
+        ],
+        "predict": {
+          "options": [
+            "blinks",
+            "stays-on",
+            "stays-off"
+          ],
+          "expected": "stays-off"
+        },
+        "explain": {
+          "options": [
+            {
+              "id": "other-column",
+              "text": "Holes a to e connect only in the same column. The wire is in column 16 and the LED leg is in column 15. Thus the loop is open.",
+              "correct": true,
+              "feedback": "Correct. Column 15 and column 16 are separate inside the breadboard. The wire touches nothing, so the path from the LED does not get back to GND."
+            },
+            {
+              "id": "side-by-side",
+              "text": "Holes that are side by side always connect. Thus the loop is closed.",
+              "correct": false,
+              "feedback": "Only the 5 holes a to e of the same column connect inside the breadboard. Column 15 and column 16 are side by side, but they are separate. The loop is open."
+            },
+            {
+              "id": "too-far",
+              "text": "The wire goes to the − line, so the loop is closed. The LED is off because the parts are too far from the Uno.",
+              "correct": false,
+              "feedback": "Distance does not matter here. One end of the wire is in the − line, but its other end is not in the column of the LED leg. The loop is open."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "reverse-led",
+      "concept": "led-polarity",
+      "title": "Turn the LED around",
+      "change": "reverse-led",
+      "predict": {
+        "options": [
+          "blinks",
+          "stays-on",
+          "stays-off"
+        ],
+        "expected": "stays-off"
+      },
+      "explain": {
+        "options": [
+          {
+            "id": "one-way",
+            "text": "An LED lets current through in one direction only: in at the long leg (+), out at the short leg (−). Turned around, it blocks the current.",
+            "correct": true,
+            "feedback": "Correct. An LED is a diode. It is like a one-way door for current. When the long leg (+) is on the side of GND, the door is closed and no current flows."
+          },
+          {
+            "id": "dim",
+            "text": "The LED works in both directions. Turned around, it gives a light that is too weak to see.",
+            "correct": false,
+            "feedback": "A reversed LED does not give a weak light. It blocks the current, so it gives no light. Only a resistor that is too large makes an LED dim."
+          },
+          {
+            "id": "resistor-side",
+            "text": "The resistor is now on the wrong side of the LED, so it stops all the current.",
+            "correct": false,
+            "feedback": "The resistor did not move. A resistor also works the same in both directions. The LED is the part that has a direction."
+          }
+        ]
+      },
+      "hints": [
+        {
+          "text": "Look at the two legs of the LED. They are not the same."
+        },
+        {
+          "text": "The long leg is +. Current goes in at the long leg and out at the short leg. Which leg is on the side of pin 13 now?"
+        },
+        {
+          "text": "The resistor now touches the short leg (−) of the LED. Current cannot go in at the short leg.",
+          "highlight": "c-r1-led"
+        }
+      ],
+      "variation": {
+        "id": "polarity-layout",
+        "text": "In this layout the LED points to the left. Its long leg (+) is in column 12, with the resistor. Its short leg (−) is in column 11, with the wire to the − line.",
+        "parts": [
+          {
+            "id": "w1",
+            "type": "wire",
+            "a": "uno-5V",
+            "b": "A-L+5",
+            "color": "#D63A2F"
+          },
+          {
+            "id": "w2",
+            "type": "wire",
+            "a": "uno-GND2",
+            "b": "A-L-6",
+            "color": "#25292D"
+          },
+          {
+            "id": "w3",
+            "type": "wire",
+            "a": "uno-D13",
+            "b": "A-a16",
+            "color": "#2F6FD6"
+          },
+          {
+            "id": "r1",
+            "type": "resistor",
+            "a": "A-c16",
+            "b": "A-c12"
+          },
+          {
+            "id": "led1",
+            "type": "led",
+            "a": "A-e12",
+            "b": "A-e11"
+          },
+          {
+            "id": "w4",
+            "type": "wire",
+            "a": "A-a11",
+            "b": "A-L-9",
+            "color": "#25292D"
+          }
+        ],
+        "predict": {
+          "options": [
+            "blinks",
+            "stays-on",
+            "stays-off"
+          ],
+          "expected": "blinks"
+        },
+        "explain": {
+          "options": [
+            {
+              "id": "legs-not-side",
+              "text": "Left or right on the board is not important. The long leg (+) is on the side of pin 13 and the short leg (−) is on the side of GND. Thus current can flow.",
+              "correct": true,
+              "feedback": "Correct. Polarity is about the legs, not about the direction on the board. Current comes from pin 13 through the resistor into the long leg (+), and goes out at the short leg (−) to GND."
+            },
+            {
+              "id": "points-left",
+              "text": "The LED points to the left, so it is reversed and it blocks the current.",
+              "correct": false,
+              "feedback": "The direction on the board does not make an LED reversed. Follow the path: pin 13, resistor, long leg (+), short leg (−), GND. The current goes in at the long leg, so the LED lights."
+            },
+            {
+              "id": "both-ways",
+              "text": "An LED works in both directions, so it always lights.",
+              "correct": false,
+              "feedback": "An LED works in one direction only. It lights here because its long leg (+) is on the side of pin 13. If you turn it around, it stays off."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "resistor-after-led",
+      "concept": "series-order",
+      "title": "Put the resistor after the LED",
+      "change": "resistor-after-led",
+      "predict": {
+        "options": [
+          "blinks",
+          "stays-on",
+          "stays-off"
+        ],
+        "expected": "blinks"
+      },
+      "explain": {
+        "options": [
+          {
+            "id": "same-current",
+            "text": "The resistor and the LED are in one path, in series. The current is the same at each point of one path. Thus the resistor limits the current on each side of the LED.",
+            "correct": true,
+            "feedback": "Correct. In a series path, the same current goes through each part. The sequence of the parts does not change the current, so the LED blinks as before and it is as safe as before."
+          },
+          {
+            "id": "led-first",
+            "text": "The LED now gets the full current first. The resistor comes too late to protect it.",
+            "correct": false,
+            "feedback": "Current is not used up along the path, and it does not get to one part first. In one series path, the current is the same in each part. The resistor limits it for the full path."
+          },
+          {
+            "id": "no-work",
+            "text": "Pin 13 goes directly to the LED now, so the resistor has no function in this position.",
+            "correct": false,
+            "feedback": "The resistor still limits the current. Without a resistor, a real LED gets too much current and can burn. Its position in the series path does not change its function."
+          }
+        ]
+      },
+      "hints": [
+        {
+          "text": "Count the paths from pin 13 to GND. Is there one path, or are there more?"
+        },
+        {
+          "text": "In one path, the same current goes through each part, one after the other."
+        },
+        {
+          "text": "Start at pin 13. The path now goes through the LED first, then through the resistor, then to GND. It is still one path.",
+          "highlight": "c-d13-r1"
+        }
+      ],
+      "variation": {
+        "id": "series-layout",
+        "text": "In this layout the resistor goes directly from the short leg (−) of the LED into the − line. There is no wire between the resistor and the − line.",
+        "parts": [
+          {
+            "id": "w1",
+            "type": "wire",
+            "a": "uno-5V",
+            "b": "A-L+5",
+            "color": "#D63A2F"
+          },
+          {
+            "id": "w2",
+            "type": "wire",
+            "a": "uno-GND2",
+            "b": "A-L-6",
+            "color": "#25292D"
+          },
+          {
+            "id": "w3",
+            "type": "wire",
+            "a": "uno-D13",
+            "b": "A-b8",
+            "color": "#2F6FD6"
+          },
+          {
+            "id": "led1",
+            "type": "led",
+            "a": "A-c8",
+            "b": "A-c9"
+          },
+          {
+            "id": "r1",
+            "type": "resistor",
+            "a": "A-a9",
+            "b": "A-L-8"
+          }
+        ],
+        "predict": {
+          "options": [
+            "blinks",
+            "stays-on",
+            "stays-off"
+          ],
+          "expected": "blinks"
+        },
+        "explain": {
+          "options": [
+            {
+              "id": "leg-is-wire",
+              "text": "It is still one closed path: pin 13, LED, resistor, GND. A leg of a part can do the work of a wire.",
+              "correct": true,
+              "feedback": "Correct. The leg of the resistor is metal, as a wire is. It connects the resistor to the − line. The path is closed and it is in series, so the LED blinks."
+            },
+            {
+              "id": "both-gnd",
+              "text": "The resistor is in the − line, so both its legs touch GND and no current goes through it.",
+              "correct": false,
+              "feedback": "Only one leg of the resistor is in the − line. The other leg is in column 9, with the short leg of the LED. The LED current goes through the resistor to GND."
+            },
+            {
+              "id": "needs-wire",
+              "text": "The − line must get a wire, not a part. The loop is open.",
+              "correct": false,
+              "feedback": "A hole takes a wire or a leg of a part. Both are metal and both connect. The loop is closed."
+            }
+          ]
+        }
+      }
+    }
   ]
 }
