@@ -275,6 +275,7 @@ Two new tables. One migration. Row-level security as on the other user tables (`
 | `learning_events` | id (uuid, made in the browser), user_id (uuid), name (text), lesson_id (text), lesson_version (int), attempt_id (uuid, nullable), run_id (uuid, nullable), data (jsonb: IDs and scores only), created_at (timestamptz) | PK id. FK user_id → profiles | The browser makes the ID. Thus a second send of the same event does nothing (`on conflict do nothing`). |
 
 - **Server actions** (`app/actions/journey.ts`): `saveAttempt`, `completeAttempt`, `logEvents` (a batch). Zod checks each input. `data` must not contain code or reflections: the Zod schema allows only numbers, booleans and IDs.
+- **As built (issue #195).** A question uses `prediction` and `behavior_correct` for the first answer, and `explanation` and `explanation_correct` for the final answer. The app saves events only through the SQL function `log_learning_events` (`on conflict do nothing`). A user can change only the answer columns of an attempt, cannot delete an attempt, and cannot change or delete an event. [schema.md](../schema.md) gives each rule.
 - **Duplicate results.** A result with a `run_id` that is already recorded does nothing (F3 "discard duplicate result processing").
 - **Old data.** When a stored record has a different `lesson_version` or `runtime`, the app says that the lesson changed and offers a new attempt. The old row stays.
 - **Tests.** An SQL test in `supabase/tests/` proves that user B cannot read the rows of user A in both tables, and that `anon` cannot read them.
