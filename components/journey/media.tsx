@@ -46,8 +46,8 @@ export function Photo({ photo, name, map, selected, onSelect }: { photo: Media["
         if (!spot) return null;
         const on = !!selected?.terminals.includes(t.id);
         return (
+          <span key={t.id}>
           <button
-            key={t.id}
             type="button"
             aria-label={t.label}
             aria-pressed={on}
@@ -55,10 +55,25 @@ export function Photo({ photo, name, map, selected, onSelect }: { photo: Media["
             onClick={() => onSelect(t.id)}
             style={{ left: `${spot.x * 100}%`, top: `${spot.y * 100}%` }}
             className={cn(
-              "absolute size-7 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 outline-none focus-visible:ring-2 focus-visible:ring-ring",
-              on ? "border-probe bg-probe/30 ring-4 ring-probe/40" : "border-white/90 bg-black/30",
+              "absolute size-6 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 outline-none focus-visible:ring-2 focus-visible:ring-ring",
+              on ? "z-10 border-probe bg-probe/30 ring-4 ring-probe/40" : "border-white/90 bg-black/30",
             )}
           />
+          {/* The selected point also has its name on the photo: a mark that is not color only. */}
+          {on && (
+            <span
+              aria-hidden="true"
+              style={{ left: `${spot.x * 100}%`, top: `${spot.y * 100}%` }}
+              className={cn(
+                "pointer-events-none absolute z-10 max-w-[45%] rounded-md border border-probe bg-card px-1.5 py-0.5 text-[11px] leading-tight font-bold text-foreground shadow-panel",
+                spot.x > 0.55 ? "-translate-x-[calc(100%+18px)]" : "translate-x-[18px]",
+                "-translate-y-1/2",
+              )}
+            >
+              {t.label}
+            </span>
+          )}
+          </span>
         );
       })}
     </div>
@@ -84,6 +99,33 @@ export function FaultClip({ fault }: { fault: NonNullable<Media["fault"]> }) {
           </p>
         </>
       )}
+    </div>
+  );
+}
+
+/** Under a photo: what it shows that is different from the lesson, and who made it, with the license (issue #208). */
+export function PhotoCredit({ photo }: { photo: Media["photos"][string] }) {
+  const { credit } = photo;
+  const link = "font-semibold underline underline-offset-2 outline-none focus-visible:ring-2 focus-visible:ring-ring";
+  return (
+    <div className="grid gap-1.5 text-xs text-muted-foreground">
+      {photo.note && (
+        <p data-testid="photo-note" className="text-sm">
+          <span className="font-semibold text-foreground">{text.photo.note}</span> {photo.note}
+        </p>
+      )}
+      <p data-testid="photo-credit">
+        {text.photo.credit.replace("{author}", credit.author)}{" "}
+        <a href={credit.source} target="_blank" rel="noopener noreferrer" className={link}>
+          {text.photo.source}: {credit.sourceTitle}
+        </a>
+        {". "}
+        <a href={credit.licenseUrl} target="_blank" rel="noopener noreferrer" className={link}>
+          {credit.license}
+        </a>
+        {". "}
+        {text.photo.changes} {credit.changes}
+      </p>
     </div>
   );
 }
