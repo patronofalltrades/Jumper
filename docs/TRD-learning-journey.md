@@ -251,6 +251,16 @@ stateDiagram-v2
 - **Transfer (F1-R6, F1-AC4).** The second photo (a different layout) with its own hotspots. The answer key uses connection IDs, not positions. Thus a different position with the same connection is correct.
 - **Media failure (F1-AC5).** Each image and video has an `onError` handler. It shows Retry and the text alternative. The board and the answers stay.
 
+**As built (issue #202):**
+
+- The panel is not a dialog. On a laptop it is a column beside the board, so the board stays in view and the learner can change it. On a phone it is a sheet at the bottom with three tabs (Schematic, 3D board, Photo).
+- The schematic is a React component for each lesson (`components/journey/schematic-af-led.tsx`), not an SVG file. Thus each terminal and net is a button for the pointer and the keyboard. The map names its elements with the `schematic` field. `tests/compare-views.test.ts` makes sure that each id is in the drawing.
+- `lib/journey/select.ts` has `linkedTargets(map, id, bench, parts)` (the schematic ids, the holes, the label, the text and the photo points of a selection), `selectionAt()` (a hole of the 3D board gives the connection of its net), `referenceDifference()` and `diffLines()` (the difference from the reference, as text).
+- `lib/journey/lesson-of.ts` gives the lesson of a level to the browser. A level with no lesson file has no button.
+- `lib/journey/questions.ts` gives the shape of a question (first-check or transfer) and its answer logic: the first answer, the hints and the final answer are separate values. The question card saves them with `saveAttempt`, `completeAttempt` and `logEvents`. A save that fails shows a short message only.
+- The lesson file has no `media` and no `questions` now. The panel then shows a note in the place of the photo. When Hanif adds the photos, the clip and the questions to `content/lessons/af-led.json`, the photo view, the fault clip and the questions show with no code change.
+- On a phone, the button does not show while the code panel is open.
+
 ### 6.6 Files that change
 
 | File | Change |
@@ -259,7 +269,7 @@ stateDiagram-v2
 | `lib/game/board-store.ts` | New actions `restoreRun` and `undoRestore`, and the backup slot. |
 | `components/build/build-view.tsx` | The "Compare views", "Challenge" and "Compare with last run" buttons, when the level has a lesson file. |
 | `lib/content/schema.ts`, `lib/content/load.ts` | Zod schema and reader for `content/lessons/`. |
-| `components/journey/` (new) | Schematic view, photo view, linked list, fault clip, challenge panel, run compare panel. |
+| `components/journey/` (new) | Schematic view, photo view, linked list, fault clip, question card (issue #202). Later: challenge panel, run compare panel. |
 | `content/ui/journey.json` (new) | The text of the new screens. |
 | `public/lessons/af-led/` (new) | Schematic SVG, two photos, fault clip, captions. |
 
