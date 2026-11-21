@@ -22,7 +22,7 @@ const fill = (template: string, values: Record<string, string | number>) => temp
  * The list under the task list, after a failed Check. `rules` are the rules of the level (joined with the earlier levels).
  * Its header opens and closes it, as the task list (issue #112): open on a laptop, closed on a phone or when the code panel is open (`small`).
  */
-export function ConnectionList({ rules, laptop, small = false }: { rules: Rules; laptop: boolean; small?: boolean }) {
+function ConnectionListBody({ rules, laptop, small = false }: { rules: Rules; laptop: boolean; small?: boolean }) {
   const bench = useBoard((s) => s.bench);
   const parts = useBoard((s) => s.parts);
   const states = useMemo(() => connectionStates(bench, parts, rules), [bench, parts, rules]);
@@ -81,4 +81,10 @@ function Mark({ ok }: { ok: boolean }) {
       </svg>
     </span>
   );
+}
+
+/** The connection list of the level. It hides in a challenge (issue #203): the board on the bench is not the level. */
+export function ConnectionList(props: { rules: Rules; laptop: boolean; small?: boolean }) {
+  const inChallenge = useBoard((s) => s.paused !== null);
+  return inChallenge ? null : <ConnectionListBody {...props} />;
 }

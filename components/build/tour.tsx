@@ -1,5 +1,6 @@
 "use client";
 
+import { useBoard } from "@/lib/game/board-store";
 import { useEffect, useState } from "react";
 import { Volt } from "@/components/art/volt";
 import { Button } from "@/components/ui/button";
@@ -43,7 +44,9 @@ export function Tour({ busy }: { busy: boolean }) {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- the flag is in the browser only
     setSeen(tourSeen(browserStorage()));
   }, []);
-  const show = shouldShowTour(seen, busy);
+  // The tour also waits in a challenge (issue #203): the panels that it shows are hidden there.
+  const inChallenge = useBoard((s) => s.paused !== null);
+  const show = shouldShowTour(seen, busy || inChallenge);
 
   // The steps of this visit, and the step on the screen now. The plan is made when the tour first shows.
   const [plan, setPlan] = useState<TourStep[] | null>(null);

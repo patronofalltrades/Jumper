@@ -38,6 +38,9 @@ export type Focus = { at: number };
 /** `faded`: the ids of the parts that the scene draws faded. Only a walkthrough clip uses it (issue #103). */
 export type LevelSetup = { bench?: Bench; plan?: Plan; parts?: Part[]; base?: Part[]; progress?: Progress; readOnly?: boolean; code?: string | null; codePassed?: boolean; helpedCode?: string | null; faded?: string[] };
 
+/** What a challenge puts away: the board, the task engine and the sketch of the level. */
+export type Paused = Pick<BoardState, "parts" | "history" | "plan" | "progress" | "code" | "codePassed" | "helpedCode">;
+
 export type BoardState = {
   bench: Bench;
   /** The level that this board belongs to, for example "<user>:perch/1" (`levelKey`). */
@@ -75,6 +78,16 @@ export type BoardState = {
   helpedCode: string | null;
   /** The task or connection row under the pointer: the scene shows its ghost (issue #113). It never changes the board. */
   hologram: HologramTarget | null;
+
+  /**
+   * The learner's own level while a challenge is open (issue #203), or null. A challenge is a sandbox: it puts its own
+   * board and sketch on the bench with the task engine off, and `endChallenge` puts the learner's level back.
+   * The browser save uses this value, so a reload in a challenge gives the learner's own board.
+   */
+  paused: Paused | null;
+  /** Starts a challenge on `parts` and `code`, or puts a new board in a challenge that is open (Undo takes that back). */
+  startChallenge: (parts: Part[], code: string) => void;
+  endChallenge: () => void;
 
   /** Opens the board of a level. A different level starts from `setup`, or an empty bench; the same level keeps its state. */
   open: (level: string, setup?: LevelSetup) => void;
@@ -166,6 +179,7 @@ export function createBoardStore(defaultBench: Bench = perchBench()) {
       codePassed: false,
       helpedCode: null,
       hologram: null,
+      paused: null,
     });
 
     return {
@@ -197,7 +211,35 @@ export function createBoardStore(defaultBench: Bench = perchBench()) {
           codePassed: setup.codePassed ?? false,
           helpedCode: setup.helpedCode ?? null,
           hologram: null,
+          paused: null,
         });
+      },
+
+      startChallenge: (parts, code) => {
+        const now = get();
+        if (now.readOnly) return;
+        if (now.paused) return set({ parts, history: [...now.history, now.parts], pending: null, notice: null, hover: null });
+        const { history, plan, progress, codePassed, helpedCode } = now;
+        set({
+          paused: { parts: now.parts, history, plan, progress, code: now.code, codePassed, helpedCode },
+          parts,
+          history: [],
+          // No plan: the task engine is off, so a change gives no mistake. "ready_to_check" hides the task pop-ups.
+          plan: null,
+          progress: { ...progress, phase: "ready_to_check", mistake: null },
+          code,
+          codePassed: true,
+          pending: null,
+          hover: null,
+          notice: null,
+          problem: null,
+          done: null,
+          hologram: null,
+        });
+      },
+      endChallenge: () => {
+        const { paused } = get();
+        if (paused) set({ ...paused, paused: null, pending: null, hover: null, notice: null });
       },
       reset: () => set(empty()),
       start: () => set(play({ type: "start" })),

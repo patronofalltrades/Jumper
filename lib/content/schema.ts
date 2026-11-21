@@ -169,6 +169,33 @@ export const changeOpSchema = z.discriminatedUnion("op", [
 /** A point on a reference photo, as a fraction of its width and height. */
 const hotspot = z.object({ x: z.number().min(0).max(1), y: z.number().min(0).max(1) });
 
+/** The predictions that a learner can choose: what the LED does. lib/challenge/machine.ts maps an observation to one. */
+export const BEHAVIORS = ["blinks", "stays-on", "stays-off"] as const;
+const behavior = z.enum(BEHAVIORS);
+
+/** The two answers of a challenge: the prediction choices with the expected one, and the explanation choices with their feedback. */
+const rubric = {
+  predict: z.object({ options: z.array(behavior).min(2), expected: behavior }),
+  explain: z.object({ options: z.array(z.object({ id: slug, text: z.string().min(1), correct: z.boolean(), feedback: z.string().min(1) })).min(2) }),
+};
+
+/**
+ * One challenge (TRD addendum 6.4). `change`: the id of a supported change of the lesson; the learner makes it on the
+ * reference board. `hints`: from general to specific; a hint can glow a connection of the map. `variation`: the same
+ * idea in another layout, with its own board (`parts`, complete) and its own answers.
+ */
+export const challengeSchema = z.object({
+  id: slug,
+  concept: slug,
+  title: z.string().min(1),
+  change: slug,
+  ...rubric,
+  hints: z.array(z.object({ text: z.string().min(1), highlight: slug.optional() })).min(1),
+  variation: z.object({ id: slug, text: z.string().min(1), parts: z.array(partSchema).min(1), ...rubric }),
+});
+export type Challenge = z.infer<typeof challengeSchema>;
+export type Behavior = (typeof BEHAVIORS)[number];
+
 export const lessonSchema = z.object({
   id: slug,
   version: z.number().int().positive(),
@@ -205,14 +232,38 @@ export const lessonSchema = z.object({
   /** The reference media (work package 4). A lesson does not have it until the real photos and the clip exist. */
   media: z
     .object({
-      schematic: z.string().min(1),
-      photos: z.record(z.string(), z.object({ src: z.string().min(1), alt: z.string().min(1) })),
+      /** The schematic is a component (components/journey), so a file is optional. */
+      schematic: z.string().min(1).optional(),
+      photos: z.record(
+        z.string(),
+        z.object({
+          src: z.string().min(1),
+          alt: z.string().min(1),
+          /** The name of the photo in the photo view, for example "Reference photo". */
+          title: z.string().min(1),
+          /** What is different between this photo and the lesson, in words. */
+          note: z.string().min(1).optional(),
+          /** A text for a connection of the map that this photo does not have as one direct connection. */
+          notes: z.record(slug, z.string().min(1)).optional(),
+          /** Who made the photo, and its license. Each photo must have it (issue #208). */
+          credit: z.object({
+            author: z.string().min(1),
+            source: z.url(),
+            sourceTitle: z.string().min(1),
+            license: z.string().min(1),
+            licenseUrl: z.url(),
+            /** What Jumper changed in the picture. The license needs it. */
+            changes: z.string().min(1),
+          }),
+        }),
+      ),
       fault: z.object({ src: z.string().min(1), captions: z.string().min(1), description: z.string().min(1) }).optional(),
     })
     .optional(),
-  /** The questions (work package 5) and the challenges (work package 6). Those packages set their shape. */
+  /** The questions (work package 5). That package sets their shape. */
   questions: z.array(z.unknown()).optional(),
-  challenges: z.array(z.unknown()).optional(),
+  /** The challenges of Predict, Build, Explain (work package 6, issue #203). */
+  challenges: z.array(challengeSchema).optional(),
 });
 
 export type Lesson = z.infer<typeof lessonSchema>;

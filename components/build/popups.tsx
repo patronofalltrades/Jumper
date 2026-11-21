@@ -440,7 +440,7 @@ function Card({ mistake, className, children }: { mistake?: boolean; className?:
  * Laptop: the intro, the "what happened" pop-up, the Concept pop-up and the level Check, over the center of the board. (Task and Mistake
  * pop-ups hang in 3D.)
  */
-export function PopupLayer({ level, conceptOpen, onConceptDone, check }: { level: LevelInfo; conceptOpen: boolean; onConceptDone: () => void; check: CheckProps }) {
+function PopupLayerBody({ level, conceptOpen, onConceptDone, check }: { level: LevelInfo; conceptOpen: boolean; onConceptDone: () => void; check: CheckProps }) {
   const laptop = useLaptop();
   const progress = useBoard((s) => s.progress);
   const done = useBoard((s) => s.done);
@@ -546,4 +546,12 @@ export function PinnedPopup({ tasks, hidden, mascot }: { tasks: LevelTask[]; hid
       </Html>
     </group>
   );
+}
+
+/** The pop-ups of the level. A challenge (issue #203) has its own panel, and its board is not the level, so they hide on a laptop. */
+export function PopupLayer(props: { level: LevelInfo; conceptOpen: boolean; onConceptDone: () => void; check: CheckProps }) {
+  const inChallenge = useBoard((s) => s.paused !== null);
+  // On a phone the sheet stays under the board, so the board keeps its size; the challenge panel covers the sheet.
+  const laptop = useLaptop();
+  return inChallenge && laptop ? null : <PopupLayerBody {...props} />;
 }

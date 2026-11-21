@@ -1,10 +1,10 @@
 "use server";
 
-import { attemptCompleteSchema, attemptStartSchema, eventsSchema, toEventRows, type AttemptComplete, type AttemptStart, type LearningEvent } from "@/lib/journey/records";
+import { attemptCompleteSchema, attemptStartSchema, eventsSchema, reflectionSchema, toEventRows, type AttemptComplete, type AttemptStart, type LearningEvent, type Reflection } from "@/lib/journey/records";
 import { createClient } from "@/lib/supabase/server";
 
 // The pilot records of the circuit learning journey (docs/TRD-learning-journey.md section 7, decision D4).
-// Row-level security keeps each row to its owner: user_id defaults to auth.uid(). The UI does not use these actions yet.
+// Row-level security keeps each row to its owner: user_id defaults to auth.uid(). The challenge panel uses them (components/challenge/, issue #203).
 
 export type JourneyResult = { id?: string; added?: number; duplicate?: boolean; closed?: boolean; error?: string };
 
@@ -62,6 +62,16 @@ export async function completeAttempt(input: AttemptComplete): Promise<JourneyRe
   if (error) return { error: SAVE_ERROR };
   // No open row with this ID: it is complete already, or it is not the user's own (row-level security hides it).
   if (!data) return { closed: true };
+  return { id: data.id };
+}
+
+/** Saves the written reflection of the user's own attempt. The learner writes it after the feedback, so the attempt can be complete. */
+export async function saveReflection(input: Reflection): Promise<JourneyResult> {
+  const parsed = reflectionSchema.safeParse(input);
+  if (!parsed.success) return { error: "The answer data is not correct." };
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("learning_attempts").update({ reflection: parsed.data.reflection }).eq("id", parsed.data.id).select("id").maybeSingle();
+  if (error || !data) return { error: SAVE_ERROR };
   return { id: data.id };
 }
 

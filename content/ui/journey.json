@@ -1,0 +1,68 @@
+{
+  "_note": "The text of Compare views (TRD addendum 6.5, issue #202). diff: {kept}, {from}, {to}, {a} and {b} are the labels of terminals in the lesson file. Write the text in ASD-STE100.",
+  "compare": {
+    "button": "Compare views",
+    "title": "Compare views",
+    "intro": "This is one circuit in more than one view. Select a point or a connection in a view. The other views show the same point.",
+    "close": "Close Compare views",
+    "tabs": {
+      "label": "Views",
+      "schematic": "Schematic",
+      "board": "3D board",
+      "photo": "Photo"
+    },
+    "boardHint": "The 3D board is above. Point at a hole or tap it to select its connection.",
+    "reference": "Reference",
+    "yourBoard": "Your board",
+    "schematicLabel": "Schematic of the LED circuit. It is a reference view: it does not change when you change your board.",
+    "selected": "Selected",
+    "none": "Nothing is selected. Select a point or a connection.",
+    "notOnBoard": "This part is not on your board now.",
+    "terminals": "Points",
+    "connections": "Connections",
+    "changed": "Changed",
+    "selectTerminal": "Select the point: {label}",
+    "selectConnection": "Select the connection: {label}",
+    "difference": {
+      "title": "Your board and the reference",
+      "same": "Your board has the same connections as the reference.",
+      "count": "Your board has {n} differences from the reference. The schematic and the photo show the reference.",
+      "countOne": "Your board has 1 difference from the reference. The schematic and the photo show the reference.",
+      "show": "Show on the board",
+      "moved": "{kept} was connected to {from}. Now it is connected to {to}.",
+      "removed": "{a} and {b} are not connected now.",
+      "added": "{a} and {b} are connected now. In the reference, they are not connected."
+    },
+    "photo": {
+      "title": "Photo of the real circuit",
+      "absent": "The photo view is not here yet. It comes when the photos of the real circuit are added to this lesson.",
+      "failed": "The photo did not load.",
+      "retry": "Try again",
+      "alternative": "Text description:",
+      "choose": "Photo",
+      "points": "Select a point on the photo, or select a point or a connection in a different view.",
+      "notHere": "This photo does not show: {label}.",
+      "oneEnd": "This photo shows one end of this connection only.",
+      "credit": "Photo: {author}.",
+      "source": "Source",
+      "changes": "Changes:",
+      "note": "About this photo:"
+    },
+    "fault": {
+      "title": "A fault on the real circuit",
+      "failed": "The clip did not load.",
+      "description": "What the clip shows:"
+    },
+    "question": {
+      "firstCheck": "What do you check first?",
+      "transfer": "The same circuit, in a different layout",
+      "hint": "Give me a hint",
+      "hintN": "Hint {n}",
+      "correct": "Correct.",
+      "wrong": "Not yet.",
+      "tryAgain": "Select a different answer.",
+      "firstAnswer": "Your first answer: {text}",
+      "saveFailed": "We could not save your answer. Your board and your answers are still on this device."
+    }
+  }
+}
