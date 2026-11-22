@@ -114,6 +114,8 @@ type Props = {
   mascot: MascotId;
   /** The music of the level (content/music.json), or null when it has none. */
   music: Track | null;
+  /** True when the link of the lobby opened the level (issue #210): the "three worlds" panel starts open. */
+  compare?: boolean;
 };
 
 export function BuildView({ mascot, ...props }: Props) {
@@ -124,7 +126,7 @@ export function BuildView({ mascot, ...props }: Props) {
   );
 }
 
-function BuildBoard({ user, project, levelId, position, eyebrow, title, goal, tasks: rawTasks, rules, bench: spec, start, carry, startLevel = 0, levels, clip: finished, sketch, mascot, music }: Props) {
+function BuildBoard({ user, project, levelId, position, eyebrow, title, goal, tasks: rawTasks, rules, bench: spec, start, carry, startLevel = 0, levels, clip: finished, sketch, mascot, music, compare = false }: Props) {
   useKeys();
   useNoticeTimer();
   useFeedback();
@@ -227,6 +229,15 @@ function BuildBoard({ user, project, levelId, position, eyebrow, title, goal, ta
   return (
     <div className="fixed inset-0 flex flex-col bg-background">
       <header className="z-10 flex items-center gap-3 border-b border-border bg-card px-4 py-2.5">
+        <Link
+          href="/lobby"
+          aria-label={text.map.home}
+          title={text.map.home}
+          className="inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-xl border border-b-4 border-border bg-card px-3 text-sm font-semibold active:translate-y-0.5 active:border-b-2"
+        >
+          {icon("M3 11.5 12 4l9 7.5M5.5 10v10h13V10M10 20v-6h4v6")}
+          <span className="max-lg:hidden">{text.map.home}</span>
+        </Link>
         <Link
           href={mapHref}
           className="inline-flex min-h-11 shrink-0 items-center rounded-xl border border-b-4 border-border bg-card px-3 text-sm font-semibold active:translate-y-0.5 active:border-b-2"
@@ -337,7 +348,7 @@ function BuildBoard({ user, project, levelId, position, eyebrow, title, goal, ta
             </p>
           )}
         </div>
-        <CompareViews project={project} position={position} laptop={laptop} />
+        <CompareViews project={project} position={position} laptop={laptop} startOpen={compare} />
         {codeOpen && sketch && (
           <div className="min-h-0 border-border max-sm:h-[60%] max-sm:border-t sm:w-[min(460px,45%)] sm:border-l">
             <SketchPanel

@@ -271,6 +271,7 @@
   },
   "map": {
     "back": "Lobby",
+    "home": "Home",
     "levels": "Levels",
     "level": "Level {n}",
     "tasks": "{n} tasks",

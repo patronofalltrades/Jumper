@@ -4,7 +4,9 @@ import { BoardArt } from "@/components/art/board-art";
 import { PerchArt } from "@/components/art/perch-art";
 import { TourStep } from "@/components/lobby-tour";
 import { GLASS, PRIMARY, SOLID } from "@/components/ui/surfaces";
+import journey from "@/content/ui/journey.json";
 import text from "@/content/ui/lobby.json";
+import { compareHref, doorLesson } from "@/lib/journey/lesson-of";
 import { shortName, type Featured, type ProjectRow } from "@/lib/game/featured";
 import { cn } from "@/lib/utils";
 
@@ -95,6 +97,22 @@ export function ProjectCard({ project }: { project: ProjectRow }) {
     </Link>
   ) : (
     <article className={className}>{body}</article>
+  );
+}
+
+// The door to "Same circuit, three worlds" (issue #210): it opens the level of the lesson with the panel open.
+export function ThreeWorldsCard() {
+  const door = journey.door;
+  return (
+    <Link href={compareHref(doorLesson)} className="contents">
+      <DarkCard label={fill(door.label, { level: doorLesson.level })} title={door.title}>
+        <p className="text-sm text-white/70">{door.text}</p>
+        <span className="mt-auto flex items-center gap-2 pt-3 text-sm font-semibold text-[#22d66b]">
+          <PlayIcon />
+          {door.open}
+        </span>
+      </DarkCard>
+    </Link>
   );
 }
 
