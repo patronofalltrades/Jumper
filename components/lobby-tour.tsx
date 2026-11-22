@@ -14,6 +14,7 @@ import {
 import { browserStorage } from "@/components/build/tour";
 import { Volt } from "@/components/art/volt";
 import { Button } from "@/components/ui/button";
+import { TourSpotlight } from "@/components/tour-spotlight";
 import {
   Card,
   CardContent,
@@ -37,12 +38,12 @@ import {
   tourSeen,
   type LobbyTourStep,
 } from "@/lib/game/tour";
-import { cn } from "@/lib/utils";
 
 // The tour for a new user (lib/game/tour.ts): on the first visit to the lobby after the log-in, it shows what Jumper is
 // and points at the main controls. <LobbyTour> wraps the lobby. Each control is wrapped in <TourStep id="…">, which
 // gives the tour a React ref to the control (no DOM query). The card is a shadcn Popover with a Card, anchored to the
 // control: Radix places it, flips it when there is no room, moves the focus into it, and closes it with Escape.
+// While a step shows, the page is dark, except its control (TourSpotlight).
 
 const fill = (template: string, values: Record<string, string | number>) =>
   template.replace(/\{(\w+)\}/g, (_, k: string) => String(values[k]));
@@ -123,7 +124,7 @@ export function LobbyTour({ children }: { children: ReactNode }) {
 
 /**
  * Marks one control of the lobby tour. `children` must be one element that takes a ref (a tag, or a Link): the Popover
- * anchors to it with Radix Slot, which also adds the ring of the active step. Outside <LobbyTour>, it shows only the child.
+ * anchors to it with Radix Slot. Outside <LobbyTour>, it shows only the child.
  * `wideSide`: the side of the card on a wide screen, for a control too tall to have room above or under it (the Start card).
  */
 export function TourStep({
@@ -145,6 +146,7 @@ export function TourStep({
   }, [register, id]);
 
   const open = tour?.active === id;
+  const target = useCallback(() => ref.current, []);
   useEffect(() => {
     // A control out of view (a card far along the lobby row) comes into view first.
     if (open)
@@ -156,21 +158,16 @@ export function TourStep({
   const last = tour.index === tour.total - 1;
   return (
     <Popover open={open} onOpenChange={(stay) => !stay && tour.finish()}>
-      <PopoverAnchor
-        asChild
-        ref={ref}
-        className={cn(
-          open && "ring-4 ring-probe ring-offset-2 ring-offset-transparent",
-        )}
-      >
+      <PopoverAnchor asChild ref={ref}>
         {children}
       </PopoverAnchor>
+      {open && <TourSpotlight target={target} />}
       <PopoverContent
         aria-label={text.lobby.label}
         side={wide && wideSide ? wideSide : "bottom"}
         collisionPadding={12}
         sideOffset={12}
-        className="w-[min(24rem,calc(100vw-1.5rem))] border-0 bg-transparent p-0 shadow-none"
+        className="z-[60] w-[min(24rem,calc(100vw-1.5rem))] border-0 bg-transparent p-0 shadow-none"
         // The tour stays open on a click outside. Escape (onOpenChange) and Skip end it.
         onInteractOutside={(event) => event.preventDefault()}
         // The focus goes to Next, so Enter moves the tour on.
