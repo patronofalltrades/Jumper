@@ -40,7 +40,9 @@ type Props = { step: SketchStep; user: string; project: string; position: number
 export function SketchPanel({ step, user, project, position, onClose, onDone }: Props) {
   const saved = useBoard((s) => s.code);
   const code = saved ?? starterOf(step);
-  const { runs, add: addRun, saved: runsSaved, lesson, log } = useRuns(user, project, position);
+  const { runs, add: addRun, saved: runsSaved, lesson, log, restore, undoRestore } = useRuns(user, project, position);
+  /** The note after "Restore this run" or "Undo the restore" (issue #214): the bench changed, and it has no result yet. */
+  const [restoreNote, setRestoreNote] = useState<string | null>(null);
   /** The record of the run whose result shows. */
   const [ran, setRan] = useState<RunRecord | null>(null);
   /** "Compare with last run" is open (issue #213). */
@@ -75,8 +77,21 @@ export function SketchPanel({ step, user, project, position, onClose, onDone }: 
     setMark({ line: error.line });
   };
 
+  /** The board and the sketch changed together: the sketch stops, the old result goes away, and a new Run is necessary. */
+  const afterRestore = (done: boolean, note: string) => {
+    if (!done) return;
+    stop();
+    setOutcome(null);
+    setMark(null);
+    setRan(null);
+    // The lines of Step by step belong to the sketch from before: the panel shows Free.
+    sketchStore.getState().setSteps(null);
+    setRestoreNote(note);
+  };
+
   const run = () => {
     stop();
+    setRestoreNote(null);
     // The run record comes first (issue #212): the board and the sketch at this press, and the result of that board
     // and that sketch. A change of the board while the LEDs run does not change this result.
     const { bench, parts, paused } = boardStore.getState();
@@ -226,6 +241,11 @@ export function SketchPanel({ step, user, project, position, onClose, onDone }: 
           <span className="font-extrabold">{runsText.stale}.</span> {runsText.staleHelp}
         </p>
       )}
+      {restoreNote && (
+        <p role="status" data-testid="run-restored" className="rounded-xl border border-l-4 border-border bg-card px-3 py-2 text-sm leading-snug font-semibold">
+          {restoreNote}
+        </p>
+      )}
       {!runsSaved && (
         <p role="status" className="rounded-xl bg-muted px-3 py-2 text-sm leading-snug">
           {runsText.notSaved}
@@ -233,7 +253,14 @@ export function SketchPanel({ step, user, project, position, onClose, onDone }: 
       )}
       {runs.length > 0 &&
         (comparing ? (
-          <RunCompare runs={runs} code={code} led={step.goal.led_name} onClose={() => setComparing(false)} />
+          <RunCompare
+            runs={runs}
+            code={code}
+            led={step.goal.led_name}
+            onClose={() => setComparing(false)}
+            onRestore={(record) => afterRestore(restore(record), runsText.compare.restored)}
+            onUndoRestore={() => afterRestore(undoRestore(), runsText.compare.undone)}
+          />
         ) : (
           <button
             type="button"

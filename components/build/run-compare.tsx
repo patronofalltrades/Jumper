@@ -26,11 +26,15 @@ type Props = {
   /** The name of the LED of the level goal, for example "The LED". */
   led: string;
   onClose: () => void;
+  /** "Restore this run" (issue #214): the board and the sketch of the run go on the bench. */
+  onRestore: (run: RunRecord) => void;
+  onUndoRestore: () => void;
 };
 
-export function RunCompare({ runs, code, led, onClose }: Props) {
+export function RunCompare({ runs, code, led, onClose, onRestore, onUndoRestore }: Props) {
   const bench = useBoard((s) => s.bench);
   const parts = useBoard((s) => s.parts);
+  const hasBackup = useBoard((s) => s.restoreBackup !== null);
   const title = useRef<HTMLHeadingElement>(null);
   const last = runs[runs.length - 1];
   const before = runs[runs.length - 2];
@@ -63,15 +67,23 @@ export function RunCompare({ runs, code, led, onClose }: Props) {
         </p>
       ) : (
         <>
-          {isStale(last, parts, code) && (
+          {isStale(last, parts, code) && isStale(before, parts, code) && (
             <p role="status" data-testid="run-unrun" className="rounded-lg border border-dashed border-border bg-muted px-3 py-2 leading-snug">
               {text.unrun}
             </p>
           )}
           <div className="grid gap-2 sm:grid-cols-2">
-            <RunCard label={text.before} run={before} led={led} />
-            <RunCard label={text.last} run={last} led={led} />
+            <RunCard label={text.before} run={before} led={led} onBench={!isStale(before, parts, code)} onRestore={onRestore} />
+            <RunCard label={text.last} run={last} led={led} onBench={!isStale(last, parts, code)} onRestore={onRestore} />
           </div>
+          {hasBackup && (
+            <div className="flex flex-wrap items-center gap-2 rounded-lg bg-muted px-3 py-2 leading-snug">
+              <button type="button" onClick={onUndoRestore} className={SMALL}>
+                {text.undoRestore}
+              </button>
+              <span className="text-muted-foreground">{text.undoHelp}</span>
+            </div>
+          )}
           <Changes diff={diff} before={before} last={last} now={parts} />
           <p className="rounded-lg border-l-4 border-border bg-muted px-3 py-2 leading-snug font-semibold">{text.causes}</p>
         </>
@@ -81,7 +93,7 @@ export function RunCompare({ runs, code, led, onClose }: Props) {
 }
 
 /** One run: its label (successful or failed), its time, and its result. */
-function RunCard({ label, run, led }: { label: string; run: RunRecord; led: string }) {
+function RunCard({ label, run, led, onBench, onRestore }: { label: string; run: RunRecord; led: string; onBench: boolean; onRestore: (run: RunRecord) => void }) {
   const { result } = run;
   const ok = result.status === "ok";
   const time = new Date(run.at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
@@ -106,7 +118,17 @@ function RunCard({ label, run, led }: { label: string; run: RunRecord; led: stri
           </p>
         </>
       ) : (
-        <p>{fill(text.error, { line: result.error.line, message: result.error.message })}</p>
+        // The message of a mistake starts with its line: "Line 5: Put a ; at the end of this line."
+        <p data-testid="run-error">{result.error.message}</p>
+      )}
+      {onBench ? (
+        <p data-testid="run-on-bench" className="mt-1 text-xs font-semibold text-muted-foreground">
+          {text.onBench}
+        </p>
+      ) : (
+        <button type="button" onClick={() => onRestore(run)} className={cn(SMALL, "mt-1 self-start")}>
+          {text.restore}
+        </button>
       )}
     </div>
   );
