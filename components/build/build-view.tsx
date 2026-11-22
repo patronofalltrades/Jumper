@@ -338,6 +338,9 @@ function BuildBoard({ user, project, levelId, position, eyebrow, title, goal, ta
           <div className="min-h-0 border-border max-sm:h-[60%] max-sm:border-t sm:w-[min(460px,45%)] sm:border-l">
             <SketchPanel
               step={sketch}
+              user={user}
+              project={project}
+              position={position}
               onClose={() => setCodeOpen(false)}
               onDone={() => {
                 setCodeOpen(false);

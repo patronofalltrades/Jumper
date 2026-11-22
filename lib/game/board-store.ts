@@ -41,6 +41,9 @@ export type LevelSetup = { bench?: Bench; plan?: Plan; parts?: Part[]; base?: Pa
 /** What a challenge puts away: the board, the task engine and the sketch of the level. */
 export type Paused = Pick<BoardState, "parts" | "history" | "plan" | "progress" | "code" | "codePassed" | "helpedCode">;
 
+/** What "Restore this run" puts away, so that "Undo the restore" can bring it back (issue #214). */
+export type RestoreBackup = Pick<BoardState, "parts" | "code" | "codePassed" | "helpedCode">;
+
 export type BoardState = {
   bench: Bench;
   /** The level that this board belongs to, for example "<user>:perch/1" (`levelKey`). */
@@ -124,6 +127,20 @@ export type BoardState = {
   /** "Put back the level {n} build" (issue #111): adds the parts of `start` that can go back, as one step that Undo takes back. */
   putBack: (start: Part[]) => { back: Part[]; blocked: Part[] };
   cancel: () => void;
+  /**
+   * The board and the sketch from before the last "Restore this run" (issue #214), or null. There is one slot: a new
+   * restore replaces it, and `undoRestore` uses it and empties it.
+   */
+  restoreBackup: RestoreBackup | null;
+  /**
+   * "Restore this run": the board and the sketch of a run record go on the bench together, in one step. The board and
+   * the sketch of now go into `restoreBackup` first, also the changes that were not run. The sketch must do the goal
+   * again, so a new Run is necessary. The task engine reads the new board as it does after "Put back": no Mistake and
+   * no XP. Undo takes back the board only; `undoRestore` takes back the board and the sketch. False: nothing changed.
+   */
+  restoreRun: (run: { parts: readonly Part[]; code: string }) => boolean;
+  /** "Undo the restore": the board and the sketch from before the restore come back together. False: there is no backup. */
+  undoRestore: () => boolean;
   /** A change to the sketch. The sketch must do the goal again. The same text is no change: the editor sends back each new value. */
   setCode: (code: string | null) => void;
   /** The sketch did the goal. */
@@ -159,6 +176,14 @@ export function createBoardStore(defaultBench: Bench = perchBench()) {
       set({ parts, history, pending: null, notice: null, done: null, ...play({ type: "change", before, after: parts, restore }, added) });
     };
     const commit = (parts: Part[], restore = false) => change(parts, [...get().history, get().parts], restore);
+    /**
+     * A full board that takes the place of the board of now (a restored run, issue #214), as one step that Undo takes
+     * back. The engine reads it as it reads "Put back": it gives no Mistake and no XP, and the task of now follows the board.
+     */
+    const swap = (parts: Part[]): Partial<BoardState> => {
+      const before = get().parts;
+      return { parts, history: [...get().history, before], pending: null, hover: null, notice: null, problem: null, ...play({ type: "change", before, after: parts, restore: true }) };
+    };
 
     const empty = () => ({
       bench: defaultBench,
@@ -184,6 +209,7 @@ export function createBoardStore(defaultBench: Bench = perchBench()) {
       helpedCode: null,
       hologram: null,
       paused: null,
+      restoreBackup: null,
     });
 
     return {
@@ -216,6 +242,7 @@ export function createBoardStore(defaultBench: Bench = perchBench()) {
           helpedCode: setup.helpedCode ?? null,
           hologram: null,
           paused: null,
+          restoreBackup: null,
         });
       },
 
@@ -315,6 +342,27 @@ export function createBoardStore(defaultBench: Bench = perchBench()) {
         const { history } = get();
         if (!history.length) return set({ notice: { problem: "nothing_to_undo" } });
         change(history[history.length - 1], history.slice(0, -1));
+      },
+
+      restoreRun: (run) => {
+        const now = get();
+        // A snapshot cannot change, and a challenge is a sandbox: its board is not the board of the level.
+        if (now.readOnly || now.paused) return false;
+        const parts = run.parts.map((p) => ({ ...p })) as Part[];
+        set({
+          restoreBackup: { parts: now.parts, code: now.code, codePassed: now.codePassed, helpedCode: now.helpedCode },
+          ...swap(parts),
+          code: run.code,
+          codePassed: false,
+        });
+        return true;
+      },
+
+      undoRestore: () => {
+        const { restoreBackup: backup, readOnly, paused } = get();
+        if (!backup || readOnly || paused) return false;
+        set({ restoreBackup: null, ...swap(backup.parts), code: backup.code, codePassed: backup.codePassed, helpedCode: backup.helpedCode });
+        return true;
       },
 
       putBack: (start) => {
