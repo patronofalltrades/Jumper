@@ -7,7 +7,20 @@ import { loadProjects } from "@/lib/content/load";
 import { boardsSchema } from "@/lib/content/schema";
 import { loadLevelClips } from "@/lib/content/clips";
 import { holePhrase } from "@/lib/game/task-text";
-import { clipFrame, introClip, levelClip, type IntroScript } from "@/lib/game/walkthrough";
+import { clipFrame, clipOpensFirst, introClip, levelClip, type IntroScript } from "@/lib/game/walkthrough";
+
+// Issue #218 (quiet build mode): the clip opens by itself only in level 1, before the first task is done.
+describe("clipOpensFirst", () => {
+  it("opens in level 1 until the first task is done", () => {
+    expect(clipOpensFirst(1, 0)).toBe(true);
+    expect(clipOpensFirst(1, 1)).toBe(false);
+  });
+
+  it("does not open by itself in the other levels", () => {
+    expect(clipOpensFirst(2, 0)).toBe(false);
+    expect(clipOpensFirst(5, 0)).toBe(false);
+  });
+});
 
 const bench = perchBench();
 const boards = boardsSchema.parse(boardsFile);

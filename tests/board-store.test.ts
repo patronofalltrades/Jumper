@@ -185,16 +185,21 @@ describe("board store: build mode", () => {
     expect(store.getState().tool).toBe("wire");
   });
 
-  it("opens the 'what happened' pop-up of the task that the learner finished, and Got it closes it", () => {
+  // Issue #218 (quiet build mode): the "what happened" text is a note in the pop-up of the next task. Before, it was a
+  // pop-up that stayed until "Got it" (`seen`). Now the next change of the board takes the note away, with no click.
+  it("keeps the 'what happened' note of the task that the learner finished until the next change of the board", () => {
     const store = level3();
     store.getState().start();
     expect(store.getState().done).toBeNull();
     tap(store, "B-e27");
     expect(store.getState().done).toBe(0);
-    store.getState().seen();
-    expect(store.getState().done).toBeNull();
-    // A wrong wire finishes no task.
-    tap(store, "B-c28", "B-R-20");
+    // The next task is open at once: the learner does not click to go on.
+    expect(store.getState().progress).toMatchObject({ phase: "task", index: 1 });
+    // The first hole of a wire is not a change of the board: the note stays.
+    tap(store, "B-c28");
+    expect(store.getState().done).toBe(0);
+    // A wrong wire finishes no task, and it takes the note away.
+    tap(store, "B-R-20");
     expect(store.getState().done).toBeNull();
   });
 
@@ -319,7 +324,18 @@ describe("board store: undo, remove and put back (issue #63)", () => {
     expect(store.getState().progress).toMatchObject({ phase: "task", index: 1, mistakes: 0 });
   });
 
-  it("shows the 'what happened' pop-up only for a task done the first time", () => {
+  it("puts the note of the newest task in the place of the note before, and Undo takes the note away", () => {
+    const store = level1();
+    wire(store, w1);
+    const first = store.getState().done;
+    expect(first).not.toBeNull();
+    wire(store, w2);
+    expect(store.getState().done).toBe(first! + 1);
+    store.getState().undo();
+    expect(store.getState().done).toBeNull();
+  });
+
+  it("shows the 'what happened' note only for a task done the first time", () => {
     const store = level1();
     wire(store, w1);
     store.getState().seen();

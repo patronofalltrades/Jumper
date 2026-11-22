@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isLive, markSeen, news, newsIdSchema, NEWS_KEY, newsItem, readSeen, unseen, type NewsItem, type NewsStorage } from "@/lib/game/news";
+import { firstUnseen, isLive, markSeen, news, newsIdSchema, NEWS_KEY, newsItem, readSeen, unseen, type NewsItem, type NewsStorage } from "@/lib/game/news";
 
 const item = (over: Partial<NewsItem>): NewsItem => ({ id: "x", title: "T", text: "t", released: "2026-11-12", until: "2026-12-21", audience: "visitor", pr: 1, ...over });
 
@@ -42,6 +42,28 @@ describe("unseen", () => {
     expect(unseen(items, ["a"], "visitor", "2026-11-21").map((i) => i.id)).toEqual(["b"]);
     expect(unseen(items, [], "learner", "2026-11-21").map((i) => i.id)).toEqual(["c"]);
     expect(unseen(items, [], "visitor", "2026-12-02").map((i) => i.id)).toEqual(["a", "b", "d"]);
+  });
+});
+
+// Issue #218 (quiet build mode): a page shows one "New" mark at a time.
+describe("firstUnseen", () => {
+  const items = [item({ id: "a" }), item({ id: "b" }), item({ id: "c", audience: "learner" }), item({ id: "d" })];
+  it("gives the first item of the page, in content order, that the visitor did not see", () => {
+    expect(firstUnseen(items, [], "visitor", "2026-11-21", ["d", "b", "a"])?.id).toBe("a");
+    // After "Got it" on the first mark, the next mark shows.
+    expect(firstUnseen(items, ["a"], "visitor", "2026-11-21", ["d", "b", "a"])?.id).toBe("b");
+    expect(firstUnseen(items, ["a", "b"], "visitor", "2026-11-21", ["d", "b", "a"])?.id).toBe("d");
+    expect(firstUnseen(items, ["a", "b", "d"], "visitor", "2026-11-21", ["d", "b", "a"])).toBeUndefined();
+  });
+
+  it("uses only the marks that the page holds, and only the audience", () => {
+    expect(firstUnseen(items, [], "visitor", "2026-11-21", ["b"])?.id).toBe("b");
+    expect(firstUnseen(items, [], "visitor", "2026-11-21", [])).toBeUndefined();
+    expect(firstUnseen(items, [], "learner", "2026-11-21", ["a", "c"])?.id).toBe("c");
+  });
+
+  it("does not give an item that is not live", () => {
+    expect(firstUnseen([item({ id: "late", released: "2026-12-01" }), item({ id: "b" })], [], "visitor", "2026-11-21", ["late", "b"])?.id).toBe("b");
   });
 });
 

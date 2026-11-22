@@ -1,18 +1,22 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useStore } from "zustand";
+import { createStore } from "zustand/vanilla";
 import { loadSeenNews, markNewsSeen } from "@/app/actions/news";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { markSeen, news, newsItem, readSeen, today, unseen } from "@/lib/game/news";
+import { firstUnseen, markSeen, news, newsItem, readSeen, today } from "@/lib/game/news";
 import { fill } from "@/lib/sketch/parse";
 import { cn } from "@/lib/utils";
 
 // A "What's new" spotlight (issues #197 and #198): a "New" pill next to a new part of the page. A click or Enter opens a
 // short card; "Got it" closes the spotlight for good. A visitor keeps the seen spotlights in this browser. A logged-in
 // learner keeps them on the account (profiles.seen_news): each learner spotlight reads the list when it shows first. There
-// is no cache across spotlights, so a second user on the same tab never gets the list of the first (row 26).
+// is no cache of the seen list across spotlights, so a second user on the same tab never gets the list of the first (row 26).
 // The text is in content/news.json. The pill shows only in the browser, after the page loads, so the server and the
 // browser draw the same first page.
+// Quiet build mode (issue #218): a page shows one pill at a time. The first item of the page that the person did not
+// see shows (firstUnseen); after "Got it", the next one shows.
 
 function browserStorage(): Storage | null {
   try {
@@ -22,34 +26,45 @@ function browserStorage(): Storage | null {
   }
 }
 
+/** The spotlights that the page holds now, and the ones closed with "Got it" in this visit. A spotlight that leaves the page takes its id out. */
+const page = createStore<{ on: string[]; closed: string[] }>(() => ({ on: [], closed: [] }));
+
 export function NewSpotlight({ id, side = "bottom", className }: { id: string; side?: "top" | "bottom" | "left" | "right"; className?: string }) {
   const item = newsItem(id);
-  const [show, setShow] = useState(false);
+  // The seen list of this person. Null until it is read, and when the read fails: no spotlight then.
+  const [seen, setSeen] = useState<string[] | null>(null);
+  const on = useStore(page, (s) => s.on);
+  const closed = useStore(page, (s) => s.closed);
+
+  useEffect(() => {
+    page.setState((s) => ({ on: [...s.on, id] }));
+    return () => page.setState((s) => ({ on: s.on.filter((x) => x !== id), closed: s.closed.filter((x) => x !== id) }));
+  }, [id]);
 
   useEffect(() => {
     if (!item) return;
     if (item.audience === "visitor") {
-      const seen = readSeen(browserStorage());
       // eslint-disable-next-line react-hooks/set-state-in-effect -- only the browser knows the seen list
-      if (seen !== null && unseen([item], seen, "visitor", today()).length > 0) setShow(true);
+      setSeen(readSeen(browserStorage()));
       return;
     }
     let live = true;
     // A failed read hides the spotlight.
-    void loadSeenNews().catch(() => null).then((seen) => {
-      if (live && seen !== null && unseen([item], seen, "learner", today()).length > 0) setShow(true);
+    void loadSeenNews().catch(() => null).then((list) => {
+      if (live) setSeen(list);
     });
     return () => {
       live = false;
     };
   }, [item]);
 
-  if (!item || !show) return null;
+  if (!item || seen === null || firstUnseen(news.items, [...seen, ...closed], item.audience, today(), on)?.id !== item.id) return null;
 
   const gotIt = () => {
-    setShow(false);
+    // The pill closes at once, and the next pill of the page can show.
+    page.setState((s) => ({ closed: [...s.closed, item.id] }));
     if (item.audience === "visitor") return markSeen(browserStorage(), item.id);
-    // The pill closes at once. The account keeps the id for the next visit and for other devices.
+    // The account keeps the id for the next visit and for other devices.
     void markNewsSeen(item.id);
   };
 
