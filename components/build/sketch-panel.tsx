@@ -8,8 +8,11 @@ import { boardStore, useBoard } from "@/lib/game/board-store";
 import { isHelped } from "@/lib/game/check-flow";
 import { sketchStore, useSketch } from "@/lib/game/sketch-store";
 import { sketchCircuit, type Circuit } from "@/lib/sketch/circuit";
-import { checkGoal, type GoalResult } from "@/lib/sketch/goal";
-import { fill, parseSketch, type SketchError } from "@/lib/sketch/parse";
+import type { GoalResult } from "@/lib/sketch/goal";
+import { fill, type SketchError } from "@/lib/sketch/parse";
+import { captureRun, isStale, type RunRecord } from "@/lib/runs/record";
+import runsText from "@/content/ui/runs.json";
+import { useRuns } from "./use-runs";
 import { createRunner } from "@/lib/sketch/run";
 import { checkLine, stepsMatch, stepSketch, type LineStep, type Names } from "@/lib/sketch/steps";
 import { cn } from "@/lib/utils";
@@ -30,9 +33,14 @@ type Outcome = { kind: "error"; error: SketchError } | { kind: "goal"; result: G
 
 const starterOf = (step: SketchStep) => step.starter.join("\n");
 
-export function SketchPanel({ step, onClose, onDone }: { step: SketchStep; onClose: () => void; onDone: () => void }) {
+type Props = { step: SketchStep; user: string; project: string; position: number; onClose: () => void; onDone: () => void };
+
+export function SketchPanel({ step, user, project, position, onClose, onDone }: Props) {
   const saved = useBoard((s) => s.code);
   const code = saved ?? starterOf(step);
+  const { add: addRun, saved: runsSaved, lesson } = useRuns(user, project, position);
+  /** The record of the run whose result shows. */
+  const [ran, setRan] = useState<RunRecord | null>(null);
   const helped = useBoard(isHelped);
   const running = useSketch((s) => s.running);
   const [outcome, setOutcome] = useState<Outcome | null>(null);
@@ -60,19 +68,28 @@ export function SketchPanel({ step, onClose, onDone }: { step: SketchStep; onClo
 
   const run = () => {
     stop();
-    const parsed = parseSketch(code);
-    if (!parsed.ok) return showError(parsed.error);
-
-    const { bench, parts } = boardStore.getState();
-    const result = checkGoal(parsed.program, sketchCircuit(bench, parts), step.goal);
-    setOutcome({ kind: "goal", result });
-    setMark(!result.passed && result.line ? { line: result.line } : null);
-    if (result.passed) boardStore.getState().passCode();
+    // The run record comes first (issue #212): the board and the sketch at this press, and the result of that board
+    // and that sketch. A change of the board while the LEDs run does not change this result.
+    const { bench, parts, paused } = boardStore.getState();
+    const { record, program } = captureRun({ bench, parts, code, goal: step.goal, lesson, runId: crypto.randomUUID(), at: new Date().toISOString() });
+    // A challenge is a sandbox (issue #203): its runs are not runs of the level.
+    if (!paused) addRun(record);
+    setRan(record);
+    const { result } = record;
+    if (result.status === "error") {
+      setOutcome({ kind: "error", error: result.error as SketchError });
+      setMark({ line: result.error.line });
+    } else {
+      setOutcome({ kind: "goal", result: result.goalPassed ? { passed: true, message: result.message } : { passed: false, message: result.message, line: result.line } });
+      setMark(!result.goalPassed && result.line ? { line: result.line } : null);
+      if (result.goalPassed) boardStore.getState().passCode();
+    }
+    if (!program || result.status === "error") return;
 
     // The live run uses the board as it is now, also when the learner changes a wire while the sketch runs.
     let circuit: Circuit = sketchCircuit(bench, parts);
     let wiring = parts;
-    const runner = createRunner(parsed.program, (pin, pins) => circuit.read(pin, pins, sketchStore.getState().pressed));
+    const runner = createRunner(program, (pin, pins) => circuit.read(pin, pins, sketchStore.getState().pressed));
     const started = performance.now();
     sketchStore.getState().start();
     const tick = () => {
@@ -97,6 +114,7 @@ export function SketchPanel({ step, onClose, onDone }: { step: SketchStep; onClo
     stop();
     setOutcome(null);
     setMark(null);
+    setRan(null);
     if (steps) startSteps();
     else boardStore.getState().setCode(null);
   };
@@ -106,6 +124,7 @@ export function SketchPanel({ step, onClose, onDone }: { step: SketchStep; onClo
     stop();
     setOutcome(null);
     setMark(null);
+    setRan(null);
     // The full sketch goes in the editor, so Step by step ends and the panel shows Free.
     sketchStore.getState().setSteps(null);
     boardStore.getState().writeForMe(step.solution.join("\n"));
@@ -121,6 +140,7 @@ export function SketchPanel({ step, onClose, onDone }: { step: SketchStep; onClo
     stop();
     setOutcome(null);
     setMark(null);
+    setRan(null);
     startSteps();
   };
   /** Free keeps the lines that the learner typed. */
@@ -192,6 +212,16 @@ export function SketchPanel({ step, onClose, onDone }: { step: SketchStep; onClo
       )}
 
       <Result outcome={outcome} onDone={onDone} />
+      {outcome && ran && isStale(ran, parts, code) && (
+        <p role="status" data-testid="run-stale" className="rounded-xl border border-dashed border-border bg-muted px-3 py-2 text-sm leading-snug">
+          <span className="font-extrabold">{runsText.stale}.</span> {runsText.staleHelp}
+        </p>
+      )}
+      {!runsSaved && (
+        <p role="status" className="rounded-xl bg-muted px-3 py-2 text-sm leading-snug">
+          {runsText.notSaved}
+        </p>
+      )}
 
       {running && (
         <div className="flex flex-col gap-2 rounded-xl bg-muted px-3 py-2 text-sm font-semibold" role="status">

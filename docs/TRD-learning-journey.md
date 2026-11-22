@@ -183,6 +183,14 @@ The goal check runs on a virtual clock in one call. Thus no other change can occ
 
 **Storage.** The browser keeps the latest three records and one backup in `localStorage`, with the key of the level (`levelKey`) and the suffix `:runs`. Records do not go to the database. The reason: they contain the sketch, and the source document says that analytics must not contain source code. A `run_completed` event (section 8) goes to the database with the run ID and the result only.
 
+**As built (issue #212).** `lib/runs/record.ts` has `captureRun`, `keepLatest`, `isStale`, `readRuns` and `writeRuns`. The code panel makes a record at each press of Run, on each level that has a code step. A level with no lesson file has `lesson: null` in its records.
+
+- The result of a record is `{ status: "ok", observed, goalPassed, message, line }` or `{ status: "error", error }`. `observed` is the behavior of the LED of the level goal. A mistake in the code and a sketch that stops are failed runs.
+- "Changed since this run" compares the parts (ID, type and holes) and the sketch text with the record. The order of the parts and the color of a wire do not count.
+- The storage key is the key of the saved board of the level (`saveKey`) with the suffix `:runs`. It has the user, so a second user on one tab has other records, and Delete account removes them.
+- A run in a challenge (the sandbox of section 6.4) makes no run record of the level.
+- The `run_completed` event goes out only on a level with a lesson file, because an event needs the lesson ID and version.
+
 **Compare with last run.** The panel shows the two latest records:
 
 - If only one record exists, the panel says that another run is necessary (F3-AC1).
@@ -337,7 +345,7 @@ The measures of section 7 of the source document come from these two tables with
 | --- | --- | --- |
 | `tests/connections.test.ts` | Unit | The same circuit in different holes gives the same connections. A moved wire gives one `moved` item with the old and new ends. |
 | `tests/observe.test.ts` | Unit | The baseline blinks 500/500. Each "Yes" change in section 4 gives the expected result. |
-| `tests/run-record.test.ts` | Unit | A record does not change when the board changes after Run. Only three records stay. `diffLines` and `diffRuns` list each change. |
+| `tests/run-record.test.ts` | Unit | A record does not change when the board changes after Run. Its result comes from its own board. Only three records stay. A changed board or sketch is "changed since this run". The browser save reads back its records and ignores bad data. |
 | `tests/restore.test.ts` | Unit | Restore changes the board and the code together. Undo of a restore puts back the unsaved state. |
 | `tests/challenge.test.ts` | Unit | Run is locked before a prediction. Skip is unscored. An error gives no score. Two grades. A retry keeps the first attempt. A variation uses its own answers. The sandbox puts the level back. Each challenge of the lesson file agrees with the simulator. |
 | `tests/lesson-content.test.ts` | Unit | The lesson file agrees with the level, the board and the list of supported changes. Each mapped connection is really connected on the reference board. Each hole in a change is on the bench. The SVG check comes with the schematic (work package 4). |

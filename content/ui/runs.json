@@ -1,0 +1,6 @@
+{
+  "_note": "The text of the run records in the code panel (TRD addendum 6.3, issue #212). A run is one press of Run. Write the text in ASD-STE100.",
+  "stale": "Changed since this run",
+  "staleHelp": "The board or the sketch is different now. Press Run to get a new result.",
+  "notSaved": "This browser cannot keep your runs. Run works, but there is no history."
+}
