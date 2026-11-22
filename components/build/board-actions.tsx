@@ -31,7 +31,19 @@ export function BoardActions({ ready, empty, locked, onCheck, onOpenCode, extra 
   const note = ready && empty;
   // A challenge has its own Run button, and its board is not the level (issue #203).
   const inChallenge = useBoard((s) => s.paused !== null);
+  // While Compare views is open, its answer is the loudest thing on the screen: "Write the sketch" goes in the row, as
+  // a plain button with the same size and weight as Clear and Check (issue #202).
+  const comparing = useBoard((s) => s.compare !== null);
   if (inChallenge) return null;
+  const sketch = ready && locked && (
+    <button
+      type="button"
+      onClick={onOpenCode}
+      className={comparing ? `${BIG} border border-border bg-card text-foreground` : `${BIG} border-primary-deep bg-primary text-primary-foreground`}
+    >
+      {sketchText.panel.open}
+    </button>
+  );
   return (
     <div className="absolute inset-x-3 bottom-4 z-20 flex flex-col items-center gap-2">
       {note && (
@@ -39,11 +51,7 @@ export function BoardActions({ ready, empty, locked, onCheck, onOpenCode, extra 
           {text.play.check.empty}
         </p>
       )}
-      {ready && locked && (
-        <button type="button" onClick={onOpenCode} className={`${BIG} border-primary-deep bg-primary text-primary-foreground`}>
-          {sketchText.panel.open}
-        </button>
-      )}
+      {!comparing && sketch}
       <div className="flex flex-wrap items-center justify-center gap-2 max-sm:flex-nowrap">
         <ClearButton disabled={empty} />
         <button
@@ -56,6 +64,7 @@ export function BoardActions({ ready, empty, locked, onCheck, onOpenCode, extra 
         >
           {text.play.check.button}
         </button>
+        {comparing && sketch}
         {extra}
       </div>
     </div>

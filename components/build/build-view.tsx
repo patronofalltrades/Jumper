@@ -18,7 +18,7 @@ import { putBackParts } from "@/lib/game/put-back";
 import type { SketchStep } from "@/lib/content/schema";
 import { carriedClip, clipOpensFirst, type Clip } from "@/lib/game/walkthrough";
 import { MascotContext } from "@/components/art/mascot";
-import { CompareViews } from "@/components/journey/compare-views";
+import { CompareBoardLabel, CompareViews } from "@/components/journey/compare-views";
 import type { MascotId } from "@/lib/game/project-mascot";
 import type { Track } from "@/lib/game/music";
 import { AliveStage } from "./alive-stage";
@@ -318,6 +318,7 @@ function BuildBoard({ user, project, levelId, position, eyebrow, title, goal, ta
               extra={<BuildForMe clip={clip} />}
             />
           )}
+          <CompareBoardLabel />
           <SpotCard />
           <BuildDemo clip={clip} position={position} />
           <AliveStage />

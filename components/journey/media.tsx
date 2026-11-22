@@ -32,8 +32,31 @@ function Failed({ message, alternative, onRetry }: { message: string; alternativ
   );
 }
 
-/** `name`: the key of the photo in the lesson file. Each terminal that has a point on this photo is a button. */
-export function Photo({ photo, name, map, selected, onSelect }: { photo: Media["photos"][string]; name: string; map: LessonMap; selected: Target | null; onSelect: (id: string) => void }) {
+/**
+ * `name`: the key of the photo in the lesson file. Each terminal that has a point on this photo is a button.
+ * `colorOf`: the color of the connection of a terminal, as in the drawing and on the 3D board; `mark`: the color of the
+ * selection. The differences of the photo show as numbered markers (issue #202).
+ */
+export function Photo({
+  photo,
+  name,
+  map,
+  selected,
+  onSelect,
+  colorOf,
+  mark,
+  compact = false,
+}: {
+  photo: Media["photos"][string];
+  name: string;
+  map: LessonMap;
+  selected: Target | null;
+  onSelect: (id: string) => void;
+  colorOf?: (terminal: string) => string | undefined;
+  mark?: string;
+  /** A small view (the "Real kit" beside the drawing): smaller points and labels, so they do not cover the photo. */
+  compact?: boolean;
+}) {
   const [failed, setFailed] = useState(false);
   const [tries, setTries] = useState(0);
   if (failed) return <Failed message={text.photo.failed} alternative={photo.alt} onRetry={() => (setFailed(false), setTries(tries + 1))} />;
@@ -45,6 +68,7 @@ export function Photo({ photo, name, map, selected, onSelect }: { photo: Media["
         const spot = t.photos?.[name];
         if (!spot) return null;
         const on = !!selected?.terminals.includes(t.id);
+        const color = on && mark ? mark : colorOf?.(t.id);
         return (
           <span key={t.id}>
           <button
@@ -53,20 +77,23 @@ export function Photo({ photo, name, map, selected, onSelect }: { photo: Media["
             aria-pressed={on}
             title={t.label}
             onClick={() => onSelect(t.id)}
-            style={{ left: `${spot.x * 100}%`, top: `${spot.y * 100}%` }}
+            style={{ left: `${spot.x * 100}%`, top: `${spot.y * 100}%`, ...(color && { borderColor: color, ...(on && { backgroundColor: `${color}55`, boxShadow: `0 0 0 4px ${color}66` }) }) }}
             className={cn(
-              "absolute size-6 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 outline-none focus-visible:ring-2 focus-visible:ring-ring",
+              "absolute -translate-x-1/2 -translate-y-1/2 rounded-full border-2 outline-none focus-visible:ring-2 focus-visible:ring-ring",
+              compact ? "size-4 before:absolute before:-inset-2 before:content-['']" : "size-6",
               on ? "z-10 border-probe bg-probe/30 ring-4 ring-probe/40" : "border-white/90 bg-black/30",
+              color && "ring-0",
             )}
           />
           {/* The selected point also has its name on the photo: a mark that is not color only. */}
           {on && (
             <span
               aria-hidden="true"
-              style={{ left: `${spot.x * 100}%`, top: `${spot.y * 100}%` }}
+              style={{ left: `${spot.x * 100}%`, top: `${spot.y * 100}%`, ...(mark && { borderColor: mark }) }}
               className={cn(
-                "pointer-events-none absolute z-10 max-w-[45%] rounded-md border border-probe bg-card px-1.5 py-0.5 text-[11px] leading-tight font-bold text-foreground shadow-panel",
-                spot.x > 0.55 ? "-translate-x-[calc(100%+18px)]" : "translate-x-[18px]",
+                "pointer-events-none absolute z-10 rounded-md border border-probe bg-card leading-tight font-bold text-foreground shadow-panel",
+                compact ? "px-1 py-px text-[9px] whitespace-nowrap" : "max-w-[45%] px-1.5 py-0.5 text-[11px]",
+                spot.x > 0.55 ? (compact ? "-translate-x-[calc(100%+12px)]" : "-translate-x-[calc(100%+18px)]") : compact ? "translate-x-[12px]" : "translate-x-[18px]",
                 "-translate-y-1/2",
               )}
             >
@@ -76,7 +103,39 @@ export function Photo({ photo, name, map, selected, onSelect }: { photo: Media["
           </span>
         );
       })}
+      {/* The differences from the lesson: numbered markers. The list under the photo gives the text. */}
+      {photo.differences?.map((d, i) => (
+        <span
+          key={i}
+          aria-hidden="true"
+          data-testid="photo-difference"
+          style={{ left: `${d.x * 100}%`, top: `${d.y * 100}%` }}
+          className="pointer-events-none absolute grid size-5 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-md border-2 border-white bg-foreground font-mono text-[11px] font-bold text-background shadow-panel"
+        >
+          {i + 1}
+        </span>
+      ))}
     </div>
+  );
+}
+
+/** The list under a photo: what is different from the lesson, and fine on the board of the learner. The numbers are the markers. */
+export function PhotoDifferences({ photo }: { photo: Media["photos"][string] }) {
+  if (!photo.differences?.length) return null;
+  return (
+    <section aria-label={text.photo.differences} data-testid="photo-differences">
+      <h4 className="mb-1 text-sm font-bold">{text.photo.differences}</h4>
+      <ol className="grid gap-1 text-sm">
+        {photo.differences.map((d, i) => (
+          <li key={i} className="flex items-start gap-2">
+            <span aria-hidden="true" className="mt-px grid size-5 shrink-0 place-items-center rounded-md bg-foreground font-mono text-[11px] font-bold text-background">
+              {i + 1}
+            </span>
+            <span>{d.text}</span>
+          </li>
+        ))}
+      </ol>
+    </section>
   );
 }
 
@@ -109,7 +168,7 @@ export function PhotoCredit({ photo }: { photo: Media["photos"][string] }) {
   const link = "font-semibold underline underline-offset-2 outline-none focus-visible:ring-2 focus-visible:ring-ring";
   return (
     <div className="grid gap-1.5 text-xs text-muted-foreground">
-      {photo.note && (
+      {photo.note && !photo.differences?.length && (
         <p data-testid="photo-note" className="text-sm">
           <span className="font-semibold text-foreground">{text.photo.note}</span> {photo.note}
         </p>

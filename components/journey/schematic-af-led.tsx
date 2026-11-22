@@ -15,12 +15,16 @@ export type SchematicProps = {
   onSelect: (sid: string) => void;
   /** The text for a screen reader: the name of the drawing. */
   title: string;
+  /** The color of each net, by sid: the same color as the connection on the 3D board and on the photo. */
+  colors?: ReadonlyMap<string, string>;
+  /** The color of the selection: a selected terminal has a ring in this color. */
+  mark?: string;
 };
 
 const WIRE = "var(--ink)";
 const MARK = "var(--probe)";
 
-export function SchematicAfLed({ selected, labels, onSelect, title }: SchematicProps) {
+export function SchematicAfLed({ selected, labels, onSelect, title, colors, mark = MARK }: SchematicProps) {
   /** A net or a terminal that the learner can select: a button for the pointer and for the keyboard. */
   const pick = (sid: string, children: (on: boolean) => ReactNode) => {
     const label = labels.get(sid);
@@ -41,22 +45,25 @@ export function SchematicAfLed({ selected, labels, onSelect, title }: SchematicP
 
   /** A net: the line, a wide line that takes the click, and a dashed outline when it is selected. */
   const net = (sid: string, d: string) =>
-    pick(sid, (on) => (
+    pick(sid, (on) => {
+      const color = colors?.get(sid);
+      return (
       <>
-        {on && <path d={d} fill="none" stroke={MARK} strokeWidth={11} strokeLinecap="round" strokeLinejoin="round" opacity={0.35} />}
+        {on && <path d={d} fill="none" stroke={color ?? MARK} strokeWidth={12} strokeLinecap="round" strokeLinejoin="round" opacity={0.3} />}
         <path className="focus" d={d} fill="none" stroke={MARK} strokeWidth={9} strokeDasharray="2 6" strokeLinecap="round" opacity={0} />
-        <path d={d} fill="none" stroke={on ? MARK : WIRE} strokeWidth={on ? 4 : 2} strokeDasharray={on ? "9 4" : undefined} strokeLinecap="round" strokeLinejoin="round" />
+        <path d={d} fill="none" stroke={on ? (color ?? MARK) : (color ?? WIRE)} strokeWidth={on ? 5 : color ? 3 : 2} strokeDasharray={on && !color ? "9 4" : undefined} strokeLinecap="round" strokeLinejoin="round" />
         <path d={d} fill="none" stroke="transparent" strokeWidth={18} />
       </>
-    ));
+      );
+    });
 
   /** A terminal: a dot, with a ring when it is selected. */
   const terminal = (sid: string, x: number, y: number) =>
     pick(sid, (on) => (
       <>
         <circle className="focus" cx={x} cy={y} r={13} fill="none" stroke={MARK} strokeWidth={2} strokeDasharray="2 4" opacity={0} />
-        {on && <circle cx={x} cy={y} r={12} fill="none" stroke={MARK} strokeWidth={3} />}
-        <circle cx={x} cy={y} r={5.5} fill={on ? MARK : "var(--panel)"} stroke={on ? MARK : WIRE} strokeWidth={2} />
+        {on && <circle cx={x} cy={y} r={12} fill="none" stroke={mark} strokeWidth={3} />}
+        <circle cx={x} cy={y} r={5.5} fill={on ? mark : "var(--panel)"} stroke={on ? mark : WIRE} strokeWidth={2} />
         <circle cx={x} cy={y} r={14} fill="transparent" />
       </>
     ));

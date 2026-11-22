@@ -3,20 +3,11 @@
   "compare": {
     "button": "Compare views",
     "title": "Compare views",
-    "intro": "This is one circuit in more than one view. Select a point or a connection in a view. The other views show the same point.",
     "close": "Close Compare views",
-    "tabs": {
-      "label": "Views",
-      "schematic": "Schematic",
-      "board": "3D board",
-      "photo": "Photo"
-    },
     "boardHint": "The 3D board is above. Point at a hole or tap it to select its connection.",
-    "reference": "Reference",
     "yourBoard": "Your board",
     "schematicLabel": "Schematic of the LED circuit. It is a reference view: it does not change when you change your board.",
     "selected": "Selected",
-    "none": "Nothing is selected. Select a point or a connection.",
     "notOnBoard": "This part is not on your board now.",
     "terminals": "Points",
     "connections": "Connections",
@@ -25,28 +16,24 @@
     "selectConnection": "Select the connection: {label}",
     "difference": {
       "title": "Your board and the reference",
-      "same": "Your board has the same connections as the reference.",
-      "count": "Your board has {n} differences from the reference. The schematic and the photo show the reference.",
-      "countOne": "Your board has 1 difference from the reference. The schematic and the photo show the reference.",
+      "count": "Your board has {n} differences from the reference. The drawing and the photo show the reference.",
       "show": "Show on the board",
       "moved": "{kept} was connected to {from}. Now it is connected to {to}.",
       "removed": "{a} and {b} are not connected now.",
       "added": "{a} and {b} are connected now. In the reference, they are not connected."
     },
     "photo": {
-      "title": "Photo of the real circuit",
       "absent": "The photo view is not here yet. It comes when the photos of the real circuit are added to this lesson.",
       "failed": "The photo did not load.",
       "retry": "Try again",
       "alternative": "Text description:",
-      "choose": "Photo",
-      "points": "Select a point on the photo, or select a point or a connection in a different view.",
       "notHere": "This photo does not show: {label}.",
       "oneEnd": "This photo shows one end of this connection only.",
       "credit": "Photo: {author}.",
       "source": "Source",
       "changes": "Changes:",
-      "note": "About this photo:"
+      "note": "About this photo:",
+      "differences": "Different in this photo, fine on your board"
     },
     "fault": {
       "title": "A fault on the real circuit",
@@ -63,6 +50,29 @@
       "tryAgain": "Select a different answer.",
       "firstAnswer": "Your first answer: {text}",
       "saveFailed": "We could not save your answer. Your board and your answers are still on this device."
+    },
+    "verdict": {
+      "label": "Is my board right?",
+      "match": "Your board matches the reference ✓",
+      "wire": "{wire} goes to {now}. The reference uses {ref}.",
+      "wireFrom": "The wire from {label}",
+      "open": "{a} and {b} are not connected. The reference connects them.",
+      "mark": "The wire with this color on the 3D board is the wire to change.",
+      "place": {
+        "row": "row {n}",
+        "rowSide": "row {n}, holes {side}",
+        "plus": "the + line",
+        "minus": "the − line",
+        "pin": "pin {name}",
+        "hole": "hole {id}"
+      }
+    },
+    "views": {
+      "drawing": "Drawing",
+      "kit": "Real kit",
+      "board": "Your board",
+      "otherLayout": "A different layout",
+      "lessonKit": "Back to the lesson kit"
     }
   }
 }

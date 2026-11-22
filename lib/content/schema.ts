@@ -208,7 +208,16 @@ export const lessonSchema = z.object({
   concepts: z.array(slug).min(1),
   map: z.object({
     terminals: z
-      .array(z.object({ id: endpointSchema, label: z.string().min(1), schematic: z.string().min(1).optional(), photos: z.record(z.string(), hotspot).optional() }))
+      .array(
+        z.object({
+          id: endpointSchema,
+          label: z.string().min(1),
+          schematic: z.string().min(1).optional(),
+          photos: z.record(z.string(), hotspot).optional(),
+          /** The name of the wire on this terminal, for the answer of Compare views, for example "Pin 13's wire". */
+          wire: z.string().min(1).optional(),
+        }),
+      )
       .min(1),
     connections: z.array(z.object({ id: slug, a: endpointSchema, b: endpointSchema, explain: z.string().min(1), schematic: z.string().min(1).optional() })).min(1),
   }),
@@ -245,6 +254,8 @@ export const lessonSchema = z.object({
           note: z.string().min(1).optional(),
           /** A text for a connection of the map that this photo does not have as one direct connection. */
           notes: z.record(slug, z.string().min(1)).optional(),
+          /** The differences from the lesson that are fine on the board of the learner: a numbered marker on the photo, and a line of text. */
+          differences: z.array(hotspot.extend({ text: z.string().min(1) })).optional(),
           /** Who made the photo, and its license. Each photo must have it (issue #208). */
           credit: z.object({
             author: z.string().min(1),
