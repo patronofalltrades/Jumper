@@ -90,22 +90,34 @@ export const isStale = (record: RunRecord, parts: readonly Part[], code: string)
 /** The key of the run records of a level: the key of its saved board (`saveKey`) with ":runs". */
 export const runsKey = (levelSaveKey: string) => `${levelSaveKey}:runs`;
 
-const storedSchema = z.object({ runs: z.array(runRecordSchema) });
+/** The board and the sketch from before "Restore this run" (issue #214): the one backup, for "Undo the restore". */
+export const backupSchema = z.object({ parts: z.array(partSchema), code: z.string().nullable(), codePassed: z.boolean(), helpedCode: z.string().nullable() });
+export type StoredBackup = z.infer<typeof backupSchema>;
 
-/** The saved records of a level, oldest first. No save, a blocked storage or data that is not records: an empty list. */
-export function readRuns(storage: Pick<Storage, "getItem">, key: string): RunRecord[] {
+const storedSchema = z.object({ runs: z.array(runRecordSchema), backup: backupSchema.nullable().optional() });
+
+function readStored(storage: Pick<Storage, "getItem">, key: string) {
   try {
     const parsed = storedSchema.safeParse(JSON.parse(storage.getItem(key) ?? "null"));
-    return parsed.success ? parsed.data.runs.slice(-MAX_RUNS) : [];
+    return parsed.success ? parsed.data : null;
   } catch {
-    return [];
+    return null;
   }
 }
 
-/** Saves the records. False when the browser cannot save (private mode, or a full storage): the run still works. */
-export function writeRuns(storage: Pick<Storage, "setItem">, key: string, runs: readonly RunRecord[]): boolean {
+/** The saved records of a level, oldest first. No save, a blocked storage or data that is not records: an empty list. */
+export const readRuns = (storage: Pick<Storage, "getItem">, key: string): RunRecord[] => readStored(storage, key)?.runs.slice(-MAX_RUNS) ?? [];
+
+/** The saved backup of a level, or null. */
+export const readBackup = (storage: Pick<Storage, "getItem">, key: string): StoredBackup | null => readStored(storage, key)?.backup ?? null;
+
+/**
+ * Saves the records, and the backup of a restore if there is one. False when the browser cannot save (private mode,
+ * or a full storage): the run still works.
+ */
+export function writeRuns(storage: Pick<Storage, "setItem">, key: string, runs: readonly RunRecord[], backup: StoredBackup | null = null): boolean {
   try {
-    storage.setItem(key, JSON.stringify({ runs }));
+    storage.setItem(key, JSON.stringify({ runs, ...(backup && { backup }) }));
     return true;
   } catch {
     return false;

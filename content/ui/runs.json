@@ -1,5 +1,5 @@
 {
-  "_note": "The text of the run records in the code panel (TRD addendum 6.3, issues #212 and #213). A run is one press of Run. compare: {a}, {b}, {kept}, {from} and {to} are the plain names of points on the board; {led} is the name of the LED of the level; {on}, {off}, {n}, {line}, {time} and {part} are filled in. The list of changes never names one cause. Write the text in ASD-STE100.",
+  "_note": "The text of the run records in the code panel (TRD addendum 6.3, issues #212, #213 and #214). A run is one press of Run. compare: {a}, {b}, {kept}, {from} and {to} are the plain names of points on the board; {led} is the name of the LED of the level; {on}, {off}, {n}, {line}, {time} and {part} are filled in. The list of changes never names one cause. Write the text in ASD-STE100.",
   "stale": "Changed since this run",
   "staleHelp": "The board or the sketch is different now. Press Run to get a new result.",
   "notSaved": "This browser cannot keep your runs. Run works, but there is no history.",
@@ -43,6 +43,12 @@
     "shown": "The board shows {name} now: its holes glow.",
     "lineRemoved": "Removed, line {line}",
     "lineAdded": "Added, line {line}",
+    "restore": "Restore this run",
+    "onBench": "Your board and your sketch are the same as this run.",
+    "restored": "The board and the sketch of that run are back. Press Run to see the result of this board.",
+    "undoRestore": "Undo the restore",
+    "undoHelp": "This puts back the board and the sketch from before the restore.",
+    "undone": "The board and the sketch from before the restore are back. Press Run to see the result.",
     "causes": "Each change in this list is a possible cause of a different result. The list does not tell which one. Test your idea: change one thing, then press Run.",
     "unrun": "Your board or your sketch has changes that you did not run. This comparison is between the two runs."
   }

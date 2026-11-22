@@ -217,6 +217,17 @@ The goal check runs on a virtual clock in one call. Thus no other change can occ
 
 `undoRestore()` puts back the backup (parts and code together) (F3-AC5). The existing `undo()` does not change.
 
+**As built (issue #214).** The board store (`lib/game/board-store.ts`) has `restoreBackup`, `restoreRun` and `undoRestore`.
+
+- `restoreRun` puts the parts and the sketch of the record on the bench in one `set()` call. The sketch must do the goal again (`codePassed` is false), so a new Run is necessary. The code panel removes the old result and shows a note.
+- The task engine reads the restored board as it reads "Put back the level build": no Mistake, no XP, and the task of now follows the board.
+- A restore is one step of the Undo history of the parts. Undo takes back the board only. "Undo the restore" takes back the board and the sketch, and it also gives back whether the sketch had passed.
+- There is one backup. A new restore replaces it. "Undo the restore" uses it and empties it. Another level empties it. A new Run does not empty it, so the learner can test the restored board and then go back.
+- The backup is in the browser save of the run records (`:runs`), so "Undo the restore" is there after a reload.
+- The compare panel has "Restore this run" on each of the two runs that is not on the bench now. A run that is the same as the bench says so.
+- `restoreRun` does nothing on a snapshot (read-only) and in a challenge.
+- The `snapshot_restored` event goes out only on a level with a lesson file.
+
 ### 6.4 Predict (P2)
 
 **ChallengeDefinition** (in `content/lessons/af-led.json`):
@@ -357,7 +368,7 @@ The measures of section 7 of the source document come from these two tables with
 | `tests/observe.test.ts` | Unit | The baseline blinks 500/500. Each "Yes" change in section 4 gives the expected result. |
 | `tests/run-record.test.ts` | Unit | A record does not change when the board changes after Run. Its result comes from its own board. Only three records stay. A changed board or sketch is "changed since this run". The browser save reads back its records and ignores bad data. |
 | `tests/run-diff.test.ts` | Unit | `diffLines` gives the removed and added lines with their numbers. `diffRuns` gives one moved connection for one moved wire, lists each change of the wiring and the sketch, gives no change for the same runs, and compares a failed run. |
-| `tests/restore.test.ts` | Unit | Restore changes the board and the code together. Undo of a restore puts back the unsaved state. |
+| `tests/restore.test.ts` | Unit | Restore changes the board and the code together, in one change of the store. Undo of a restore puts back the unsaved state. A restored board that runs makes a new record. A failed run can be compared, and the earlier run restored. The task engine gives no Mistake and no XP. The backup is in the browser save. |
 | `tests/challenge.test.ts` | Unit | Run is locked before a prediction. Skip is unscored. An error gives no score. Two grades. A retry keeps the first attempt. A variation uses its own answers. The sandbox puts the level back. Each challenge of the lesson file agrees with the simulator. |
 | `tests/lesson-content.test.ts` | Unit | The lesson file agrees with the level, the board and the list of supported changes. Each mapped connection is really connected on the reference board. Each hole in a change is on the bench. The SVG check comes with the schematic (work package 4). |
 | `supabase/tests/learning_isolation.sql` | SQL | Row-level security on the two new tables. |
