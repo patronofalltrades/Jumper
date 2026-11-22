@@ -456,6 +456,8 @@ function PopupLayerBody({ level, check }: { level: LevelInfo; check: CheckProps 
   const laptop = useLaptop();
   const progress = useBoard((s) => s.progress);
   const done = useBoard((s) => s.done);
+  // While Compare views is open, the task waits in the task list (issue #222). A mistake still shows: it has the button to go on.
+  const comparing = useBoard((s) => s.compare !== null);
   const task = level.tasks[progress.index];
   const note = done !== null ? level.tasks[done] : undefined;
 
@@ -468,7 +470,7 @@ function PopupLayerBody({ level, check }: { level: LevelInfo; check: CheckProps 
   } else if (!laptop && progress.phase === "mistake" && progress.mistake) {
     body = <MistakeBody mistake={progress.mistake} />;
     mistake = true;
-  } else if (!laptop && progress.phase === "task" && task) body = <TaskBody task={task} total={level.tasks.length} note={note} compact />;
+  } else if (!laptop && !comparing && progress.phase === "task" && task) body = <TaskBody task={task} total={level.tasks.length} note={note} compact />;
   if (!body) return null;
 
   return laptop ? (

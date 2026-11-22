@@ -146,11 +146,19 @@ test("Compare views gives the answer first, with linked views and marked photo n
   await expect(verdict.locator("p").first()).toHaveText("Pin 13's wire goes to row 18. The reference uses row 22.");
   await expect(verdict).toContainText(text.verdict.mark);
   await expect(page.getByTestId("selected-label")).toHaveText("Pin 13 of the Uno → Resistor, first leg");
+  // The board changed, so task 3 is open again. Its pop-up and the first-visit tour wait while the panel is open.
+  const taskPopup = page.getByRole("heading", { name: /^Connect pin 13/ });
+  const tour = page.getByRole("heading", { name: "The task list" });
+  await expect(taskPopup).toBeHidden();
+  await expect(tour).toBeHidden();
   if (laptop) {
     await expect.poll(() => magentaPixels(page), { message: "the off wire is magenta on the 3D board" }).toBeGreaterThan(80);
   }
   await shot(page, `${name}-2-wire-off`);
   await panel.getByRole("button", { name: text.close }).click();
+  // The panel closes: the task pop-up and the tour come back.
+  await expect(taskPopup).toBeVisible();
+  await expect(tour).toBeVisible();
   if (laptop) await expect.poll(() => magentaPixels(page), { message: "no magenta when the panel is closed" }).toBeLessThan(20);
 
   // 5. The Check flow is as before: the board back as the reference, a sketch that passed, and the real Check.

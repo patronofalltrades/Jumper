@@ -17,3 +17,7 @@
    The flow found a bug in the first change: on a phone, while the panel was open, "Write the sketch" went onto two lines in the row (77 px high, Clear is 44 px). Now the button stays on one line, and the row can wrap while the panel is open.
 
    The e2e helpers in `e2e/levels.ts` did not work on the live Supabase project: its tasks are older than `content/projects/` (level 1 has 4 tasks, the file has 3), and since #218 only level 1 opens its clip by itself. Claude changed the helpers only on the local machine for the run, and did not commit that change.
+
+3. Answers to the questions after the e2e run: "1. No" (no pull request now) and "4. Absolutely ye" (hide the task pop-up and the first-visit tour while Compare views is open). No answer to 2 (re-seed the live database) and 3 (fix the clip wait in the e2e helper), so Claude did not do them.
+
+   While the panel is open, the task pop-up (laptop and phone) and the first-visit tour wait. A mistake pop-up still shows, because it has the button to go on. When the panel closes, the task pop-up and the tour come back. Flow 7 checks this.
