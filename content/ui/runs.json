@@ -18,7 +18,6 @@
     "led": "What the LED did",
     "goal": "Goal",
     "goalDone": "The sketch does the goal.",
-    "error": "Line {line}: {message}",
     "observed": {
       "blink": "{led} blinks: on for {on} ms, off for {off} ms.",
       "on": "{led} stays on.",

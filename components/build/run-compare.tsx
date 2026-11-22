@@ -106,7 +106,8 @@ function RunCard({ label, run, led }: { label: string; run: RunRecord; led: stri
           </p>
         </>
       ) : (
-        <p>{fill(text.error, { line: result.error.line, message: result.error.message })}</p>
+        // The message of a mistake starts with its line: "Line 5: Put a ; at the end of this line."
+        <p data-testid="run-error">{result.error.message}</p>
       )}
     </div>
   );
