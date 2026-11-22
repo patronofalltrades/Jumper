@@ -12,6 +12,8 @@ import type { GoalResult } from "@/lib/sketch/goal";
 import { fill, type SketchError } from "@/lib/sketch/parse";
 import { captureRun, isStale, type RunRecord } from "@/lib/runs/record";
 import runsText from "@/content/ui/runs.json";
+import { diffRuns } from "@/lib/runs/diff";
+import { RunCompare } from "./run-compare";
 import { useRuns } from "./use-runs";
 import { createRunner } from "@/lib/sketch/run";
 import { checkLine, stepsMatch, stepSketch, type LineStep, type Names } from "@/lib/sketch/steps";
@@ -38,9 +40,16 @@ type Props = { step: SketchStep; user: string; project: string; position: number
 export function SketchPanel({ step, user, project, position, onClose, onDone }: Props) {
   const saved = useBoard((s) => s.code);
   const code = saved ?? starterOf(step);
-  const { add: addRun, saved: runsSaved, lesson } = useRuns(user, project, position);
+  const { runs, add: addRun, saved: runsSaved, lesson, log } = useRuns(user, project, position);
   /** The record of the run whose result shows. */
   const [ran, setRan] = useState<RunRecord | null>(null);
+  /** "Compare with last run" is open (issue #213). */
+  const [comparing, setComparing] = useState(false);
+  const openCompare = () => {
+    setComparing(true);
+    const [before, last] = runs.slice(-2);
+    if (before && last) log("snapshot_compared", last.runId, { changes: diffRuns(before, last, boardStore.getState().bench).count });
+  };
   const helped = useBoard(isHelped);
   const running = useSketch((s) => s.running);
   const [outcome, setOutcome] = useState<Outcome | null>(null);
@@ -222,6 +231,18 @@ export function SketchPanel({ step, user, project, position, onClose, onDone }: 
           {runsText.notSaved}
         </p>
       )}
+      {runs.length > 0 &&
+        (comparing ? (
+          <RunCompare runs={runs} code={code} led={step.goal.led_name} onClose={() => setComparing(false)} />
+        ) : (
+          <button
+            type="button"
+            onClick={openCompare}
+            className="min-h-11 self-start rounded-xl border border-b-4 border-border bg-card px-4 text-sm font-bold outline-none focus-visible:ring-2 focus-visible:ring-ring active:translate-y-0.5 active:border-b-2"
+          >
+            {runsText.compare.button}
+          </button>
+        ))}
 
       {running && (
         <div className="flex flex-col gap-2 rounded-xl bg-muted px-3 py-2 text-sm font-semibold" role="status">
