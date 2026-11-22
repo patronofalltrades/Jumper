@@ -1,10 +1,16 @@
 {
   "_note": "The text of Compare views (TRD addendum 6.5, issue #202). diff: {kept}, {from}, {to}, {a} and {b} are the labels of terminals in the lesson file. Write the text in ASD-STE100.",
+  "door": {
+    "label": "Arduino Foundations · Level {level}",
+    "title": "Same circuit, three worlds",
+    "text": "See one LED circuit as a schematic, as a 3D board and as a photo of a real circuit.",
+    "open": "Open"
+  },
   "compare": {
-    "button": "Compare views",
-    "title": "Compare views",
+    "button": "Three worlds",
+    "title": "Same circuit, three worlds",
     "intro": "This is one circuit in more than one view. Select a point or a connection in a view. The other views show the same point.",
-    "close": "Close Compare views",
+    "close": "Close Same circuit, three worlds",
     "tabs": {
       "label": "Views",
       "schematic": "Schematic",

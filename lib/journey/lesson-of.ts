@@ -20,3 +20,9 @@ export function lessonOf(project: string, level: number): LevelLesson | null {
   if (!found) return null;
   return { lesson: found.lesson, reference: found.lesson.baseline.levels.flatMap((n) => (found.boards.levels[n] ?? []) as Part[]) };
 }
+
+/** The link that opens the level of a lesson with its "three worlds" panel open (issue #210). */
+export const compareHref = (lesson: Pick<Lesson, "project" | "level">) => `/p/${lesson.project}/${lesson.level}?compare=1`;
+
+/** The lesson that the card of the lobby opens: the first lesson file. */
+export const doorLesson: Lesson = LESSONS[0].lesson;

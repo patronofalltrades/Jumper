@@ -59,13 +59,16 @@ export function CompareViews({
   project,
   position,
   laptop,
+  startOpen = false,
 }: {
   project: string;
   position: number;
   laptop: boolean;
+  /** The link of the lobby opened the level (issue #210): the panel is open when the intro pop-up closes. */
+  startOpen?: boolean;
 }) {
   const found = useMemo(() => lessonOf(project, position), [project, position]);
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(startOpen);
   const button = useRef<HTMLButtonElement>(null);
   // The intro pop-up of the level comes first.
   const intro = useBoard((s) => s.progress.phase === "intro");

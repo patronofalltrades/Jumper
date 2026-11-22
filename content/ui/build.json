@@ -260,8 +260,14 @@
       "next": "Next"
     }
   },
+  "help": {
+    "button": "Help",
+    "on": "Help is on. A pop-up explains each step. Select Help to close the pop-ups.",
+    "off": "Help is off. Select Help to see a pop-up that explains each step."
+  },
   "map": {
     "back": "Lobby",
+    "home": "Home",
     "levels": "Levels",
     "level": "Level {n}",
     "tasks": "{n} tasks",

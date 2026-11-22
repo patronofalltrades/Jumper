@@ -14,6 +14,7 @@ import { useAlive } from "@/lib/game/alive-store";
 import { boardStore, FinishContext, useBoard, WIRE_COLORS, type Tool } from "@/lib/game/board-store";
 import type { Rules } from "@/lib/circuit/check";
 import { needsAck, type Plan } from "@/lib/game/engine";
+import { showsTaskPopup } from "@/lib/game/help";
 import { putBackParts } from "@/lib/game/put-back";
 import type { SketchStep } from "@/lib/content/schema";
 import { carriedClip, type Clip } from "@/lib/game/walkthrough";
@@ -29,6 +30,7 @@ import { useEmptyBoard, useLevelCheck, useProblemWatch, useSketchLock } from "./
 import { useFeedback } from "./feedback";
 import { useFilledTasks } from "./filled-tasks";
 import { GuideBar, SpotCard, useNoticeTimer } from "./guide";
+import { HelpButton, helpNow, useHelp } from "./help";
 import { Hearts, PinnedPopup, PopupLayer, useLaptop, type LevelTask } from "./popups";
 import { SketchPanel } from "./sketch-panel";
 import { TaskList } from "./task-list";
@@ -112,6 +114,8 @@ type Props = {
   mascot: MascotId;
   /** The music of the level (content/music.json), or null when it has none. */
   music: Track | null;
+  /** True when the link of the lobby opened the level (issue #210): the "three worlds" panel starts open. */
+  compare?: boolean;
 };
 
 export function BuildView({ mascot, ...props }: Props) {
@@ -122,7 +126,7 @@ export function BuildView({ mascot, ...props }: Props) {
   );
 }
 
-function BuildBoard({ user, project, levelId, position, eyebrow, title, goal, tasks: rawTasks, rules, bench: spec, start, carry, startLevel = 0, levels, clip: finished, sketch, mascot, music }: Props) {
+function BuildBoard({ user, project, levelId, position, eyebrow, title, goal, tasks: rawTasks, rules, bench: spec, start, carry, startLevel = 0, levels, clip: finished, sketch, mascot, music, compare = false }: Props) {
   useKeys();
   useNoticeTimer();
   useFeedback();
@@ -141,6 +145,11 @@ function BuildBoard({ user, project, levelId, position, eyebrow, title, goal, ta
   const laptop = useLaptop();
   const progress = useBoard((s) => s.progress);
   const explaining = useBoard((s) => s.done !== null);
+  // Help off (issue #210): the pop-ups that explain a step stay closed. The task list and the glowing holes guide the build.
+  const help = useHelp();
+  useEffect(() => {
+    if (help.ready && !help.on && explaining) boardStore.getState().seen();
+  }, [help, explaining]);
   const empty = useEmptyBoard();
   // Perch is coming alive on the board: the panels that guide the build step aside (issue #86).
   const alive = useAlive((s) => s.stage !== null);
@@ -156,14 +165,16 @@ function BuildBoard({ user, project, levelId, position, eyebrow, title, goal, ta
   const watchButton = useRef<HTMLButtonElement>(null);
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- the saved progress is in the browser only
-    if (finished && boardStore.getState().progress.tasksDone === 0) setWatching(true);
+    if (helpNow() && finished && boardStore.getState().progress.tasksDone === 0) setWatching(true);
   }, [finished]);
 
   // A task that brings a new idea shows its Concept pop-up first, after the "what happened" pop-up of the last task.
   const [conceptRead, setConceptRead] = useState(-1);
-  const conceptOpen = progress.phase === "task" && !explaining && !!tasks[progress.index]?.concept && conceptRead < progress.index;
+  const conceptOpen = help.on && progress.phase === "task" && !explaining && !!tasks[progress.index]?.concept && conceptRead < progress.index;
   // The guide bar tells how to use the tool. A task that needs only "Got it" does not use a tool.
   const task = tasks[progress.index];
+  // With Help off, the pop-up of a task stays closed. A mistake, and a task that needs "Got it", show their pop-up.
+  const quiet = progress.phase === "task" && !!task && !showsTaskPopup(help.on, needsAck(task.target));
   const building = progress.phase === "mistake" || (progress.phase === "task" && !explaining && !!task && !needsAck(task.target));
   // The Clear and Check row shows while the learner builds. A pop-up over the board, the Check card or the code panel hides it.
   const actions = progress.phase !== "intro" && !explaining && !conceptOpen && !(progress.phase === "ready_to_check" && levelCheck.state.open) && !codeOpen && !alive;
@@ -231,6 +242,15 @@ function BuildBoard({ user, project, levelId, position, eyebrow, title, goal, ta
     <div className="fixed inset-0 flex flex-col bg-background">
       <header className="z-10 flex items-center gap-3 border-b border-border bg-card px-4 py-2.5">
         <Link
+          href="/lobby"
+          aria-label={text.map.home}
+          title={text.map.home}
+          className="inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-xl border border-b-4 border-border bg-card px-3 text-sm font-semibold active:translate-y-0.5 active:border-b-2"
+        >
+          {icon("M3 11.5 12 4l9 7.5M5.5 10v10h13V10M10 20v-6h4v6")}
+          <span className="max-lg:hidden">{text.map.home}</span>
+        </Link>
+        <Link
           href={mapHref}
           className="inline-flex min-h-11 shrink-0 items-center rounded-xl border border-b-4 border-border bg-card px-3 text-sm font-semibold active:translate-y-0.5 active:border-b-2"
         >
@@ -253,6 +273,7 @@ function BuildBoard({ user, project, levelId, position, eyebrow, title, goal, ta
             <span className="max-sm:hidden">{watchText.watch}</span>
           </button>
         )}
+        <HelpButton />
         <ChallengeButton user={user} project={project} position={position} sketch={sketch} />
         <SaveSnapshot
           levels={levels}
@@ -297,7 +318,7 @@ function BuildBoard({ user, project, levelId, position, eyebrow, title, goal, ta
         <div className="relative min-h-0 min-w-0 flex-1">
           {/* The finished board, so a resistor or LED task glows the holes of the clip (issue #101). */}
           <FinishContext value={finished?.order}>
-            <BuildScene>{laptop && <PinnedPopup tasks={tasks} hidden={conceptOpen || explaining} mascot={mascot} />}</BuildScene>
+            <BuildScene>{laptop && <PinnedPopup tasks={tasks} hidden={conceptOpen || explaining || quiet} mascot={mascot} />}</BuildScene>
           </FinishContext>
           {/* The guide bar, and the task list below it. Only the panels take clicks; the board gets the rest. Above the Clear and Check row, the column stops. */}
           {progress.phase !== "intro" && !alive && (
@@ -334,7 +355,7 @@ function BuildBoard({ user, project, levelId, position, eyebrow, title, goal, ta
             </p>
           )}
         </div>
-        <CompareViews project={project} position={position} laptop={laptop} />
+        <CompareViews project={project} position={position} laptop={laptop} startOpen={compare} />
         {codeOpen && sketch && (
           <div className="min-h-0 border-border max-sm:h-[60%] max-sm:border-t sm:w-[min(460px,45%)] sm:border-l">
             <SketchPanel
@@ -351,7 +372,7 @@ function BuildBoard({ user, project, levelId, position, eyebrow, title, goal, ta
 
       {!laptop && !codeOpen && !demoRunning && popups}
       {!(codeOpen && !laptop) && <ToolBar start={start} startLevel={startLevel} />}
-      <Tour busy={tourBusy} />
+      <Tour busy={tourBusy || !help.on} />
       {clip && watching && (
         <ClipPlayer
           clip={clip}

@@ -10,7 +10,7 @@ import { InviteActions } from "@/components/collaborate/invite-actions";
 import { Dock } from "@/components/dock";
 import { LobbyHeader } from "@/components/lobby-header";
 import { LobbyTour } from "@/components/lobby-tour";
-import { ContinueCard, DarkCard, pairs, ProjectCard, type Tab } from "@/components/lobby-cards";
+import { ContinueCard, DarkCard, pairs, ProjectCard, ThreeWorldsCard, type Tab } from "@/components/lobby-cards";
 import text from "@/content/ui/lobby.json";
 import collab from "@/content/ui/collaborate.json";
 import featureList from "@/content/features.json";
@@ -61,6 +61,7 @@ async function Lobby({ tab }: { tab: Tab }) {
           {[
             ...(await inviteCards(supabase, auth.claims.sub)),
             hero,
+            <ThreeWorldsCard key="three-worlds" />,
             ...pairs(catalog.filter((p) => p !== featured?.project)).map((pair) => (
               <div key={pair[0].id} className="flex h-full flex-col gap-3">
                 {pair.map((project) => (

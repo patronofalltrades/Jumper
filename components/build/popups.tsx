@@ -22,6 +22,7 @@ import { cn } from "@/lib/utils";
 import { EMPTY_NOTE, useEmptyBoard, type Failed, type LevelCheck } from "./check";
 import { BuildForMe } from "./build-for-me";
 import { pinName } from "./guide";
+import { useHelp } from "./help";
 import { SpeakButton } from "./read-aloud";
 import { endpointName, strayText } from "./names";
 
@@ -445,11 +446,13 @@ function PopupLayerBody({ level, conceptOpen, onConceptDone, check }: { level: L
   const progress = useBoard((s) => s.progress);
   const done = useBoard((s) => s.done);
   const task = level.tasks[progress.index];
+  // Help off (issue #210): the "what happened" pop-up stays closed, and the next task opens (see BuildBoard).
+  const help = useHelp().on;
 
   let body: ReactNode = null;
   let mistake = false;
   if (progress.phase === "intro") body = <IntroBody {...level} />;
-  else if (done !== null && level.tasks[done]) body = <DoneBody task={level.tasks[done]} />;
+  else if (help && done !== null && level.tasks[done]) body = <DoneBody task={level.tasks[done]} />;
   else if (progress.phase === "ready_to_check" && check.check.open) {
     body = <CheckBody {...check} tasks={level.tasks} />;
     mistake = !!check.check.failed;

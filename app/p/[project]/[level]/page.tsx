@@ -14,6 +14,7 @@ import music from "@/content/music.json";
 import { buildEyebrow } from "@/lib/game/build-header";
 import { passedLevels } from "@/lib/game/featured";
 import { isUnlocked } from "@/lib/game/map";
+import { lessonOf } from "@/lib/journey/lesson-of";
 import { levelTrack } from "@/lib/game/music";
 import { joinRules } from "@/lib/circuit/check";
 import { createClient } from "@/lib/supabase/server";
@@ -21,17 +22,17 @@ import { createClient } from "@/lib/supabase/server";
 export const metadata: Metadata = { title: "Level · Jumper" };
 
 // Build mode: the 3D bench for one level. The tool bar takes the bottom of the screen, so this page has no dock.
-export default function LevelPage({ params }: PageProps<"/p/[project]/[level]">) {
+export default function LevelPage({ params, searchParams }: PageProps<"/p/[project]/[level]">) {
   return (
     <Suspense fallback={<p className="p-4 text-muted-foreground">Loading the level…</p>}>
-      {params.then(({ project, level }) => (
-        <Level slug={project} position={level} />
+      {Promise.all([params, searchParams]).then(([{ project, level }, { compare }]) => (
+        <Level slug={project} position={level} compare={compare === "1"} />
       ))}
     </Suspense>
   );
 }
 
-async function Level({ slug, position }: { slug: string; position: string }) {
+async function Level({ slug, position, compare }: { slug: string; position: string; compare: boolean }) {
   if (!/^[1-9]\d*$/.test(position)) notFound();
 
   const supabase = await createClient();
@@ -54,7 +55,9 @@ async function Level({ slug, position }: { slug: string; position: string }) {
   if (!catalog) notFound();
 
   // A level opens when the level before it passed (issue #19).
-  if (!isUnlocked(data.position, await passedLevels(supabase, project.id))) redirect(`/p/${slug}`);
+  // The "three worlds" link of the lobby opens the level of a lesson for each learner (issue #210).
+  const direct = compare && !!lessonOf(slug, data.position);
+  if (!direct && !isUnlocked(data.position, await passedLevels(supabase, project.id))) redirect(`/p/${slug}`);
 
   const { data: levels, error: levelsError } = await supabase.from("levels").select("id, position, title, rules").eq("project_id", project.id).order("position");
   if (levelsError) throw levelsError;
@@ -87,6 +90,7 @@ async function Level({ slug, position }: { slug: string; position: string }) {
       sketch={await loadSketchStep(slug, data.position)}
       mascot={loadMascot(slug)}
       music={levelTrack(music, slug, data.position)}
+      compare={direct}
     />
   );
 }
