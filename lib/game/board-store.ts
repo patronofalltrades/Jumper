@@ -64,7 +64,10 @@ export type BoardState = {
   /** The tasks of the level. Null: free building, with no tasks. */
   plan: Plan | null;
   progress: Progress;
-  /** The task that the learner just finished with a part or a wire. Its "what happened" pop-up shows until `seen`. */
+  /**
+   * The task that the learner just finished with a part or a wire. Its "what happened" note shows in the pop-up of the
+   * next task (issue #218). It goes away with the next change of the board, with "Got it" on a task, or with `seen`.
+   */
   done: number | null;
   flash: Flash | null;
   /** The connection that the last failed Check named. It stays until the connection is right, or a new Check (issue #90). */
@@ -102,7 +105,7 @@ export type BoardState = {
   dismiss: () => void;
   /** "Redo this step" on a failed Check: the task opens again, with its guidance. */
   redo: (task: number) => void;
-  /** "Got it" on the "what happened" pop-up. */
+  /** Takes away the "what happened" note. The page does not need it to go on (issue #218). */
   seen: () => void;
   /** The result of a failed level Check: the failed Checks of the session so far. */
   failed: (fails: number) => void;
@@ -169,7 +172,8 @@ export function createBoardStore(defaultBench: Bench = perchBench()) {
     const change = (parts: Part[], history: Part[][], restore = false) => {
       const before = get().parts;
       const added = parts.filter((p) => !before.some((b) => b.id === p.id));
-      set({ parts, history, pending: null, notice: null, ...play({ type: "change", before, after: parts, restore }, added) });
+      // The note of the task before goes away with each change of the board (issue #218). A change that finishes a task sets a new note.
+      set({ parts, history, pending: null, notice: null, done: null, ...play({ type: "change", before, after: parts, restore }, added) });
     };
     const commit = (parts: Part[], restore = false) => change(parts, [...get().history, get().parts], restore);
     /**
@@ -270,9 +274,9 @@ export function createBoardStore(defaultBench: Bench = perchBench()) {
       },
       reset: () => set(empty()),
       start: () => set(play({ type: "start" })),
-      ack: () => set(play({ type: "ack", parts: get().parts })),
+      ack: () => set({ done: null, ...play({ type: "ack", parts: get().parts }) }),
       dismiss: () => set(play({ type: "dismiss" })),
-      redo: (task) => set(play({ type: "redo", task })),
+      redo: (task) => set({ done: null, ...play({ type: "redo", task }) }),
       seen: () => set({ done: null }),
       failed: (fails) => set({ progress: { ...get().progress, fails } }),
       setTool: (tool) => set({ tool, pending: null, notice: null }),

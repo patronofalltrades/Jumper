@@ -4,26 +4,23 @@ import { useEffect, useMemo, useRef } from "react";
 import text from "@/content/ui/build.json";
 import sketchText from "@/content/ui/sketch.json";
 import { boardStore, useBoard } from "@/lib/game/board-store";
-import { panelStartsOpen } from "@/lib/game/phone-layout";
 import { needsAck, taskMarks, type TaskMark } from "@/lib/game/engine";
 import { cn } from "@/lib/utils";
 import { HologramRow } from "./hologram-row";
 import { PanelHeader, usePanelOpen } from "./panel-header";
 import type { LevelTask } from "./popups";
-import type { Track } from "@/lib/game/music";
-import { MusicSwitch } from "./music";
-import { ReadStepsSwitch, SpeakButton, useSpeechSupported } from "./read-aloud";
+import { SpeakButton } from "./read-aloud";
 
 // The task list (issue #52): every task of the level, with a tick for each task that the board does now.
-// Laptop: it starts open. Phone: it starts as a small chip, and a tap opens it over the board.
+// It starts closed, as a small chip (issue #218: the task pop-up tells what to do now). A click or a tap opens it over
+// the board, and the choice stays for the visit.
 
 const fill = (template: string, values: Record<string, string | number>) => template.replace(/\{(\w+)\}/g, (_, k: string) => String(values[k]));
 
 /** The code step after the wiring tasks (issue #58): its line in the list, and the button that opens the code panel. */
 export type CodeRow = { instruction: string; open: () => void };
 
-/** `small`: the code panel is open, so the list starts as a chip and the Uno (with its L light) stays in view. */
-function TaskListBody({ tasks, laptop, code, small = false, music = null }: { tasks: LevelTask[]; laptop: boolean; code: CodeRow | null; small?: boolean; music?: Track | null }) {
+function TaskListBody({ tasks, code }: { tasks: LevelTask[]; code: CodeRow | null }) {
   const bench = useBoard((s) => s.bench);
   const parts = useBoard((s) => s.parts);
   const plan = useBoard((s) => s.plan);
@@ -37,10 +34,9 @@ function TaskListBody({ tasks, laptop, code, small = false, music = null }: { ta
     ...tasks.map((t) => ({ key: String(t.position), instruction: t.instruction, task: t as LevelTask | null })),
     ...(code ? [{ key: "code", instruction: code.instruction, task: null }] : []),
   ];
-  const [open, toggle] = usePanelOpen(panelStartsOpen(laptop, small));
+  const [open, toggle] = usePanelOpen(false);
   const list = useRef<HTMLOListElement>(null);
   const now = marks.indexOf("now");
-  const speaks = useSpeechSupported();
 
   // Keep the task of now in view when the list scrolls. The braces matter: a new browser gives a Promise from
   // scrollIntoView, and an effect that gives back a Promise stops the page.
@@ -106,12 +102,6 @@ function TaskListBody({ tasks, laptop, code, small = false, music = null }: { ta
           })}
         </ol>
       )}
-      {open && (speaks || music) && (
-        <div className="border-t border-border p-2">
-          <ReadStepsSwitch />
-          <MusicSwitch track={music} />
-        </div>
-      )}
     </section>
   );
 }
@@ -138,7 +128,7 @@ function Mark({ mark }: { mark: "done" | "now" | "todo" }) {
 }
 
 /** The task list of the level. It hides in a challenge (issue #203): the board on the bench is not the level. */
-export function TaskList(props: { tasks: LevelTask[]; laptop: boolean; code: CodeRow | null; small?: boolean; music?: Track | null }) {
+export function TaskList(props: { tasks: LevelTask[]; code: CodeRow | null }) {
   const inChallenge = useBoard((s) => s.paused !== null);
   return inChallenge ? null : <TaskListBody {...props} />;
 }

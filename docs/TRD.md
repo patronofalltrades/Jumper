@@ -117,8 +117,8 @@ app/            routes above, and server actions in app/actions/
 components/
   art/          pictures made from code: Volt (the mascot), Perch, board art
   auth/         account form, Log out form
-  build/        build mode: view, task list, pop-ups, guide bar, code step (sketch panel and editor),
-                Level complete, Check, autosave
+  build/        build mode: view, task list, pop-ups, how-to line and notice bar, sound settings menu,
+                code step (sketch panel and editor), Level complete, Check, autosave
   dashboard/    mistakes chart
   landing/      3D board of the landing page
   profile/      profile forms (name, character, password)
@@ -193,6 +193,11 @@ The scene is a React Three Fiber `<Canvas>`. It reads the board from the Zustand
 - **Laptop:** The drei `Html` component attaches the pop-up to the target pin in 3D, with a line to the pin. The target holes glow.
 - **Phone:** The pop-up is a sheet at the bottom of the screen. Thus it does not cover the board. The target holes continue to glow.
 - The pop-up text comes from the task record (`instruction`, `popup_why`, `concept`). Do not write pop-up text in the code.
+- **Quiet build mode (issue #218).** One pop-up tells all that the learner needs now. The Place or Wire pop-up shows the task (`instruction`), how to use the tool (the text of `content/ui/build.json`, `guide`), the "what happened" note of the task before (`popup_why`), and the new word of the task (`concept`). The name of the new word is one line; a click or Enter opens its text. The note and the new word need no click to go on. The note goes away with the next change of the board. The Check card shows the note of the last task.
+- On a laptop, the pop-up must not cover a hole that the learner must click. `cardPlace()` in `lib/game/popup-place.ts` puts it beside the pin, on the side that covers no hole of the yellow arrow. If each side covers a hole, the pop-up goes to the place that covers the fewest holes.
+- A notice that has no hole (for example "There is nothing to undo") shows at the top of the board. The task list starts closed, as a chip. The level clip opens by itself only in level 1 of a project (`clipOpensFirst()` in `lib/game/walkthrough.ts`); in the other levels, "Watch how" opens it.
+- The line that tells what a tool is shows the first time that the learner selects each tool in a browser (`lib/game/tool-tips.ts`). "Read steps aloud" and "Play music" are in a sound settings menu: in the header on a laptop, and next to the task chip on a phone.
+- A page shows one "New" mark at a time (`firstUnseen()` in `lib/game/news.ts`).
 
 ## 6. Build-mode engine and circuit checker
 

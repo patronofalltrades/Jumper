@@ -44,6 +44,16 @@ export function unseen(items: readonly NewsItem[], seen: readonly string[], audi
   return items.filter((item) => item.audience === audience && isLive(item, on) && !done.has(item.id));
 }
 
+/**
+ * The one item that shows its "New" mark now (issue #218: not more than one mark on a page at a time): the first item,
+ * in the order of content/news.json, that is on the page (`onPage`: the ids of the marks that the page holds), that is
+ * for `audience`, that shows on the day `on` and that is not in `seen`. After "Got it", the next item is the first.
+ */
+export function firstUnseen(items: readonly NewsItem[], seen: readonly string[], audience: Audience, on: string, onPage: readonly string[]): NewsItem | undefined {
+  const here = new Set(onPage);
+  return unseen(items, seen, audience, on).find((item) => here.has(item.id));
+}
+
 /** The item with this id, or undefined. */
 export const newsItem = (id: string, items: readonly NewsItem[] = news.items) => items.find((item) => item.id === id);
 

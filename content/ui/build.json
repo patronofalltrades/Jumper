@@ -14,6 +14,10 @@
   "header": {
     "eyebrow": "{project} · {board} · Level {n}"
   },
+  "settings": {
+    "label": "Sound settings",
+    "title": "Sound"
+  },
   "music": {
     "switch": "Play music",
     "credit": "Music: {title} by {artist} ({license})"
@@ -176,6 +180,11 @@
     "task": "Task {n} of {total}",
     "xp": "+{n} XP",
     "source": "Source",
+    "note": "You did it:",
+    "concept": {
+      "more": "What is it?",
+      "less": "Close"
+    },
     "gotIt": "Got it",
     "mistake": {
       "undo": "Undo",

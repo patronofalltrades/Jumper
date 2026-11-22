@@ -11,6 +11,12 @@ import { partTaps, taskText } from "./task-text";
 // When the learner carries their own board into the level, the clip starts from that board (issue #110).
 
 /**
+ * True when the level clip opens by itself (issue #218, quiet build mode): only in level 1 of a project, and only
+ * until the learner finishes the first task. In the other levels the learner opens it with "Watch how".
+ */
+export const clipOpensFirst = (position: number, tasksDone: number): boolean => position === 1 && tasksDone === 0;
+
+/**
  * One step of a clip. The board shows the first `before` parts of the clip's `order`, then the first `after` parts.
  * `progress` is the engine on the task of the step, so the scene glows where the part goes.
  */
