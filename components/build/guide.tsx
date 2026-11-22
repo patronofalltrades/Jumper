@@ -9,8 +9,9 @@ import { isTerminal, type Part } from "@/lib/circuit/parts";
 import { boardStore, useBoard } from "@/lib/game/board-store";
 import { cn } from "@/lib/utils";
 
-// The guidance on the build page, in two places:
-// - The guide bar, at the top of the board: what to do now.
+// The guidance on the build page:
+// - The how-to line (useHowTo): how to use the tool now. The task pop-up shows it (issue #218).
+// - The notice bar, at the top of the board: a notice that has no hole.
 // - The spot card, next to the pointer (or above the finger on a phone): what is at this hole, or why the last
 //   click did not work.
 // The words come from content/ui/build.json.
@@ -38,41 +39,39 @@ const modulePinName = (p: ModulePin) => `${partNames[p.type]} ${p.pin}`;
 
 const joinNames = (names: string[]) => (names.length < 2 ? names.join("") : `${names.slice(0, -1).join(", ")} and ${names.at(-1)}`);
 
-/** What to do now, at the top of the board. The build page puts it above the task list. */
-export function GuideBar() {
+/**
+ * How to use the tool now: the line that the task pop-up shows under the task (issue #218; before, a guide bar at the
+ * top of the board showed it). `step`: 1 or 2 for a tool with two clicks, else null. `stop`: how to stop a part that is started.
+ */
+export function useHowTo(): { step: number | null; line: string; stop: string | null } {
   const tool = useBoard((s) => s.tool);
   const pending = useBoard((s) => s.pending);
-  const notice = useBoard((s) => s.notice);
   const touch = useTouch();
   const act = touch ? "Tap" : "Click";
 
   const placing = isModuleType(tool);
   const steps = (placing ? text.guide.module : text.guide[tool]) as { start: string; finish?: string; preview?: string };
   const next = pending ? (steps.finish ?? steps.preview) : undefined;
-  const instruction = fill(next ?? steps.start, { act, part: placing ? partNames[tool].toLowerCase() : "" });
-  const step = steps.finish ? (pending ? 2 : 1) : null;
-  // A notice without a hole (nothing to undo) has no spot on the board, so it shows here.
-  const problem = notice && !notice.hole ? problems[notice.problem] : null;
+  return {
+    step: steps.finish ? (pending ? 2 : 1) : null,
+    line: fill(next ?? steps.start, { act, part: placing ? partNames[tool].toLowerCase() : "" }),
+    stop: pending && !placing ? (touch ? text.guide.stop.phone : text.guide.stop.laptop) : null,
+  };
+}
 
+/**
+ * A notice that has no hole (for example "There is nothing to undo"), at the top of the board. It has no spot on the
+ * board, so the spot card cannot show it. The task pop-up tells what to do now (issue #218), so this bar shows only a notice.
+ */
+export function NoticeBar() {
+  const notice = useBoard((s) => s.notice);
+  const problem = notice && !notice.hole ? problems[notice.problem] : null;
+  if (!problem) return null;
   return (
     <div className="flex shrink-0 justify-center">
-      <div
-        role="status"
-        className={cn(
-          "flex max-w-xl items-start gap-3 rounded-2xl border bg-card px-4 py-2.5 shadow-panel",
-          problem ? "border-destructive" : "border-border",
-        )}
-      >
-        {step && (
-          <span className="mt-0.5 shrink-0 rounded-full bg-primary px-2 py-0.5 font-mono text-[11px] font-semibold text-primary-foreground">
-            {fill(text.guide.step, { n: step })}
-          </span>
-        )}
-        <div className="min-w-0">
-          <p className={cn("text-[15px] leading-snug font-semibold", problem && "text-destructive")}>{problem ?? instruction}</p>
-          {pending && !placing && !problem && <p className="text-sm text-muted-foreground">{touch ? text.guide.stop.phone : text.guide.stop.laptop}</p>}
-        </div>
-      </div>
+      <p role="status" className="max-w-xl rounded-2xl border border-destructive bg-card px-4 py-2.5 text-[15px] leading-snug font-semibold text-destructive shadow-panel">
+        {problem}
+      </p>
     </div>
   );
 }

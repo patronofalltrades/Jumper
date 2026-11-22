@@ -7,6 +7,9 @@ import { fill, sketchError, type Expr, type Program, type SketchError, type Stmt
 // lines take no time. A loop that does not move the clock stops after MAX_STEPS lines, with a message, so the browser
 // never freezes.
 
+/** The version of this runner. A run record keeps it (issue #212). Change it when the runner gives other results for the same sketch. */
+export const RUNTIME = "sketch-1";
+
 /** Lines that can run with no time between them, before the runner stops the sketch. */
 export const MAX_STEPS = 10_000;
 /** The output states that a runner keeps, for the goal check. */

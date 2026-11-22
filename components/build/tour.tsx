@@ -4,6 +4,7 @@ import { useBoard } from "@/lib/game/board-store";
 import { useEffect, useState } from "react";
 import { Volt } from "@/components/art/volt";
 import { Button } from "@/components/ui/button";
+import { TourSpotlight } from "@/components/tour-spotlight";
 import text from "@/content/ui/tour.json";
 import { cardSide, markTourSeen, nextIndex, shouldShowTour, tourPlan, tourSeen, TOUR_STEPS, type TourStep, type TourStorage } from "@/lib/game/tour";
 import { cn } from "@/lib/utils";
@@ -11,6 +12,7 @@ import { cn } from "@/lib/utils";
 // The first-visit tour of build mode (issue #123): a card that points at one control at a time, with Next and Skip.
 // It shows once in each browser (lib/game/tour.ts). It waits while a pop-up, the intro clip or the Check card is open.
 // The card goes under the control, or above it, so it does not cover the control (cardSide).
+// The page is dark, except the control of the step (TourSpotlight).
 
 const fill = (template: string, values: Record<string, string | number>) => template.replace(/\{(\w+)\}/g, (_, k: string) => String(values[k]));
 
@@ -92,25 +94,20 @@ export function Tour({ busy }: { busy: boolean }) {
 
   if (!show || !plan) return null;
   const step = plan[index];
+  const target = () => controlOf(step);
   const copy = text.steps[step];
   const last = index === plan.length - 1;
   const side = box ? cardSide(box, window.innerHeight, CARD_HEIGHT) : "bottom";
 
   return (
     <>
-      {box && (
-        <div
-          aria-hidden="true"
-          className="pointer-events-none fixed z-50 rounded-xl ring-4 ring-probe"
-          style={{ top: box.top - 4, left: box.left - 4, width: box.width + 8, height: box.height + 8 }}
-        />
-      )}
+      <TourSpotlight target={target} />
       <section
         role="dialog"
         aria-label={text.label}
         aria-describedby="tour-text"
         className={cn(
-          "fixed inset-x-3 z-50 flex flex-col gap-2 rounded-2xl border border-border bg-card p-3 shadow-panel sm:left-1/2 sm:w-96 sm:-translate-x-1/2",
+          "fixed inset-x-3 z-[60] flex flex-col gap-2 rounded-2xl border border-border bg-card p-3 shadow-panel sm:left-1/2 sm:w-96 sm:-translate-x-1/2",
           side === "top" ? "top-3" : "bottom-4",
         )}
       >

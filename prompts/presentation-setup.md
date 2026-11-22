@@ -10,13 +10,18 @@
 
 3. Hanif's prompt (his words, November 22): "Let's just risk it and touch the game flow. Then also touch the same circuit three worlds build plan. But, make sure to remember that we will rollback after the presentation"
 
-4. What Claude built, in one pull request, so that one revert removes it:
-   - A Help button in the header of build mode, off by default. With Help off, the level clip, the first-visit tour, the "New word" pop-up, the "what happened" pop-up and the pop-up of a task stay closed. The intro, a mistake and the Check card show as before. The rules are in `lib/game/help.ts`, with tests in `tests/help.test.ts`.
-   - A card in the lobby, "Same circuit, three worlds". It opens `/p/arduino-foundations/2?compare=1`: level 2 with the panel open, also when level 1 did not pass.
-   - The button and the panel have the name "Same circuit, three worlds" (before: "Compare views").
+4. The first version (one pull request, so that one revert removes it) had three parts: a Help button that kept the pop-ups closed, a card in the lobby for "Same circuit, three worlds", and a Home button in build mode.
+
+5. Hanif's prompt (his words, November 22): "merge PR and check what changed". Claude found merge conflicts: `main` had quiet build mode (issue #218) and a new Compare views panel (issues #222 and #224). Claude recommended to remove the Help button, because quiet build mode does the same job.
+
+6. Hanif's prompt (his words, November 22): "Drop it an build on top of main"
+
+7. What the pull request has now, on top of `main`:
+   - A card in the lobby, "Same circuit, three worlds". It opens `/p/arduino-foundations/2?compare=1`: level 2 with the panel open, also when level 1 did not pass. The test is `tests/three-worlds-door.test.ts`.
+   - The button has the name "Three worlds" and the panel has the name "Same circuit, three worlds" (before: "Compare views").
    - A Home button in the header of build mode.
 
-5. Browser check: Supabase is not available in the build container, so Claude used a local route that was not committed. On a laptop screen, Playwright showed: Help is off at the start and no clip opens; the Home link is there; the panel is open after Start; with Help on, the "New word" pop-up and the level clip open again, and the choice stays after a reload. Claude did not test the lobby card and the lock of level 2 with a real account, and did not run the end-to-end tests in `e2e/`, which expect the pop-ups.
+8. Browser check: Supabase is not available in the build container, so Claude used a local route that was not committed. Claude did not test the lobby card and the lock of level 2 with a real account.
 
 ## Rollback
 

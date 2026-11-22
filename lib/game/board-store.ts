@@ -26,6 +26,9 @@ export const WIRE_COLORS = [
 /** The green flash of a part that snaps in, or the red flash of a wrong one, on its holes. `at` makes each one new. */
 export type Flash = { kind: "snap" | "buzz"; holes: string[]; at: number };
 
+/** The marks of Compare views on the 3D board: a hole → the color of its net, and a part id → its color. */
+export type CompareMark = { holes: Record<string, string>; parts: Record<string, string> };
+
 /** "Show me" was pressed: the camera moves to the problem. `at` makes each press new. */
 export type Focus = { at: number };
 
@@ -40,6 +43,9 @@ export type LevelSetup = { bench?: Bench; plan?: Plan; parts?: Part[]; base?: Pa
 
 /** What a challenge puts away: the board, the task engine and the sketch of the level. */
 export type Paused = Pick<BoardState, "parts" | "history" | "plan" | "progress" | "code" | "codePassed" | "helpedCode">;
+
+/** What "Restore this run" puts away, so that "Undo the restore" can bring it back (issue #214). */
+export type RestoreBackup = Pick<BoardState, "parts" | "code" | "codePassed" | "helpedCode">;
 
 export type BoardState = {
   bench: Bench;
@@ -61,7 +67,10 @@ export type BoardState = {
   /** The tasks of the level. Null: free building, with no tasks. */
   plan: Plan | null;
   progress: Progress;
-  /** The task that the learner just finished with a part or a wire. Its "what happened" pop-up shows until `seen`. */
+  /**
+   * The task that the learner just finished with a part or a wire. Its "what happened" note shows in the pop-up of the
+   * next task (issue #218). It goes away with the next change of the board, with "Got it" on a task, or with `seen`.
+   */
   done: number | null;
   flash: Flash | null;
   /** The connection that the last failed Check named. It stays until the connection is right, or a new Check (issue #90). */
@@ -78,6 +87,11 @@ export type BoardState = {
   helpedCode: string | null;
   /** The task or connection row under the pointer: the scene shows its ghost (issue #113). It never changes the board. */
   hologram: HologramTarget | null;
+  /**
+   * Compare views is open (issue #202): the nets of the selected connection glow in its color, and the wire that is off
+   * from the reference has a color of its own. Null when the panel is closed. It never changes the board.
+   */
+  compare: CompareMark | null;
 
   /**
    * The learner's own level while a challenge is open (issue #203), or null. A challenge is a sandbox: it puts its own
@@ -99,7 +113,7 @@ export type BoardState = {
   dismiss: () => void;
   /** "Redo this step" on a failed Check: the task opens again, with its guidance. */
   redo: (task: number) => void;
-  /** "Got it" on the "what happened" pop-up. */
+  /** Takes away the "what happened" note. The page does not need it to go on (issue #218). */
   seen: () => void;
   /** The result of a failed level Check: the failed Checks of the session so far. */
   failed: (fails: number) => void;
@@ -108,6 +122,7 @@ export type BoardState = {
   setHover: (hole: string | null) => void;
   /** Shows the ghost of a task or connection row, or hides it (null). */
   setHologram: (hologram: HologramTarget | null) => void;
+  setCompare: (compare: CompareMark | null) => void;
   /**
    * A click or tap on a hole: start a part, finish it, or remove what is in the hole.
    * With a module tool, a click puts the module there. With `preview` (a phone, which has no hover), the first tap
@@ -121,6 +136,20 @@ export type BoardState = {
   /** "Put back the level {n} build" (issue #111): adds the parts of `start` that can go back, as one step that Undo takes back. */
   putBack: (start: Part[]) => { back: Part[]; blocked: Part[] };
   cancel: () => void;
+  /**
+   * The board and the sketch from before the last "Restore this run" (issue #214), or null. There is one slot: a new
+   * restore replaces it, and `undoRestore` uses it and empties it.
+   */
+  restoreBackup: RestoreBackup | null;
+  /**
+   * "Restore this run": the board and the sketch of a run record go on the bench together, in one step. The board and
+   * the sketch of now go into `restoreBackup` first, also the changes that were not run. The sketch must do the goal
+   * again, so a new Run is necessary. The task engine reads the new board as it does after "Put back": no Mistake and
+   * no XP. Undo takes back the board only; `undoRestore` takes back the board and the sketch. False: nothing changed.
+   */
+  restoreRun: (run: { parts: readonly Part[]; code: string }) => boolean;
+  /** "Undo the restore": the board and the sketch from before the restore come back together. False: there is no backup. */
+  undoRestore: () => boolean;
   /** A change to the sketch. The sketch must do the goal again. The same text is no change: the editor sends back each new value. */
   setCode: (code: string | null) => void;
   /** The sketch did the goal. */
@@ -152,9 +181,18 @@ export function createBoardStore(defaultBench: Bench = perchBench()) {
     const change = (parts: Part[], history: Part[][], restore = false) => {
       const before = get().parts;
       const added = parts.filter((p) => !before.some((b) => b.id === p.id));
-      set({ parts, history, pending: null, notice: null, ...play({ type: "change", before, after: parts, restore }, added) });
+      // The note of the task before goes away with each change of the board (issue #218). A change that finishes a task sets a new note.
+      set({ parts, history, pending: null, notice: null, done: null, ...play({ type: "change", before, after: parts, restore }, added) });
     };
     const commit = (parts: Part[], restore = false) => change(parts, [...get().history, get().parts], restore);
+    /**
+     * A full board that takes the place of the board of now (a restored run, issue #214), as one step that Undo takes
+     * back. The engine reads it as it reads "Put back": it gives no Mistake and no XP, and the task of now follows the board.
+     */
+    const swap = (parts: Part[]): Partial<BoardState> => {
+      const before = get().parts;
+      return { parts, history: [...get().history, before], pending: null, hover: null, notice: null, problem: null, ...play({ type: "change", before, after: parts, restore: true }) };
+    };
 
     const empty = () => ({
       bench: defaultBench,
@@ -179,7 +217,9 @@ export function createBoardStore(defaultBench: Bench = perchBench()) {
       codePassed: false,
       helpedCode: null,
       hologram: null,
+      compare: null,
       paused: null,
+      restoreBackup: null,
     });
 
     return {
@@ -212,6 +252,7 @@ export function createBoardStore(defaultBench: Bench = perchBench()) {
           helpedCode: setup.helpedCode ?? null,
           hologram: null,
           paused: null,
+          restoreBackup: null,
         });
       },
 
@@ -243,15 +284,16 @@ export function createBoardStore(defaultBench: Bench = perchBench()) {
       },
       reset: () => set(empty()),
       start: () => set(play({ type: "start" })),
-      ack: () => set(play({ type: "ack", parts: get().parts })),
+      ack: () => set({ done: null, ...play({ type: "ack", parts: get().parts }) }),
       dismiss: () => set(play({ type: "dismiss" })),
-      redo: (task) => set(play({ type: "redo", task })),
+      redo: (task) => set({ done: null, ...play({ type: "redo", task }) }),
       seen: () => set({ done: null }),
       failed: (fails) => set({ progress: { ...get().progress, fails } }),
       setTool: (tool) => set({ tool, pending: null, notice: null }),
       setWireColor: (wireColor) => set({ wireColor, tool: "wire", pending: null, notice: null }),
       setHover: (hover) => set({ hover }),
       setHologram: (hologram) => set({ hologram }),
+      setCompare: (compare) => set({ compare }),
       cancel: () => set({ pending: null, notice: null }),
       setCode: (code) => {
         if (code !== get().code) set({ code, codePassed: false });
@@ -311,6 +353,27 @@ export function createBoardStore(defaultBench: Bench = perchBench()) {
         const { history } = get();
         if (!history.length) return set({ notice: { problem: "nothing_to_undo" } });
         change(history[history.length - 1], history.slice(0, -1));
+      },
+
+      restoreRun: (run) => {
+        const now = get();
+        // A snapshot cannot change, and a challenge is a sandbox: its board is not the board of the level.
+        if (now.readOnly || now.paused) return false;
+        const parts = run.parts.map((p) => ({ ...p })) as Part[];
+        set({
+          restoreBackup: { parts: now.parts, code: now.code, codePassed: now.codePassed, helpedCode: now.helpedCode },
+          ...swap(parts),
+          code: run.code,
+          codePassed: false,
+        });
+        return true;
+      },
+
+      undoRestore: () => {
+        const { restoreBackup: backup, readOnly, paused } = get();
+        if (!backup || readOnly || paused) return false;
+        set({ restoreBackup: null, ...swap(backup.parts), code: backup.code, codePassed: backup.codePassed, helpedCode: backup.helpedCode });
+        return true;
       },
 
       putBack: (start) => {

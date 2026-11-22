@@ -14,12 +14,11 @@ import { useAlive } from "@/lib/game/alive-store";
 import { boardStore, FinishContext, useBoard, WIRE_COLORS, type Tool } from "@/lib/game/board-store";
 import type { Rules } from "@/lib/circuit/check";
 import { needsAck, type Plan } from "@/lib/game/engine";
-import { showsTaskPopup } from "@/lib/game/help";
 import { putBackParts } from "@/lib/game/put-back";
 import type { SketchStep } from "@/lib/content/schema";
-import { carriedClip, type Clip } from "@/lib/game/walkthrough";
+import { carriedClip, clipOpensFirst, type Clip } from "@/lib/game/walkthrough";
 import { MascotContext } from "@/components/art/mascot";
-import { CompareViews } from "@/components/journey/compare-views";
+import { CompareBoardLabel, CompareViews } from "@/components/journey/compare-views";
 import type { MascotId } from "@/lib/game/project-mascot";
 import type { Track } from "@/lib/game/music";
 import { AliveStage } from "./alive-stage";
@@ -29,8 +28,7 @@ import { readSavedLevel, useLevel } from "./autosave";
 import { useEmptyBoard, useLevelCheck, useProblemWatch, useSketchLock } from "./check";
 import { useFeedback } from "./feedback";
 import { useFilledTasks } from "./filled-tasks";
-import { GuideBar, SpotCard, useNoticeTimer } from "./guide";
-import { HelpButton, helpNow, useHelp } from "./help";
+import { NoticeBar, SpotCard, useNoticeTimer } from "./guide";
 import { Hearts, PinnedPopup, PopupLayer, useLaptop, type LevelTask } from "./popups";
 import { SketchPanel } from "./sketch-panel";
 import { TaskList } from "./task-list";
@@ -40,7 +38,9 @@ import { NewSpotlight } from "@/components/new-spotlight";
 import { isModuleType } from "@/lib/circuit/modules";
 import { useLevelMusic } from "./music";
 import { readAloud, stopReading, useReadSteps } from "./read-aloud";
-import { Tour } from "./tour";
+import { SettingsMenu } from "./settings-menu";
+import { markToolTip, readToolTips, showsToolTip } from "@/lib/game/tool-tips";
+import { browserStorage, Tour } from "./tour";
 import { cn } from "@/lib/utils";
 import { ChallengeButton } from "@/components/challenge/challenge";
 
@@ -144,12 +144,6 @@ function BuildBoard({ user, project, levelId, position, eyebrow, title, goal, ta
   const openCode = () => setCodeOpen(true);
   const laptop = useLaptop();
   const progress = useBoard((s) => s.progress);
-  const explaining = useBoard((s) => s.done !== null);
-  // Help off (issue #210): the pop-ups that explain a step stay closed. The task list and the glowing holes guide the build.
-  const help = useHelp();
-  useEffect(() => {
-    if (help.ready && !help.on && explaining) boardStore.getState().seen();
-  }, [help, explaining]);
   const empty = useEmptyBoard();
   // Perch is coming alive on the board: the panels that guide the build step aside (issue #86).
   const alive = useAlive((s) => s.stage !== null);
@@ -160,31 +154,27 @@ function BuildBoard({ user, project, levelId, position, eyebrow, title, goal, ta
   const base = useBoard((s) => s.base);
   const clip = useMemo(() => (finished && carry ? (carriedClip(bench, finished, base) ?? finished) : finished), [finished, carry, bench, base]);
 
-  // The clip opens each time the level opens, until the learner finishes the first task. useLevel opened the board first.
+  // In level 1 of a project, the clip opens each time the level opens, until the learner finishes the first task. In the
+  // other levels it opens only with "Watch how" (issue #218). useLevel opened the board first.
   const [watching, setWatching] = useState(false);
   const watchButton = useRef<HTMLButtonElement>(null);
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- the saved progress is in the browser only
-    if (helpNow() && finished && boardStore.getState().progress.tasksDone === 0) setWatching(true);
-  }, [finished]);
+    if (finished && clipOpensFirst(position, boardStore.getState().progress.tasksDone)) setWatching(true);
+  }, [finished, position]);
 
-  // A task that brings a new idea shows its Concept pop-up first, after the "what happened" pop-up of the last task.
-  const [conceptRead, setConceptRead] = useState(-1);
-  const conceptOpen = help.on && progress.phase === "task" && !explaining && !!tasks[progress.index]?.concept && conceptRead < progress.index;
-  // The guide bar tells how to use the tool. A task that needs only "Got it" does not use a tool.
+  // The "what happened" note and a new word show in the task pop-up, with no click (issue #218). Thus no pop-up stops the build.
   const task = tasks[progress.index];
-  // With Help off, the pop-up of a task stays closed. A mistake, and a task that needs "Got it", show their pop-up.
-  const quiet = progress.phase === "task" && !!task && !showsTaskPopup(help.on, needsAck(task.target));
-  const building = progress.phase === "mistake" || (progress.phase === "task" && !explaining && !!task && !needsAck(task.target));
-  // The Clear and Check row shows while the learner builds. A pop-up over the board, the Check card or the code panel hides it.
-  const actions = progress.phase !== "intro" && !explaining && !conceptOpen && !(progress.phase === "ready_to_check" && levelCheck.state.open) && !codeOpen && !alive;
+  // The Clear and Check row shows while the learner builds. The intro, the Check card or the code panel hides it.
+  const actions = progress.phase !== "intro" && !(progress.phase === "ready_to_check" && levelCheck.state.open) && !codeOpen && !alive;
   // The first-visit tour waits while a pop-up, the intro clip, the Check card, the code panel or the demo is open (issue #123).
+  // Compare views is open: its answer is the thing to read, so the task pop-up and the tour wait (issue #222).
+  const comparing = useBoard((s) => s.compare !== null);
   const tourBusy =
+    comparing ||
     watching ||
     progress.phase === "intro" ||
     progress.phase === "mistake" ||
-    explaining ||
-    conceptOpen ||
     (progress.phase === "ready_to_check" && levelCheck.state.open) ||
     (progress.phase === "task" && !!task && needsAck(task.target)) ||
     codeOpen ||
@@ -194,7 +184,7 @@ function BuildBoard({ user, project, levelId, position, eyebrow, title, goal, ta
   // Read the task aloud (issue #135). With "Read steps aloud" on, each new task is read by itself. The voice stops when
   // the learner leaves the level, or opens the Check card (the Build-it-for-me demo stops it in its own button).
   const [readSteps] = useReadSteps();
-  const taskOpen = progress.phase === "task" && !explaining;
+  const taskOpen = progress.phase === "task";
   const taskText = taskOpen ? tasks[progress.index]?.instruction : undefined;
   // A new task is read once. The holes in its text can change with the board (issue #148); that is not a new task.
   const latestText = useRef(taskText);
@@ -218,8 +208,6 @@ function BuildBoard({ user, project, levelId, position, eyebrow, title, goal, ta
   const popups = (
     <PopupLayer
       level={{ eyebrow, title, goal, tasks }}
-      conceptOpen={conceptOpen}
-      onConceptDone={() => setConceptRead(progress.index)}
       check={{
         check: levelCheck.state,
         onCheck: () => void levelCheck.check(),
@@ -273,8 +261,8 @@ function BuildBoard({ user, project, levelId, position, eyebrow, title, goal, ta
             <span className="max-sm:hidden">{watchText.watch}</span>
           </button>
         )}
-        <HelpButton />
         <ChallengeButton user={user} project={project} position={position} sketch={sketch} />
+        <SettingsMenu music={music} className="max-sm:hidden" />
         <SaveSnapshot
           levels={levels}
           read={() => {
@@ -318,13 +306,17 @@ function BuildBoard({ user, project, levelId, position, eyebrow, title, goal, ta
         <div className="relative min-h-0 min-w-0 flex-1">
           {/* The finished board, so a resistor or LED task glows the holes of the clip (issue #101). */}
           <FinishContext value={finished?.order}>
-            <BuildScene>{laptop && <PinnedPopup tasks={tasks} hidden={conceptOpen || explaining || quiet} mascot={mascot} />}</BuildScene>
+            <BuildScene>{laptop && !(comparing && progress.phase === "task") && <PinnedPopup tasks={tasks} mascot={mascot} />}</BuildScene>
           </FinishContext>
-          {/* The guide bar, and the task list below it. Only the panels take clicks; the board gets the rest. Above the Clear and Check row, the column stops. */}
+          {/* The notice bar, and the task list below it. Only the panels take clicks; the board gets the rest. Above the Clear and Check row, the column stops. */}
           {progress.phase !== "intro" && !alive && (
             <div className={cn("pointer-events-none absolute inset-x-0 top-3 z-10 flex flex-col gap-2 px-3", progress.phase === "ready_to_check" && actions ? "bottom-32" : actions ? "bottom-20" : "bottom-3")}>
-              {building && <GuideBar />}
-              <TaskList tasks={tasks} laptop={laptop} code={sketch && { instruction: sketch.task, open: openCode }} small={codeOpen} music={music} />
+              <NoticeBar />
+              <div className="flex min-h-0 items-start gap-2">
+                <TaskList tasks={tasks} code={sketch && { instruction: sketch.task, open: openCode }} />
+                {/* The sound settings of a phone: the header has no space for the button there (issue #218). */}
+                <SettingsMenu music={music} className="pointer-events-auto shadow-panel sm:hidden" />
+              </div>
               {/* After the first failed Check, every connection of the level, right or wrong (issue #92). */}
               {progress.fails > 0 && <ConnectionList rules={rules} laptop={laptop} small={codeOpen} />}
             </div>
@@ -340,6 +332,7 @@ function BuildBoard({ user, project, levelId, position, eyebrow, title, goal, ta
               extra={<BuildForMe clip={clip} />}
             />
           )}
+          <CompareBoardLabel />
           <SpotCard />
           <BuildDemo clip={clip} position={position} />
           <AliveStage />
@@ -360,6 +353,9 @@ function BuildBoard({ user, project, levelId, position, eyebrow, title, goal, ta
           <div className="min-h-0 border-border max-sm:h-[60%] max-sm:border-t sm:w-[min(460px,45%)] sm:border-l">
             <SketchPanel
               step={sketch}
+              user={user}
+              project={project}
+              position={position}
               onClose={() => setCodeOpen(false)}
               onDone={() => {
                 setCodeOpen(false);
@@ -372,7 +368,7 @@ function BuildBoard({ user, project, levelId, position, eyebrow, title, goal, ta
 
       {!laptop && !codeOpen && !demoRunning && popups}
       {!(codeOpen && !laptop) && <ToolBar start={start} startLevel={startLevel} />}
-      <Tour busy={tourBusy || !help.on} />
+      <Tour busy={tourBusy} />
       {clip && watching && (
         <ClipPlayer
           clip={clip}
@@ -410,6 +406,19 @@ function ToolBar({ start, startLevel }: { start: Part[]; startLevel: number }) {
     setNote(n ? (n === 1 ? text.putBack.blockedOne : fill(text.putBack.blocked, { count: n })) : back.length ? fill(text.putBack.done, { n: startLevel }) : null);
   };
   const putBackLabel = fill(text.putBack.button, { n: startLevel });
+  // The line of a tool shows the first time that the learner selects the tool in this browser (issue #218). It stays
+  // while the tool is selected. A browser that blocks storage shows it each time.
+  const [tip, setTip] = useState<Tool | null>(null);
+  // The answer for the tool of now. An effect that runs two times for one tool (React in development) gives the same answer.
+  const asked = useRef<{ tool: Tool; first: boolean } | null>(null);
+  useEffect(() => {
+    if (asked.current?.tool !== tool) {
+      const storage = browserStorage();
+      asked.current = { tool, first: showsToolTip(readToolTips(storage), tool) };
+      if (asked.current.first) markToolTip(storage, tool);
+    }
+    setTip(asked.current.first ? tool : null);
+  }, [tool]);
 
   return (
     <div className="z-10 border-t border-border bg-card px-3 pt-2 pb-[max(env(safe-area-inset-bottom),10px)] sm:px-4">
@@ -421,10 +430,12 @@ function ToolBar({ start, startLevel }: { start: Part[]; startLevel: number }) {
         )}
         {/* The row keeps its space for every tool, so the board does not move when the tool changes. */}
         <div className="h-11 max-sm:h-10">{inTray(tool) ? <Tray tool={tool} /> : <Swatches hidden={tool !== "wire"} />}</div>
-        {/* One line for the picked tool, under the board's controls. It never covers the holes. Two lines on a phone. */}
-        <p className="h-8 line-clamp-2 text-center text-xs leading-4 text-muted-foreground sm:h-5 sm:line-clamp-1" aria-live="polite">
-          {ABOUT[tool]}
-        </p>
+        {/* One line for the picked tool, the first time (issue #218). It never covers the holes. Two lines on a phone. Each tool button has the text as its title. */}
+        {tip === tool && (
+          <p data-tool-tip className="h-8 line-clamp-2 text-center text-xs leading-4 text-muted-foreground sm:h-5 sm:line-clamp-1" aria-live="polite">
+            {ABOUT[tool]}
+          </p>
+        )}
         <div className={cn("grid gap-1 sm:gap-2", start.length ? "grid-cols-7" : "grid-cols-6")} role="toolbar" aria-label="Tools">
           {TOOLS.map((t) => (
             <ToolButton

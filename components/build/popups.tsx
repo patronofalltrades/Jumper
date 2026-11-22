@@ -17,17 +17,19 @@ import { needsAck, taskSpot, type Mistake } from "@/lib/game/engine";
 import { taskOfFailure } from "@/lib/game/fail-task";
 import { HEARTS, heartsLeft, outOfHearts } from "@/lib/game/hearts";
 import { mascotPose } from "@/lib/game/mascot";
+import { cardPlace } from "@/lib/game/popup-place";
 import type { Clip } from "@/lib/game/walkthrough";
 import { cn } from "@/lib/utils";
 import { EMPTY_NOTE, useEmptyBoard, type Failed, type LevelCheck } from "./check";
 import { BuildForMe } from "./build-for-me";
-import { pinName } from "./guide";
-import { useHelp } from "./help";
+import { pinName, useHowTo } from "./guide";
 import { SpeakButton } from "./read-aloud";
 import { endpointName, strayText } from "./names";
 
-// The pop-ups of build mode (PLAN.md "How build mode works"): Place, Wire, Concept and Mistake, plus the level intro,
-// the "what happened" pop-up after a task, and the level Check. All their words come from the level content and content/ui/build.json.
+// The pop-ups of build mode (PLAN.md "How build mode works"): Place, Wire and Mistake, plus the level intro and the
+// level Check. Quiet build mode (issue #218): one pop-up tells all that the learner needs now. The Place or Wire pop-up
+// has the task, how to use the tool, the "what happened" note of the task before, and a new word (Concept), with no
+// "Got it" to click. All their words come from the level content and content/ui/build.json.
 // Laptop: the Place, Wire and Mistake pop-ups hang over the board, with a line down to the target pin (TRD 5.3).
 // Phone: every pop-up is a sheet at the bottom of the board, so it does not cover the glowing holes.
 
@@ -53,8 +55,7 @@ export function useTaskSpot() {
   const parts = useBoard((s) => s.parts);
   const plan = useBoard((s) => s.plan);
   const progress = useBoard((s) => s.progress);
-  const explaining = useBoard((s) => s.done !== null);
-  const task = progress.phase === "task" && !explaining ? plan?.tasks[progress.index] : undefined;
+  const task = progress.phase === "task" ? plan?.tasks[progress.index] : undefined;
   const finish = useContext(FinishContext);
   return useMemo(() => (task ? taskSpot(bench, parts, task.target, progress.swaps, finish) : null), [bench, parts, task, progress.swaps, finish]);
 }
@@ -101,7 +102,7 @@ function PressButton({ tone = "primary", className, ...props }: { tone?: "primar
   );
 }
 
-/** Volt in the first row of a Task, "what happened" or Mistake pop-up. The board picks the pose; a new pose plays its motion again. */
+/** Volt in the first row of a Task or Mistake pop-up. Volt is happy while the note of a done task shows. The board picks the pose; a new pose plays its motion again. */
 function PopupVolt() {
   const phase = useBoard((s) => s.progress.phase);
   const done = useBoard((s) => s.done);
@@ -110,26 +111,77 @@ function PopupVolt() {
   return <Mascot id={mascot} key={pose} pose={pose} label className="h-14 w-auto shrink-0 sm:h-16" />;
 }
 
+/** The "what happened" note of the task that the learner just finished (issue #218). It needs no click. */
+function DoneNote({ task }: { task: LevelTask }) {
+  return (
+    <p className="rounded-xl bg-muted px-3 py-2 text-sm leading-snug">
+      <span className="font-bold">{text.play.note} </span>
+      {task.popup_why}{" "}
+      <a href={task.source_url} target="_blank" rel="noreferrer" className="text-xs font-semibold text-muted-foreground underline underline-offset-2">
+        {text.play.source}
+      </a>
+    </p>
+  );
+}
+
 /**
- * A Place or Wire pop-up: what to do. The "what happened" text shows after the task (DoneBody). A part that is always
- * on the bench gets "Got it", so its pop-up shows the two texts together.
+ * A new idea, with the task that brings it (issue #218). The text is "Name: explanation". The name shows as one short
+ * line; a click or Enter on it opens the explanation in the pop-up. It needs no click to go on.
  */
-function TaskBody({ task, total }: { task: LevelTask; total: number }) {
+function ConceptNote({ concept }: { concept: string }) {
+  const colon = concept.indexOf(":");
+  return (
+    <details className="group rounded-xl border border-border px-3 py-2 text-sm leading-snug" data-concept>
+      <summary className="flex cursor-pointer list-none items-center gap-2 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-ring [&::-webkit-details-marker]:hidden">
+        <Chip tone="xp">{text.play.kind.concept}</Chip>
+        <span className="flex-1 font-bold">{colon > 0 ? concept.slice(0, colon) : text.play.concept.more}</span>
+        <span className="text-xs font-semibold text-muted-foreground underline underline-offset-2 group-open:hidden">{text.play.concept.more}</span>
+        <span className="hidden text-xs font-semibold text-muted-foreground underline underline-offset-2 group-open:inline">{text.play.concept.less}</span>
+      </summary>
+      <p className="mt-1.5">{colon > 0 ? concept.slice(colon + 1).trim() : concept}</p>
+    </details>
+  );
+}
+
+/** How to use the tool now, under the task (issue #218). Before, a guide bar at the top of the board showed it. */
+function HowTo() {
+  const how = useHowTo();
+  return (
+    <p className="text-sm leading-snug text-muted-foreground" data-how>
+      {how.step && <span className="mr-1.5 rounded-full bg-muted px-2 py-0.5 font-mono text-[11px] font-semibold text-foreground">{fill(text.guide.step, { n: how.step })}</span>}
+      {how.line}
+      {how.stop && ` ${how.stop}`}
+    </p>
+  );
+}
+
+/**
+ * A Place or Wire pop-up: what to do, and how. `note`: the task that the learner just finished; its "what happened"
+ * text shows here until the next change of the board. A part that is always on the bench gets "Got it", so its pop-up
+ * shows the two texts together. `compact`: the sheet of a phone is short, so the task comes first there.
+ */
+function TaskBody({ task, total, note, compact = false }: { task: LevelTask; total: number; note?: LevelTask; compact?: boolean }) {
+  const doneNote = note && <DoneNote task={note} />;
   return (
     <>
       <div className="flex items-center gap-2">
-        <PopupVolt />
+        {/* The sheet of a phone is short: the task and the how-to line must be in view, so Volt stays away there. */}
+        {!compact && <PopupVolt />}
         <div className="flex flex-wrap items-center gap-1.5">
           <Chip tone="kind">{text.play.kind[task.kind]}</Chip>
           <Chip>{fill(text.play.task, { n: task.position, total })}</Chip>
           <Chip tone="xp">{fill(text.play.xp, { n: task.xp })}</Chip>
         </div>
       </div>
+      {!compact && doneNote}
       <div className="flex items-start gap-2">
-        <h2 className="flex-1 text-[17px] leading-snug font-extrabold">{task.instruction}</h2>
+        <h2 className={cn("flex-1 leading-snug font-extrabold", compact ? "text-[15px]" : "text-[17px]")}>{task.instruction}</h2>
         {/* The task can be read aloud (issue #135). */}
         <SpeakButton line={task.instruction} className="-mt-1" />
       </div>
+      {!needsAck(task.target) && <HowTo />}
+      {compact && doneNote}
+      {task.concept && <ConceptNote concept={task.concept} />}
       {needsAck(task.target) && (
         <>
           <p className="text-sm leading-relaxed text-muted-foreground">{task.popup_why}</p>
@@ -141,48 +193,6 @@ function TaskBody({ task, total }: { task: LevelTask; total: number }) {
           </div>
         </>
       )}
-    </>
-  );
-}
-
-/** After a Place or Wire task: what the learner just did, in plain words. */
-function DoneBody({ task }: { task: LevelTask }) {
-  return (
-    <>
-      <div className="flex items-center gap-2">
-        <PopupVolt />
-        <div className="flex flex-wrap items-center gap-1.5">
-          <Chip tone="kind">{text.play.kind.done}</Chip>
-          <Chip tone="xp">{fill(text.play.xp, { n: task.xp })}</Chip>
-        </div>
-      </div>
-      <h2 className="text-xl leading-tight font-extrabold">{text.play.done.title}</h2>
-      <p className="text-sm leading-relaxed">{task.popup_why}</p>
-      <div className="flex items-center justify-between gap-3">
-        <a href={task.source_url} target="_blank" rel="noreferrer" className="text-xs font-semibold text-muted-foreground underline underline-offset-2">
-          {text.play.source}
-        </a>
-        <PressButton autoFocus onClick={() => boardStore.getState().seen()}>
-          {text.play.done.next}
-        </PressButton>
-      </div>
-    </>
-  );
-}
-
-/** A Concept pop-up: a new idea, the first time that it shows. The text is "Name: explanation". */
-function ConceptBody({ concept, onDone }: { concept: string; onDone: () => void }) {
-  const colon = concept.indexOf(":");
-  return (
-    <>
-      <div>
-        <Chip tone="xp">{text.play.kind.concept}</Chip>
-      </div>
-      <h2 className="text-xl leading-tight font-extrabold">{colon > 0 ? concept.slice(0, colon) : text.play.kind.concept}</h2>
-      <p className="text-sm leading-relaxed">{colon > 0 ? concept.slice(colon + 1).trim() : concept}</p>
-      <div className="flex justify-end">
-        <PressButton onClick={onDone}>{text.play.gotIt}</PressButton>
-      </div>
     </>
   );
 }
@@ -303,7 +313,7 @@ function OutOfHearts({ reason, check, onCheck, onWatch, clip }: { reason: string
 }
 
 /** The end of the tasks: Check the level. After a fail: the reason, the hearts, and "Fix the board". */
-function CheckBody({ check, onCheck, onClose, onShow, onRedo, sketch, position, tasks, clip, onWatch }: CheckProps & { tasks: LevelTask[] }) {
+function CheckBody({ check, onCheck, onClose, onShow, onRedo, sketch, position, tasks, clip, onWatch, note }: CheckProps & { tasks: LevelTask[]; note?: LevelTask }) {
   const { xp, mistakes, fails } = useBoard((s) => s.progress);
   const bench = useBoard((s) => s.bench);
   const parts = useBoard((s) => s.parts);
@@ -380,6 +390,8 @@ function CheckBody({ check, onCheck, onClose, onShow, onRedo, sketch, position, 
         <h2 className="text-2xl leading-tight font-extrabold tracking-tight">{locked ? sketchText.check.title : text.play.ready.title}</h2>
         <Hearts fails={fails} />
       </div>
+      {/* The note of the last task shows here, so the learner reads it before the Check (issue #218). */}
+      {note && <DoneNote task={note} />}
       <p className="text-sm text-muted-foreground">{locked ? sketchText.check.text : text.play.ready.text}</p>
       <dl className="grid grid-cols-2 gap-2">
         {[
@@ -438,30 +450,27 @@ function Card({ mistake, className, children }: { mistake?: boolean; className?:
 /**
  * The pop-ups in the page. Phone: all of them, in a sheet under the board. The sheet has a fixed height, so the board
  * does not move when the text changes, and the sheet does not cover the board.
- * Laptop: the intro, the "what happened" pop-up, the Concept pop-up and the level Check, over the center of the board. (Task and Mistake
- * pop-ups hang in 3D.)
+ * Laptop: the intro and the level Check, over the center of the board. (Task and Mistake pop-ups hang in 3D.)
  */
-function PopupLayerBody({ level, conceptOpen, onConceptDone, check }: { level: LevelInfo; conceptOpen: boolean; onConceptDone: () => void; check: CheckProps }) {
+function PopupLayerBody({ level, check }: { level: LevelInfo; check: CheckProps }) {
   const laptop = useLaptop();
   const progress = useBoard((s) => s.progress);
   const done = useBoard((s) => s.done);
+  // While Compare views is open, the task waits in the task list (issue #222). A mistake still shows: it has the button to go on.
+  const comparing = useBoard((s) => s.compare !== null);
   const task = level.tasks[progress.index];
-  // Help off (issue #210): the "what happened" pop-up stays closed, and the next task opens (see BuildBoard).
-  const help = useHelp().on;
+  const note = done !== null ? level.tasks[done] : undefined;
 
   let body: ReactNode = null;
   let mistake = false;
   if (progress.phase === "intro") body = <IntroBody {...level} />;
-  else if (help && done !== null && level.tasks[done]) body = <DoneBody task={level.tasks[done]} />;
   else if (progress.phase === "ready_to_check" && check.check.open) {
-    body = <CheckBody {...check} tasks={level.tasks} />;
+    body = <CheckBody {...check} tasks={level.tasks} note={note} />;
     mistake = !!check.check.failed;
-  }
-  else if (progress.phase === "task" && conceptOpen && task?.concept) body = <ConceptBody concept={task.concept} onDone={onConceptDone} />;
-  else if (!laptop && progress.phase === "mistake" && progress.mistake) {
+  } else if (!laptop && progress.phase === "mistake" && progress.mistake) {
     body = <MistakeBody mistake={progress.mistake} />;
     mistake = true;
-  } else if (!laptop && progress.phase === "task" && task) body = <TaskBody task={task} total={level.tasks.length} />;
+  } else if (!laptop && !comparing && progress.phase === "task" && task) body = <TaskBody task={task} total={level.tasks.length} note={note} compact />;
   if (!body) return null;
 
   return laptop ? (
@@ -470,8 +479,8 @@ function PopupLayerBody({ level, conceptOpen, onConceptDone, check }: { level: L
     </div>
   ) : (
     <div className="z-10 h-40 shrink-0 overflow-y-auto border-t border-border bg-card">
-      {/* The last row of each pop-up has its buttons: it stays at the bottom of the sheet when the text scrolls. */}
-      <Card mistake={mistake} className="min-h-full border-0 shadow-none *:last:sticky *:last:bottom-0 *:last:bg-card *:last:py-1">
+      {/* The last row of a pop-up with buttons stays at the bottom of the sheet when the text scrolls. A task has no button row. */}
+      <Card mistake={mistake} className={cn("min-h-full border-0 shadow-none", progress.phase === "task" && "gap-2 py-3", !(progress.phase === "task" && task && !needsAck(task.target)) && "*:last:sticky *:last:bottom-0 *:last:bg-card *:last:py-1")}>
         {body}
       </Card>
     </div>
@@ -483,16 +492,23 @@ const HANG = 5;
 /** Width of a pop-up that hangs in 3D, and its space from the edges of the board. */
 const PINNED_WIDTH = 320;
 const EDGE = 8;
-/** The guide bar is at the top of the board: the card stays below it. */
+/** The task chip and a notice are at the top of the board: the card stays below them. */
 const GUIDE_BOTTOM = 72;
+/** The height of the Clear and Check row at the bottom of the board. */
+const ACTIONS_TOP = 72;
 
 /** Laptop: the Place, Wire or Mistake pop-up, over the target pin, with a line down to it. Goes inside the Canvas. */
-export function PinnedPopup({ tasks, hidden, mascot }: { tasks: LevelTask[]; hidden: boolean; mascot: MascotId }) {
+export function PinnedPopup({ tasks, mascot }: { tasks: LevelTask[]; mascot: MascotId }) {
   const progress = useBoard((s) => s.progress);
+  const done = useBoard((s) => s.done);
   // The card stays inside the board. When there is no space above the pin, it goes beside the pin, so that it does
   // not cover the target. Html renders the card in its own React root, so a callback ref measures it when it is there,
   // and a new frame puts it in its place (the canvas draws only on a change).
   const invalidate = useThree((s) => s.invalidate);
+  // Html puts its card in the element that gets the events of the canvas. The canvas sets that element after its
+  // first render. If Html is there before, it makes a second React root in the same container, and the first root
+  // then clears the card: the pop-up stays empty (issue #220). Thus the card waits for that element.
+  const connected = useThree((s) => !!s.events.connected);
   const height = useRef(0);
   const card = useCallback(
     (el: HTMLDivElement | null) => {
@@ -506,25 +522,30 @@ export function PinnedPopup({ tasks, hidden, mascot }: { tasks: LevelTask[]; hid
     },
     [invalidate],
   );
-  const place = (el: Object3D, camera: Camera, size: { width: number; height: number }) => {
-    const p = new Vector3().setFromMatrixPosition(el.matrixWorld).project(camera);
-    let x = ((p.x + 1) / 2) * size.width;
-    let y = ((1 - p.y) / 2) * size.height;
-    const half = PINNED_WIDTH / 2 + EDGE;
-    if (y - height.current < GUIDE_BOTTOM) {
-      const side = PINNED_WIDTH / 2 + 3 * EDGE;
-      x = x + side + half <= size.width ? x + side : x - side;
-      y += height.current / 2;
-    }
-    return [Math.min(Math.max(x, half), size.width - half), Math.min(Math.max(y, height.current + GUIDE_BOTTOM), size.height - EDGE)];
-  };
   const spot = useTaskSpot();
+  const bench = useBoard((s) => s.bench);
+  const parts = useBoard((s) => s.parts);
+  // The holes of the yellow arrow: the card must not cover them (issue #218, lib/game/popup-place.ts).
+  const taps = useMemo(
+    () => (spot?.taps ?? []).map((id) => bench.byId.get(id) ?? terminalAt(bench, parts, id)?.under).filter((h) => h !== undefined),
+    [spot, bench, parts],
+  );
+  const place = (el: Object3D, camera: Camera, size: { width: number; height: number }) => {
+    const toView = (v: Vector3) => {
+      const p = v.project(camera);
+      return { x: ((p.x + 1) / 2) * size.width, y: ((1 - p.y) / 2) * size.height };
+    };
+    const anchor = toView(new Vector3().setFromMatrixPosition(el.matrixWorld));
+    const avoid = taps.map((h) => toView(new Vector3(h.x, 0.3, h.z)));
+    // The Clear and Check row is at the bottom of the board: the card stays above it.
+    return cardPlace(anchor, { width: PINNED_WIDTH, height: height.current }, { width: size.width, height: size.height - ACTIONS_TOP }, avoid, GUIDE_BOTTOM, EDGE);
+  };
   const mistakeAt = useMistakeSpot(progress.mistake);
   const task = tasks[progress.index];
 
   const mistake = progress.phase === "mistake" && progress.mistake;
   const at = mistake ? mistakeAt : spot?.at;
-  if (hidden || !at || (!mistake && (progress.phase !== "task" || !task))) return null;
+  if (!at || (!mistake && (progress.phase !== "task" || !task))) return null;
 
   return (
     <group>
@@ -537,22 +558,24 @@ export function PinnedPopup({ tasks, hidden, mascot }: { tasks: LevelTask[]; hid
         lineWidth={2}
         raycast={() => null}
       />
-      <Html position={[at.x, HANG, at.z]} zIndexRange={[15, 10]} calculatePosition={place} style={{ pointerEvents: "none" }}>
-        {/* Html has its own React root, so the mascot of the project goes in as a context here (feature/mascots). */}
-        <MascotContext value={mascot}>
-          <div ref={card} className="pointer-events-auto -translate-x-1/2 -translate-y-full pb-1" style={{ width: PINNED_WIDTH }}>
-            <Card mistake={!!mistake} className="rounded-2xl">
-              {mistake ? <MistakeBody mistake={mistake} /> : <TaskBody task={task} total={tasks.length} />}
-            </Card>
-          </div>
-        </MascotContext>
-      </Html>
+      {connected && (
+        <Html position={[at.x, HANG, at.z]} zIndexRange={[15, 10]} calculatePosition={place} style={{ pointerEvents: "none" }}>
+          {/* Html has its own React root, so the mascot of the project goes in as a context here (feature/mascots). */}
+          <MascotContext value={mascot}>
+            <div ref={card} className="pointer-events-auto -translate-x-1/2 -translate-y-full pb-1" style={{ width: PINNED_WIDTH }}>
+              <Card mistake={!!mistake} className="rounded-2xl">
+                {mistake ? <MistakeBody mistake={mistake} /> : <TaskBody task={task} total={tasks.length} note={done !== null ? tasks[done] : undefined} />}
+              </Card>
+            </div>
+          </MascotContext>
+        </Html>
+      )}
     </group>
   );
 }
 
 /** The pop-ups of the level. A challenge (issue #203) has its own panel, and its board is not the level, so they hide on a laptop. */
-export function PopupLayer(props: { level: LevelInfo; conceptOpen: boolean; onConceptDone: () => void; check: CheckProps }) {
+export function PopupLayer(props: { level: LevelInfo; check: CheckProps }) {
   const inChallenge = useBoard((s) => s.paused !== null);
   // On a phone the sheet stays under the board, so the board keeps its size; the challenge panel covers the sheet.
   const laptop = useLaptop();

@@ -14,6 +14,10 @@
   "header": {
     "eyebrow": "{project} · {board} · Level {n}"
   },
+  "settings": {
+    "label": "Sound settings",
+    "title": "Sound"
+  },
   "music": {
     "switch": "Play music",
     "credit": "Music: {title} by {artist} ({license})"
@@ -176,6 +180,11 @@
     "task": "Task {n} of {total}",
     "xp": "+{n} XP",
     "source": "Source",
+    "note": "You did it:",
+    "concept": {
+      "more": "What is it?",
+      "less": "Close"
+    },
     "gotIt": "Got it",
     "mistake": {
       "undo": "Undo",
@@ -259,11 +268,6 @@
       "title": "Here is what happened",
       "next": "Next"
     }
-  },
-  "help": {
-    "button": "Help",
-    "on": "Help is on. A pop-up explains each step. Select Help to close the pop-ups.",
-    "off": "Help is off. Select Help to see a pop-up that explains each step."
   },
   "map": {
     "back": "Lobby",

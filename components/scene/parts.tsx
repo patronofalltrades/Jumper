@@ -27,8 +27,8 @@ function Leg({ points }: { points: Vector3[] }) {
 /** Red glow on a part that the Remove tool points at. */
 const removeTint = (hot: boolean) => (hot ? { emissive: "#c9412f", emissiveIntensity: 0.6 } : {});
 
-/** `on`: a running sketch lights the LED (issue #58). */
-export function PartMesh({ part, a, b, hot, on = false }: { part: LegPart; a: End; b: End; hot: boolean; on?: boolean }) {
+/** `on`: a running sketch lights the LED (issue #58). `mark`: Compare views shows this wire in this color (issue #202). */
+export function PartMesh({ part, a, b, hot, on = false, mark }: { part: LegPart; a: End; b: End; hot: boolean; on?: boolean; mark?: string }) {
   const shape = useMemo(() => {
     const dir = new Vector3(b.x - a.x, 0, b.z - a.z);
     const length = dir.length();
@@ -37,13 +37,13 @@ export function PartMesh({ part, a, b, hot, on = false }: { part: LegPart; a: En
     return { dir, length, mid, q: new Quaternion().setFromUnitVectors(UP, dir) };
   }, [a, b]);
 
-  if (part.type === "wire") return <Wire a={a} b={b} color={part.color ?? "#D63A2F"} hot={hot} length={shape.length} />;
+  if (part.type === "wire") return <Wire a={a} b={b} color={part.color ?? "#D63A2F"} hot={hot} length={shape.length} mark={mark} />;
   if (part.type === "resistor") return <Resistor a={a} b={b} hot={hot} {...shape} />;
   if (part.type === "speaker") return <Speaker a={a} b={b} hot={hot} {...shape} />;
   return <Led a={a} b={b} hot={hot} on={on} {...shape} />;
 }
 
-function Wire({ a, b, color, hot, length }: { a: End; b: End; color: string; hot: boolean; length: number }) {
+function Wire({ a, b, color, hot, length, mark }: { a: End; b: End; color: string; hot: boolean; length: number; mark?: string }) {
   const curve = useMemo(() => {
     const h = Math.min(0.9 + length * 0.14, 3.6);
     return new CubicBezierCurve3(at(a, 0.5), at(a, h + 0.6), at(b, h + 0.6), at(b, 0.5));
@@ -52,7 +52,7 @@ function Wire({ a, b, color, hot, length }: { a: End; b: End; color: string; hot
     <group>
       <mesh castShadow>
         <tubeGeometry args={[curve, 56, 0.12, 10, false]} />
-        <meshStandardMaterial color={color} roughness={0.5} metalness={0.05} {...removeTint(hot)} />
+        <meshStandardMaterial color={mark ?? color} roughness={0.5} metalness={0.05} {...(mark && !hot ? { emissive: mark, emissiveIntensity: 0.55 } : removeTint(hot))} />
       </mesh>
       {[a, b].map((h) => (
         <mesh key={h.id} position={at(h, 0.3)} castShadow>
