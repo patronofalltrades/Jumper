@@ -166,7 +166,10 @@ function BuildBoard({ user, project, levelId, position, eyebrow, title, goal, ta
   // The Clear and Check row shows while the learner builds. The intro, the Check card or the code panel hides it.
   const actions = progress.phase !== "intro" && !(progress.phase === "ready_to_check" && levelCheck.state.open) && !codeOpen && !alive;
   // The first-visit tour waits while a pop-up, the intro clip, the Check card, the code panel or the demo is open (issue #123).
+  // Compare views is open: its answer is the thing to read, so the task pop-up and the tour wait (issue #222).
+  const comparing = useBoard((s) => s.compare !== null);
   const tourBusy =
+    comparing ||
     watching ||
     progress.phase === "intro" ||
     progress.phase === "mistake" ||
@@ -292,7 +295,7 @@ function BuildBoard({ user, project, levelId, position, eyebrow, title, goal, ta
         <div className="relative min-h-0 min-w-0 flex-1">
           {/* The finished board, so a resistor or LED task glows the holes of the clip (issue #101). */}
           <FinishContext value={finished?.order}>
-            <BuildScene>{laptop && <PinnedPopup tasks={tasks} mascot={mascot} />}</BuildScene>
+            <BuildScene>{laptop && !(comparing && progress.phase === "task") && <PinnedPopup tasks={tasks} mascot={mascot} />}</BuildScene>
           </FinishContext>
           {/* The notice bar, and the task list below it. Only the panels take clicks; the board gets the rest. Above the Clear and Check row, the column stops. */}
           {progress.phase !== "intro" && !alive && (
