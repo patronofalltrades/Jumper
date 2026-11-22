@@ -39,7 +39,7 @@ export function BoardActions({ ready, empty, locked, onCheck, onOpenCode, extra 
     <button
       type="button"
       onClick={onOpenCode}
-      className={comparing ? `${BIG} border border-border bg-card text-foreground` : `${BIG} border-primary-deep bg-primary text-primary-foreground`}
+      className={comparing ? `${BIG} border border-border bg-card whitespace-nowrap text-foreground` : `${BIG} border-primary-deep bg-primary text-primary-foreground`}
     >
       {sketchText.panel.open}
     </button>
@@ -52,7 +52,8 @@ export function BoardActions({ ready, empty, locked, onCheck, onOpenCode, extra 
         </p>
       )}
       {!comparing && sketch}
-      <div className="flex flex-wrap items-center justify-center gap-2 max-sm:flex-nowrap">
+      {/* On a phone the row stays on one line, but not with the third button of Compare views: then it wraps. */}
+      <div className={`flex flex-wrap items-center justify-center gap-2 ${comparing ? "" : "max-sm:flex-nowrap"}`}>
         <ClearButton disabled={empty} />
         <button
           data-tour="check"

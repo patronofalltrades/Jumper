@@ -9,3 +9,11 @@
    "Change only what is listed above. Keep every other screen, control, lesson step and the CHECK flow working as they do now."
 
    Claude added `verdictOf`, `wireOn`, `placeOf` and `placeText` to `lib/journey/select.ts` (pure, with Vitest tests), a `compare` mark in the board store for the 3D board (the net colors and the magenta off wire), and rebuilt the panel. The text is in `content/ui/journey.json` and `content/lessons/af-led.json`. Claude checked the panel in a browser on a laptop and a phone screen size, with a temporary page that it did not commit.
+
+2. "do e2e testing on the new feature"
+
+   Claude wrote `e2e/flow7-compare-views.spec.ts`. It uses a temporary account and the real app. It checks the answer for a board that matches and for a board where the pin 13 wire goes to row 18, the two views side by side at the same size, the numbered photo notes, the size of "Write the sketch", the magenta wire on the 3D board (laptop), and at the end the real Check.
+
+   The flow found a bug in the first change: on a phone, while the panel was open, "Write the sketch" went onto two lines in the row (77 px high, Clear is 44 px). Now the button stays on one line, and the row can wrap while the panel is open.
+
+   The e2e helpers in `e2e/levels.ts` did not work on the live Supabase project: its tasks are older than `content/projects/` (level 1 has 4 tasks, the file has 3), and since #218 only level 1 opens its clip by itself. Claude changed the helpers only on the local machine for the run, and did not commit that change.
