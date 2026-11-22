@@ -199,6 +199,16 @@ The goal check runs on a virtual clock in one call. Thus no other change can occ
 - The panel lists each change. It says: "One of these changes can be the cause. Test your idea with a new run." It never names one cause (F3-AC3, F3-R5).
 - A failed run shows its error next to its state. The learner can still compare and restore (F3-AC6).
 
+**As built (issue #213).** `lib/runs/diff.ts` has `diffLines` and `diffRuns`. `components/build/run-compare.tsx` is the panel. The "Compare with last run" button is in the code panel, after the first run.
+
+- The comparison needs no lesson file. `runTerminals` gives the named points of a board: each pin of the main board, each open rail, and each pin of each part that is not a wire. `diffRuns` compares the connections between these points in the two records. Thus it works on each level that has a code step.
+- A part (not a wire) that only one run has is in a separate list. A wire or a part in other holes with the same connections gives one line that says so.
+- The glow on the board does not have two colors. Each moved connection has two buttons with text: "Show the old end" and "Show the new end". A line of text says which point the board shows. The glow uses the board of now, so a point that is not on the board now has no button.
+- The sketch diff shows only the lines that changed, with `−` or `+`, the line number, and text for a screen reader.
+- Each run has the label "Successful run" (the sketch ran) or "Failed run" (the sketch did not run). A run is complete at the press of Run, so no run is "pending". A successful run also shows what the LED did and the result of the goal check.
+- When the board or the sketch has changes that were not run, the panel says that the comparison is between the two runs.
+- The `snapshot_compared` event has the number of changes. It goes out only on a level with a lesson file.
+
 **Restore.** A new board store action `restoreRun(record)`:
 
 1. Saves the current parts and code into the backup slot (also changes that are not saved).
@@ -346,6 +356,7 @@ The measures of section 7 of the source document come from these two tables with
 | `tests/connections.test.ts` | Unit | The same circuit in different holes gives the same connections. A moved wire gives one `moved` item with the old and new ends. |
 | `tests/observe.test.ts` | Unit | The baseline blinks 500/500. Each "Yes" change in section 4 gives the expected result. |
 | `tests/run-record.test.ts` | Unit | A record does not change when the board changes after Run. Its result comes from its own board. Only three records stay. A changed board or sketch is "changed since this run". The browser save reads back its records and ignores bad data. |
+| `tests/run-diff.test.ts` | Unit | `diffLines` gives the removed and added lines with their numbers. `diffRuns` gives one moved connection for one moved wire, lists each change of the wiring and the sketch, gives no change for the same runs, and compares a failed run. |
 | `tests/restore.test.ts` | Unit | Restore changes the board and the code together. Undo of a restore puts back the unsaved state. |
 | `tests/challenge.test.ts` | Unit | Run is locked before a prediction. Skip is unscored. An error gives no score. Two grades. A retry keeps the first attempt. A variation uses its own answers. The sandbox puts the level back. Each challenge of the lesson file agrees with the simulator. |
 | `tests/lesson-content.test.ts` | Unit | The lesson file agrees with the level, the board and the list of supported changes. Each mapped connection is really connected on the reference board. Each hole in a change is on the bench. The SVG check comes with the schematic (work package 4). |
