@@ -503,6 +503,10 @@ export function PinnedPopup({ tasks, mascot }: { tasks: LevelTask[]; mascot: Mas
   // not cover the target. Html renders the card in its own React root, so a callback ref measures it when it is there,
   // and a new frame puts it in its place (the canvas draws only on a change).
   const invalidate = useThree((s) => s.invalidate);
+  // Html puts its card in the element that gets the events of the canvas. The canvas sets that element after its
+  // first render. If Html is there before, it makes a second React root in the same container, and the first root
+  // then clears the card: the pop-up stays empty (issue #220). Thus the card waits for that element.
+  const connected = useThree((s) => !!s.events.connected);
   const height = useRef(0);
   const card = useCallback(
     (el: HTMLDivElement | null) => {
@@ -552,16 +556,18 @@ export function PinnedPopup({ tasks, mascot }: { tasks: LevelTask[]; mascot: Mas
         lineWidth={2}
         raycast={() => null}
       />
-      <Html position={[at.x, HANG, at.z]} zIndexRange={[15, 10]} calculatePosition={place} style={{ pointerEvents: "none" }}>
-        {/* Html has its own React root, so the mascot of the project goes in as a context here (feature/mascots). */}
-        <MascotContext value={mascot}>
-          <div ref={card} className="pointer-events-auto -translate-x-1/2 -translate-y-full pb-1" style={{ width: PINNED_WIDTH }}>
-            <Card mistake={!!mistake} className="rounded-2xl">
-              {mistake ? <MistakeBody mistake={mistake} /> : <TaskBody task={task} total={tasks.length} note={done !== null ? tasks[done] : undefined} />}
-            </Card>
-          </div>
-        </MascotContext>
-      </Html>
+      {connected && (
+        <Html position={[at.x, HANG, at.z]} zIndexRange={[15, 10]} calculatePosition={place} style={{ pointerEvents: "none" }}>
+          {/* Html has its own React root, so the mascot of the project goes in as a context here (feature/mascots). */}
+          <MascotContext value={mascot}>
+            <div ref={card} className="pointer-events-auto -translate-x-1/2 -translate-y-full pb-1" style={{ width: PINNED_WIDTH }}>
+              <Card mistake={!!mistake} className="rounded-2xl">
+                {mistake ? <MistakeBody mistake={mistake} /> : <TaskBody task={task} total={tasks.length} note={done !== null ? tasks[done] : undefined} />}
+              </Card>
+            </div>
+          </MascotContext>
+        </Html>
+      )}
     </group>
   );
 }
