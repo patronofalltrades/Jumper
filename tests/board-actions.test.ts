@@ -2,7 +2,10 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import text from "@/content/ui/build.json";
+import sketchText from "@/content/ui/sketch.json";
 import { BoardActions } from "@/components/build/board-actions";
+import { createStore } from "zustand/vanilla";
+import { BoardContext, boardStore, type BoardState } from "@/lib/game/board-store";
 
 // Issues #114 and #115: the button row at the bottom of the board has Clear, Check and, after Check, more buttons such
 // as "Build it for me". The row shows while the learner builds, so "Build it for me" is there before Check is on.
@@ -26,5 +29,17 @@ describe("board actions row", () => {
     expect(html).toContain(text.play.clear.button);
     expect(html).toContain(text.play.check.button);
     expect(html).not.toContain(text.buildForMe.button);
+  });
+
+  it("puts Write the sketch in the Clear and Check row, as a plain button, while Compare views is open (issue #202)", () => {
+    const actions = createElement(BoardActions, { ready: true, empty: false, locked: true, onCheck: () => {}, onOpenCode: () => {} });
+    const comparing = createStore<BoardState>(() => ({ ...boardStore.getState(), compare: { holes: {}, parts: {} } }));
+    const button = (html: string) => html.match(new RegExp(`<button[^>]*>${sketchText.panel.open}</button>`))![0];
+    expect(button(renderToStaticMarkup(actions))).toContain("bg-primary");
+    const html = renderToStaticMarkup(createElement(BoardContext, { value: comparing }, actions));
+    expect(button(html)).toContain("bg-card");
+    expect(button(html)).not.toContain("bg-primary");
+    // After Check, in the same row.
+    expect(html.indexOf(sketchText.panel.open)).toBeGreaterThan(html.indexOf(text.play.check.button));
   });
 });

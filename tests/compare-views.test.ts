@@ -7,7 +7,7 @@ import { endpointHole } from "@/lib/circuit/nets";
 import { loadBenchSpec } from "@/lib/content/benches";
 import { lessonOf } from "@/lib/journey/lesson-of";
 import { answerQuestion, answerRecord, lastFeedback, noAnswers, readQuestions } from "@/lib/journey/questions";
-import { diffLines, linkedTargets, referenceDifference, selectionAt, showsTarget } from "@/lib/journey/select";
+import { diffLines, linkedTargets, placeText, referenceDifference, selectionAt, showsTarget, verdictOf, wireOn } from "@/lib/journey/select";
 
 // Compare views (issue #202, TRD addendum 6.5): one selection in each view, the difference from the reference, and the
 // questions. The questions use a fixture here: the lesson file has no questions until the real photos and clip exist.
@@ -124,6 +124,47 @@ describe("the difference from the reference", () => {
   it("marks each connection of a part that is not on the board", () => {
     const d = referenceDifference(lesson.map, bench, reference, reference.filter((p) => p.id !== "led1"));
     expect(d.changed).toEqual(["c-r1-led", "c-led-gnd"]);
+  });
+});
+
+describe("the answer of the panel (verdict)", () => {
+  const verdict = (parts: typeof reference) => {
+    const d = referenceDifference(lesson.map, bench, reference, parts);
+    return verdictOf(lesson.map, bench, reference, parts, d, diffLines(lesson.map, d.diff, ui.compare.difference));
+  };
+  const words = ui.compare.verdict.place;
+
+  it("says match on the reference board", () => {
+    expect(verdict(reference)).toEqual({ kind: "match" });
+  });
+
+  it("names the wire and the two rows when the pin 13 wire goes to a different row", () => {
+    // The pin 13 wire goes to row 18: the resistor leg in row 22 has no wire now.
+    const parts = reference.map((p) => (p.id === "w3" ? { ...p, b: "A-a18" } : p));
+    const v = verdict(parts);
+    expect(v).toMatchObject({ kind: "wire", connection: "c-d13-r1", terminal: "uno.D13", wire: "w3" });
+    if (v.kind !== "wire") throw new Error("no wire");
+    expect(placeText(v.now, words)).toBe("row 18");
+    expect(placeText(v.ref, words)).toBe("row 22");
+  });
+
+  it("names the pins when the wire goes to pin 12, and the line when it goes to the + line", () => {
+    const pin = verdict(change("move-d13-to-d12"));
+    expect(pin).toMatchObject({ kind: "wire", connection: "c-d13-r1", terminal: "r1.1" });
+    if (pin.kind === "wire") expect([placeText(pin.now, words), placeText(pin.ref, words)]).toEqual(["pin 12", "pin 13"]);
+    const rail = verdict(change("move-gnd-wire-to-plus"));
+    expect(rail).toMatchObject({ kind: "wire", connection: "c-led-gnd", terminal: "led1.cathode", wire: "w4" });
+    if (rail.kind === "wire") expect([placeText(rail.now, words), placeText(rail.ref, words)]).toEqual(["the + line", "the − line"]);
+  });
+
+  it("names the open connection when no wire moved", () => {
+    expect(verdict(change("remove-gnd-wire"))).toEqual({ kind: "open", connection: "c-led-gnd" });
+    expect(verdict(change("reverse-led")).kind).toBe("open");
+  });
+
+  it("finds the wire on the net of a terminal, and its other end", () => {
+    expect(wireOn(bench, reference, "uno.D13")).toEqual({ wire: "w3", other: "A-a22" });
+    expect(wireOn(bench, reference, "r1.2")).toBeNull();
   });
 });
 

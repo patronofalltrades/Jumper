@@ -108,3 +108,70 @@ export function diffLines(map: LessonMap, diff: ConnectionDiff, text: DiffText):
     ...diff.added.map((c) => ({ kind: "added" as const, terminal: c.a, text: fill(text.added, { a: name(c.a), b: name(c.b) }) })),
   ];
 }
+
+/** Where the far end of a wire is, in words a learner can find on the board: a row, a line, or a pin of the main board. */
+export type Place = { kind: "row"; n: number; side: "a-e" | "f-j" } | { kind: "rail"; sign: "+" | "-" } | { kind: "pin"; name: string } | { kind: "hole"; id: string };
+
+/** The place of a hole. A pin of the Uno: "D13" becomes "13". */
+export function placeOf(bench: Bench, hole: string): Place {
+  const h = bench.byId.get(hole);
+  if (!h) return { kind: "hole", id: hole };
+  if (h.kind === "rail") return { kind: "rail", sign: h.row.endsWith("+") ? "+" : "-" };
+  if (h.kind === "pin") return { kind: "pin", name: (bench.pinAt.get(hole)?.name ?? h.row).replace(/^D(\d+)$/, "$1") };
+  return { kind: "row", n: h.n, side: "abcde".includes(h.row) ? "a-e" : "f-j" };
+}
+
+const samePlace = (a: Place, b: Place) => JSON.stringify(a) === JSON.stringify(b);
+
+/**
+ * The wire with one end on the strip of a terminal (the holes that the metal clip connects, or the pin itself), and the
+ * hole of its other end. Null when no wire touches that strip.
+ */
+export function wireOn(bench: Bench, parts: Part[], terminal: string): { wire: string; other: string } | null {
+  const hole = endpointHole(bench, parts, terminal);
+  if (hole === null) return null;
+  const strip = (h: string) => bench.byId.get(h)?.strip ?? h;
+  const own = strip(hole);
+  for (const p of parts) {
+    if (p.type !== "wire") continue;
+    const onA = strip(p.a) === own;
+    if (onA !== (strip(p.b) === own)) return { wire: p.id, other: onA ? p.b : p.a };
+  }
+  return null;
+}
+
+/**
+ * The answer of Compare views: the board matches the reference, or the first connection that is off. When a wire of
+ * that connection goes to a different place than in the reference, the answer names the wire and the two places.
+ */
+export type Verdict =
+  | { kind: "match" }
+  | { kind: "wire"; connection: string; terminal: string; wire: string; now: Place; ref: Place }
+  | { kind: "open"; connection: string }
+  | { kind: "extra"; line: DiffLine };
+
+export function verdictOf(map: LessonMap, bench: Bench, reference: Part[], parts: Part[], difference: Difference, lines: DiffLine[]): Verdict {
+  if (difference.same) return { kind: "match" };
+  const id = difference.changed[0];
+  const c = map.connections.find((x) => x.id === id);
+  if (!c) return lines[0] ? { kind: "extra", line: lines[0] } : { kind: "match" };
+  for (const terminal of [c.a, c.b]) {
+    const mine = wireOn(bench, parts, terminal);
+    const theirs = wireOn(bench, reference, terminal);
+    if (!mine || !theirs) continue;
+    const now = placeOf(bench, mine.other);
+    const ref = placeOf(bench, theirs.other);
+    if (!samePlace(now, ref)) return { kind: "wire", connection: c.id, terminal, wire: mine.wire, now, ref };
+  }
+  return { kind: "open", connection: c.id };
+}
+
+export type PlaceText = { row: string; rowSide: string; plus: string; minus: string; pin: string; hole: string };
+
+/** A place in words. `side`: also name the half of the board, when two places are in the same row number. */
+export function placeText(place: Place, text: PlaceText, side = false): string {
+  if (place.kind === "row") return fill(side ? text.rowSide : text.row, { n: String(place.n), side: place.side === "a-e" ? "a–e" : "f–j" });
+  if (place.kind === "rail") return place.sign === "+" ? text.plus : text.minus;
+  if (place.kind === "pin") return fill(text.pin, { name: place.name });
+  return fill(text.hole, { id: place.id });
+}

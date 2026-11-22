@@ -193,6 +193,7 @@ function Bench() {
   const pending = useBoard((s) => s.pending);
   const tool = useBoard((s) => s.tool);
   const flash = useBoard((s) => s.flash);
+  const compare = useBoard((s) => s.compare);
   const problem = useBoard((s) => s.problem);
   const probe = useProbeColor();
   const spot = useTaskSpot();
@@ -201,17 +202,18 @@ function Bench() {
   // Nets change only when a part changes, not on each frame.
   const nets = useMemo(() => buildNets(bench, parts), [bench, parts]);
   const marks = useMemo(() => problemEnds(bench, parts, problem), [bench, parts, problem]);
-  // What glows, and in which color. A flash is first, then the net under the pointer (pale), then the task target,
-  // which blinks so that it looks different from the pointer.
+  // What glows, and in which color. A flash is first, then the net under the pointer (pale), then the connection that
+  // Compare views selected (in its color), then the task target, which blinks so that it looks different from the pointer.
   const glow = useMemo(() => {
     const colors = new Map<string, Color>();
     const hover_ = probe.clone().lerp(new Color("#ffffff"), 0.45);
     const target = blink ? probe : probe.clone().lerp(HOLE_BASE, 0.6);
     for (const h of spot?.holes ?? []) colors.set(h, target);
+    for (const [h, hex] of Object.entries(compare?.holes ?? {})) for (const n of netHoles(nets, h)) colors.set(n, new Color(hex));
     if (hover) for (const h of netHoles(nets, hover)) colors.set(h, hover_);
     for (const h of flash?.holes ?? []) for (const n of netHoles(nets, h)) colors.set(n, flash!.kind === "snap" ? SNAP : BUZZ);
     return colors;
-  }, [spot, blink, hover, flash, nets, probe]);
+  }, [spot, blink, compare, hover, flash, nets, probe]);
 
   const point = (e: ThreeEvent<PointerEvent | MouseEvent>, radius?: number) =>
     nearestHole(bench, e.point.x, e.point.z, radius ?? (isTouchScreen() ? 0.7 : 0.5));
@@ -498,6 +500,7 @@ const NO_GLOW = new Map<string, Color>();
 function Parts({ bench, removing, glow }: { bench: Bench; removing: boolean; glow: Map<string, Color> }) {
   const parts = useBoard((s) => s.parts);
   const faded = useBoard((s) => s.faded);
+  const marked = useBoard((s) => s.compare?.parts);
   const running = useSketch((s) => s.running);
   const lit = useSketch((s) => s.lit);
   const pressed = useSketch((s) => s.pressed);
@@ -509,7 +512,7 @@ function Parts({ bench, removing, glow }: { bench: Bench; removing: boolean; glo
   const invalidate = useThree((s) => s.invalidate);
   useEffect(() => {
     invalidate();
-  }, [parts, target, removing, lit, pressed, blink, talkDown, invalidate]);
+  }, [parts, target, removing, lit, pressed, blink, talkDown, marked, invalidate]);
 
   return (
     <group>
@@ -542,7 +545,7 @@ function Parts({ bench, removing, glow }: { bench: Bench; removing: boolean; glo
                 {...(removing ? {} : { ...pinHandlers(partPins(bench, p).flatMap((pin) => (pin.terminal ? [] : [pin.hole]))), terminalHandlers })}
               />
             ) : (
-              <PartMesh part={p} a={endOf(bench, parts, p.a)!} b={endOf(bench, parts, p.b)!} hot={removing && target === p.id} on={lit.has(p.id) || (blink && p.type === "led")} />
+              <PartMesh part={p} a={endOf(bench, parts, p.a)!} b={endOf(bench, parts, p.b)!} hot={removing && target === p.id} on={lit.has(p.id) || (blink && p.type === "led")} mark={marked?.[p.id]} />
             )}
           </Fade>
         </group>

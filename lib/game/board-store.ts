@@ -26,6 +26,9 @@ export const WIRE_COLORS = [
 /** The green flash of a part that snaps in, or the red flash of a wrong one, on its holes. `at` makes each one new. */
 export type Flash = { kind: "snap" | "buzz"; holes: string[]; at: number };
 
+/** The marks of Compare views on the 3D board: a hole → the color of its net, and a part id → its color. */
+export type CompareMark = { holes: Record<string, string>; parts: Record<string, string> };
+
 /** "Show me" was pressed: the camera moves to the problem. `at` makes each press new. */
 export type Focus = { at: number };
 
@@ -84,6 +87,11 @@ export type BoardState = {
   helpedCode: string | null;
   /** The task or connection row under the pointer: the scene shows its ghost (issue #113). It never changes the board. */
   hologram: HologramTarget | null;
+  /**
+   * Compare views is open (issue #202): the nets of the selected connection glow in its color, and the wire that is off
+   * from the reference has a color of its own. Null when the panel is closed. It never changes the board.
+   */
+  compare: CompareMark | null;
 
   /**
    * The learner's own level while a challenge is open (issue #203), or null. A challenge is a sandbox: it puts its own
@@ -114,6 +122,7 @@ export type BoardState = {
   setHover: (hole: string | null) => void;
   /** Shows the ghost of a task or connection row, or hides it (null). */
   setHologram: (hologram: HologramTarget | null) => void;
+  setCompare: (compare: CompareMark | null) => void;
   /**
    * A click or tap on a hole: start a part, finish it, or remove what is in the hole.
    * With a module tool, a click puts the module there. With `preview` (a phone, which has no hover), the first tap
@@ -208,6 +217,7 @@ export function createBoardStore(defaultBench: Bench = perchBench()) {
       codePassed: false,
       helpedCode: null,
       hologram: null,
+      compare: null,
       paused: null,
       restoreBackup: null,
     });
@@ -283,6 +293,7 @@ export function createBoardStore(defaultBench: Bench = perchBench()) {
       setWireColor: (wireColor) => set({ wireColor, tool: "wire", pending: null, notice: null }),
       setHover: (hover) => set({ hover }),
       setHologram: (hologram) => set({ hologram }),
+      setCompare: (compare) => set({ compare }),
       cancel: () => set({ pending: null, notice: null }),
       setCode: (code) => {
         if (code !== get().code) set({ code, codePassed: false });

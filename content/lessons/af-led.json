@@ -52,7 +52,8 @@
       {
         "id": "uno.5V",
         "label": "5V pin of the Uno",
-        "schematic": "t-uno-5v"
+        "schematic": "t-uno-5v",
+        "wire": "The 5V wire"
       },
       {
         "id": "uno.GND",
@@ -67,7 +68,8 @@
             "x": 0.137,
             "y": 0.3514
           }
-        }
+        },
+        "wire": "The GND wire"
       },
       {
         "id": "uno.D13",
@@ -82,7 +84,8 @@
             "x": 0.4129,
             "y": 0.5443
           }
-        }
+        },
+        "wire": "Pin 13's wire"
       },
       {
         "id": "bbA.+",
@@ -113,7 +116,8 @@
             "x": 0.7671,
             "y": 0.6
           }
-        }
+        },
+        "wire": "The wire from the resistor's first leg"
       },
       {
         "id": "r1.2",
@@ -158,7 +162,8 @@
             "x": 0.7911,
             "y": 0.654
           }
-        }
+        },
+        "wire": "The wire from the LED's short leg (−)"
       }
     ],
     "connections": [
@@ -205,7 +210,28 @@
         "src": "/lessons/af-led/photo-ref.webp",
         "title": "Reference photo",
         "alt": "A real circuit on a white table. A white breadboard is on the left and a red SparkFun RedBoard is on the right. A yellow wire goes from pin 13 of the board to the breadboard. A resistor goes from the line of the yellow wire to the line of a red LED. A black wire goes from the other line of the LED to a GND pin of the board.",
-        "note": "This photo shows a SparkFun RedBoard. Its pins are the same as the pins of the Arduino Uno. The resistor in the photo is 330 Ω, and the lesson uses 220 Ω. The circuit is the same: pin 13, resistor, LED, GND. The black wire goes directly to the GND pin, so this photo does not use the − line. The two legs of the LED are near each other in this photo.",
+        "differences": [
+          {
+            "text": "330 Ω resistor here, 220 Ω in the lesson",
+            "x": 0.215,
+            "y": 0.5
+          },
+          {
+            "text": "the black wire goes straight to GND, not the − line",
+            "x": 0.625,
+            "y": 0.42
+          },
+          {
+            "text": "the LED legs sit close together",
+            "x": 0.06,
+            "y": 0.48
+          },
+          {
+            "text": "this is a RedBoard, with the same pins as the Uno",
+            "x": 0.76,
+            "y": 0.74
+          }
+        ],
         "credit": {
           "author": "SparkFun Electronics",
           "source": "https://learn.sparkfun.com/tutorials/activity-guide-for-sparkfun-tinker-kit/circuit-1-blink-an-led",
