@@ -29,9 +29,11 @@ type Props = {
   /** "Restore this run" (issue #214): the board and the sketch of the run go on the bench. */
   onRestore: (run: RunRecord) => void;
   onUndoRestore: () => void;
+  /** The note after a restore or its undo: the bench changed, and a new Run is necessary. */
+  note: string | null;
 };
 
-export function RunCompare({ runs, code, led, onClose, onRestore, onUndoRestore }: Props) {
+export function RunCompare({ runs, code, led, onClose, onRestore, onUndoRestore, note }: Props) {
   const bench = useBoard((s) => s.bench);
   const parts = useBoard((s) => s.parts);
   const hasBackup = useBoard((s) => s.restoreBackup !== null);
@@ -67,6 +69,11 @@ export function RunCompare({ runs, code, led, onClose, onRestore, onUndoRestore 
         </p>
       ) : (
         <>
+          {note && (
+            <p role="status" data-testid="run-restored" className="rounded-lg border border-l-4 border-border bg-card px-3 py-2 leading-snug font-semibold">
+              {note}
+            </p>
+          )}
           {isStale(last, parts, code) && isStale(before, parts, code) && (
             <p role="status" data-testid="run-unrun" className="rounded-lg border border-dashed border-border bg-muted px-3 py-2 leading-snug">
               {text.unrun}

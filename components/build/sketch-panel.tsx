@@ -241,7 +241,8 @@ export function SketchPanel({ step, user, project, position, onClose, onDone }: 
           <span className="font-extrabold">{runsText.stale}.</span> {runsText.staleHelp}
         </p>
       )}
-      {restoreNote && (
+      {/* While the comparison is open, the note shows in it, next to the button that the learner pressed. */}
+      {restoreNote && !comparing && (
         <p role="status" data-testid="run-restored" className="rounded-xl border border-l-4 border-border bg-card px-3 py-2 text-sm leading-snug font-semibold">
           {restoreNote}
         </p>
@@ -260,6 +261,7 @@ export function SketchPanel({ step, user, project, position, onClose, onDone }: 
             onClose={() => setComparing(false)}
             onRestore={(record) => afterRestore(restore(record), runsText.compare.restored)}
             onUndoRestore={() => afterRestore(undoRestore(), runsText.compare.undone)}
+            note={restoreNote}
           />
         ) : (
           <button
