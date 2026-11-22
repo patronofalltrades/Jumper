@@ -46,7 +46,6 @@ async function editBoard(page: Page, key: string, edit: string) {
   await page.evaluate(
     ({ key, edit }) => {
       const saved = JSON.parse(localStorage.getItem(key)!);
-      // eslint-disable-next-line no-new-func -- a small edit of the saved board, written in the test
       new Function("saved", edit)(saved);
       localStorage.setItem(key, JSON.stringify(saved));
     },
